@@ -9,6 +9,15 @@ trigger: always_on
 - This project implements the **web-based puzzle editor frontend only**.
 - Before doing any work, read `overview/Project_Overview.md` to understand core goals, domain model, and preferred tech stack.
 
+### Project Structure
+
+- `components/`: React UI modules—Layout (Header/Sidebar/MainLayout wiring Explorer/Canvas/Inspector), Explorer (Stage tree + per-stage NodeList), Canvas (router plus StateMachineCanvas with FSM editing/selection, PresentationCanvas for linear action graphs, Elements for state cards/connection overlays), Inspector (BlackboardEditor, State/Transition inspectors with ConditionEditor, PresentationNodeInspector + ScriptParamEditor).
+- `store/`: Global state via `store/context.tsx` (StoreProvider, thunk-style loader), `store/reducer.ts` (undo/redo, selection, history wrapper), slices `fsmSlice.ts`, `presentationSlice.ts`, `nodeParamsSlice.ts` combined in `slices/index.ts`, and action/state contracts in `store/types.ts`.
+- `api/`: Typed service interface in `api/types.ts`, mock implementation `mockService.ts` exporting apiService through `api/service.ts`, and seeded domain fixtures in `api/mockData.ts` (stages, nodes, FSMs, presentation graphs, scripts/triggers).
+- `types/`: Domain models for stage tree, puzzle nodes, FSM (states/transitions/conditions), presentation graphs, manifests (scripts/triggers/params), blackboard variables, and shared primitives in `types/common.ts`.
+- `hooks/` & `utils/`: `useCanvasNavigation` for space/middle-button panning, `useGraphInteraction` for dragging, linking, multi-select, and snapping on canvases; geometry math/constants for anchors, Bézier paths, and hit-testing in `utils/geometry.ts`.
+- Root & docs: App entry `index.tsx` with `StoreProvider` and `styles.css` theme; Vite/TypeScript scaffolding (`index.html`, `vite.config.ts`, `tsconfig.json`, `package.json`, `package-lock.json`, `metadata.json`); project briefs in `overview/Project_Overview.md`, `overview/Task_Breakdown.md`, `overview/UX_Flow.md`
+
 ### Per-Task Workflow
 
 For each Task in `overview/Task_Breakdown.md`:
