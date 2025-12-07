@@ -1,0 +1,105 @@
+
+import React from 'react';
+import { Transition, State } from '../../../types/stateMachine';
+import * as Geom from '../../../utils/geometry';
+
+interface Props {
+    transition: Transition;
+    fromState: State;
+    toState: State;
+    isSelected: boolean;
+    isContextTarget: boolean;
+    isModifying: boolean;
+    fromPos: Geom.Point;
+    toPos: Geom.Point;
+    onSelect: (e: React.MouseEvent, id: string) => void;
+    onContextMenu: (e: React.MouseEvent, id: string) => void;
+    onHandleDown: (e: React.MouseEvent, id: string, type: 'source' | 'target') => void;
+}
+
+export const ConnectionLine = React.memo(({
+    transition,
+    fromState,
+    toState,
+    isSelected,
+    isContextTarget,
+    isModifying,
+    fromPos,
+    toPos,
+    onSelect,
+    onContextMenu,
+    onHandleDown
+}: Props) => {
+    if (!fromState || !toState || isModifying) return null;
+
+    const fromSide = transition.fromSide || Geom.getClosestSide(fromPos, Geom.STATE_WIDTH, Geom.STATE_ESTIMATED_HEIGHT, toPos);
+    const toSide = transition.toSide || Geom.getClosestSide(toPos, Geom.STATE_WIDTH, Geom.STATE_ESTIMATED_HEIGHT, fromPos);
+
+    const start = Geom.getNodeAnchor(fromPos, Geom.STATE_WIDTH, Geom.STATE_ESTIMATED_HEIGHT, fromSide);
+    const end = Geom.getNodeAnchor(toPos, Geom.STATE_WIDTH, Geom.STATE_ESTIMATED_HEIGHT, toSide);
+    const path = Geom.getBezierPathData(start, end, fromSide, toSide);
+
+    const strokeColor = isContextTarget ? "var(--accent-warning)" : (isSelected ? "var(--accent-color)" : "#666");
+    const markerId = isContextTarget ? "url(#arrow-context)" : (isSelected ? "url(#arrow-selected)" : "url(#arrow-normal)");
+
+    const handleClick = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        // Ctrl+点击时不做任何操作（让Ctrl+拖拽来处理切线）
+        if (e.ctrlKey || e.metaKey) return;
+        onSelect(e, transition.id);
+    };
+
+    return (
+        <React.Fragment>
+            {/* SVG Path Layer */}
+            <path d={path} fill="none" stroke="transparent" strokeWidth="15"
+                style={{ pointerEvents: 'stroke', cursor: 'pointer' }}
+                onClick={handleClick}
+                onContextMenu={(e) => onContextMenu(e, transition.id)}
+            />
+            <path d={path} fill="none"
+                stroke={strokeColor}
+                strokeWidth={(isSelected || isContextTarget) ? 3 : 2}
+                markerEnd={markerId}
+                style={{ pointerEvents: 'none' }}
+            />
+        </React.Fragment>
+    );
+});
+
+
+
+// Helper component for the HTML overlay part (Handles & Label)
+export const ConnectionControls = React.memo(({
+    transition, fromPos, toPos, isSelected, isContextTarget, onSelect, onContextMenu, onHandleDown
+}: Omit<Props, 'fromState' | 'toState' | 'isModifying'>) => {
+
+    const fromSide = transition.fromSide || Geom.getClosestSide(fromPos, Geom.STATE_WIDTH, Geom.STATE_ESTIMATED_HEIGHT, toPos);
+    const toSide = transition.toSide || Geom.getClosestSide(toPos, Geom.STATE_WIDTH, Geom.STATE_ESTIMATED_HEIGHT, fromPos);
+
+    const start = Geom.getNodeAnchor(fromPos, Geom.STATE_WIDTH, Geom.STATE_ESTIMATED_HEIGHT, fromSide);
+    const end = Geom.getNodeAnchor(toPos, Geom.STATE_WIDTH, Geom.STATE_ESTIMATED_HEIGHT, toSide);
+    const mid = Geom.getBezierMidPoint(start, end, fromSide, toSide);
+
+    return (
+        <React.Fragment>
+            <div
+                onClick={(e) => { e.stopPropagation(); onSelect(e, transition.id); }}
+                onContextMenu={(e) => onContextMenu(e, transition.id)}
+                style={{
+                    position: 'absolute', left: mid.x, top: mid.y, transform: 'translate(-50%, -50%)',
+                    backgroundColor: isContextTarget ? 'var(--accent-warning)' : (isSelected ? 'var(--accent-color)' : '#252526'),
+                    border: '1px solid #444', borderRadius: '12px', padding: '2px 8px', fontSize: '10px',
+                    color: (isSelected || isContextTarget) ? '#fff' : '#ccc',
+                    cursor: 'pointer', zIndex: 30
+                }}
+            >
+                {transition.name}
+            </div>
+            <div className="handle" style={{ left: start.x, top: start.y, zIndex: 31 }}
+                onMouseDown={(e) => onHandleDown(e, transition.id, 'source')} />
+            <div className="handle" style={{ left: end.x, top: end.y, zIndex: 31 }}
+                onMouseDown={(e) => onHandleDown(e, transition.id, 'target')} />
+        </React.Fragment>
+    )
+});
