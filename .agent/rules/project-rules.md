@@ -7,16 +7,25 @@ trigger: always_on
 ### Scope & Sources
 
 - This project implements the **web-based puzzle editor frontend only**.
-- Before doing any work, read `overview/Project_Overview.md` to understand core goals, domain model, and preferred tech stack.
 
 ### Project Structure
 
-- `components/`: React UI modules—Layout (Header/Sidebar/MainLayout wiring Explorer/Canvas/Inspector), Explorer (Stage tree + per-stage NodeList), Canvas (router plus StateMachineCanvas with FSM editing/selection, PresentationCanvas for linear action graphs, Elements for state cards/connection overlays), Inspector (BlackboardEditor, State/Transition inspectors with ConditionEditor, PresentationNodeInspector + ScriptParamEditor).
-- `store/`: Global state via `store/context.tsx` (StoreProvider, thunk-style loader), `store/reducer.ts` (undo/redo, selection, history wrapper), slices `fsmSlice.ts`, `presentationSlice.ts`, `nodeParamsSlice.ts` combined in `slices/index.ts`, and action/state contracts in `store/types.ts`.
-- `api/`: Typed service interface in `api/types.ts`, mock implementation `mockService.ts` exporting apiService through `api/service.ts`, and seeded domain fixtures in `api/mockData.ts` (stages, nodes, FSMs, presentation graphs, scripts/triggers).
-- `types/`: Domain models for stage tree, puzzle nodes, FSM (states/transitions/conditions), presentation graphs, manifests (scripts/triggers/params), blackboard variables, and shared primitives in `types/common.ts`.
-- `hooks/` & `utils/`: `useCanvasNavigation` for space/middle-button panning, `useGraphInteraction` for dragging, linking, multi-select, and snapping on canvases; geometry math/constants for anchors, Bézier paths, and hit-testing in `utils/geometry.ts`.
-- Root & docs: App entry `index.tsx` with `StoreProvider` and `styles.css` theme; Vite/TypeScript scaffolding (`index.html`, `vite.config.ts`, `tsconfig.json`, `package.json`, `package-lock.json`, `metadata.json`); project briefs in `overview/Project_Overview.md`, `overview/Task_Breakdown.md`, `overview/UX_Flow.md`
+- `components/`: React UI components — overall layout (Layout), stage explorer (Explorer), canvas editors (FSM canvas, presentation canvas), inspector panels, and shared UI elements.
+- `store/`: Global state management — context provider, reducers (with undo/redo and selection history), feature slices, and shared action/state types.
+- `api/`: Service layer — typed interfaces, real/mock service implementations, and seeded data (stages, nodes, FSMs, presentation graphs, scripts/triggers).
+- `types/`: Domain models — stage tree, puzzle nodes, FSM (states/transitions/conditions), presentation graphs, script/trigger manifests, blackboard variables, and common primitives.
+- `hooks/` & `utils/`: Custom hooks (canvas navigation, graph interaction) and utility functions (geometry, paths, hit testing, etc.).
+- `overview/`: Design docs — `Project_Overview`, `Task_Breakdown`, `UX_Flow` (**read-only**); Dev docs — in `overview/dev/` (read & write)
+- Root: App entry and tooling — main entry file, global styles, Vite/TypeScript config, and package management files.
+
+### General Guidelines
+
+- Before doing any task: 
+  - read `overview/Project_Overview.md` to understand core goals, domain model, and preferred tech stack.
+  - read necessary docs in `overview/dev/` to understand current project code architecture and task progress.
+- For the code that has already been implemented, you can evaluate its quality and completeness, compare it with the current requirements, and choose whether to refactor based on the existing code or continue using it according to the actual situation.
+- If any necessary documents need to be produced, please put them in the `overview/dev` directory.
+- After completing any task, update docs in  `overview/dev` to reflect code changes and task completion status.
 
 ### Per-Task Workflow
 

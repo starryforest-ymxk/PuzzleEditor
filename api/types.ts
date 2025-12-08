@@ -3,6 +3,11 @@
  * 定义数据访问层的抽象接口，实现与后端的解耦
  */
 
+import {
+    PuzzleNodeId,
+    StateMachineId,
+    PresentationGraphId
+} from '../types/common';
 import { StageTreeData } from '../types/stage';
 import { PuzzleNode } from '../types/puzzleNode';
 import { ScriptDefinition, TriggerDefinition } from '../types/manifest';
@@ -17,11 +22,10 @@ export interface ProjectData {
         name: string;
         version: string;
     };
-    stages: StageTreeData;
-    nodes: Record<string, PuzzleNode>;
-    stateMachines: Record<string, StateMachine>;
-    presentationGraphs: Record<string, PresentationGraph>;
-    rootStageId: string;
+    stageTree: StageTreeData;
+    nodes: Record<PuzzleNodeId, PuzzleNode>;
+    stateMachines: Record<StateMachineId, StateMachine>;
+    presentationGraphs: Record<PresentationGraphId, PresentationGraph>;
 }
 
 /** Manifest 数据结构 */

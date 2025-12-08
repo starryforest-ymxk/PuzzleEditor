@@ -1,21 +1,46 @@
+/**
+ * types/presentation.ts
+ * 演出子图类型定义 - PresentationGraph 结构
+ */
 
-import { ID, Entity, Vector2 } from './common';
+import {
+  Entity,
+  Vector2,
+  ParameterBinding,
+  PresentationGraphId,
+  PresentationNodeId,
+  ScriptId
+} from './common';
 
+// ========== 演出节点类型 ==========
 export type PresentationNodeType = 'ScriptCall' | 'Wait' | 'Branch' | 'Parallel';
 
+// ========== 演出节点 ==========
+/**
+ * 演出子图中的单个节点
+ */
 export interface PresentationNode extends Entity {
+  id: PresentationNodeId;
   type: PresentationNodeType;
-  position: Vector2;
-  
-  // 如果是 ScriptCall
-  scriptId?: ID; // 引用 Manifest 中的定义
-  parameters?: Record<string, any>; // 实参
-  
-  // 连线关系 (Presentation Graph 通常是线性的或简单分支)
-  nextIds: ID[]; 
+  position: Vector2;        // 画布坐标
+
+  // ScriptCall 类型：绑定脚本
+  scriptId?: ScriptId;
+  parameters?: ParameterBinding[];
+
+  // Wait 类型：等待时间
+  duration?: number;
+
+  // 连线关系（后继节点）
+  nextIds: PresentationNodeId[];
 }
 
+// ========== 演出子图 ==========
+/**
+ * 演出子图，包含串行/分支节点序列
+ */
 export interface PresentationGraph extends Entity {
-  startNodeId: ID | null;
-  nodes: Record<ID, PresentationNode>;
+  id: PresentationGraphId;
+  startNodeId: PresentationNodeId | null;
+  nodes: Record<PresentationNodeId, PresentationNode>;
 }

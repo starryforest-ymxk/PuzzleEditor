@@ -1,16 +1,38 @@
+/**
+ * types/puzzleNode.ts
+ * 关卡节点类型定义 - PuzzleNode 实体结构
+ */
 
-import { ID, Entity } from './common';
-import { BlackboardVariable } from './blackboard';
+import {
+  Entity,
+  EventListener,
+  StageId,
+  StateMachineId,
+  PuzzleNodeId,
+  VariableId,
+  ScriptId
+} from './common';
+import { VariableDefinition } from './blackboard';
 
+// ========== 解谜节点 ==========
+/**
+ * 解谜节点实体，承载在 Stage 中
+ * 包含内部状态机和局部变量
+ */
 export interface PuzzleNode extends Entity {
-  stageId: ID; // 所属 Stage
-  
+  id: PuzzleNodeId;
+  stageId: StageId;              // 所属 Stage
+
   // 核心逻辑组件
-  stateMachineId: ID; // 关联的状态机 ID
-  
-  // 演出流组件 (一个节点可能有多个演出片段，如 "PlayCutscene_A", "ResetAnimation")
-  presentationGraphIds: ID[]; 
-  
-  // 局部变量/参数
-  localBlackboard: Record<ID, BlackboardVariable>;
+  stateMachineId: StateMachineId;       // 关联的状态机 ID
+
+  // 局部变量 (Node Local)
+  localVariables: Record<VariableId, VariableDefinition>;
+
+  // 生命周期脚本
+  onCreateScriptId?: ScriptId;    // 节点创建时执行
+  onDestroyScriptId?: ScriptId;   // 节点销毁时执行
+
+  // 事件监听
+  eventListeners: EventListener[];
 }

@@ -37,11 +37,10 @@ export class MockApiService implements IApiService {
                         version: "0.0.1"
                     },
                     // 使用深拷贝避免污染原始 Mock 数据
-                    stages: JSON.parse(JSON.stringify(MOCK_STAGES)),
+                    stageTree: JSON.parse(JSON.stringify(MOCK_STAGES)),
                     nodes: JSON.parse(JSON.stringify(MOCK_NODES)),
                     stateMachines: JSON.parse(JSON.stringify(MOCK_STATE_MACHINES)),
-                    presentationGraphs: JSON.parse(JSON.stringify(MOCK_PRESENTATION_GRAPHS)),
-                    rootStageId: 'stage-root'
+                    presentationGraphs: JSON.parse(JSON.stringify(MOCK_PRESENTATION_GRAPHS))
                 });
             }, MOCK_LATENCY.PROJECT_LOAD);
         });

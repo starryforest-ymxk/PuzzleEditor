@@ -17,7 +17,7 @@ export const StageExplorer = () => {
   };
 
   const renderTree = (stageId: string, depth = 0) => {
-    const stage = project.stages[stageId];
+    const stage = project.stageTree.stages[stageId];
     if (!stage) return null;
 
     const isSelected = ui.selection.type === 'STAGE' && ui.selection.id === stageId;
@@ -25,15 +25,15 @@ export const StageExplorer = () => {
 
     return (
       <div key={stage.id}>
-        <div 
+        <div
           className={`tree-node ${isSelected ? 'selected' : ''}`}
           style={{ paddingLeft: `${depth * 16 + 8}px` }}
           onClick={(e) => handleSelect(e, stage.id)}
         >
-          <span 
-            style={{ 
-              marginRight: '6px', 
-              opacity: hasChildren ? 0.7 : 0.2, 
+          <span
+            style={{
+              marginRight: '6px',
+              opacity: hasChildren ? 0.7 : 0.2,
               fontSize: '10px',
               cursor: hasChildren ? 'pointer' : 'default',
               width: '12px',
@@ -45,14 +45,14 @@ export const StageExplorer = () => {
             {hasChildren ? (stage.isExpanded ? '▼' : '▶') : '•'}
           </span>
           <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-             {stage.name}
+            {stage.name}
           </span>
         </div>
-        
+
         {hasChildren && stage.isExpanded && (
-            <div>
-                {stage.childrenIds.map(childId => renderTree(childId, depth + 1))}
-            </div>
+          <div>
+            {stage.childrenIds.map(childId => renderTree(childId, depth + 1))}
+          </div>
         )}
       </div>
     );
@@ -64,7 +64,7 @@ export const StageExplorer = () => {
 
   return (
     <div style={{ padding: '8px 0' }}>
-      {project.rootStageId ? renderTree(project.rootStageId) : <div className="empty-state">No Root Stage</div>}
+      {project.stageTree.rootId ? renderTree(project.stageTree.rootId) : <div className="empty-state">No Root Stage</div>}
     </div>
   );
 };

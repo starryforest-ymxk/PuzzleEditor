@@ -25,10 +25,10 @@ export const Canvas = () => {
 
                 <div style={{ marginBottom: '32px' }}>
                     <h1 style={{ margin: '0 0 8px 0', fontWeight: 300, fontSize: '28px', color: '#fff' }}>
-                        {project.stages[stageId]?.name}
+                        {project.stageTree.stages[stageId]?.name}
                     </h1>
                     <div style={{ color: '#666', fontSize: '13px', maxWidth: '600px' }}>
-                        {project.stages[stageId]?.description || 'No description provided for this stage.'}
+                        {project.stageTree.stages[stageId]?.description || 'No description provided for this stage.'}
                     </div>
                 </div>
 

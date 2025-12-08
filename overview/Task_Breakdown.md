@@ -23,12 +23,12 @@
 
 ### [P1-T03] 资源生命周期与软删除状态机设计
 
-- 根据文档中 Draft → Implemented → MarkedForDelete 的要求，画出资源状态机：允许/禁止的状态转换和触发条件。Project_Overview
+- 根据文档中 Draft → Implemented → MarkedForDelete 的要求，画出资源状态机：允许/禁止的状态转换和触发条件。
 - 规定每个状态在 UI 上的表现和行为限制：
   - `Draft`：允许修改和物理删除；
   - `Implemented`：不允许物理删除，只能标记删除；
-  - `MarkedForDelete`：禁止新引用，旧引用要报红，但数据仍存在。
-- 定义“应用删除”操作的语义：执行后 JSON 中如何真正移除对象，以及如何在校验阶段阻止导出仍引用该对象的工程。
+  - `MarkedForDelete`：禁止新引用，旧引用要报红，但数据仍存在。在校验阶段会阻止导出仍引用该对象的工程；
+- 定义“应用删除”操作的语义：执行后 JSON 中如何真正移除对象，以及如何在校验阶段阻止导出仍引用被删除对象的工程。
 
 ### [P1-T04] 作用域模型设计（Global / Stage Local / Node Local / Temporary）
 
@@ -36,7 +36,7 @@
   - Global：工程唯一，任何地方可见；
   - Stage Local：只在该 Stage 及其子结构可见；
   - Node Local：只在具体 PuzzleNode 内 FSM 与演出子图可见；
-  - Temporary：仅在参数传递时存在。UX_Flow
+  - Temporary：仅在参数传递时存在。
 - 设计 JSON 表达方式：每个 Stage / PuzzleNode 如何持有自己的局部变量列表；引用时如何带上作用域信息。
 - 约定变量类型体系（数字、布尔、字符串、枚举等）及允许的比较/运算类型。
 
@@ -45,7 +45,7 @@
 - 抽象出一个通用的「条件表达式」结构，可以组合：
   - 变量比较（Var op Value）；
   - 调用自定义条件脚本；
-  - AND/OR 嵌套组。UX_Flow
+  - AND/OR 嵌套组。
 - 抽象出参数修改操作的通用结构：
   - 操作类型（Set / Add / Sub / CopyFromVar 等）；
   - 目标变量作用域；
@@ -54,13 +54,13 @@
 
 ### [P1-T06] 事件与触发器模型设计
 
-- 统一定义 Event 的结构（ID、Name、Description、State）。Project_Overview
+- 统一定义 Event 的结构（ID、Name、Description、State）。
 - 定义触发器类型集合：`Always / OnEvent / CustomScript`，约定每一类需要的配置字段。
 - 明确 Event 在哪些层级可被监听（Stage、State、PuzzleNode、演出图节点）以及监听行为可以驱动哪些动作（调用脚本 / 修改参数 / 状态转移等）。
 
 ### [P1-T07] 演出体系与参数传递模型设计
 
-- 抽象 **PresentationGraph** 结构：节点列表、连线关系、每个节点绑定的演出脚本引用。UX_Flow
+- 抽象 **PresentationGraph** 结构：节点列表、连线关系、每个节点绑定的演出脚本引用。
 - 定义在 Stage / State / Transition / GraphNode 任意位置绑定“一个演出对象（脚本或子图）”时 JSON 的统一格式。
 - 设计参数传递结构：
   - 支持从 Global / Stage / Node 变量读取；
@@ -107,7 +107,7 @@
 
 ### [P2-T03] 阶段树只读视图
 
-- 从 Store 渲染完整的阶段树层级结构。Project_Overview
+- 从 Store 渲染完整的阶段树层级结构。
 - 支持展开/折叠、当前选中高亮、标记初始 Stage。
 - 点击树节点时，中间工作区切换为该 Stage 的“内容概览”页面。
 
@@ -115,7 +115,7 @@
 
 - 在中间工作区，用卡片方式列出：
   - 当前 Stage 的子 Stage 列表；
-  - 当前 Stage 下的 PuzzleNode 列表。UX_Flow
+  - 当前 Stage 下的 PuzzleNode 列表。
 - 单击卡片：
   - 若为 Stage 卡片：在右侧 Inspector 显示 Stage 属性（只读）。
   - 若为 PuzzleNode 卡片：在右侧 Inspector 显示 PuzzleNode 的基本属性（只读）。
@@ -132,14 +132,14 @@
 - 实现无限画布，支持平移和缩放。
 - 根据 FSM 数据渲染所有 State 节点和 Transition 连线：
   - 显示节点名称、是否初始状态；
-  - 显示连线方向以及简要的触发条件标签。UX_Flow
+  - 显示连线方向以及简要的触发条件标签。
 - 允许点击节点/连线，右侧 Inspector 切换显示对应的详细属性（只读）。
 
 ### [P2-T07] 演出子图（PresentationGraph）只读视图
 
 - 列出所有定义的 PresentationGraph，并能打开单个图查看：
   - 节点列表与连线结构；
-  - 每个节点绑定的演出脚本及简单参数摘要。UX_Flow
+  - 每个节点绑定的演出脚本及简单参数摘要。
 - 同样只读，不支持结构修改。
 
 ### [P2-T08] 基础保存与导出（无校验）
@@ -190,7 +190,7 @@
   - 允许添加多条触发器记录；
   - 支持选择触发器类型：Always / OnEvent / CustomScript；
   - 若为 OnEvent：提供事件选择器；
-  - 若为 CustomScript：提供自定义触发脚本选择器。UX_Flow
+  - 若为 CustomScript：提供自定义触发脚本选择器。
 - 校验：当 Transition 没有任何触发器且也没有强制执行逻辑时，在后续校验阶段产生警告。
 
 ### [P3-T06] 条件构造器编辑（Condition Builder）
@@ -209,7 +209,7 @@
 
 ### [P3-T08] 演出绑定与参数传递（Transition / State）
 
-- 允许在 Transition 和 State 上各自绑定一个演出对象（脚本或子图），并配置参数传递。UX_Flow
+- 允许在 Transition 和 State 上各自绑定一个演出对象（脚本或子图），并配置参数传递。
 - 参数传递编辑 UI：
   - 一行一条参数映射：`目标参数名 = 来源（常量 / 变量引用 / 临时参数）`；
   - 支持创建临时参数并立即作为来源。
@@ -233,7 +233,7 @@
 - 在 Blackboard 视图中开放完整编辑能力：
   - 新建、重命名、修改描述；
   - 设置/切换 State（Draft/Implemented/MarkedForDelete）；
-  - 删除逻辑遵循软删除规则，并提供“应用删除”操作。Project_Overview
+  - 删除逻辑遵循软删除规则，并提供“应用删除”操作。
 - 实现“引用查询”：在黑板条目详情中列出所有引用位置（Stage / Node / Transition / 演出节点等），点击可跳转。
 
 ### [P4-T02] 阶段树编辑（Stage Tree Editing）
@@ -258,14 +258,14 @@
 - 在 PuzzleNode Inspector 中开放：
   - 节点基本信息编辑；
   - 节点生命周期脚本绑定（OnCreate/OnDestroy）；
-  - 节点级事件监听和参数修改配置。UX_Flow
+  - 节点级事件监听和参数修改配置。
 
 ### [P4-T04] 演出子图编辑器完善
 
 - 为 PresentationGraph 提供完整编辑能力：
   - 新建/删除演出图；
   - 在图中新增节点、连线、调整顺序；
-  - 为节点绑定演出脚本并配置参数传递。UX_Flow
+  - 为节点绑定演出脚本并配置参数传递。
 - 支持从其他位置跳转到对应的演出图（例如在 Transition Inspector 中点击“编辑子图”）。
 
 ### [P4-T05] 跨视图导航与工作流打通

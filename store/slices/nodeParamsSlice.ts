@@ -1,15 +1,15 @@
 /**
  * Node Parameters (节点局部参数) Reducer 切片
- * 处理所有与 PuzzleNode 本地黑板变量相关的操作
+ * 处理所有与 PuzzleNode 局部变量相关的操作
  */
 
 import { EditorState, Action } from '../types';
-import { BlackboardVariable } from '../../types/blackboard';
+import { VariableDefinition } from '../../types/blackboard';
 
 // ========== Node Params 相关 Actions 类型定义 ==========
 export type NodeParamsAction =
-    | { type: 'ADD_NODE_PARAM'; payload: { nodeId: string; variable: BlackboardVariable } }
-    | { type: 'UPDATE_NODE_PARAM'; payload: { nodeId: string; varId: string; data: Partial<BlackboardVariable> } }
+    | { type: 'ADD_NODE_PARAM'; payload: { nodeId: string; variable: VariableDefinition } }
+    | { type: 'UPDATE_NODE_PARAM'; payload: { nodeId: string; varId: string; data: Partial<VariableDefinition> } }
     | { type: 'DELETE_NODE_PARAM'; payload: { nodeId: string; varId: string } };
 
 // ========== 类型守卫：判断是否为 Node Params Action ==========
@@ -34,8 +34,8 @@ export const nodeParamsReducer = (state: EditorState, action: NodeParamsAction):
                         ...state.project.nodes,
                         [nodeId]: {
                             ...node,
-                            localBlackboard: {
-                                ...node.localBlackboard,
+                            localVariables: {
+                                ...node.localVariables,
                                 [variable.id]: variable
                             }
                         }
@@ -47,7 +47,7 @@ export const nodeParamsReducer = (state: EditorState, action: NodeParamsAction):
         case 'UPDATE_NODE_PARAM': {
             const { nodeId, varId, data } = action.payload;
             const node = state.project.nodes[nodeId];
-            if (!node || !node.localBlackboard[varId]) return state;
+            if (!node || !node.localVariables[varId]) return state;
 
             return {
                 ...state,
@@ -57,9 +57,9 @@ export const nodeParamsReducer = (state: EditorState, action: NodeParamsAction):
                         ...state.project.nodes,
                         [nodeId]: {
                             ...node,
-                            localBlackboard: {
-                                ...node.localBlackboard,
-                                [varId]: { ...node.localBlackboard[varId], ...data }
+                            localVariables: {
+                                ...node.localVariables,
+                                [varId]: { ...node.localVariables[varId], ...data }
                             }
                         }
                     }
@@ -72,8 +72,8 @@ export const nodeParamsReducer = (state: EditorState, action: NodeParamsAction):
             const node = state.project.nodes[nodeId];
             if (!node) return state;
 
-            const newBlackboard = { ...node.localBlackboard };
-            delete newBlackboard[varId];
+            const newLocalVariables = { ...node.localVariables };
+            delete newLocalVariables[varId];
 
             return {
                 ...state,
@@ -83,7 +83,7 @@ export const nodeParamsReducer = (state: EditorState, action: NodeParamsAction):
                         ...state.project.nodes,
                         [nodeId]: {
                             ...node,
-                            localBlackboard: newBlackboard
+                            localVariables: newLocalVariables
                         }
                     }
                 }

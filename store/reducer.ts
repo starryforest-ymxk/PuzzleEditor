@@ -24,11 +24,10 @@ const HISTORY_ACTIONS = new Set([
  * 提取项目数据的纯数据部分用于快照
  */
 const getProjectSnapshot = (state: EditorState): ProjectContent => ({
-    stages: state.project.stages,
+    stageTree: state.project.stageTree,
     nodes: state.project.nodes,
     stateMachines: state.project.stateMachines,
     presentationGraphs: state.project.presentationGraphs,
-    rootStageId: state.project.rootStageId,
     meta: state.project.meta
 });
 
@@ -64,12 +63,11 @@ const internalReducer = (state: EditorState, action: Action): EditorState => {
                 ...state,
                 project: {
                     isLoaded: true,
-                    meta: action.payload.project.meta,
-                    stages: action.payload.project.stages,
-                    nodes: action.payload.project.nodes,
-                    stateMachines: action.payload.project.stateMachines || {},
-                    presentationGraphs: action.payload.project.presentationGraphs || {},
-                    rootStageId: action.payload.project.rootStageId
+                    meta: action.payload.meta,
+                    stageTree: action.payload.stageTree,
+                    nodes: action.payload.nodes,
+                    stateMachines: action.payload.stateMachines || {},
+                    presentationGraphs: action.payload.presentationGraphs || {}
                 },
                 history: { past: [], future: [] }, // 加载时重置历史
                 manifest: {
@@ -89,19 +87,22 @@ const internalReducer = (state: EditorState, action: Action): EditorState => {
         case 'UPDATE_STAGE_TREE':
             return {
                 ...state,
-                project: { ...state.project, stages: action.payload }
+                project: { ...state.project, stageTree: action.payload }
             };
 
         case 'TOGGLE_STAGE_EXPAND': {
-            const stage = state.project.stages[action.payload.id];
+            const stage = state.project.stageTree.stages[action.payload.id];
             if (!stage) return state;
             return {
                 ...state,
                 project: {
                     ...state.project,
-                    stages: {
-                        ...state.project.stages,
-                        [action.payload.id]: { ...stage, isExpanded: !stage.isExpanded }
+                    stageTree: {
+                        ...state.project.stageTree,
+                        stages: {
+                            ...state.project.stageTree.stages,
+                            [action.payload.id]: { ...stage, isExpanded: !stage.isExpanded }
+                        }
                     }
                 }
             };

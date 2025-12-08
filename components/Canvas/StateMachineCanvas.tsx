@@ -82,7 +82,8 @@ export const StateMachineCanvas = ({ node }: Props) => {
                     fsmId: fsm.id,
                     transition: {
                         id: `trans-${Date.now()}`, name: 'Transition', fromStateId: sourceId, toStateId: targetId,
-                        fromSide, toSide: side, condition: { type: 'LITERAL', value: true }, priority: 0
+                        fromSide, toSide: side, condition: { type: 'LITERAL', value: true }, priority: 0,
+                        triggers: [{ type: 'Always' }], parameterModifiers: []
                     }
                 }
             });
@@ -349,7 +350,7 @@ export const StateMachineCanvas = ({ node }: Props) => {
                     onClick={(e) => e.stopPropagation()}
                     onMouseDown={(e) => e.stopPropagation()}
                 >
-                    {contextMenu.type === 'CANVAS' && <div className="ctx-item" onClick={() => { dispatch({ type: 'ADD_STATE', payload: { fsmId: fsm.id, state: { id: `state-${Date.now()}`, name: 'New State', position: { x: contextMenu.x, y: contextMenu.y }, onEnterScriptIds: [], onExitScriptIds: [], onUpdateScriptIds: [], transitionIds: [] } } }); setContextMenu(null); }}>+ Add State</div>}
+                    {contextMenu.type === 'CANVAS' && <div className="ctx-item" onClick={() => { dispatch({ type: 'ADD_STATE', payload: { fsmId: fsm.id, state: { id: `state-${Date.now()}`, name: 'New State', position: { x: contextMenu.x, y: contextMenu.y }, eventListeners: [] } } }); setContextMenu(null); }}>+ Add State</div>}
                     {contextMenu.type === 'NODE' && (
                         <>
                             {fsm.initialStateId !== contextMenu.targetId && <div className="ctx-item" onClick={() => { dispatch({ type: 'UPDATE_FSM', payload: { fsmId: fsm.id, data: { initialStateId: contextMenu.targetId } } }); setContextMenu(null); }}>🏁 Set Initial</div>}

@@ -65,10 +65,11 @@ export const fsmReducer = (state: EditorState, action: FsmAction): EditorState =
                 }
             });
 
-            // 清理其他状态的 transitionIds
-            Object.values(newStates).forEach(s => {
-                s.transitionIds = s.transitionIds.filter(tid => newTransitions[tid]);
-            });
+            // 如果删除的是初始状态，清除 initialStateId
+            let newInitialStateId = fsm.initialStateId;
+            if (fsm.initialStateId === stateId) {
+                newInitialStateId = null;
+            }
 
             // 如果删除的是当前选中项，更新选择状态
             let newSelection = state.ui.selection;
@@ -87,7 +88,12 @@ export const fsmReducer = (state: EditorState, action: FsmAction): EditorState =
                     ...state.project,
                     stateMachines: {
                         ...state.project.stateMachines,
-                        [fsmId]: { ...fsm, states: newStates, transitions: newTransitions }
+                        [fsmId]: {
+                            ...fsm,
+                            states: newStates,
+                            transitions: newTransitions,
+                            initialStateId: newInitialStateId
+                        }
                     }
                 }
             };
@@ -149,14 +155,7 @@ export const fsmReducer = (state: EditorState, action: FsmAction): EditorState =
                         ...state.project.stateMachines,
                         [fsmId]: {
                             ...fsm,
-                            transitions: { ...fsm.transitions, [transition.id]: transition },
-                            states: {
-                                ...fsm.states,
-                                [fromState.id]: {
-                                    ...fromState,
-                                    transitionIds: [...fromState.transitionIds, transition.id]
-                                }
-                            }
+                            transitions: { ...fsm.transitions, [transition.id]: transition }
                         }
                     }
                 }
@@ -174,16 +173,6 @@ export const fsmReducer = (state: EditorState, action: FsmAction): EditorState =
             const newTransitions = { ...fsm.transitions };
             delete newTransitions[transitionId];
 
-            const fromState = fsm.states[trans.fromStateId];
-            const newStates = { ...fsm.states };
-
-            if (fromState) {
-                newStates[fromState.id] = {
-                    ...fromState,
-                    transitionIds: fromState.transitionIds.filter(id => id !== transitionId)
-                };
-            }
-
             let newSelection = state.ui.selection;
             if (state.ui.selection.type === 'TRANSITION' && state.ui.selection.id === transitionId) {
                 if (state.ui.selection.contextId) {
@@ -200,7 +189,7 @@ export const fsmReducer = (state: EditorState, action: FsmAction): EditorState =
                     ...state.project,
                     stateMachines: {
                         ...state.project.stateMachines,
-                        [fsmId]: { ...fsm, transitions: newTransitions, states: newStates }
+                        [fsmId]: { ...fsm, transitions: newTransitions }
                     }
                 }
             };

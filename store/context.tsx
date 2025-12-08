@@ -28,7 +28,7 @@ export const useEditorDispatch = () => useContext(DispatchContext);
 export const loadProjectData = async (dispatch: Dispatch<Action>) => {
   dispatch({ type: 'INIT_START' });
   try {
-    const [project, manifest] = await Promise.all([
+    const [projectData, manifest] = await Promise.all([
       apiService.loadProject(),
       apiService.loadManifest()
     ]);
@@ -36,7 +36,11 @@ export const loadProjectData = async (dispatch: Dispatch<Action>) => {
     dispatch({ 
       type: 'INIT_SUCCESS', 
       payload: { 
-        project, 
+        stageTree: projectData.stageTree,
+        nodes: projectData.nodes,
+        stateMachines: projectData.stateMachines,
+        presentationGraphs: projectData.presentationGraphs,
+        meta: projectData.meta,
         scripts: manifest.scripts,
         triggers: manifest.triggers
       } 
