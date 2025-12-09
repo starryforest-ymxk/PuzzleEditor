@@ -1,5 +1,7 @@
 # Project Rules 
 
+> **This document is intended for Codex AI and defines its responsibilities and operational guidelines.**
+
 ### Scope & Sources
 
 - This project implements the **web-based puzzle editor frontend only**.

@@ -5,6 +5,8 @@
 
 import { EditorState, Action } from '../types';
 import { VariableDefinition } from '../../types/blackboard';
+import { normalizeResourceStateUpdate, resolveDeleteAction } from '../../utils/resourceLifecycle';
+import { withScope } from '../../utils/variableScope';
 
 // ========== Node Params 相关 Actions 类型定义 ==========
 export type NodeParamsAction =
@@ -26,6 +28,8 @@ export const nodeParamsReducer = (state: EditorState, action: NodeParamsAction):
             const node = state.project.nodes[nodeId];
             if (!node) return state;
 
+            const variableWithScope = withScope(variable, 'NodeLocal');
+
             return {
                 ...state,
                 project: {
@@ -36,7 +40,7 @@ export const nodeParamsReducer = (state: EditorState, action: NodeParamsAction):
                             ...node,
                             localVariables: {
                                 ...node.localVariables,
-                                [variable.id]: variable
+                                [variable.id]: variableWithScope
                             }
                         }
                     }
@@ -47,7 +51,12 @@ export const nodeParamsReducer = (state: EditorState, action: NodeParamsAction):
         case 'UPDATE_NODE_PARAM': {
             const { nodeId, varId, data } = action.payload;
             const node = state.project.nodes[nodeId];
-            if (!node || !node.localVariables[varId]) return state;
+            const variable = node?.localVariables[varId];
+            if (!node || !variable) return state;
+
+            // 仅允许合法的状态跳转；非法跳转保持原状态
+            const nextState = normalizeResourceStateUpdate(variable.state, data.state);
+            const mergedData = { ...data, state: nextState };
 
             return {
                 ...state,
@@ -59,7 +68,7 @@ export const nodeParamsReducer = (state: EditorState, action: NodeParamsAction):
                             ...node,
                             localVariables: {
                                 ...node.localVariables,
-                                [varId]: { ...node.localVariables[varId], ...data }
+                                [varId]: { ...variable, ...mergedData }
                             }
                         }
                     }
@@ -70,10 +79,18 @@ export const nodeParamsReducer = (state: EditorState, action: NodeParamsAction):
         case 'DELETE_NODE_PARAM': {
             const { nodeId, varId } = action.payload;
             const node = state.project.nodes[nodeId];
-            if (!node) return state;
+            const variable = node?.localVariables[varId];
+            if (!node || !variable) return state;
 
             const newLocalVariables = { ...node.localVariables };
-            delete newLocalVariables[varId];
+
+            // 软删除逻辑：Implemented -> MarkedForDelete；Draft/Marked -> 物理删除
+            const deleteResolution = resolveDeleteAction(variable.state);
+            if (deleteResolution.shouldRemove) {
+                delete newLocalVariables[varId];
+            } else {
+                newLocalVariables[varId] = { ...variable, state: deleteResolution.nextState };
+            }
 
             return {
                 ...state,

@@ -10,7 +10,7 @@ import {
   PresentationGraphId
 } from './common';
 import { BlackboardData } from './blackboard';
-import { ScriptsManifest } from './manifest';
+import { ScriptsManifest, TriggersManifest } from './manifest';
 import { StageTreeData } from './stage';
 import { PuzzleNode } from './puzzleNode';
 import { StateMachine } from './stateMachine';
@@ -43,6 +43,9 @@ export interface ProjectData {
 
   // 脚本清单（黑板脚本定义）
   scripts: ScriptsManifest;
+
+  // 触发器清单
+  triggers: TriggersManifest;
 
   // 阶段树
   stageTree: StageTreeData;

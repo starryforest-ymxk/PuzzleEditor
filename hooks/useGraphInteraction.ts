@@ -60,6 +60,7 @@ export const useGraphInteraction = ({
 
     // === 框选状态 ===
     const [boxSelectRect, setBoxSelectRect] = useState<BoxSelectRect | null>(null);
+    const boxSelectActive = useRef(false);
 
     // === 反馈状态 ===
     const [activeSnapPoint, setActiveSnapPoint] = useState<SnapPoint | null>(null);
@@ -120,6 +121,7 @@ export const useGraphInteraction = ({
     // === 开始框选 ===
     const startBoxSelect = (e: React.MouseEvent) => {
         const pos = getContentOffset(e.clientX, e.clientY);
+        boxSelectActive.current = true;
         setBoxSelectRect({ startX: pos.x, startY: pos.y, endX: pos.x, endY: pos.y });
         setMousePos(pos);
     };
@@ -176,6 +178,7 @@ export const useGraphInteraction = ({
 
                 onBoxSelectEnd(selectedIds);
                 setBoxSelectRect(null);
+                boxSelectActive.current = false;
                 return;
             }
 
@@ -235,12 +238,13 @@ export const useGraphInteraction = ({
         const isActive = draggingNodeId || linkingState || modifyingTransition || boxSelectRect || isDraggingMultiple;
 
         if (isActive) {
-            window.addEventListener('mousemove', handleWindowMouseMove);
-            window.addEventListener('mouseup', handleWindowMouseUp);
+            // 使用捕获阶段确保即使子组件 stopPropagation 也能收到事件，避免拖拽状态无法释放
+            window.addEventListener('mousemove', handleWindowMouseMove, { capture: true });
+            window.addEventListener('mouseup', handleWindowMouseUp, { capture: true });
         }
         return () => {
-            window.removeEventListener('mousemove', handleWindowMouseMove);
-            window.removeEventListener('mouseup', handleWindowMouseUp);
+            window.removeEventListener('mousemove', handleWindowMouseMove, { capture: true } as any);
+            window.removeEventListener('mouseup', handleWindowMouseUp, { capture: true } as any);
         };
     }, [draggingNodeId, linkingState, modifyingTransition, dragOffset, activeSnapPoint, boxSelectRect, isDraggingMultiple, onLinkDelete]);
 

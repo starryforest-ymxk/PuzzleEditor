@@ -29,6 +29,16 @@ export const StateMachineCanvas = ({ node }: Props) => {
     const cuttingPrevPos = useRef<{ x: number, y: number } | null>(null);
     const cutTransitionsSet = useRef<Set<string>>(new Set()); // 记录已切断的连线ID
 
+    // 延迟到鼠标抬起的选中请求，保持所有选中行为在同一时刻触发
+    const pendingStateSelect = useRef<string | null>(null);
+    const pendingCanvasSelect = useRef(false);
+    const isBoxSelecting = useRef(false);
+    const blankClickStart = useRef<{ x: number, y: number } | null>(null);
+    // 记录节点点击的起点，用于判定是否为拖拽，拖拽状态下不改变选中
+    const dragStartPos = useRef<{ x: number, y: number } | null>(null);
+    const dragMoved = useRef(false);
+    const DRAG_THRESHOLD = 4; // 鼠标移动超过该像素视为拖拽
+
     // 1. Navigation Logic
     const { isPanningActive, handleMouseDown: handlePanMouseDown } = useCanvasNavigation({ canvasRef });
 
@@ -116,6 +126,8 @@ export const StateMachineCanvas = ({ node }: Props) => {
         },
         onBoxSelectEnd: (selectedIds) => {
             dispatch({ type: 'SET_MULTI_SELECT_STATES', payload: selectedIds });
+            isBoxSelecting.current = false;
+            pendingCanvasSelect.current = false;
         }
     });
 
@@ -187,6 +199,7 @@ export const StateMachineCanvas = ({ node }: Props) => {
 
     // Handlers
     const handleCanvasMouseDown = (e: React.MouseEvent) => {
+        pendingCanvasSelect.current = false;
         if (handlePanMouseDown(e)) return;
         if (e.button !== 0) return;
         if (linkingState || modifyingTransition) return;
@@ -200,9 +213,45 @@ export const StateMachineCanvas = ({ node }: Props) => {
             return;
         }
 
-        // 左键点击空白区域开始框选
+        const rect = contentRef.current?.getBoundingClientRect();
+        const isInsideContent = rect ? (e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom) : true;
+
+        // 左键点击空白区域开始框选，选中延迟到 mouseup；框选过程不应触发空白选中
+        pendingCanvasSelect.current = false;
+        isBoxSelecting.current = true;
+        blankClickStart.current = isInsideContent ? { x: e.clientX, y: e.clientY } : null;
         startBoxSelect(e);
-        dispatch({ type: 'SELECT_OBJECT', payload: { type: 'NODE', id: node.id } });
+    };
+
+    const handleCanvasMouseUp = (e: React.MouseEvent) => {
+        if (e.button !== 0) return;
+        // 切线或其他交互时不触发空白选中
+        if (cuttingLine || linkingState || modifyingTransition) {
+            pendingCanvasSelect.current = false;
+            return;
+        }
+
+        if (isBoxSelecting.current) {
+            return;
+        }
+
+        if (pendingCanvasSelect.current) {
+            dispatch({ type: 'SELECT_OBJECT', payload: { type: 'NODE', id: node.id } });
+            pendingCanvasSelect.current = false;
+            return;
+        }
+
+        // 仅当按下时在空白区域（未走框选），抬起仍在空白区域且移动极小，才视为空白点击用于取消选中
+        if (blankClickStart.current) {
+            const dx = Math.abs(e.clientX - blankClickStart.current.x);
+            const dy = Math.abs(e.clientY - blankClickStart.current.y);
+            const CLICK_THRESHOLD = 3;
+            if (dx <= CLICK_THRESHOLD && dy <= CLICK_THRESHOLD) {
+                // 空白点击：回到当前节点上下文，清除状态/连线选中，保持画布可见
+                dispatch({ type: 'SELECT_OBJECT', payload: { type: 'NODE', id: node.id } });
+            }
+            blankClickStart.current = null;
+        }
     };
 
     // Ctrl+拖拽切线的鼠标移动处理
@@ -269,6 +318,11 @@ export const StateMachineCanvas = ({ node }: Props) => {
 
         const isLinkInteraction = e.shiftKey || Boolean(linkingState) || Boolean(modifyingTransition);
 
+        // 先清空本次可能的延迟选中记录
+        pendingStateSelect.current = null;
+        dragMoved.current = false;
+        dragStartPos.current = { x: e.clientX, y: e.clientY };
+
         // 如果点击的是多选中的节点，开始多节点拖拽
         if (multiSelectIds.includes(stateId) && !isLinkInteraction) {
             startMultiNodeDrag(e, multiSelectIds);
@@ -280,10 +334,6 @@ export const StateMachineCanvas = ({ node }: Props) => {
             dispatch({ type: 'SET_MULTI_SELECT_STATES', payload: [] });
         }
 
-        if (!isLinkInteraction) {
-            dispatch({ type: 'SELECT_OBJECT', payload: { type: 'STATE', id: stateId, contextId: node.id } });
-        }
-
         if (e.shiftKey) {
             startLinking(e, stateId);
             return;
@@ -291,8 +341,50 @@ export const StateMachineCanvas = ({ node }: Props) => {
 
         if (!linkingState && !modifyingTransition) {
             startNodeDrag(e, stateId, fsm.states[stateId].position);
+            pendingStateSelect.current = stateId;
+        }
+
+        // 非连线或拖拽的单击选中在 mouseup 触发
+        if (!isLinkInteraction && !pendingStateSelect.current) {
+            pendingStateSelect.current = stateId;
         }
     };
+
+    const handleStateMouseUp = (e: React.MouseEvent, stateId: string) => {
+        e.stopPropagation();
+        if (e.button !== 0) return;
+
+        if (pendingStateSelect.current === stateId && !linkingState && !modifyingTransition && !dragMoved.current) {
+            dispatch({ type: 'SELECT_OBJECT', payload: { type: 'STATE', id: stateId, contextId: node.id } });
+        }
+
+        pendingStateSelect.current = null;
+        dragStartPos.current = null;
+        dragMoved.current = false;
+    };
+
+    // 监听全局鼠标移动以判定拖拽距离，拖拽时不触发选中
+    useEffect(() => {
+        const handleMove = (e: MouseEvent) => {
+            if (!pendingStateSelect.current || !dragStartPos.current) return;
+            const dx = Math.abs(e.clientX - dragStartPos.current.x);
+            const dy = Math.abs(e.clientY - dragStartPos.current.y);
+            if (dx > DRAG_THRESHOLD || dy > DRAG_THRESHOLD) {
+                dragMoved.current = true;
+            }
+        };
+
+        const handleUp = () => {
+            dragStartPos.current = null;
+        };
+
+        window.addEventListener('mousemove', handleMove, { capture: true });
+        window.addEventListener('mouseup', handleUp, { capture: true });
+        return () => {
+            window.removeEventListener('mousemove', handleMove, { capture: true });
+            window.removeEventListener('mouseup', handleUp, { capture: true });
+        };
+    }, []);
 
     const handleContextMenu = (e: React.MouseEvent, type: 'CANVAS' | 'NODE' | 'TRANSITION', targetId?: string) => {
         e.preventDefault(); e.stopPropagation();
@@ -323,6 +415,7 @@ export const StateMachineCanvas = ({ node }: Props) => {
                 cursor: isPanningActive ? 'grabbing' : (linkingState || modifyingTransition ? 'crosshair' : (boxSelectRect ? 'crosshair' : 'default'))
             }}
             onMouseDown={handleCanvasMouseDown}
+            onMouseUp={handleCanvasMouseUp}
             onContextMenu={(e) => handleContextMenu(e, 'CANVAS')}
         >
             {/* Info Overlay - 使用 fixed 高度防止内容变化导致布局偏移 */}
@@ -501,6 +594,7 @@ export const StateMachineCanvas = ({ node }: Props) => {
                         isInitial={fsm.initialStateId === state.id}
                         isContextTarget={contextMenu?.type === 'NODE' && contextMenu?.targetId === state.id}
                         onMouseDown={handleStateMouseDown}
+                        onMouseUp={handleStateMouseUp}
                         onContextMenu={(e) => handleContextMenu(e, 'NODE', state.id)}
                     />
                 ))}

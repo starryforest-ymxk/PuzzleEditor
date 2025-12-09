@@ -5,6 +5,7 @@
 
 import { EditorState, Action, ProjectContent } from './types';
 import { fsmReducer, isFsmAction, presentationReducer, isPresentationAction, nodeParamsReducer, isNodeParamsAction } from './slices';
+import { resolveDeleteAction } from '../utils/resourceLifecycle';
 
 // ========== 常量配置 ==========
 const MAX_HISTORY_LENGTH = 50;
@@ -12,6 +13,11 @@ const MAX_HISTORY_LENGTH = 50;
 // 触发历史快照的 Actions
 const HISTORY_ACTIONS = new Set([
     'UPDATE_STAGE_TREE',
+    'UPDATE_NODE',
+    'SOFT_DELETE_GLOBAL_VARIABLE', 'APPLY_DELETE_GLOBAL_VARIABLE',
+    'SOFT_DELETE_EVENT', 'APPLY_DELETE_EVENT',
+    'SOFT_DELETE_SCRIPT', 'APPLY_DELETE_SCRIPT',
+    'SOFT_DELETE_STAGE_VARIABLE', 'APPLY_DELETE_STAGE_VARIABLE',
     'ADD_STATE', 'DELETE_STATE', 'UPDATE_STATE', 'UPDATE_FSM',
     'ADD_TRANSITION', 'DELETE_TRANSITION', 'UPDATE_TRANSITION',
     'ADD_PRESENTATION_NODE', 'DELETE_PRESENTATION_NODE', 'UPDATE_PRESENTATION_NODE',
@@ -28,7 +34,10 @@ const getProjectSnapshot = (state: EditorState): ProjectContent => ({
     nodes: state.project.nodes,
     stateMachines: state.project.stateMachines,
     presentationGraphs: state.project.presentationGraphs,
-    meta: state.project.meta
+    blackboard: state.project.blackboard,
+    meta: state.project.meta,
+    scripts: state.project.scripts,
+    triggers: state.project.triggers
 });
 
 // ========== Core Business Logic Reducer ==========
@@ -67,14 +76,12 @@ const internalReducer = (state: EditorState, action: Action): EditorState => {
                     stageTree: action.payload.stageTree,
                     nodes: action.payload.nodes,
                     stateMachines: action.payload.stateMachines || {},
-                    presentationGraphs: action.payload.presentationGraphs || {}
-                },
-                history: { past: [], future: [] }, // 加载时重置历史
-                manifest: {
-                    isLoaded: true,
+                    presentationGraphs: action.payload.presentationGraphs || {},
+                    blackboard: action.payload.blackboard || { globalVariables: {}, events: {} },
                     scripts: action.payload.scripts,
                     triggers: action.payload.triggers
                 },
+                history: { past: [], future: [] }, // 加载时重置历史
                 ui: { ...state.ui, isLoading: false }
             };
 
@@ -89,6 +96,173 @@ const internalReducer = (state: EditorState, action: Action): EditorState => {
                 ...state,
                 project: { ...state.project, stageTree: action.payload }
             };
+
+        case 'UPDATE_NODE': {
+            const node = state.project.nodes[action.payload.nodeId];
+            if (!node) return state;
+            return {
+                ...state,
+                project: {
+                    ...state.project,
+                    nodes: {
+                        ...state.project.nodes,
+                        [action.payload.nodeId]: { ...node, ...action.payload.data }
+                    }
+                }
+            };
+        }
+
+        case 'SOFT_DELETE_GLOBAL_VARIABLE': {
+            const vars = state.project.blackboard.globalVariables || {};
+            const variable = vars[action.payload.varId];
+            if (!variable) return state;
+            const resolution = resolveDeleteAction(variable.state);
+            const nextVars = { ...vars };
+            if (resolution.shouldRemove) {
+                delete nextVars[action.payload.varId];
+            } else {
+                nextVars[action.payload.varId] = { ...variable, state: resolution.nextState };
+            }
+            return {
+                ...state,
+                project: {
+                    ...state.project,
+                    blackboard: { ...state.project.blackboard, globalVariables: nextVars }
+                }
+            };
+        }
+
+        case 'APPLY_DELETE_GLOBAL_VARIABLE': {
+            const vars = state.project.blackboard.globalVariables || {};
+            if (!vars[action.payload.varId]) return state;
+            const nextVars = { ...vars };
+            delete nextVars[action.payload.varId];
+            return {
+                ...state,
+                project: {
+                    ...state.project,
+                    blackboard: { ...state.project.blackboard, globalVariables: nextVars }
+                }
+            };
+        }
+
+        case 'SOFT_DELETE_EVENT': {
+            const events = state.project.blackboard.events || {};
+            const event = events[action.payload.eventId];
+            if (!event) return state;
+            const resolution = resolveDeleteAction(event.state);
+            const nextEvents = { ...events };
+            if (resolution.shouldRemove) {
+                delete nextEvents[action.payload.eventId];
+            } else {
+                nextEvents[action.payload.eventId] = { ...event, state: resolution.nextState };
+            }
+            return {
+                ...state,
+                project: {
+                    ...state.project,
+                    blackboard: { ...state.project.blackboard, events: nextEvents }
+                }
+            };
+        }
+
+        case 'SOFT_DELETE_STAGE_VARIABLE': {
+            const stage = state.project.stageTree.stages[action.payload.stageId];
+            if (!stage) return state;
+            const vars = stage.localVariables || {};
+            const variable = vars[action.payload.varId];
+            if (!variable) return state;
+            const resolution = resolveDeleteAction(variable.state);
+            const nextVars = { ...vars };
+            if (resolution.shouldRemove) {
+                delete nextVars[action.payload.varId];
+            } else {
+                nextVars[action.payload.varId] = { ...variable, state: resolution.nextState };
+            }
+            return {
+                ...state,
+                project: {
+                    ...state.project,
+                    stageTree: {
+                        ...state.project.stageTree,
+                        stages: {
+                            ...state.project.stageTree.stages,
+                            [stage.id]: { ...stage, localVariables: nextVars }
+                        }
+                    }
+                }
+            };
+        }
+
+        case 'APPLY_DELETE_STAGE_VARIABLE': {
+            const stage = state.project.stageTree.stages[action.payload.stageId];
+            if (!stage) return state;
+            const vars = stage.localVariables || {};
+            if (!vars[action.payload.varId]) return state;
+            const nextVars = { ...vars };
+            delete nextVars[action.payload.varId];
+            return {
+                ...state,
+                project: {
+                    ...state.project,
+                    stageTree: {
+                        ...state.project.stageTree,
+                        stages: {
+                            ...state.project.stageTree.stages,
+                            [stage.id]: { ...stage, localVariables: nextVars }
+                        }
+                    }
+                }
+            };
+        }
+
+        case 'APPLY_DELETE_EVENT': {
+            const events = state.project.blackboard.events || {};
+            if (!events[action.payload.eventId]) return state;
+            const nextEvents = { ...events };
+            delete nextEvents[action.payload.eventId];
+            return {
+                ...state,
+                project: {
+                    ...state.project,
+                    blackboard: { ...state.project.blackboard, events: nextEvents }
+                }
+            };
+        }
+
+        case 'SOFT_DELETE_SCRIPT': {
+            const scripts = state.project.scripts.scripts || {};
+            const script = scripts[action.payload.scriptId];
+            if (!script) return state;
+            const resolution = resolveDeleteAction(script.state);
+            const nextScripts = { ...scripts };
+            if (resolution.shouldRemove) {
+                delete nextScripts[action.payload.scriptId];
+            } else {
+                nextScripts[action.payload.scriptId] = { ...script, state: resolution.nextState };
+            }
+            return {
+                ...state,
+                project: {
+                    ...state.project,
+                    scripts: { ...state.project.scripts, scripts: nextScripts }
+                }
+            };
+        }
+
+        case 'APPLY_DELETE_SCRIPT': {
+            const scripts = state.project.scripts.scripts || {};
+            if (!scripts[action.payload.scriptId]) return state;
+            const nextScripts = { ...scripts };
+            delete nextScripts[action.payload.scriptId];
+            return {
+                ...state,
+                project: {
+                    ...state.project,
+                    scripts: { ...state.project.scripts, scripts: nextScripts }
+                }
+            };
+        }
 
         case 'TOGGLE_STAGE_EXPAND': {
             const stage = state.project.stageTree.stages[action.payload.id];

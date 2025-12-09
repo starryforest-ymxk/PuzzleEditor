@@ -11,6 +11,7 @@ interface Props {
     isInitial: boolean;
     isContextTarget: boolean;
     onMouseDown: (e: React.MouseEvent, stateId: string) => void;
+    onMouseUp: (e: React.MouseEvent, stateId: string) => void;
     onContextMenu: (e: React.MouseEvent, stateId: string) => void;
 }
 
@@ -22,6 +23,7 @@ export const StateNode = React.memo(({
     isInitial,
     isContextTarget,
     onMouseDown,
+    onMouseUp,
     onContextMenu
 }: Props) => {
     // 计算边框样式
@@ -42,6 +44,7 @@ export const StateNode = React.memo(({
         <div
             data-node-id={state.id}
             onMouseDown={(e) => onMouseDown(e, state.id)}
+            onMouseUp={(e) => onMouseUp(e, state.id)}
             onContextMenu={(e) => onContextMenu(e, state.id)}
             onClick={(e) => e.stopPropagation()}
             style={{

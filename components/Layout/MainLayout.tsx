@@ -7,6 +7,7 @@ import { NodeList } from '../Explorer/NodeList';
 import { Inspector } from '../Inspector/Inspector';
 import { Canvas } from '../Canvas/Canvas';
 import { useEditorDispatch } from '../../store/context';
+import { BlackboardPanel } from '../Blackboard/BlackboardPanel';
 
 export const MainLayout = () => {
   const dispatch = useEditorDispatch();
@@ -28,6 +29,11 @@ export const MainLayout = () => {
         e.preventDefault();
         dispatch({ type: 'REDO' });
       }
+
+      // ESC 清空多选（跨视图通用）
+      if (e.key === 'Escape') {
+        dispatch({ type: 'SET_MULTI_SELECT_STATES', payload: [] });
+      }
     };
 
     window.addEventListener('keydown', handleKeyDown);
@@ -42,16 +48,20 @@ export const MainLayout = () => {
         {/* Left Sidebar: Structure */}
         <Sidebar title="Explorer" position="left">
            {/* Split view: Top 60% Stage Tree, Bottom 40% Node List */}
-           <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-              <div style={{ flex: '0 0 60%', overflowY: 'auto', borderBottom: '1px solid var(--border-color)' }}>
-                  <div style={{ padding: '8px 16px', fontSize: '10px', color: '#666', fontWeight: 600 }}>STAGES</div>
-                  <StageExplorer />
+             <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: '8px' }}>
+              <div style={{ flex: '0 0 45%', minHeight: 0, overflowY: 'auto', borderBottom: '1px solid var(--border-color)' }}>
+                <div style={{ padding: '8px 16px', fontSize: '10px', color: '#666', fontWeight: 600 }}>STAGES</div>
+                <StageExplorer />
               </div>
-              <div style={{ flex: 1, overflowY: 'auto' }}>
-                  <div style={{ padding: '8px 16px', fontSize: '10px', color: '#666', fontWeight: 600 }}>NODES</div>
-                  <NodeList />
+              <div style={{ flex: '0 0 30%', minHeight: 0, overflowY: 'auto', borderBottom: '1px solid var(--border-color)' }}>
+                <div style={{ padding: '8px 16px', fontSize: '10px', color: '#666', fontWeight: 600 }}>NODES</div>
+                <NodeList />
               </div>
-           </div>
+              <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', borderTop: '1px solid var(--border-color)' }}>
+                <div style={{ padding: '8px 16px', fontSize: '10px', color: '#666', fontWeight: 600 }}>BLACKBOARD</div>
+                <BlackboardPanel />
+              </div>
+             </div>
         </Sidebar>
 
         {/* Center: Canvas */}

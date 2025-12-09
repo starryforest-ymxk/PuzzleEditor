@@ -5,6 +5,7 @@
 
 import { EditorState, Action } from '../types';
 import { PresentationNode, PresentationGraph } from '../../types/presentation';
+import { normalizePresentationNode } from '../../utils/presentation';
 
 // ========== Presentation 相关 Actions 类型定义 ==========
 export type PresentationAction =
@@ -31,6 +32,8 @@ export const presentationReducer = (state: EditorState, action: PresentationActi
             const graph = state.project.presentationGraphs[graphId];
             if (!graph) return state;
 
+            const normalized = normalizePresentationNode(node);
+
             return {
                 ...state,
                 project: {
@@ -39,7 +42,7 @@ export const presentationReducer = (state: EditorState, action: PresentationActi
                         ...state.project.presentationGraphs,
                         [graphId]: {
                             ...graph,
-                            nodes: { ...graph.nodes, [node.id]: node }
+                            nodes: { ...graph.nodes, [normalized.id]: normalized }
                         }
                     }
                 }
@@ -55,8 +58,9 @@ export const presentationReducer = (state: EditorState, action: PresentationActi
             delete newNodes[nodeId];
 
             // 清理其他节点的 nextIds 引用
-            Object.values(newNodes).forEach(n => {
-                n.nextIds = n.nextIds.filter(id => id !== nodeId);
+            Object.keys(newNodes).forEach(id => {
+                const n = newNodes[id];
+                newNodes[id] = { ...n, nextIds: n.nextIds.filter(next => next !== nodeId) };
             });
 
             // 更新选择状态
@@ -83,6 +87,8 @@ export const presentationReducer = (state: EditorState, action: PresentationActi
             const graph = state.project.presentationGraphs[graphId];
             if (!graph || !graph.nodes[nodeId]) return state;
 
+            const updated = normalizePresentationNode({ ...graph.nodes[nodeId], ...data });
+
             return {
                 ...state,
                 project: {
@@ -93,7 +99,7 @@ export const presentationReducer = (state: EditorState, action: PresentationActi
                             ...graph,
                             nodes: {
                                 ...graph.nodes,
-                                [nodeId]: { ...graph.nodes[nodeId], ...data }
+                                [nodeId]: updated
                             }
                         }
                     }

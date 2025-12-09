@@ -1,5 +1,9 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useEditorState, useEditorDispatch } from '../../store/context';
+import { collectVisibleVariables } from '../../utils/variableScope';
+import { EventListener } from '../../types/common';
+import { EventListenersEditor } from './EventListenersEditor';
+import { PresentationBindingEditor } from './PresentationBindingEditor';
 
 interface Props {
     fsmId: string;
@@ -28,8 +32,19 @@ export const StateInspector = ({ fsmId, stateId }: Props) => {
 
     const isInitial = fsm.initialStateId === state.id;
 
-    // 计算从该状态出发的转移数量
+    // Count transitions leaving this state
     const outgoingTransitions = Object.values(fsm.transitions).filter((t: any) => t.fromStateId === stateId);
+
+    const owningNode = useMemo(() => Object.values(project.nodes).find(n => n.stateMachineId === fsmId) || null, [project.nodes, fsmId]);
+    const visibleVars = useMemo(() => {
+        const vars = collectVisibleVariables({ project, ui: { selection: { type: 'NONE', id: null }, multiSelectStateIds: [] }, history: { past: [], future: [] } } as any, owningNode?.stageId, owningNode?.id);
+        return vars.all.filter(v => v.state !== 'MarkedForDelete');
+    }, [project, owningNode]);
+    const eventOptions = useMemo(() => Object.values(project.blackboard.events || {}).map(e => ({ id: e.id, name: e.name, state: e.state })), [project.blackboard.events]);
+    const scriptOptions = useMemo(() => Object.values(project.scripts.scripts || {}).map(s => ({ id: s.id, name: s.name, state: s.state })), [project.scripts]);
+    const performanceScriptOptions = useMemo(() => Object.values(project.scripts.scripts || {}).filter(s => s.category === 'Performance').map(s => ({ id: s.id, name: s.name, state: s.state })), [project.scripts]);
+    const scriptDefs = project.scripts.scripts || {};
+    const graphOptions = useMemo(() => Object.values(project.presentationGraphs || {}).map(g => ({ id: g.id, name: g.name, state: 'Draft' as any })), [project.presentationGraphs]);
 
     const handleSetInitial = () => {
         dispatch({
@@ -40,6 +55,7 @@ export const StateInspector = ({ fsmId, stateId }: Props) => {
             }
         });
     };
+
 
     return (
         <div>
@@ -99,6 +115,28 @@ export const StateInspector = ({ fsmId, stateId }: Props) => {
                     <br />Select a transition arrow on canvas to edit.
                 </div>
             )}
+
+            <div className="panel-header" style={{ marginTop: '16px' }}>Event Listeners</div>
+            <EventListenersEditor
+                listeners={state.eventListeners || []}
+                onChange={(next) => handleChange('eventListeners', next)}
+                eventOptions={eventOptions}
+                scriptOptions={scriptOptions}
+                variables={visibleVars}
+            />
+
+            <div className="panel-header" style={{ marginTop: '16px' }}>Presentation Binding</div>
+            <div style={{ padding: '12px' }}>
+                <PresentationBindingEditor
+                    binding={state.presentation}
+                    onChange={(next) => handleChange('presentation', next)}
+                    scriptDefs={scriptDefs}
+                    scriptOptions={performanceScriptOptions}
+                    graphOptions={graphOptions}
+                    variables={visibleVars}
+                    title="On Enter Presentation"
+                />
+            </div>
         </div>
     );
 };

@@ -4,12 +4,13 @@
  */
 
 import { StageTreeData } from '../types/stage';
-import { ScriptDefinition, TriggerDefinition } from '../types/manifest';
+import { ScriptDefinition, TriggerDefinition, ScriptsManifest, TriggersManifest } from '../types/manifest';
 import { PuzzleNode } from '../types/puzzleNode';
 import { StateMachine } from '../types/stateMachine';
 import { PresentationGraph } from '../types/presentation';
+import { BlackboardData } from '../types/blackboard';
 
-// ========== 阶段树模拟数据 ==========
+// ========== Stage tree mock data ==========
 export const MOCK_STAGES: StageTreeData = {
   rootId: 'stage-root',
   stages: {
@@ -334,7 +335,7 @@ export const MOCK_SCRIPTS: ScriptDefinition[] = [
   }
 ];
 
-// ========== 触发器定义模拟数据 ==========
+// ========== Trigger definitions (mock) ==========
 export const MOCK_TRIGGERS: TriggerDefinition[] = [
   {
     id: 'ON_INTERACT',
@@ -365,3 +366,53 @@ export const MOCK_TRIGGERS: TriggerDefinition[] = [
     ]
   }
 ];
+
+// ========== 黑板全局资源模拟数据 ==========
+export const MOCK_BLACKBOARD: BlackboardData = {
+  globalVariables: {
+    'var-game-difficulty': {
+      id: 'var-game-difficulty',
+      key: 'var-game-difficulty',
+      name: 'Game Difficulty',
+      type: 'string',
+      defaultValue: 'Normal',
+      state: 'Implemented',
+      scope: 'Global'
+    },
+    'var-player-health': {
+      id: 'var-player-health',
+      key: 'var-player-health',
+      name: 'Player Health',
+      type: 'integer',
+      defaultValue: 100,
+      state: 'Draft',
+      scope: 'Global'
+    }
+  },
+  events: {
+    'event-alarm-triggered': {
+      id: 'event-alarm-triggered',
+      key: 'EVENT_ALARM_TRIGGERED',
+      name: 'Alarm Triggered',
+      description: 'Guard alarm raised',
+      state: 'Implemented'
+    },
+    'event-power-restored': {
+      id: 'event-power-restored',
+      key: 'EVENT_POWER_RESTORED',
+      name: 'Power Restored',
+      description: 'Generator back online',
+      state: 'Draft'
+    }
+  }
+};
+
+// ======= Manifest wrapping for ScriptsManifest/TriggersManifest =======
+export const MOCK_SCRIPTS_MANIFEST: ScriptsManifest = {
+  version: '1.0.0',
+  scripts: Object.fromEntries(MOCK_SCRIPTS.map((s) => [s.id, s]))
+};
+
+export const MOCK_TRIGGERS_MANIFEST: TriggersManifest = {
+  triggers: Object.fromEntries(MOCK_TRIGGERS.map((t) => [t.id, t]))
+};

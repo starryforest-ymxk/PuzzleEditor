@@ -31,6 +31,9 @@ export interface State extends Entity {
   onEnterScriptId?: ScriptId;     // 进入状态时执行
   onExitScriptId?: ScriptId;      // 退出状态时执行
 
+  // 演出绑定（可选，进入状态时触发）
+  presentation?: PresentationBinding;
+
   // 事件监听
   eventListeners: EventListener[];
 }
@@ -39,14 +42,13 @@ export interface State extends Entity {
 /**
  * 状态转移的触发器配置
  * - Always: 每帧检查
- * - OnEvent: 特定事件触发
- * - CustomScript: 自定义触发脚本
+ * - OnEvent: 特定事件触发（必须携带 eventId）
+ * - CustomScript: 自定义触发脚本（必须携带 scriptId）
  */
-export interface TriggerConfig {
-  type: 'Always' | 'OnEvent' | 'CustomScript';
-  eventId?: EventId;             // 当 type 为 OnEvent
-  scriptId?: ScriptId;           // 当 type 为 CustomScript
-}
+export type TriggerConfig =
+  | { type: 'Always' }
+  | { type: 'OnEvent'; eventId: EventId }
+  | { type: 'CustomScript'; scriptId: ScriptId };
 
 // ========== 条件表达式 ==========
 /**

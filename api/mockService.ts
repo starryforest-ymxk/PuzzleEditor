@@ -3,15 +3,17 @@
  * 用于前端独立开发，提供模拟的项目数据和 Manifest
  */
 
-import { IApiService, ProjectData, ManifestData } from './types';
+import { IApiService, ManifestData } from './types';
 import {
     MOCK_STAGES,
     MOCK_NODES,
-    MOCK_SCRIPTS,
-    MOCK_TRIGGERS,
+    MOCK_SCRIPTS_MANIFEST,
+    MOCK_TRIGGERS_MANIFEST,
     MOCK_STATE_MACHINES,
-    MOCK_PRESENTATION_GRAPHS
+    MOCK_PRESENTATION_GRAPHS,
+    MOCK_BLACKBOARD
 } from './mockData';
+import { ExportManifest } from '../types/project';
 
 // ========== 模拟延迟配置 ==========
 const MOCK_LATENCY = {
@@ -28,19 +30,30 @@ const MOCK_LATENCY = {
  * 实现 IApiService 接口，使用本地 Mock 数据
  */
 export class MockApiService implements IApiService {
-    async loadProject(): Promise<ProjectData> {
+    async loadProject(): Promise<ExportManifest> {
         return new Promise((resolve) => {
             setTimeout(() => {
                 resolve({
-                    meta: {
-                        name: "Demo Puzzle Project",
-                        version: "0.0.1"
-                    },
-                    // 使用深拷贝避免污染原始 Mock 数据
-                    stageTree: JSON.parse(JSON.stringify(MOCK_STAGES)),
-                    nodes: JSON.parse(JSON.stringify(MOCK_NODES)),
-                    stateMachines: JSON.parse(JSON.stringify(MOCK_STATE_MACHINES)),
-                    presentationGraphs: JSON.parse(JSON.stringify(MOCK_PRESENTATION_GRAPHS))
+                    manifestVersion: '1.0.0',
+                    exportedAt: new Date().toISOString(),
+                    project: {
+                        meta: {
+                            id: "proj-demo",
+                            name: "Demo Puzzle Project",
+                            description: "Demo data for puzzle editor",
+                            version: "0.0.1",
+                            createdAt: new Date().toISOString(),
+                            updatedAt: new Date().toISOString()
+                        },
+                        // 使用深拷贝避免污染原始 Mock 数据
+                        stageTree: JSON.parse(JSON.stringify(MOCK_STAGES)),
+                        nodes: JSON.parse(JSON.stringify(MOCK_NODES)),
+                        stateMachines: JSON.parse(JSON.stringify(MOCK_STATE_MACHINES)),
+                        presentationGraphs: JSON.parse(JSON.stringify(MOCK_PRESENTATION_GRAPHS)),
+                        blackboard: JSON.parse(JSON.stringify(MOCK_BLACKBOARD)),
+                        scripts: JSON.parse(JSON.stringify(MOCK_SCRIPTS_MANIFEST)),
+                        triggers: JSON.parse(JSON.stringify(MOCK_TRIGGERS_MANIFEST))
+                    }
                 });
             }, MOCK_LATENCY.PROJECT_LOAD);
         });
@@ -50,14 +63,14 @@ export class MockApiService implements IApiService {
         return new Promise((resolve) => {
             setTimeout(() => {
                 resolve({
-                    scripts: MOCK_SCRIPTS,
-                    triggers: MOCK_TRIGGERS
+                    scripts: MOCK_SCRIPTS_MANIFEST,
+                    triggers: MOCK_TRIGGERS_MANIFEST
                 });
             }, MOCK_LATENCY.MANIFEST_LOAD);
         });
     }
 
-    async saveProject(data: ProjectData): Promise<boolean> {
+    async saveProject(data: ExportManifest): Promise<boolean> {
         return new Promise((resolve) => {
             setTimeout(() => {
                 console.log('[MockAPI] Project saved:', data);

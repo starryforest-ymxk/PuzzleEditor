@@ -1,15 +1,59 @@
-# Domain Model（同步至当前代码实现）
+# 领域模型（Domain Model）
 
-> 覆盖 P1-T01/P1-T02 的域模型与顶层 JSON 结构说明，已与 `types/*` 现状保持一致。
+> 本文档描述项目的核心数据结构和类型定义，与 `types/*` 代码保持同步。
+>
+> **版本**: 1.0.0 | **更新时间**: 2025-12-09 | **覆盖任务**: P1-T01, P1-T02
 
 ---
 
 ## 1. 核心概念
 
-- **黑板定义类（唯一资源）**：`Script`（脚本定义）、`Trigger`（触发器定义）、`Event`（事件定义）、`Global Variable`（全局变量）。这些只能定义一次，被各处引用，不做实例化。
-- **结构实体（可实例化）**：`Stage`（阶段节点）、`PuzzleNode`（解谜节点）、`State`/`Transition`（FSM 内部）、`PresentationNode`（演出子图节点）。
-- **复合结构**：`StateMachine`（有限状态机）、`PresentationGraph`（演出子图）、`ConditionExpression`（条件表达式 AST）、`ParameterModifier`、`ParameterBinding`。
-- **元数据枚举**：`ResourceState`、`VariableScope`、`ScriptCategory`。
+### 1.1 资源分类
+
+| 分类 | 说明 | 示例 |
+|------|------|------|
+| **黑板资源（唯一）** | 全局定义，被各处引用 | Script, Trigger, Event, Global Variable |
+| **结构实体（可实例化）** | 可在项目中多次创建 | Stage, PuzzleNode, State, Transition |
+| **复合结构** | 嵌套的数据结构 | StateMachine, PresentationGraph, ConditionExpression |
+| **元数据枚举** | 类型标识符 | ResourceState, VariableScope, ScriptCategory |
+
+### 1.2 概念关系图
+
+```mermaid
+graph TB
+    subgraph Project
+        Meta[ProjectMeta]
+        BB[Blackboard]
+        Scripts[ScriptsManifest]
+        Triggers[TriggersManifest]
+        Tree[StageTree]
+    end
+    
+    subgraph StageTree
+        Stage1[Stage]
+        Stage2[Stage]
+        Stage1 --> Stage2
+    end
+    
+    subgraph Stage
+        LocalVars[LocalVariables]
+        Nodes[PuzzleNodes]
+    end
+    
+    subgraph PuzzleNode
+        FSM[StateMachine]
+        NodeVars[LocalVariables]
+    end
+    
+    subgraph StateMachine
+        States[States]
+        Trans[Transitions]
+    end
+    
+    BB --> |引用| Stage
+    Scripts --> |引用| FSM
+    Triggers --> |引用| Trans
+```
 
 ---
 
@@ -30,8 +74,16 @@
 ```json
 {
   "manifestVersion": "1.0.0",
+  "exportedAt": "2025-12-09T00:00:00.000Z",
   "project": {
-    "meta": { "id": "proj-xxx", "name": "", "description": "", "version": "", "createdAt": "", "updatedAt": "" },
+    "meta": {
+      "id": "proj-xxx",
+      "name": "项目名称",
+      "description": "项目描述",
+      "version": "0.0.1",
+      "createdAt": "2025-12-09T00:00:00.000Z",
+      "updatedAt": "2025-12-09T00:00:00.000Z"
+    },
     "blackboard": {
       "globalVariables": { /* VariableId -> VariableDefinition */ },
       "events": { /* EventId -> EventDefinition */ }
@@ -40,7 +92,13 @@
       "version": "1.0.0",
       "scripts": { /* ScriptId -> ScriptDefinition */ }
     },
-    "stageTree": { "rootId": "stage-root", "stages": { /* StageId -> StageNode */ } },
+    "triggers": {
+      "triggers": { /* TriggerId -> TriggerDefinition */ }
+    },
+    "stageTree": {
+      "rootId": "stage-root",
+      "stages": { /* StageId -> StageNode */ }
+    },
     "nodes": { /* PuzzleNodeId -> PuzzleNode */ },
     "stateMachines": { /* StateMachineId -> StateMachine */ },
     "presentationGraphs": { /* PresentationGraphId -> PresentationGraph */ }
@@ -225,18 +283,29 @@ interface PresentationGraph extends Entity {
 ### 4.7 项目数据
 ```ts
 interface ProjectMeta {
-  id: string; name: string; description?: string;
-  version: string; createdAt: string; updatedAt: string;
+  id: ProjectId;
+  name: string;
+  description?: string;
+  version: string;
+  createdAt: string;  // ISO8601
+  updatedAt: string;  // ISO8601
 }
 
 interface ProjectData {
   meta: ProjectMeta;
-  blackboard: { globalVariables: Record<string, VariableDefinition>; events: Record<string, EventDefinition>; };
-  scripts: { version: string; scripts: Record<string, ScriptDefinition>; };
+  blackboard: BlackboardData;
+  scripts: ScriptsManifest;
+  triggers: TriggersManifest;  // 触发器类型清单
   stageTree: StageTreeData;
-  nodes: Record<string, PuzzleNode>;
-  stateMachines: Record<string, StateMachine>;
-  presentationGraphs: Record<string, PresentationGraph>;
+  nodes: Record<PuzzleNodeId, PuzzleNode>;
+  stateMachines: Record<StateMachineId, StateMachine>;
+  presentationGraphs: Record<PresentationGraphId, PresentationGraph>;
+}
+
+interface ExportManifest {
+  manifestVersion: '1.0.0';
+  exportedAt: string;  // ISO8601
+  project: ProjectData;
 }
 ```
 
