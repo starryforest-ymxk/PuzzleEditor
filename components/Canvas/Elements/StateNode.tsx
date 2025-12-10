@@ -13,6 +13,7 @@ interface Props {
     onMouseDown: (e: React.MouseEvent, stateId: string) => void;
     onMouseUp: (e: React.MouseEvent, stateId: string) => void;
     onContextMenu: (e: React.MouseEvent, stateId: string) => void;
+    readOnly?: boolean;
 }
 
 export const StateNode = React.memo(({
@@ -24,7 +25,8 @@ export const StateNode = React.memo(({
     isContextTarget,
     onMouseDown,
     onMouseUp,
-    onContextMenu
+    onContextMenu,
+    readOnly
 }: Props) => {
     // 计算边框样式
     const getBoxShadow = () => {
@@ -53,10 +55,10 @@ export const StateNode = React.memo(({
                 top: position.y,
                 width: Geom.STATE_WIDTH,
                 borderRadius: '6px',
-                backgroundColor: isMultiSelected ? '#3a3a4a' : '#2d2d2d',
+                backgroundColor: isMultiSelected ? '#3a3a4a' : '#27272a',
                 boxShadow: getBoxShadow(),
                 zIndex: 10,
-                cursor: 'grab',
+                cursor: readOnly ? 'pointer' : 'grab',
                 transform: 'translate3d(0,0,0)',
                 transition: 'box-shadow 0.1s, background-color 0.1s'
             }}>

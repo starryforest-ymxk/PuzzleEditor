@@ -3,11 +3,15 @@ import React, { ReactNode } from 'react';
 interface SidebarProps {
   title: string;
   position: 'left' | 'right';
+  width?: number;
 }
 
-export const Sidebar = ({ title, position, children }: React.PropsWithChildren<SidebarProps>) => {
+export const Sidebar = ({ title, position, width, children }: React.PropsWithChildren<SidebarProps>) => {
   return (
-    <div className={`sidebar ${position}`}>
+    <div
+      className={`sidebar ${position}`}
+      style={{ width: width ? `${width}px` : undefined }}
+    >
       <div className="panel-header">
         {title}
       </div>

@@ -3,14 +3,15 @@ import { useEditorState, useEditorDispatch } from '../../store/context';
 import { collectVisibleVariables } from '../../utils/variableScope';
 import { EventListener } from '../../types/common';
 import { EventListenersEditor } from './EventListenersEditor';
-import { PresentationBindingEditor } from './PresentationBindingEditor';
+import { ResourceSelect } from './ResourceSelect';
 
 interface Props {
     fsmId: string;
     stateId: string;
+    readOnly?: boolean;
 }
 
-export const StateInspector = ({ fsmId, stateId }: Props) => {
+export const StateInspector = ({ fsmId, stateId, readOnly = false }: Props) => {
     const { project } = useEditorState();
     const dispatch = useEditorDispatch();
 
@@ -32,9 +33,6 @@ export const StateInspector = ({ fsmId, stateId }: Props) => {
 
     const isInitial = fsm.initialStateId === state.id;
 
-    // Count transitions leaving this state
-    const outgoingTransitions = Object.values(fsm.transitions).filter((t: any) => t.fromStateId === stateId);
-
     const owningNode = useMemo(() => Object.values(project.nodes).find(n => n.stateMachineId === fsmId) || null, [project.nodes, fsmId]);
     const visibleVars = useMemo(() => {
         const vars = collectVisibleVariables({ project, ui: { selection: { type: 'NONE', id: null }, multiSelectStateIds: [] }, history: { past: [], future: [] } } as any, owningNode?.stageId, owningNode?.id);
@@ -42,9 +40,7 @@ export const StateInspector = ({ fsmId, stateId }: Props) => {
     }, [project, owningNode]);
     const eventOptions = useMemo(() => Object.values(project.blackboard.events || {}).map(e => ({ id: e.id, name: e.name, state: e.state })), [project.blackboard.events]);
     const scriptOptions = useMemo(() => Object.values(project.scripts.scripts || {}).map(s => ({ id: s.id, name: s.name, state: s.state })), [project.scripts]);
-    const performanceScriptOptions = useMemo(() => Object.values(project.scripts.scripts || {}).filter(s => s.category === 'Performance').map(s => ({ id: s.id, name: s.name, state: s.state })), [project.scripts]);
-    const scriptDefs = project.scripts.scripts || {};
-    const graphOptions = useMemo(() => Object.values(project.presentationGraphs || {}).map(g => ({ id: g.id, name: g.name, state: 'Draft' as any })), [project.presentationGraphs]);
+    const lifecycleScriptOptions = useMemo(() => Object.values(project.scripts.scripts || {}).filter(s => s.category === 'Lifecycle').map(s => ({ id: s.id, name: s.name, state: s.state })), [project.scripts]);
 
     const handleSetInitial = () => {
         dispatch({
@@ -56,16 +52,17 @@ export const StateInspector = ({ fsmId, stateId }: Props) => {
         });
     };
 
-
     return (
         <div>
+            {/* State Header */}
             <div style={{ padding: '16px', background: '#2d2d30', borderBottom: '1px solid #3e3e42' }}>
-                <div style={{ fontSize: '10px', color: '#4fc1ff', marginBottom: '4px' }}>FSM STATE</div>
+                <div style={{ fontSize: '10px', color: '#4fc1ff', marginBottom: '4px', letterSpacing: '1px' }}>FSM STATE</div>
                 <input
                     type="text"
                     value={state.name}
                     onChange={(e) => handleChange('name', e.target.value)}
-                    style={{ background: '#222', border: '1px solid #444', color: '#fff', fontSize: '14px', fontWeight: 600, width: '100%', padding: '4px', marginBottom: '8px' }}
+                    disabled={readOnly}
+                    style={{ background: '#222', border: '1px solid #444', color: '#fff', fontSize: '14px', fontWeight: 600, width: '100%', padding: '4px', marginBottom: '8px', opacity: readOnly ? 0.7 : 1 }}
                 />
 
                 {isInitial ? (
@@ -76,7 +73,7 @@ export const StateInspector = ({ fsmId, stateId }: Props) => {
                         <span style={{ marginRight: '6px' }}>▶</span> Initial State
                     </div>
                 ) : (
-                    <button
+                    !readOnly && <button
                         onClick={handleSetInitial}
                         style={{
                             background: '#333', border: '1px solid #555', color: '#ccc',
@@ -92,50 +89,61 @@ export const StateInspector = ({ fsmId, stateId }: Props) => {
                 )}
             </div>
 
-            <div className="prop-row">
-                <div className="prop-label">ID</div>
-                <div className="prop-value" style={{ fontFamily: 'monospace', color: '#666' }}>{state.id}</div>
-            </div>
-
-            <div style={{ padding: '12px 16px', borderBottom: '1px solid #2a2a2a' }}>
-                <div style={{ color: '#888', marginBottom: '4px', fontSize: '11px' }}>Description</div>
-                <textarea
-                    value={state.description || ''}
-                    onChange={(e) => handleChange('description', e.target.value)}
-                    style={{ background: '#222', border: '1px solid #444', color: '#ccc', width: '100%', height: '60px', resize: 'vertical', fontFamily: 'inherit' }}
-                />
-            </div>
-
-            <div className="panel-header" style={{ marginTop: '16px' }}>Transitions</div>
-            {outgoingTransitions.length === 0 ? (
-                <div style={{ padding: '8px 16px', fontSize: '12px', color: '#666' }}>No transitions from here.</div>
-            ) : (
-                <div style={{ padding: '8px 16px', fontSize: '12px', color: '#888' }}>
-                    {outgoingTransitions.length} outgoing transitions.
-                    <br />Select a transition arrow on canvas to edit.
+            {/* Basic Info Section */}
+            <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-color)' }}>
+                <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Basic Info</div>
+                <div className="prop-row">
+                    <div className="prop-label">ID</div>
+                    <div className="prop-value" style={{ fontFamily: 'monospace', color: '#666' }}>{state.id}</div>
                 </div>
-            )}
+                <div style={{ marginTop: '8px' }}>
+                    <div style={{ color: '#888', marginBottom: '4px', fontSize: '11px' }}>Description</div>
+                    <textarea
+                        value={state.description || ''}
+                        onChange={(e) => handleChange('description', e.target.value)}
+                        disabled={readOnly}
+                        placeholder="No description."
+                        style={{ background: '#222', border: '1px solid #444', color: '#ccc', width: '100%', height: '60px', resize: 'vertical', fontFamily: 'inherit', opacity: readOnly ? 0.7 : 1 }}
+                    />
+                </div>
+            </div>
 
-            <div className="panel-header" style={{ marginTop: '16px' }}>Event Listeners</div>
-            <EventListenersEditor
-                listeners={state.eventListeners || []}
-                onChange={(next) => handleChange('eventListeners', next)}
-                eventOptions={eventOptions}
-                scriptOptions={scriptOptions}
-                variables={visibleVars}
-            />
+            {/* Lifecycle Script Section */}
+            <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-color)' }}>
+                <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Lifecycle Script</div>
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center', pointerEvents: readOnly ? 'none' : 'auto', opacity: readOnly ? 0.6 : 1 }}>
+                    <ResourceSelect
+                        options={lifecycleScriptOptions}
+                        value={state.lifecycleScriptId || ''}
+                        onChange={(val) => handleChange('lifecycleScriptId', val || undefined)}
+                        placeholder="Select lifecycle script"
+                        warnOnMarkedDelete
+                        disabled={readOnly}
+                    />
+                    {state.lifecycleScriptId && (
+                        <button
+                            className="btn-ghost"
+                            onClick={() => handleChange('lifecycleScriptId', undefined)}
+                            disabled={readOnly}
+                        >
+                            Clear
+                        </button>
+                    )}
+                </div>
+            </div>
 
-            <div className="panel-header" style={{ marginTop: '16px' }}>Presentation Binding</div>
-            <div style={{ padding: '12px' }}>
-                <PresentationBindingEditor
-                    binding={state.presentation}
-                    onChange={(next) => handleChange('presentation', next)}
-                    scriptDefs={scriptDefs}
-                    scriptOptions={performanceScriptOptions}
-                    graphOptions={graphOptions}
-                    variables={visibleVars}
-                    title="On Enter Presentation"
-                />
+            {/* Event Listeners Section */}
+            <div style={{ padding: '12px 16px' }}>
+                <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Event Listeners</div>
+                <div style={{ pointerEvents: readOnly ? 'none' : 'auto', opacity: readOnly ? 0.6 : 1 }}>
+                    <EventListenersEditor
+                        listeners={state.eventListeners || []}
+                        onChange={(next) => handleChange('eventListeners', next)}
+                        eventOptions={eventOptions}
+                        scriptOptions={scriptOptions}
+                        variables={visibleVars}
+                    />
+                </div>
             </div>
         </div>
     );

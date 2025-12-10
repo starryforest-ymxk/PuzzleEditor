@@ -11,11 +11,12 @@ import { ConnectionLine, ConnectionControls } from './Elements/ConnectionLine';
 
 interface Props {
     node: PuzzleNode;
+    readOnly?: boolean;
 }
 
 const CANVAS_SIZE = 4000;
 
-export const StateMachineCanvas = ({ node }: Props) => {
+export const StateMachineCanvas = ({ node, readOnly = false }: Props) => {
     const { project, ui } = useEditorState();
     const dispatch = useEditorDispatch();
     const canvasRef = useRef<HTMLDivElement>(null);
@@ -54,7 +55,7 @@ export const StateMachineCanvas = ({ node }: Props) => {
 
     // 3. Interaction Logic (Hook)
     const {
-        draggingNodeId, linkingState, modifyingTransition, activeSnapPoint, mousePos,
+        draggingNodeId, linkingState, modifyingTransition, activeSnapPoint, snapPoints, mousePos,
         boxSelectRect, isDraggingMultiple,
         startNodeDrag, startMultiNodeDrag, startLinking, startModifyingTransition,
         startBoxSelect, getNodeDisplayPosition
@@ -78,13 +79,14 @@ export const StateMachineCanvas = ({ node }: Props) => {
                 }
             });
         },
-        onLinkComplete: (sourceId, targetId, side) => {
+        onLinkComplete: (sourceId, targetId, options) => {
             // Check duplicates
             if (Object.values(fsm.transitions).some((t: Transition) => t.fromStateId === sourceId && t.toStateId === targetId)) return;
 
             const sourcePos = getNodeDisplayPosition(sourceId, fsm.states[sourceId].position);
             const targetPos = fsm.states[targetId].position;
-            const fromSide = Geom.getClosestSide(sourcePos, Geom.STATE_WIDTH, Geom.STATE_ESTIMATED_HEIGHT, targetPos);
+            const fromSide = options?.sourceSide || Geom.getClosestSide(sourcePos, Geom.STATE_WIDTH, Geom.STATE_ESTIMATED_HEIGHT, targetPos);
+            const toSide = options?.targetSide || Geom.getClosestSide(targetPos, Geom.STATE_WIDTH, Geom.STATE_ESTIMATED_HEIGHT, sourcePos);
 
             dispatch({
                 type: 'ADD_TRANSITION',
@@ -92,7 +94,7 @@ export const StateMachineCanvas = ({ node }: Props) => {
                     fsmId: fsm.id,
                     transition: {
                         id: `trans-${Date.now()}`, name: 'Transition', fromStateId: sourceId, toStateId: targetId,
-                        fromSide, toSide: side, condition: { type: 'LITERAL', value: true }, priority: 0,
+                        fromSide, toSide, condition: { type: 'LITERAL', value: true }, priority: 0,
                         triggers: [{ type: 'Always' }], parameterModifiers: []
                     }
                 }
@@ -157,6 +159,7 @@ export const StateMachineCanvas = ({ node }: Props) => {
             if (['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName) || target.isContentEditable) return;
 
             if (e.key === 'Delete' || e.key === 'Backspace') {
+                if (readOnly) return;
                 // 删除多选的节点
                 if (multiSelectIds.length > 0) {
                     multiSelectIds.forEach(stateId => {
@@ -181,6 +184,7 @@ export const StateMachineCanvas = ({ node }: Props) => {
 
         // 监听 Ctrl 键用于切线模式
         const handleKeyDown2 = (e: KeyboardEvent) => {
+            if (readOnly) return;
             if (e.key === 'Control') setIsLineCuttingMode(true);
         };
         const handleKeyUp = (e: KeyboardEvent) => {
@@ -202,15 +206,29 @@ export const StateMachineCanvas = ({ node }: Props) => {
         pendingCanvasSelect.current = false;
         if (handlePanMouseDown(e)) return;
         if (e.button !== 0) return;
-        if (linkingState || modifyingTransition) return;
+        if (e.button !== 0) return;
+        if (readOnly) {
+            // 只允许框选（如果是为了查看检查）或者平移
+            // ReadOnly usually implies simpler interaction.
+            // If we allow box selecting to see multi-inspector, keep it.
+            // But disable cutting line.
+        }
+        else {
+            if (linkingState || modifyingTransition) return;
+        }
 
-        // Ctrl+左键拖动开始切线模式
-        if (e.ctrlKey || e.metaKey) {
-            const pos = getLocalCoordinates(e.clientX, e.clientY);
-            setCuttingLine({ start: pos, end: pos });
-            cuttingPrevPos.current = pos;
-            cutTransitionsSet.current = new Set(); // 重置已切断记录
-            return;
+        if (readOnly) {
+            // In ReadOnly, prevent cutting mode.
+            // Allow Pan (handled above) and Box Select.
+        } else {
+            // Ctrl+左键拖动开始切线模式
+            if (e.ctrlKey || e.metaKey) {
+                const pos = getLocalCoordinates(e.clientX, e.clientY);
+                setCuttingLine({ start: pos, end: pos });
+                cuttingPrevPos.current = pos;
+                cutTransitionsSet.current = new Set(); // 重置已切断记录
+                return;
+            }
         }
 
         const rect = contentRef.current?.getBoundingClientRect();
@@ -316,15 +334,15 @@ export const StateMachineCanvas = ({ node }: Props) => {
         e.stopPropagation();
         if (e.button !== 0) return;
 
-        const isLinkInteraction = e.shiftKey || Boolean(linkingState) || Boolean(modifyingTransition);
+        const isLinkInteraction = !readOnly && (e.shiftKey || Boolean(linkingState) || Boolean(modifyingTransition));
 
         // 先清空本次可能的延迟选中记录
         pendingStateSelect.current = null;
         dragMoved.current = false;
         dragStartPos.current = { x: e.clientX, y: e.clientY };
 
-        // 如果点击的是多选中的节点，开始多节点拖拽
-        if (multiSelectIds.includes(stateId) && !isLinkInteraction) {
+        // 如果点击的是多选中的节点，开始多节点拖拽 (仅非只读)
+        if (multiSelectIds.includes(stateId) && !isLinkInteraction && !readOnly) {
             startMultiNodeDrag(e, multiSelectIds);
             return;
         }
@@ -334,13 +352,15 @@ export const StateMachineCanvas = ({ node }: Props) => {
             dispatch({ type: 'SET_MULTI_SELECT_STATES', payload: [] });
         }
 
-        if (e.shiftKey) {
+        if (e.shiftKey && !readOnly) {
             startLinking(e, stateId);
             return;
         }
 
-        if (!linkingState && !modifyingTransition) {
+        if (!linkingState && !modifyingTransition && !readOnly) {
             startNodeDrag(e, stateId, fsm.states[stateId].position);
+            pendingStateSelect.current = stateId;
+        } else if (readOnly) {
             pendingStateSelect.current = stateId;
         }
 
@@ -388,6 +408,7 @@ export const StateMachineCanvas = ({ node }: Props) => {
 
     const handleContextMenu = (e: React.MouseEvent, type: 'CANVAS' | 'NODE' | 'TRANSITION', targetId?: string) => {
         e.preventDefault(); e.stopPropagation();
+        if (readOnly) return;
         const pos = getLocalCoordinates(e.clientX, e.clientY);
         setContextMenu({ x: pos.x, y: pos.y, type, targetId });
     };
@@ -411,7 +432,7 @@ export const StateMachineCanvas = ({ node }: Props) => {
         <div ref={canvasRef} className="canvas-grid"
             style={{
                 width: '100%', height: '100%', position: 'relative', overflow: 'auto',
-                backgroundColor: '#121212',
+                backgroundColor: '#18181b',
                 cursor: isPanningActive ? 'grabbing' : (linkingState || modifyingTransition ? 'crosshair' : (boxSelectRect ? 'crosshair' : 'default'))
             }}
             onMouseDown={handleCanvasMouseDown}
@@ -570,18 +591,35 @@ export const StateMachineCanvas = ({ node }: Props) => {
                                 e.stopPropagation();
                                 startModifyingTransition(e, id, type);
                             }}
+                            readOnly={readOnly}
                         />
                     );
                 })}
 
-                {/* 4. Snap Points Overlay */}
-                {(linkingState || modifyingTransition) && activeSnapPoint && (
-                    <div style={{
-                        position: 'absolute', left: activeSnapPoint.x, top: activeSnapPoint.y,
-                        width: 12, height: 12, borderRadius: '50%', backgroundColor: 'var(--accent-color)',
-                        transform: 'translate(-50%, -50%)', zIndex: 35, pointerEvents: 'none'
-                    }} />
-                )}
+                {/* 4. 吸附点提示层：连线/调整时展示所有锚点 */}
+                {(linkingState || modifyingTransition) && snapPoints.map(sp => {
+                    const isActive = activeSnapPoint && activeSnapPoint.nodeId === sp.nodeId && activeSnapPoint.side === sp.side;
+                    const size = isActive ? 12 : 8;
+                    return (
+                        <div
+                            key={`snap-${sp.nodeId}-${sp.side}`}
+                            style={{
+                                position: 'absolute',
+                                left: sp.x,
+                                top: sp.y,
+                                width: size,
+                                height: size,
+                                borderRadius: '50%',
+                                backgroundColor: isActive ? 'var(--accent-color)' : 'rgba(255,255,255,0.35)',
+                                opacity: isActive ? 1 : 0.5,
+                                transform: 'translate(-50%, -50%)',
+                                zIndex: 35,
+                                pointerEvents: 'none',
+                                boxShadow: isActive ? '0 0 0 2px rgba(255,255,255,0.25)' : 'none'
+                            }}
+                        />
+                    );
+                })}
 
                 {/* 5. State Nodes */}
                 {Object.values(fsm.states).map((state: State) => (
@@ -596,6 +634,7 @@ export const StateMachineCanvas = ({ node }: Props) => {
                         onMouseDown={handleStateMouseDown}
                         onMouseUp={handleStateMouseUp}
                         onContextMenu={(e) => handleContextMenu(e, 'NODE', state.id)}
+                        readOnly={readOnly}
                     />
                 ))}
             </div>

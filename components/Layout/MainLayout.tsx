@@ -1,16 +1,25 @@
-
-import React, { useEffect } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { Header } from './Header';
 import { Sidebar } from './Sidebar';
+import { Resizer } from './Resizer';
 import { StageExplorer } from '../Explorer/StageExplorer';
 import { NodeList } from '../Explorer/NodeList';
 import { Inspector } from '../Inspector/Inspector';
 import { Canvas } from '../Canvas/Canvas';
-import { useEditorDispatch } from '../../store/context';
+import { Breadcrumb } from './Breadcrumb';
+import { useEditorDispatch, useEditorState } from '../../store/context';
 import { BlackboardPanel } from '../Blackboard/BlackboardPanel';
+
+// Constraints for panel sizes
+const MIN_SIDEBAR_WIDTH = 180;
+const MAX_SIDEBAR_WIDTH = 500;
+const MIN_STAGES_HEIGHT = 20;
+const MAX_STAGES_HEIGHT = 80;
 
 export const MainLayout = () => {
   const dispatch = useEditorDispatch();
+  const { ui } = useEditorState();
+  const { panelSizes } = ui;
 
   // Global Keyboard Shortcuts
   useEffect(() => {
@@ -30,7 +39,7 @@ export const MainLayout = () => {
         dispatch({ type: 'REDO' });
       }
 
-      // ESC 清空多选（跨视图通用）
+      // ESC to clear multi-select
       if (e.key === 'Escape') {
         dispatch({ type: 'SET_MULTI_SELECT_STATES', payload: [] });
       }
@@ -40,38 +49,92 @@ export const MainLayout = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [dispatch]);
 
+  // Resize handlers with constraints
+  const handleExplorerResize = useCallback((delta: number) => {
+    const newWidth = Math.max(MIN_SIDEBAR_WIDTH, Math.min(MAX_SIDEBAR_WIDTH, panelSizes.explorerWidth + delta));
+    dispatch({ type: 'SET_PANEL_SIZES', payload: { explorerWidth: newWidth } });
+  }, [dispatch, panelSizes.explorerWidth]);
+
+  const handleInspectorResize = useCallback((delta: number) => {
+    // Inspector resize is inverted (dragging left increases width)
+    const newWidth = Math.max(MIN_SIDEBAR_WIDTH, Math.min(MAX_SIDEBAR_WIDTH, panelSizes.inspectorWidth - delta));
+    dispatch({ type: 'SET_PANEL_SIZES', payload: { inspectorWidth: newWidth } });
+  }, [dispatch, panelSizes.inspectorWidth]);
+
+  const handleStagesResize = useCallback((delta: number, containerHeight: number) => {
+    const deltaPercent = (delta / containerHeight) * 100;
+    const newHeight = Math.max(MIN_STAGES_HEIGHT, Math.min(MAX_STAGES_HEIGHT, panelSizes.stagesHeight + deltaPercent));
+    dispatch({ type: 'SET_PANEL_SIZES', payload: { stagesHeight: newHeight } });
+  }, [dispatch, panelSizes.stagesHeight]);
+
+  const renderEditorView = () => (
+    <>
+      {/* Left Sidebar: Explorer */}
+      <Sidebar title="Explorer" position="left" width={panelSizes.explorerWidth}>
+        {/* Split view: Stages / Nodes with resizable border */}
+        <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+          <div style={{ flex: `0 0 ${panelSizes.stagesHeight}%`, minHeight: 0, overflowY: 'auto' }}>
+            <div style={{ padding: '8px 16px', fontSize: '10px', color: 'var(--text-secondary)', fontWeight: 600 }}>STAGES</div>
+            <StageExplorer />
+          </div>
+          <Resizer
+            direction="vertical"
+            onResize={(delta) => {
+              const container = document.querySelector('.panel-content');
+              if (container) handleStagesResize(delta, container.clientHeight);
+            }}
+          />
+          <div style={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
+            <div style={{ padding: '8px 16px', fontSize: '10px', color: 'var(--text-secondary)', fontWeight: 600 }}>NODES</div>
+            <NodeList />
+          </div>
+        </div>
+      </Sidebar>
+
+      {/* Explorer/Canvas Resizer */}
+      <Resizer direction="horizontal" onResize={handleExplorerResize} />
+
+      {/* Center: Canvas */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
+        <Breadcrumb />
+        <Canvas />
+      </div>
+
+      {/* Canvas/Inspector Resizer */}
+      <Resizer direction="horizontal" onResize={handleInspectorResize} />
+
+      {/* Right Sidebar: Inspector */}
+      <Sidebar title="Inspector" position="right" width={panelSizes.inspectorWidth}>
+        <Inspector />
+      </Sidebar>
+    </>
+  );
+
+  const renderBlackboardView = () => (
+    <>
+      {/* Center: Blackboard Content */}
+      <div style={{ flex: 1, overflow: 'hidden', minWidth: 0 }}>
+        <BlackboardPanel />
+      </div>
+
+      {/* Blackboard/Inspector Resizer */}
+      <Resizer direction="horizontal" onResize={handleInspectorResize} />
+
+      {/* Right Sidebar: Inspector */}
+      <Sidebar title="Inspector" position="right" width={panelSizes.inspectorWidth}>
+        <Inspector />
+      </Sidebar>
+    </>
+  );
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <Header />
-      
+
       <div className="app-body">
-        {/* Left Sidebar: Structure */}
-        <Sidebar title="Explorer" position="left">
-           {/* Split view: Top 60% Stage Tree, Bottom 40% Node List */}
-             <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: '8px' }}>
-              <div style={{ flex: '0 0 45%', minHeight: 0, overflowY: 'auto', borderBottom: '1px solid var(--border-color)' }}>
-                <div style={{ padding: '8px 16px', fontSize: '10px', color: '#666', fontWeight: 600 }}>STAGES</div>
-                <StageExplorer />
-              </div>
-              <div style={{ flex: '0 0 30%', minHeight: 0, overflowY: 'auto', borderBottom: '1px solid var(--border-color)' }}>
-                <div style={{ padding: '8px 16px', fontSize: '10px', color: '#666', fontWeight: 600 }}>NODES</div>
-                <NodeList />
-              </div>
-              <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', borderTop: '1px solid var(--border-color)' }}>
-                <div style={{ padding: '8px 16px', fontSize: '10px', color: '#666', fontWeight: 600 }}>BLACKBOARD</div>
-                <BlackboardPanel />
-              </div>
-             </div>
-        </Sidebar>
-
-        {/* Center: Canvas */}
-        <Canvas />
-
-        {/* Right Sidebar: Properties */}
-        <Sidebar title="Inspector" position="right">
-          <Inspector />
-        </Sidebar>
+        {ui.view === 'EDITOR' ? renderEditorView() : renderBlackboardView()}
       </div>
     </div>
   );
 };
+

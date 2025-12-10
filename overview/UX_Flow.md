@@ -18,9 +18,9 @@
 
 1. **演出脚本 (Performance Script)**: 用于具体的表现（播动画、播声音）。支持绑定时传参。
 2. **生命周期脚本 (Lifecycle Script)**:
-   - *Stage Lifecycle*: 绑定到阶段的 `OnEnter` / `OnExit`。
-   - *PuzzleNode Lifecycle*: 绑定到节点的 `OnCreate` / `OnDestroy`。
-   - *State Lifecycle*: 绑定到状态机状态的 `OnEnter` / `OnExit`。
+   - *Stage Lifecycle*: 绑定到阶段。
+   - *PuzzleNode Lifecycle*: 绑定到节点。
+   - *State Lifecycle*: 绑定到状态机状态。
 3. **自定义条件脚本 (Custom Condition Script)**: 返回 `bool`，用于条件构造器。
 4. **自定义触发器脚本 (Custom Trigger Script)**: 用于驱动状态转移。
 
@@ -63,7 +63,7 @@
 
 ## 3. 黑板管理视图 (Blackboard View)
 
-包含三个页签：`参数 (Variables)`, `脚本 (Scripts)`, `事件 (Events)`。
+包含四个页签：`参数 (Variables)`, `脚本 (Scripts)`, `事件 (Events)`, `图 (Graphs)`。
 
 ### 3.1 参数页签 (Variables Tab)
 
@@ -77,7 +77,7 @@
 ### 3.2 脚本页签 (Scripts Tab)
 
 - **显示**: 四个分组列表（演出、生命周期、条件、触发器）。
-- **列信息**: `Name`, `Key`, `Type`, `Comment`, `State`。
+- **列信息**: `Name`, `Key`, `Type`, `State`, `Description`。
 - **创建**: 点击 `+ 新建脚本` -> 选择类型 -> 填写信息。
 - **操作**: 同样支持软删除和引用查询。
 
@@ -86,6 +86,12 @@
 - **显示**: 事件定义列表。
 - **列信息**: `Name`, `Key`, `Comment`, `State`。
 - **创建**: 填写 Name (必须唯一) 和 Comment。
+- **操作**: 软删除、引用查询。
+
+### 3.4 图页签 (Graphs Tab)
+
+- **显示：**两个分组列表：状态机图和演出图
+- **列信息：**ID, Node Count，Initial State
 - **操作**: 软删除、引用查询。
 
 ------

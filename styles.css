@@ -1,45 +1,72 @@
-
 :root {
-  --bg-color: #121212; /* 更深邃的背景 */
-  --panel-bg: #1e1e1e;
-  --panel-header-bg: #252526;
-  --border-color: #333333;
-  --text-primary: #e0e0e0;
-  --text-secondary: #858585;
-  --text-dim: #555555;
-  
-  /* Accent Colors */
-  --accent-color: #3794ff;
-  --accent-hover: #1c97ea;
-  --accent-success: #4caf50;
-  --accent-warning: #ff9800;
-  --accent-error: #f44336;
-  
-  --selection-bg: #264f78;
-  --selection-border: #3794ff;
-  
-  --header-height: 48px;
-  --sidebar-width: 260px;
-  --inspector-width: 320px;
-  
-  --node-bg: #2d2d2d;
-  --node-header-bg: #383838;
-  --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
-  --shadow-md: 0 4px 6px rgba(0,0,0,0.4);
-  --shadow-lg: 0 10px 15px rgba(0,0,0,0.5);
+  /* Analog Lab Theme Palette */
+  /* Backgrounds: Zinc-950 / Zinc-900 / Zinc-800 */
+  --bg-color: #18181b;
+  /* Deep matte charcoal */
+  --panel-bg: #27272a;
+  /* Slightly lighter panel background */
+  --panel-header-bg: #3f3f46;
+  /* Distinct header bg */
+
+  /* Borders: Zinc-600 */
+  --border-color: #52525b;
+  /* Visible, mechanical borders */
+
+  /* Text: Zinc-200 / Zinc-400 */
+  --text-primary: #e4e4e7;
+  /* Off-white, high contrast but no bloom */
+  --text-secondary: #a1a1aa;
+  /* Muted technical info */
+  --text-dim: #71717a;
+  /* Inactive/Hint */
+
+  /* Accents: Safety Orange / Amber */
+  --accent-color: #f97316;
+  /* Primary interaction color (Orange-500) */
+  --accent-hover: #fb923c;
+  /* Lighter orange for hover */
+  --accent-active: #ea580c;
+  /* Darker orange for active/press */
+
+  --accent-success: #22c55e;
+  --accent-warning: #f59e0b;
+  --accent-error: #ef4444;
+
+  --selection-bg: rgba(249, 115, 22, 0.2);
+  --selection-border: #f97316;
+
+  /* Layout Dimensions */
+  --header-height: 56px;
+  /* Slightly taller for "Control Deck" feel */
+  --sidebar-width: 280px;
+  /* Wider for "Component Rack" */
+  --inspector-width: 340px;
+  /* Wider for "Parameters Deck" */
+
+  /* Shadows & Radius */
+  --node-bg: #27272a;
+  --node-header-bg: #3f3f46;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.6);
+  --radius-sm: 4px;
+  /* Machined metal corners */
+  --radius-md: 6px;
 }
 
-body, html {
+body,
+html {
   margin: 0;
   padding: 0;
   width: 100%;
   height: 100%;
-  font-family: 'Segoe UI', Inter, -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+  /* Tech feel */
   background-color: var(--bg-color);
   color: var(--text-primary);
   overflow: hidden;
   user-select: none;
   font-size: 13px;
+  -webkit-font-smoothing: antialiased;
 }
 
 #root {
@@ -49,34 +76,37 @@ body, html {
   flex-direction: column;
 }
 
+/* Scrollbars - Mechanical Feel */
 ::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-  background-color: var(--panel-bg);
+  width: 12px;
+  height: 12px;
+  background-color: var(--bg-color);
 }
-::-webkit-scrollbar-corner {
-  background-color: var(--panel-bg);
-}
+
 ::-webkit-scrollbar-thumb {
-  background-color: #3e3e3e;
-  border-radius: 5px;
-  border: 2px solid var(--panel-bg);
+  background-color: #52525b;
+  /* Zinc-600 */
+  border: 3px solid var(--bg-color);
+  /* Chunky look */
+  border-radius: 0;
+  /* Square/Mechanical */
 }
+
 ::-webkit-scrollbar-thumb:hover {
-  background-color: #505050;
+  background-color: #71717a;
 }
 
 /* 布局组件 */
 .app-header {
   height: var(--header-height);
-  background-color: #181818;
-  border-bottom: 1px solid #000;
+  background-color: var(--panel-bg);
+  border-bottom: 2px solid var(--border-color);
+  /* Thicker border */
   display: flex;
   align-items: center;
-  padding: 0 16px;
+  padding: 0 20px;
   flex-shrink: 0;
   z-index: 10;
-  box-shadow: 0 1px 5px rgba(0,0,0,0.2);
 }
 
 .app-body {
@@ -95,27 +125,31 @@ body, html {
 
 .sidebar.left {
   width: var(--sidebar-width);
-  border-right: 1px solid #000;
+  border-right: 2px solid var(--border-color);
+  /* Thicker border */
 }
 
 .sidebar.right {
   width: var(--inspector-width);
-  border-left: 1px solid #000;
+  border-left: 2px solid var(--border-color);
+  /* Thicker border */
 }
 
 .panel-header {
-  height: 32px;
-  min-height: 32px;
+  height: 36px;
+  min-height: 36px;
   display: flex;
   align-items: center;
-  padding: 0 12px;
+  padding: 0 16px;
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.5px;
+  letter-spacing: 1px;
   text-transform: uppercase;
   color: var(--text-secondary);
   background-color: var(--panel-header-bg);
   border-bottom: 1px solid var(--border-color);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  /* Highlight for 3D feel */
 }
 
 .panel-content {
@@ -124,10 +158,11 @@ body, html {
   overflow-x: hidden;
 }
 
-/* 画布区域背景优化 */
+/* 画布区域 */
 .canvas-area {
   flex: 1;
-  background-color: #121212;
+  background-color: var(--bg-color);
+  /* Deep Charcoal */
   position: relative;
   overflow: hidden;
   display: flex;
@@ -136,8 +171,18 @@ body, html {
 
 /* Dot Grid Background Pattern */
 .canvas-grid {
-  background-image: radial-gradient(#333 1px, transparent 1px);
-  background-size: 20px 20px;
+  position: relative;
+}
+
+.canvas-grid::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(var(--border-color) 1px, transparent 1px);
+  background-size: 24px 24px;
+  opacity: 0.3;
+  pointer-events: none;
+  z-index: 0;
 }
 
 /* 通用 UI 元素 */
@@ -151,76 +196,98 @@ body, html {
   font-size: 14px;
   text-align: center;
   padding: 20px;
+  font-family: 'JetBrains Mono', 'Consolas', monospace;
 }
 
+/* Tree Node - Mechanical List */
 .tree-node {
-  padding: 4px 8px;
+  padding: 6px 12px;
   cursor: pointer;
-  border-radius: 3px;
-  margin: 1px 4px;
+  border-radius: var(--radius-sm);
+  margin: 2px 8px;
   display: flex;
   align-items: center;
   color: var(--text-primary);
-  transition: background-color 0.1s;
+  border: 1px solid transparent;
+  transition: all 0.1s;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
 }
 
 .tree-node:hover {
-  background-color: rgba(255, 255, 255, 0.04);
+  background-color: rgba(255, 255, 255, 0.05);
+  border-color: #3f3f46;
 }
 
 .tree-node.selected {
-  background-color: var(--selection-bg);
-  color: #fff;
+  background-color: rgba(249, 115, 22, 0.15);
+  border-color: var(--accent-color);
+  color: var(--accent-color);
+  font-weight: 600;
 }
 
+/* Breadcrumb hover underline */
+.breadcrumb-link {
+  text-decoration: none;
+  transition: text-decoration 0.1s;
+}
+.breadcrumb-link:hover {
+  text-decoration: underline;
+}
+
+/* Properties Table */
 .prop-row {
   display: flex;
-  padding: 8px 16px;
-  border-bottom: 1px solid #2a2a2a;
+  padding: 10px 16px;
+  border-bottom: 1px solid #3f3f46;
   font-size: 12px;
-  align-items: flex-start;
+  align-items: center;
 }
 
 .prop-label {
-  width: 90px;
+  width: 100px;
   color: var(--text-secondary);
   flex-shrink: 0;
-  padding-right: 8px;
+  padding-right: 12px;
+  font-family: 'Inter', sans-serif;
 }
 
 .prop-value {
   flex: 1;
   color: var(--text-primary);
   word-break: break-all;
-  font-family: 'Consolas', 'Monaco', monospace;
+  font-family: 'JetBrains Mono', monospace;
+  /* Code font for data */
 }
 
-/* Card Styling for Stage Overview */
+/* Card Styling for Stage Overview - "Data Cartridge" Look */
 .overview-card {
-  background-color: #252526;
-  border: 1px solid #333;
-  border-radius: 6px;
-  padding: 12px;
+  background-color: var(--panel-header-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 14px;
   display: flex;
   flex-direction: column;
   cursor: pointer;
-  transition: transform 0.1s ease, box-shadow 0.1s ease, border-color 0.1s ease;
+  transition: all 0.1s ease;
   box-shadow: var(--shadow-sm);
   position: relative;
   overflow: hidden;
+  margin-bottom: 8px;
 }
 
 .overview-card:hover {
-  transform: translateY(-2px);
+  transform: translateY(-1px);
   box-shadow: var(--shadow-md);
-  border-color: #555;
-  background-color: #2a2a2b;
+  border-color: var(--text-secondary);
+  background-color: #52525b;
+  /* Lighter on hover */
 }
 
 .overview-card.selected {
-  background-color: #2d2d30;
-  border-color: var(--selection-border);
-  box-shadow: 0 0 0 1px var(--selection-border);
+  background-color: #3f3f46;
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 1px var(--accent-color);
 }
 
 .overview-card::before {
@@ -228,22 +295,70 @@ body, html {
   position: absolute;
   top: 0;
   left: 0;
-  width: 4px;
+  width: 6px;
   height: 100%;
-  background-color: transparent;
+  background-color: var(--border-color);
   transition: background-color 0.2s;
 }
 
 .overview-card:hover::before {
+  background-color: var(--text-secondary);
+}
+
+.overview-card.selected::before {
   background-color: var(--accent-color);
+}
+
+/* Buttons - Chunky & Tactile */
+.btn-primary {
+  background-color: var(--accent-color);
+  color: #fff;
+  border: none;
+  padding: 6px 16px;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 0 #c2410c;
+  /* Push down effect shadow */
+  transition: all 0.1s;
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.5px;
+}
+
+.btn-primary:active {
+  transform: translateY(2px);
+  box-shadow: none;
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.1s;
+  font-size: 12px;
+}
+
+.btn-ghost:hover {
+  color: var(--text-primary);
+  border-color: var(--text-primary);
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.btn-ghost:active {
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
 /* Transition Handles */
 .transition-handle {
-    transition: fill 0.1s, stroke 0.1s;
+  transition: fill 0.1s, stroke 0.1s;
 }
+
 .transition-handle:hover {
-    fill: var(--accent-color);
-    stroke: #fff;
-    stroke-width: 2px;
+  fill: var(--accent-color);
+  stroke: #fff;
+  stroke-width: 2px;
 }

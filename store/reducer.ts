@@ -1,6 +1,6 @@
 /**
- * Editor Reducer - 主 Reducer
- * 使用切片模式组织代码，将复杂逻辑委托给各个领域 slice
+ * Editor Reducer - 核心 Reducer
+ * 使用切片模式组织代码，负责协调领域 reducer 与全局历史/初始化逻辑
  */
 
 import { EditorState, Action, ProjectContent } from './types';
@@ -64,7 +64,7 @@ const internalReducer = (state: EditorState, action: Action): EditorState => {
         case 'INIT_START':
             return {
                 ...state,
-                ui: { ...state.ui, isLoading: true }
+                ui: { ...state.ui, isLoading: true, errorMessage: null }
             };
 
         case 'INIT_SUCCESS':
@@ -81,8 +81,19 @@ const internalReducer = (state: EditorState, action: Action): EditorState => {
                     scripts: action.payload.scripts,
                     triggers: action.payload.triggers
                 },
-                history: { past: [], future: [] }, // 加载时重置历史
-                ui: { ...state.ui, isLoading: false }
+                history: { past: [], future: [] },
+                manifest: {
+                    scripts: Object.values(action.payload.scripts.scripts),
+                    triggers: Object.values(action.payload.triggers.triggers || {}),
+                    isLoaded: true
+                },
+                ui: { ...state.ui, isLoading: false, errorMessage: null }
+            };
+
+        case 'INIT_ERROR':
+            return {
+                ...state,
+                ui: { ...state.ui, isLoading: false, errorMessage: action.payload.message }
             };
 
         case 'SELECT_OBJECT':
@@ -289,6 +300,107 @@ const internalReducer = (state: EditorState, action: Action): EditorState => {
             };
         }
 
+        // Navigation (P2-T02)
+        case 'SWITCH_VIEW': {
+            return {
+                ...state,
+                ui: { ...state.ui, view: action.payload }
+            };
+        }
+
+        case 'NAVIGATE_TO': {
+            // 当导航到 Stage 时，清除当前 Node；当导航到 Node 时，保持 Stage
+            // 若 payload 显式传了 null，则清除对应层级
+            const nextStageId = action.payload.stageId !== undefined
+                ? action.payload.stageId
+                : state.ui.currentStageId;
+
+            const nextNodeId = action.payload.nodeId !== undefined
+                ? action.payload.nodeId
+                : state.ui.currentNodeId;
+
+            // 若显式传入 graphId 则采用；否则只要导航到 Stage/Node 就清空当前演出图，以免画布停留在旧的演出图
+            const isStageOrNodeNav = action.payload.stageId !== undefined || action.payload.nodeId !== undefined;
+            const nextGraphId = action.payload.graphId !== undefined
+                ? action.payload.graphId
+                : (isStageOrNodeNav ? null : state.ui.currentGraphId);
+
+            // 记录进入演出图前的上下文，便于面包屑返回
+            const prevContext = state.ui.lastEditorContext;
+            const nextLastContext = action.payload.graphId
+                ? { stageId: state.ui.currentStageId, nodeId: state.ui.currentNodeId }
+                : (isStageOrNodeNav || state.ui.currentGraphId ? { stageId: null, nodeId: null } : prevContext);
+
+            // 面包屑后退历史：若上下文有变化则压栈当前上下文
+            const currCtx = { stageId: state.ui.currentStageId, nodeId: state.ui.currentNodeId, graphId: state.ui.currentGraphId };
+            const nextCtx = { stageId: nextStageId, nodeId: nextNodeId, graphId: nextGraphId };
+            const hasChanged = currCtx.stageId !== nextCtx.stageId || currCtx.nodeId !== nextCtx.nodeId || currCtx.graphId !== nextCtx.graphId;
+            const nextNavStack = hasChanged ? [...state.ui.navStack, currCtx] : state.ui.navStack;
+
+            return {
+                ...state,
+                ui: {
+                    ...state.ui,
+                    currentStageId: nextStageId,
+                    currentNodeId: nextNodeId,
+                    currentGraphId: nextGraphId,
+                    lastEditorContext: nextLastContext,
+                    navStack: nextNavStack,
+                    // 导航时自动切回编辑器视图
+                    view: 'EDITOR',
+                    // 导航通常意味着选择变化，顺带清理旧选区
+                    selection: { type: 'NONE', id: null },
+                    multiSelectStateIds: []
+                }
+            };
+        }
+
+        case 'NAVIGATE_BACK': {
+            if (state.ui.navStack.length === 0) return state;
+            const previous = state.ui.navStack[state.ui.navStack.length - 1];
+            const nextStack = state.ui.navStack.slice(0, -1);
+            return {
+                ...state,
+                ui: {
+                    ...state.ui,
+                    currentStageId: previous.stageId,
+                    currentNodeId: previous.nodeId,
+                    currentGraphId: previous.graphId,
+                    navStack: nextStack,
+                    view: 'EDITOR',
+                    selection: { type: 'NONE', id: null },
+                    multiSelectStateIds: []
+                }
+            };
+        }
+
+        case 'SET_BLACKBOARD_VIEW': {
+            return {
+                ...state,
+                ui: {
+                    ...state.ui,
+                    blackboardView: {
+                        ...state.ui.blackboardView,
+                        // 仅覆盖传入的字段，保持其余状态用于记忆
+                        ...action.payload
+                    }
+                }
+            };
+        }
+
+        case 'SET_PANEL_SIZES': {
+            return {
+                ...state,
+                ui: {
+                    ...state.ui,
+                    panelSizes: {
+                        ...state.ui.panelSizes,
+                        ...action.payload
+                    }
+                }
+            };
+        }
+
         default:
             return state;
     }
@@ -296,7 +408,7 @@ const internalReducer = (state: EditorState, action: Action): EditorState => {
 
 // ========== History Wrapper Reducer ==========
 /**
- * 顶层 Reducer，包装历史管理功能 (Undo/Redo)
+ * 顶层 Reducer，包装历史管理功能（Undo/Redo）
  */
 export const editorReducer = (state: EditorState, action: Action): EditorState => {
     // 1. 处理 UNDO

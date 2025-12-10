@@ -25,7 +25,7 @@ interface BoxSelectRect {
 interface InteractionOptions {
     onNodeMove: (nodeId: string, pos: { x: number, y: number }) => void;
     onMultiNodeMove: (nodeIds: string[], delta: { dx: number, dy: number }) => void;
-    onLinkComplete: (sourceId: string, targetId: string, side?: Side) => void;
+    onLinkComplete: (sourceId: string, targetId: string, options?: { targetSide?: Side; sourceSide?: Side }) => void;
     onLinkUpdate: (transId: string, handle: 'source' | 'target', targetId: string, side?: Side) => void;
     onLinkDelete?: (transId: string) => void;
     onBoxSelectEnd: (nodeIds: string[]) => void;
@@ -64,6 +64,7 @@ export const useGraphInteraction = ({
 
     // === 反馈状态 ===
     const [activeSnapPoint, setActiveSnapPoint] = useState<SnapPoint | null>(null);
+    const [snapPoints, setSnapPoints] = useState<SnapPoint[]>([]); // 当前可见的吸附点列表，用于 UI 高亮
     const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
     // 缓存锚点用于优化
@@ -83,6 +84,7 @@ export const useGraphInteraction = ({
             anchors.forEach(a => points.push({ nodeId: node.id, side: a.side as Side, x: a.x, y: a.y }));
         });
         cachedSnapPoints.current = points;
+        setSnapPoints(points);
     };
 
     // === 开始单节点拖拽 ===
@@ -197,14 +199,26 @@ export const useGraphInteraction = ({
 
             // 连线完成
             if (linkingState) {
+                const nodes = getNodes();
+                const sourceNode = nodes[linkingState.nodeId];
+                // 记录释放时的起点侧，确保新连线起点与拖拽时的吸附方向一致
+                const sourceSide = sourceNode
+                    ? Geom.getClosestSide(
+                        sourceNode.position,
+                        Geom.STATE_WIDTH,
+                        Geom.STATE_ESTIMATED_HEIGHT,
+                        activeSnapPoint ? { x: activeSnapPoint.x, y: activeSnapPoint.y } : pos
+                    )
+                    : undefined;
+
                 if (activeSnapPoint) {
-                    onLinkComplete(linkingState.nodeId, activeSnapPoint.nodeId, activeSnapPoint.side);
+                    onLinkComplete(linkingState.nodeId, activeSnapPoint.nodeId, { targetSide: activeSnapPoint.side, sourceSide });
                 } else {
                     const elements = document.elementsFromPoint(e.clientX, e.clientY);
                     const stateEl = elements.find(el => el.hasAttribute('data-node-id'));
                     if (stateEl) {
                         const targetId = stateEl.getAttribute('data-node-id');
-                        if (targetId) onLinkComplete(linkingState.nodeId, targetId);
+                        if (targetId) onLinkComplete(linkingState.nodeId, targetId, { sourceSide });
                     }
                 }
                 setLinkingState(null);
@@ -232,6 +246,7 @@ export const useGraphInteraction = ({
             }
 
             setActiveSnapPoint(null);
+            setSnapPoints([]);
             setDragOffset({ x: 0, y: 0 });
         };
 
@@ -279,6 +294,7 @@ export const useGraphInteraction = ({
         linkingState,
         modifyingTransition,
         activeSnapPoint,
+        snapPoints,
         mousePos,
         boxSelectRect,
         isDraggingMultiple,

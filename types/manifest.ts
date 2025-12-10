@@ -28,13 +28,13 @@ export interface ScriptParameterDefinition {
 
 // ========== 脚本定义 ==========
 /**
- * 脚本定义，描述一个可调用的脚本及其参数
+ * 脚本定义，描述一个可调用的脚本
+ * 注意：脚本不定义参数，参数在调用时通过 ParameterBinding 传递
  */
 export interface ScriptDefinition extends Entity {
   id: ScriptId;                        // 稳定 ID，内部引用使用
   key: ScriptKey;                      // 系统生成的稳定 Key，不随重命名变化
   category: ScriptCategory;            // 脚本分类
-  parameters: ScriptParameterDefinition[];
   state: ResourceState;
 }
 

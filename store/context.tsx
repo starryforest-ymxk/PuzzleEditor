@@ -1,26 +1,21 @@
 /**
  * store/context.tsx
  * 全局状态管理 Context 定义
- * - 提供 React Context 包装的 Reducer 状态管理
- * - 使用双 Context 模式分离状态和派发，优化组件渲染
+ * - 提供 React Context 封装的 Reducer 状态管理
+ * - 使用双 Context 模式拆分状态与派发，优化组件订阅
  */
 
-import React, { createContext, useContext, useReducer, ReactNode, Dispatch } from 'react';
+import React, { createContext, useContext, useReducer, Dispatch } from 'react';
 import { EditorState, INITIAL_STATE, Action } from './types';
 import { editorReducer } from './reducer';
 import { apiService } from '../api/service';
+import { normalizeProjectForStore } from '../utils/projectNormalizer';
 
 // ========== Context 定义 ==========
-/** 全局状态 Context */
 const StateContext = createContext<EditorState>(INITIAL_STATE);
-/** 派发函数 Context */
 const DispatchContext = createContext<Dispatch<Action>>(() => null);
 
 // ========== Provider 组件 ==========
-/**
- * 全局状态 Provider
- * 包裹应用根组件，提供状态和派发能力
- */
 export const StoreProvider = ({ children }: React.PropsWithChildren<{}>) => {
   const [state, dispatch] = useReducer(editorReducer, INITIAL_STATE);
 
@@ -34,37 +29,48 @@ export const StoreProvider = ({ children }: React.PropsWithChildren<{}>) => {
 };
 
 // ========== 自定义 Hooks ==========
-/** 获取全局编辑器状态 */
 export const useEditorState = () => useContext(StateContext);
-/** 获取派发函数，用于触发 Action */
 export const useEditorDispatch = () => useContext(DispatchContext);
 
 // ========== 异步 Action 辅助函数 ==========
 /**
- * 加载项目数据
- * 从 API 获取项目数据并初始化 Store
+ * 项目加载：从 API 获取数据并进行版本兼容归一化，注入 Store
  */
 export const loadProjectData = async (dispatch: Dispatch<Action>) => {
   dispatch({ type: 'INIT_START' });
   try {
-    const exportManifest = await apiService.loadProject();
-    const projectData = exportManifest.project;
+    const [projectPayload, manifest] = await Promise.all([
+      apiService.loadProject(),
+      // Manifest 加载失败不阻断主流程，仅用于补充脚本/触发器
+      apiService.loadManifest().catch(() => undefined)
+    ]);
+
+    const normalized = normalizeProjectForStore(projectPayload as any, manifest);
 
     dispatch({
       type: 'INIT_SUCCESS',
       payload: {
-        stageTree: projectData.stageTree,
-        nodes: projectData.nodes,
-        stateMachines: projectData.stateMachines,
-        presentationGraphs: projectData.presentationGraphs,
-        blackboard: projectData.blackboard,
-        meta: projectData.meta,
-        scripts: projectData.scripts,
-        triggers: projectData.triggers
+        stageTree: normalized.project.stageTree,
+        nodes: normalized.project.nodes,
+        stateMachines: normalized.project.stateMachines,
+        presentationGraphs: normalized.project.presentationGraphs,
+        blackboard: normalized.project.blackboard,
+        meta: normalized.project.meta,
+        scripts: normalized.project.scripts,
+        triggers: normalized.project.triggers
       }
     });
-  } catch (error) {
-    console.error("项目加载失败:", error);
-    // TODO: 在实际应用中，这里应该派发 ERROR action
+
+    // P2-T02: Navigate to Root Stage by default
+    if (normalized.project.stageTree.rootId) {
+      dispatch({
+        type: 'NAVIGATE_TO',
+        payload: { stageId: normalized.project.stageTree.rootId, nodeId: null }
+      });
+    }
+  } catch (error: any) {
+    console.error('项目加载失败:', error);
+    const message = error?.message ?? '项目加载失败';
+    dispatch({ type: 'INIT_ERROR', payload: { message } });
   }
 };

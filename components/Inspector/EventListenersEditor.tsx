@@ -126,19 +126,10 @@ export const EventListenersEditor: React.FC<Props> = ({
               </select>
             </div>
 
-            {/* Script config */}
+            {/* InvokeScript: no script selection needed, auto-triggers lifecycle callback */}
             {listener.action.type === 'InvokeScript' && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '11px', color: '#888', minWidth: '40px' }}>Script:</span>
-                <ResourceSelect
-                  options={scriptOptions}
-                  value={listener.action.scriptId || ''}
-                  onChange={(val) => handleUpdate(index, {
-                    action: { ...listener.action, scriptId: val }
-                  })}
-                  placeholder="Select script"
-                  warnOnMarkedDelete
-                />
+              <div style={{ fontSize: '11px', color: '#888', padding: '4px 0', marginLeft: '48px' }}>
+                Triggers the lifecycle script's OnEventInvoke callback
               </div>
             )}
 

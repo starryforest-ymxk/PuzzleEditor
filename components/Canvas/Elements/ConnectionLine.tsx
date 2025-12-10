@@ -71,8 +71,8 @@ export const ConnectionLine = React.memo(({
 
 // Helper component for the HTML overlay part (Handles & Label)
 export const ConnectionControls = React.memo(({
-    transition, fromPos, toPos, isSelected, isContextTarget, onSelect, onContextMenu, onHandleDown
-}: Omit<Props, 'fromState' | 'toState' | 'isModifying'>) => {
+    transition, fromPos, toPos, isSelected, isContextTarget, onSelect, onContextMenu, onHandleDown, readOnly
+}: Omit<Props, 'fromState' | 'toState' | 'isModifying'> & { readOnly?: boolean }) => {
 
     const fromSide = transition.fromSide || Geom.getClosestSide(fromPos, Geom.STATE_WIDTH, Geom.STATE_ESTIMATED_HEIGHT, toPos);
     const toSide = transition.toSide || Geom.getClosestSide(toPos, Geom.STATE_WIDTH, Geom.STATE_ESTIMATED_HEIGHT, fromPos);
@@ -96,10 +96,14 @@ export const ConnectionControls = React.memo(({
             >
                 {transition.name}
             </div>
-            <div className="handle" style={{ left: start.x, top: start.y, zIndex: 31 }}
-                onMouseDown={(e) => onHandleDown(e, transition.id, 'source')} />
-            <div className="handle" style={{ left: end.x, top: end.y, zIndex: 31 }}
-                onMouseDown={(e) => onHandleDown(e, transition.id, 'target')} />
+            {!readOnly && (
+                <>
+                    <div className="handle" style={{ left: start.x, top: start.y, zIndex: 31 }}
+                        onMouseDown={(e) => { e.stopPropagation(); onHandleDown(e, transition.id, 'source'); }} />
+                    <div className="handle" style={{ left: end.x, top: end.y, zIndex: 31 }}
+                        onMouseDown={(e) => { e.stopPropagation(); onHandleDown(e, transition.id, 'target'); }} />
+                </>
+            )}
         </React.Fragment>
     )
 });

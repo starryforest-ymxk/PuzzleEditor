@@ -62,6 +62,7 @@
 **现状**: `loadProjectData` 已实现基础加载
 
 **待完善**:
+
 1. 添加版本兼容性处理（旧字段缺省填默认值）
 2. 添加加载错误处理和 UI 反馈
 3. 添加加载进度指示
@@ -106,7 +107,7 @@ interface NavigationState {
 **现状**: `StageExplorer.tsx` 已实现基础树形展示
 
 **待完善**:
-1. 标记初始 Stage（蓝色 `▶` 图标）
+1. 标记初始 Stage（橙色 `▶` 图标）
 2. 优化选中高亮样式
 3. 同步面包屑更新
 4. 添加搜索/筛选功能（可选）
@@ -162,54 +163,48 @@ interface ContentCardProps {
 
 ---
 
-### P2-T06 PuzzleNode FSM 画布只读视图
+### P2-T06 PuzzleNode FSM 画布只读视图 (Completed)
 
 **目标**: 在只读模式下展示 FSM 结构
 
-**现状**: `StateMachineCanvas.tsx` 已实现完整交互
+**现状**: `StateMachineCanvas.tsx` 已集成只读模式
 
-**待完善**:
-1. 添加只读模式 prop，禁用编辑操作
-2. 保留平移/缩放功能
-3. 点击节点/连线仍能在 Inspector 显示详情
+**已完成的功能**:
+1. ✅ 为 Canvas 及子组件添加 `readOnly` 属性，`Canvas.tsx` 中默认开启。
+2. ✅ 禁用编辑交互：节点拖拽、连线创建/修改/切断、上下文菜单、键盘删除。
+3. ✅ 保留浏览交互：画布平移/缩放、节点/连线点击选中、框选。
+4. ✅ 视觉反馈：只读模式下节点光标变为 `pointer`，连线控制手柄隐藏。
+5. ✅ Inspector 集成：主布局中设置为 `readOnly`，Inspector 及其子编辑器（State/Transition）已禁用输入修改。
 
 ---
 
-### P2-T07 演出子图只读视图
+### P2-T07 演出子图只读视图 (Completed)
 
 **目标**: 展示 PresentationGraph 结构
 
-**现状**: `PresentationCanvas.tsx` 已存在基础实现
+**现状**: 完整实现
 
-**待完善**:
-1. 完善节点渲染（ScriptCall/Wait/Branch/Parallel）
-2. 添加只读模式
-3. 实现从其他位置跳转到演出图
+**已完成的功能**:
+1. ✅ 在 Blackboard 视图添加"Graphs"页签，展示所有演出图卡片
+2. ✅ 单击卡片可选中演出图，右侧 Inspector 显示详细信息
+3. ✅ 双击卡片可导航进入 PresentationCanvas 画布视图
+4. ✅ Canvas 路由支持 `currentGraphId` 参数
+5. ✅ Inspector 支持 `PRESENTATION_GRAPH` 选择类型
+6. ✅ 保留原有的节点编辑和连线功能（从 FSM 画布复用）
 
 ---
 
-### P2-T08 基础保存与导出（无校验）
+### P2-T08 基础保存与导出（无校验） (Completed)
 
 **目标**: 实现最基础的保存和导出功能
 
-**实现要点**:
+**现状**: 完整实现
 
-1. **保存功能**:
-```typescript
-// store/context.tsx
-export const saveProjectData = async (dispatch: Dispatch<Action>, state: EditorState) => {
-  const exportManifest: ExportManifest = {
-    manifestVersion: '1.0.0',
-    exportedAt: new Date().toISOString(),
-    project: state.project
-  };
-  await apiService.saveProject(exportManifest);
-};
-```
-
-2. **导出功能**:
-   - 生成 JSON 文件下载
-   - 验证"加载→无修改→导出"结果一致性
+**已完成的功能**:
+1. ✅ EXPORT JSON 按钮：将项目序列化为 ExportManifest 格式并下载为 JSON 文件
+2. ✅ LOAD 按钮：通过文件选择器加载 JSON 文件并恢复项目状态
+3. ✅ 文件命名：`{项目名}_{日期}.json` 格式
+4. ✅ 错误处理：解析失败时输出控制台错误
 
 ---
 

@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { useEditorState, useEditorDispatch } from '../../store/context';
 import { ScriptParamEditor } from './ScriptParamEditor';
+import { PresentationBindingEditor } from './PresentationBindingEditor';
 import { ParameterBinding } from '../../types/common';
 import { VariableDefinition } from '../../types/blackboard';
 import { collectVisibleVariables } from '../../utils/variableScope';
@@ -8,16 +9,17 @@ import { collectVisibleVariables } from '../../utils/variableScope';
 interface Props {
     graphId: string;
     nodeId: string;
+    readOnly?: boolean;
 }
 
-export const PresentationNodeInspector = ({ graphId, nodeId }: Props) => {
+export const PresentationNodeInspector = ({ graphId, nodeId, readOnly = false }: Props) => {
     const { project } = useEditorState();
     const dispatch = useEditorDispatch();
 
     const graph = project.presentationGraphs[graphId];
     const node = graph ? graph.nodes[nodeId] : null;
 
-    // ³¢ÊÔÍÆ¶ÏÍ¼µÄ×÷ÓÃÓòÉÏÏÂÎÄ£ºÓÅÏÈÕÒµ½ÒýÓÃ¸Ã graph µÄ Stage / Node
+    // å°è¯•æŽ¨æ–­å›¾çš„ä½œç”¨åŸŸä¸Šä¸‹æ–‡ï¼šä¼˜å…ˆæ‰¾åˆ°å¼•ç”¨è¯¥ graph çš„ Stage / Node
     const resolvedScope = useMemo(() => {
         let stageId: string | null = null;
         let nodeIdCtx: string | null = null;
@@ -33,7 +35,7 @@ export const PresentationNodeInspector = ({ graphId, nodeId }: Props) => {
             return false;
         });
 
-        // 2) FSM states / transitions (Í¨¹ýËùÊô node ÍÆ¶Ï stage)
+        // 2) FSM states / transitions (é€šè¿‡æ‰€å±ž node æŽ¨æ–­ stage)
         if (!stageId) {
             const nodeEntries = Object.values(project.nodes);
             for (const n of nodeEntries) {
@@ -89,9 +91,15 @@ export const PresentationNodeInspector = ({ graphId, nodeId }: Props) => {
     };
 
     const scriptList = Object.values(project.scripts.scripts || {});
+    const performanceScriptList = scriptList.filter(s => s.category === 'Performance');
     const selectedScriptDef = node.scriptId ? scriptList.find(s => s.id === node.scriptId) : null;
 
-    // ÒÀ¾ÝÍÆ¶Ïµ½µÄ×÷ÓÃÓòÊÕ¼¯¿É¼û±äÁ¿£¬²¢¹ýÂËÒÑ±ê¼ÇÉ¾³ý
+    // Presentation binding options
+    const performanceScriptOptions = useMemo(() => performanceScriptList.map(s => ({ id: s.id, name: s.name, state: s.state })), [performanceScriptList]);
+    const graphOptions = useMemo(() => Object.values(project.presentationGraphs || {}).filter(g => g.id !== graphId).map(g => ({ id: g.id, name: g.name, state: 'Draft' as any })), [project.presentationGraphs, graphId]);
+    const scriptDefs = project.scripts.scripts || {};
+
+    // ä¾æ®æŽ¨æ–­åˆ°çš„ä½œç”¨åŸŸæ”¶é›†å¯è§å˜é‡ï¼Œå¹¶è¿‡æ»¤å·²æ ‡è®°åˆ é™¤
     const visibleVars: VariableDefinition[] = useMemo(() => {
         const vars = collectVisibleVariables(
             { project, ui: { selection: { type: 'NONE', id: null }, multiSelectStateIds: [] }, history: { past: [], future: [] } } as any,
@@ -101,75 +109,106 @@ export const PresentationNodeInspector = ({ graphId, nodeId }: Props) => {
         return vars.all.filter(v => v.state !== 'MarkedForDelete');
     }, [project, resolvedScope]);
 
+    // Node type display name
+    const typeDisplayName = node.type === 'ScriptCall' ? 'SCRIPT CALL' : node.type.toUpperCase();
+
     return (
         <div>
+            {/* Node Header */}
             <div style={{ padding: '16px', background: '#2d2d30', borderBottom: '1px solid #3e3e42' }}>
-                <div style={{ fontSize: '10px', color: '#c586c0', marginBottom: '4px' }}>ACTION NODE</div>
-                <input 
-                    type="text" 
-                    value={node.name} 
+                <div style={{ fontSize: '10px', color: '#c586c0', marginBottom: '4px', letterSpacing: '1px' }}>{typeDisplayName} NODE</div>
+                <input
+                    type="text"
+                    value={node.name}
                     onChange={(e) => handleChange('name', e.target.value)}
-                    style={{ background: '#222', border: '1px solid #444', color: '#fff', fontSize: '14px', fontWeight: 600, width: '100%', padding: '4px' }}
+                    disabled={readOnly}
+                    style={{ background: '#222', border: '1px solid #444', color: '#fff', fontSize: '14px', fontWeight: 600, width: '100%', padding: '4px', opacity: readOnly ? 0.7 : 1 }}
                 />
             </div>
-            
-            <div className="prop-row">
-                <div className="prop-label">Type</div>
-                 <select 
-                    value={node.type}
-                    onChange={(e) => handleTypeChange(e.target.value)}
-                    style={{ background: '#222', color: '#ccc', border: '1px solid #444', padding: '2px', width: '100%' }}
-                >
-                    <option value="ScriptCall">ScriptCall</option>
-                    <option value="Wait">Wait</option>
-                    <option value="Branch">Branch</option>
-                    <option value="Parallel">Parallel</option>
-                </select>
+
+            {/* Basic Info Section */}
+            <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-color)' }}>
+                <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Basic Info</div>
+                <div className="prop-row">
+                    <div className="prop-label">ID</div>
+                    <div className="prop-value" style={{ fontFamily: 'monospace', color: '#666' }}>{node.id}</div>
+                </div>
+                <div className="prop-row">
+                    <div className="prop-label">Type</div>
+                    <select
+                        value={node.type}
+                        onChange={(e) => handleTypeChange(e.target.value)}
+                        disabled={readOnly}
+                        style={{ background: '#222', color: '#ccc', border: '1px solid #444', padding: '4px 8px', borderRadius: '3px', fontSize: '12px', opacity: readOnly ? 0.7 : 1 }}
+                    >
+                        <option value="ScriptCall">Script Call</option>
+                        <option value="Wait">Wait</option>
+                        <option value="Branch">Branch</option>
+                        <option value="Parallel">Parallel</option>
+                    </select>
+                </div>
             </div>
 
-            {/* Script Selection Logic */}
-            {node.type === 'ScriptCall' && (
-                <>
+            {/* Wait Node: Duration */}
+            {node.type === 'Wait' && (
+                <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-color)' }}>
+                    <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Wait Configuration</div>
                     <div className="prop-row">
-                        <div className="prop-label">Script</div>
-                        <select 
-                            value={node.scriptId || ''}
-                            onChange={(e) => handleChange('scriptId', e.target.value)}
-                            style={{ background: '#222', color: '#ccc', border: '1px solid #444', padding: '2px', width: '100%' }}
-                        >
-                            <option value="">-- Select Script --</option>
-                            {scriptList.map(s => (
-                                <option key={s.id} value={s.id}>{s.name}</option>
-                            ))}
-                        </select>
+                        <div className="prop-label">Duration (s)</div>
+                        <input
+                            type="number"
+                            step="0.1"
+                            value={node.duration ?? 1}
+                            onChange={(e) => handleChange('duration', parseFloat(e.target.value))}
+                            disabled={readOnly}
+                            style={{ background: '#222', border: '1px solid #444', color: '#ccc', width: '80px', padding: '4px', borderRadius: '3px', opacity: readOnly ? 0.7 : 1 }}
+                        />
                     </div>
+                </div>
+            )}
 
-                    <div className="panel-header" style={{ marginTop: '16px' }}>Parameters</div>
-                    {selectedScriptDef ? (
-                        <ScriptParamEditor 
+            {/* ScriptCall Node: Presentation Binding */}
+            {node.type === 'ScriptCall' && (
+                <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-color)' }}>
+                    <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Presentation Binding</div>
+                    <div style={{ pointerEvents: readOnly ? 'none' : 'auto', opacity: readOnly ? 0.6 : 1 }}>
+                        <PresentationBindingEditor
+                            binding={node.presentation}
+                            onChange={(next) => handleChange('presentation', next)}
+                            scriptDefs={scriptDefs}
+                            scriptOptions={performanceScriptOptions}
+                            graphOptions={graphOptions}
+                            variables={visibleVars}
+                            title="Script / Graph"
+                            onNavigateToGraph={(gid) => dispatch({ type: 'NAVIGATE_TO', payload: { graphId: gid } })}
+                        />
+                    </div>
+                </div>
+            )}
+
+            {/* ScriptCall Node: Parameters (only if script is selected via old scriptId field) */}
+            {node.type === 'ScriptCall' && selectedScriptDef && (
+                <div style={{ padding: '12px 16px' }}>
+                    <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Parameters</div>
+                    <div style={{ pointerEvents: readOnly ? 'none' : 'auto', opacity: readOnly ? 0.6 : 1 }}>
+                        <ScriptParamEditor
                             scriptDef={selectedScriptDef}
                             bindings={bindings}
                             onChange={handleParamChange}
                             variables={visibleVars}
                         />
-                    ) : (
-                        <div style={{ padding: '16px', color: '#666', fontSize: '12px' }}>
-                            Select a script to configure parameters.
-                        </div>
-                    )}
-                </>
+                    </div>
+                </div>
             )}
 
-            {node.type === 'Wait' && (
-                 <div className="prop-row">
-                    <div className="prop-label">Duration (s)</div>
-                    <input 
-                        type="number" step="0.1"
-                        value={node.duration ?? 1}
-                        onChange={(e) => handleChange('duration', parseFloat(e.target.value))}
-                        style={{ background: '#222', border: '1px solid #444', color: '#ccc', width: '100%' }}
-                    />
-                 </div>
+            {/* Branch / Parallel: Info placeholder */}
+            {(node.type === 'Branch' || node.type === 'Parallel') && (
+                <div style={{ padding: '12px 16px' }}>
+                    <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Configuration</div>
+                    <div style={{ color: '#666', fontSize: '12px', padding: '8px', textAlign: 'center' }}>
+                        {node.type === 'Branch' ? 'Branch nodes use outgoing connections for control flow.' : 'Parallel nodes execute all child branches simultaneously.'}
+                    </div>
+                </div>
             )}
         </div>
     );

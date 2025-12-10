@@ -296,42 +296,55 @@ export const MOCK_SCRIPTS: ScriptDefinition[] = [
     name: 'Debug Log',
     category: 'Performance',
     description: 'Print a message to the console',
-    state: 'Implemented',
-    parameters: [
-      { name: 'message', type: 'string', required: true }
-    ]
+    state: 'Implemented'
   },
   {
     id: 'script-play-anim',
     key: 'script-play-anim',
     name: 'Play Animation',
     category: 'Performance',
-    state: 'Implemented',
-    parameters: [
-      { name: 'target', type: 'string', required: true },
-      { name: 'animName', type: 'string', required: true },
-      { name: 'speed', type: 'float', required: false, defaultValue: 1.0 },
-      { name: 'loop', type: 'boolean', required: false, defaultValue: false }
-    ]
+    description: 'Play an animation on a target object',
+    state: 'Implemented'
   },
   {
     id: 'script-dialogue',
     key: 'script-dialogue',
     name: 'Show Dialogue',
     category: 'Performance',
-    state: 'Implemented',
-    parameters: [
-      { name: 'charId', type: 'string', required: true },
-      { name: 'text', type: 'string', required: true },
-      { name: 'duration', type: 'float', required: false, defaultValue: 3.0 },
-      {
-        name: 'emotion',
-        type: 'string',
-        required: true,
-        defaultValue: 'Neutral',
-        options: ['Neutral', 'Happy', 'Angry', 'Sad']
-      }
-    ]
+    description: 'Display a dialogue message',
+    state: 'Implemented'
+  },
+  {
+    id: 'script-lifecycle-node',
+    key: 'script-lifecycle-node',
+    name: 'Node Lifecycle',
+    category: 'Lifecycle',
+    description: 'Handles node enter/exit lifecycle events',
+    state: 'Implemented'
+  },
+  {
+    id: 'script-lifecycle-state',
+    key: 'script-lifecycle-state',
+    name: 'State Lifecycle',
+    category: 'Lifecycle',
+    description: 'Handles state enter/exit lifecycle events',
+    state: 'Implemented'
+  },
+  {
+    id: 'script-condition-check',
+    key: 'script-condition-check',
+    name: 'Custom Condition',
+    category: 'Condition',
+    description: 'Custom condition check script',
+    state: 'Draft'
+  },
+  {
+    id: 'script-trigger-custom',
+    key: 'script-trigger-custom',
+    name: 'Custom Trigger',
+    category: 'Trigger',
+    description: 'Custom trigger script for transitions',
+    state: 'Draft'
   }
 ];
 
