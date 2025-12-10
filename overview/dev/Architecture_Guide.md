@@ -227,4 +227,3 @@ collectVisibleVariables(state, stageId, nodeId): VisibleVariables
 
 - [领域模型](./Domain_Model.md) - 数据结构详细定义
 - [交互规范](./Interaction_Guide.md) - 快捷键与交互约定
-- [阶段二开发指南](./Phase2_Guide.md) - 下一阶段开发任务

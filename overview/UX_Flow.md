@@ -6,17 +6,19 @@
 
 ### 1.1 资源管线重构 (Reverse Pipeline)
 
-- **前端主导定义 (Frontend-First)**: 不再是后端提供 Manifest 给前端选，而是**策划在前端定义**“我需要一个什么脚本/事件/参数”，前端导出 JSON 给程序去生成代码桩 (Stub)。
+- **前端主导定义 (Frontend-First)**: 不再是后端提供 Manifest 给前端选，而是**策划在前端定义**"我需要一个什么脚本/事件/参数"，前端导出 JSON 给程序去生成代码桩 (Stub)。
 - **软删除保护 (Soft-Delete Protection)**:
   - **状态**: `未实现 (Draft)` -> `已实现 (Implemented)` -> `已标记删除 (MarkedForDelete)`。
   - **规则**:
     - `未实现`: 可直接物理删除。
     - `已实现`: 点击删除仅变为 `已标记删除` 状态，UI 变灰，禁止新绑定，已有绑定报红。
-    - `已标记删除`: 需执行二次确认的“应用删除 (Apply Delete)”操作，才会在 JSON 中真正移除，通知后端删代码。
+    - `已标记删除`: 需执行二次确认的"应用删除 (Apply Delete)"操作，才会在 JSON 中真正移除，通知后端删代码。
 
 ### 1.2 脚本分类体系
 
-1. **演出脚本 (Performance Script)**: 用于具体的表现（播动画、播声音）。支持绑定时传参。
+脚本定义仅包含元数据（Name、Key、Category、State、Description），**不定义参数**。参数在调用时通过 ParameterBinding 动态传递。
+
+1. **演出脚本 (Performance Script)**: 用于具体的表现（播动画、播声音）。调用时可传递参数。
 2. **生命周期脚本 (Lifecycle Script)**:
    - *Stage Lifecycle*: 绑定到阶段。
    - *PuzzleNode Lifecycle*: 绑定到节点。
@@ -31,13 +33,14 @@
   1. Stage (Enter/Exit)。
   2. State Transition (状态转移时)。
   3. Presentation Graph Node (子图内部节点)。
+- **参数传递**: 绑定演出脚本时，可配置参数传递（常量或变量引用）和临时参数。
 
 ### 1.4 事件与监听体系 (Event System)
 
 - **事件定义**: 纯字符串 ID (Key)，如 `"EVENT_BOSS_DIE"`。
 - **Listener (监听器)**:
-  - **脚本型**: 触发绑定的生命周期脚本的 `OnEventInvoke(evt)`。
-  - **参数修改型**: 触发参数变更（如 `Coin += 1`，`TempVar = GlobalVar`）。
+  - **脚本型 (Invoke Script)**: 触发当前对象绑定的生命周期脚本的 `OnEventInvoke(evt)` 回调，无需额外选择脚本。
+  - **参数修改型 (Modify Parameter)**: 触发参数变更（如 `Coin += 1`，`TempVar = GlobalVar`）。
 - **Trigger (触发器)**: 用于状态机转移。
 
 ### 1.5 参数作用域 (Variable Scope)
@@ -54,51 +57,102 @@
 ### 2.1 顶部导航栏 (Top Bar)
 
 - **项目控制**: `项目名`, `保存`, `导出 JSON`, `校验`。
-- **视图切换**: `编辑器 (Editor)` | `黑板管理 (Blackboard)`。
-- **面包屑导航 (Breadcrumbs)**: 核心导航。
+- **视图切换**: `编辑器 (Editor)` | `黑板管理 (Blackboard)`。位于 Header 中央区域。
+- **面包屑导航 (Breadcrumbs)**: 核心导航，显示当前层级路径。
   - *显示*: `Root > Level 1 > [Stage: 商店] > [Puzzle: 老虎机]`。
-  - *交互*: 点击任意节点跳转到对应层级；点击当前节点无反应；每一层级前都有 **`< 返回`** 按钮，点击直接返回上一级（父节点）。
+  - *交互*: 点击任意节点跳转到对应层级；点击当前节点无反应。
+
+### 2.2 左侧面板 (Explorer)
+
+- **阶段树 (Stages)**: 始终显示项目完整的阶段层级结构，带展开/折叠控制。
+- **节点列表 (Nodes)**: 显示当前选中 Stage 下的 PuzzleNode 列表。
+- **分隔线可拖拽**: Stages 和 Nodes 区域之间的分隔线可上下拖拽调整比例。
+
+### 2.3 中央画布 (Canvas)
+
+根据当前导航层级显示不同视图：
+- **Stage 选中**: 显示 Stage 概览（子阶段卡片 + 解谜节点卡片）。
+- **PuzzleNode 选中**: 显示状态机编辑器。
+- **Presentation Graph 选中**: 显示演出图编辑器。
+
+### 2.4 右侧属性面板 (Inspector)
+
+根据选中对象显示不同内容，采用统一的 Section 样式：
+- **Section 标题**: 11px 大写灰色文字，带 0.5px letter-spacing
+- **Section 分隔**: 使用 `border-bottom` 分隔各区域
+- **Header**: 顶部显示对象类型标签（带颜色）和名称
+
+### 2.5 面板边框可调整
+
+所有面板边界均可拖拽调整大小：
+- Explorer 与 Canvas 之间（水平）
+- Canvas 与 Inspector 之间（水平）
+- Stages 与 Nodes 之间（垂直）
+
+拖拽时鼠标显示双向箭头，尺寸会记忆并跨视图保持。
 
 ------
 
 ## 3. 黑板管理视图 (Blackboard View)
 
-包含四个页签：`参数 (Variables)`, `脚本 (Scripts)`, `事件 (Events)`, `图 (Graphs)`。
+包含四个页签：`Variables`, `Scripts`, `Events`, `Graphs`。
 
-### 3.1 参数页签 (Variables Tab)
+### 3.1 Variables 页签
 
-- **显示**: 分为两组列表 `Global Variables` 和 `Local Variables` (只读列表，仅用于搜索跳转)。
-- **列信息**: `Name`, `Key` (系统生成), `Type`, `Initial Value`, `Comment`, `State` (Draft/Impl/Deleted)。
-- **创建**: 仅能创建 Global Variable。
-  - 填写 Name, Type, Initial Value, Comment。
-- **软删除**: `已实现` 的参数点击删除变灰，右侧出现红色 `应用删除` 按钮。
-- **引用查询**: 点击某参数，弹出侧边栏显示“被引用列表”，点击条目跳转到对应编辑器位置。
+- **分组显示**: 
+  - `Global Variables`: 全局变量卡片列表
+  - `Local Variables`: 所有 Stage/Node 的局部变量卡片列表
+- **卡片信息**: Name, Key, Type, Default Value, State (Draft/Impl/Deleted)
+- **局部变量额外显示**: Scope 信息（Stage/Node 类型 + 所属者名称）
+- **创建**: 仅能创建 Global Variable
+- **软删除**: 已实现的变量点击删除变灰
+- **Inspector 显示**:
+  - **BASIC INFO**: Key, Type, Default Value, State, Description
+  - **SCOPE** (仅局部变量): Owner Type, Owner Name
+  - **REFERENCES**: 引用追踪区域（占位）
 
-### 3.2 脚本页签 (Scripts Tab)
+### 3.2 Scripts 页签
 
-- **显示**: 四个分组列表（演出、生命周期、条件、触发器）。
-- **列信息**: `Name`, `Key`, `Type`, `State`, `Description`。
-- **创建**: 点击 `+ 新建脚本` -> 选择类型 -> 填写信息。
-- **操作**: 同样支持软删除和引用查询。
+- **分组显示**: 四个分组（Performance, Lifecycle, Condition, Trigger）
+- **卡片信息**: Name, Key, Category, State
+- **创建**: 点击 `+ 新建脚本` -> 选择类型 -> 填写信息
+- **操作**: 软删除
+- **Inspector 显示**:
+  - **BASIC INFO**: Key, Category (带颜色), State, Description
+  - **REFERENCES**: 引用追踪区域（占位）
+- **注意**: 脚本不定义参数，参数在调用时配置
 
-### 3.3 事件页签 (Events Tab)
+### 3.3 Events 页签
 
-- **显示**: 事件定义列表。
-- **列信息**: `Name`, `Key`, `Comment`, `State`。
-- **创建**: 填写 Name (必须唯一) 和 Comment。
-- **操作**: 软删除、引用查询。
+- **显示**: 事件定义卡片列表
+- **卡片信息**: Name, Key, State
+- **创建**: 填写 Name (必须唯一) 和 Description
+- **操作**: 软删除
 
-### 3.4 图页签 (Graphs Tab)
+### 3.4 Graphs 页签
 
-- **显示：**两个分组列表：状态机图和演出图
-- **列信息：**ID, Node Count，Initial State
-- **操作**: 软删除、引用查询。
+- **分组显示**:
+  - `State Machines`: 状态机图卡片列表
+  - `Presentation Graphs`: 演出图卡片列表
+- **状态机卡片信息**: Name, ID, State Count, Transition Count, Initial State
+- **演出图卡片信息**: Name, ID, Node Count, Start Node
+- **双击**: 进入对应图的编辑器
+- **Inspector 显示**:
+  - **状态机**:
+    - BASIC INFO: ID, State Count, Transition Count, Initial State
+    - OWNER: 所属 Puzzle Node 名称和 ID
+    - STATES: 状态列表
+    - TRANSITIONS: 转移列表
+  - **演出图**:
+    - BASIC INFO: ID, Node Count, Start Node
+    - NODES: 节点列表
+    - REFERENCES: 引用追踪区域（占位）
 
 ------
 
 ## 4. 编辑器视图：阶段树层级 (Editor - Stage Hierarchy)
 
-**场景**: 当面包屑位于某个 `Stage` 时。
+**场景**: 当面包屑位于某个 Stage 时。
 
 ### 4.1 左侧：阶段树 (Tree)
 
@@ -108,43 +162,42 @@
 
 ### 4.2 中间：内容概览 (Content Area)
 
-这里显示当前 Stage 的内部结构。
-
-- **子阶段列表**: 卡片展示子 Stage。
-- **解谜节点列表**: 卡片展示该 Stage 下挂载的所有 PuzzleNode。
+显示当前 Stage 的内部结构：
+- **子阶段卡片**: 展示子 Stage。
+- **解谜节点卡片**: 展示该 Stage 下挂载的所有 PuzzleNode。
 - **交互逻辑**:
-  - **单击卡片**: 选中解谜节点（高亮边框），**右侧 Inspector 刷新**为该节点的属性。
-  - **双击卡片**: **进入**该节点的内部视图（跳转至第 5 节界面），面包屑下钻一层。
-  - **点击空白处**: 选中当前 Stage 本身，Inspector 显示 Stage 属性。
+  - **单击卡片**: 选中对象，右侧 Inspector 刷新为该对象属性。
+  - **双击卡片**: 进入该对象的内部视图，面包屑下钻一层。
+  - **点击空白处**: 选中当前 Stage 本身。
 
-### 4.3 右侧：属性面板 (Inspector)
+### 4.3 右侧：Inspector - Stage 选中
 
-**情况 A: 选中了 Stage (点击树节点或中间空白处)**
+采用统一 Section 样式：
 
-- **基本信息**: Name, Description.
-- **局部参数 (Stage Local)**: 管理当前 Stage 的作用域参数。
-- **解锁条件**: 条件构造器 (初始阶段不可用)。
-- **生命周期**: 绑定 `Stage Lifecycle Script`。
-- **演出绑定**: 
-  - `OnEnter Presentation`: 选择 `Presentation Graph` 或 `Performance Script`。
-  - `OnExit Presentation`: 同上。
-- **事件监听**: 配置事件响应 (调用脚本或修改参数)。
+- **Header**: "STAGE" 标签 + Stage 名称
+- **BASIC INFO**: ID, Description
+- **UNLOCK CONDITION**: 条件构造器 (初始阶段不可用)
+- **LIFECYCLE SCRIPT**: 绑定 Stage Lifecycle Script 的下拉选择器
+- **PRESENTATION**: 
+  - On Enter: PresentationBindingEditor
+  - On Exit: PresentationBindingEditor
+- **EVENT LISTENERS**: 事件监听器列表
+- **LOCAL VARIABLES**: 局部变量编辑器
 
+### 4.4 右侧：Inspector - PuzzleNode 选中
 
-
-**情况 B: 单击选中了某个 PuzzleNode 卡片**
-
-- **基本信息**: Name, ID, Description, Type.
-- **局部参数 (Node Local)**: 管理该节点的私有参数。
-- **生命周期**: 绑定 `PuzzleNode Lifecycle Script` 
-- **事件监听**: 配置事件响应 (调用脚本或修改参数)。
-- *注意：此时不显示内部状态机细节，仅显示作为“节点实体”的属性。*
+- **Header**: "PUZZLE NODE" 标签 + Node 名称
+- **BASIC INFO**: ID, Type, Description
+- **LIFECYCLE SCRIPT**: 绑定 PuzzleNode Lifecycle Script
+- **EVENT LISTENERS**: 事件监听器列表
+- **LOCAL VARIABLES**: 局部变量编辑器
+- *注意：此时不显示内部状态机细节，仅显示作为"节点实体"的属性。*
 
 ------
 
 ## 5. 编辑器视图：解谜节点 (Editor - Puzzle Node)
 
-**场景**: 双击进入具体的 Puzzle Node内部。
+**场景**: 双击进入具体的 Puzzle Node 内部。
 
 ### 5.1 视图导航 (Navigation) 
 
@@ -184,31 +237,31 @@
   - 右键连线 -> `🗑 Delete`。
   - **切断模式 (Line Cutting)**: 按住 **Ctrl** + **左键拖拽** 划出红色虚线，松开后批量删除路径上的连线。
 
-### 5.4 状态/转移属性配置 (Inspector Integration)
+### 5.4 右侧：Inspector - State 选中
 
-- **选中状态节点 (State)**:
-  - 右侧面板显示：
-    - 名称，描述
-    - 生命周期绑定：绑定 `State Lifecycle Script`。
-    - 添加事件监听器: 类似 Stage，可配置脚本调用或参数修改。
-- **选中连线 (Transition)**:
-  - 右侧面板显示：
-    - 名称，描述
-    - 触发器 (Trigger):
-      - 类型: `Always (每帧)`, `OnEvent (事件触发)`, `Custom (自定义脚本)`.
-      - 若选 `OnEvent`: 下拉选择 Event ID。
-      - 若选 `Custom`: 下拉选择 `Custom Trigger Script`。
-      - 可以配置多个触发器，任意触发器触发都生效
-    - 条件构造器:
-      - 添加条件行：`(变量) op (值)`。
-      - 添加自定义脚本：选择 `Custom Condition Script`。
-      - 支持多个条件的**与/或**逻辑判断
-    - 演出绑定: 选择 `Presentation Graph` 或 `Performance Script`。
-    - 参数修改器：与参数修改型事件监听器一致，可以触发参数变更（如 `Coin += 1`，`TempVar = GlobalVar`）。
+- **Header**: "FSM STATE" 标签 + State 名称（可编辑）
+- **Initial State 按钮**: 非初始状态显示 "Set as Initial State" 按钮
+- **BASIC INFO**: ID, Description
+- **LIFECYCLE SCRIPT**: 绑定 State Lifecycle Script
+- **EVENT LISTENERS**: 事件监听器列表
 
-### 5.5 局部参数管理
+### 5.5 右侧：Inspector - Transition 选中
 
-- 点击状态机面板画布的空白处，可以将选中对象设置为当前的PuzzleNode，此时可以管理 **PuzzleNode Local Variables**。
+- **Header**: "TRANSITION" 标签 + Transition 名称（可编辑）
+- **BASIC INFO**: ID, From, To, Priority, Description
+- **TRIGGER**: 触发器配置
+  - 类型: `Always (每帧)`, `OnEvent (事件触发)`, `CustomScript (自定义脚本)`
+  - 若选 `OnEvent`: 下拉选择 Event
+  - 若选 `CustomScript`: 下拉选择 Trigger Script
+  - 可配置多个触发器
+- **CONDITION**: 条件构造器
+- **PRESENTATION**: 演出绑定 (On Transition)
+- **PARAMETER MODIFIER**: 参数修改器列表
+
+### 5.6 局部参数管理
+
+- 点击状态机面板画布的空白处，选中对象设置为当前 PuzzleNode。
+- 此时可管理 **PuzzleNode Local Variables**。
 - 这些参数对内部状态机和下属演出子图可见。
 
 ------
@@ -217,24 +270,42 @@
 
 **场景**: 编辑某个具体的 Presentation Graph。
 
-### 6.1 节点编辑
+### 6.1 节点类型
 
-- **节点**: 每一个节点代表一个演出原子操作。
-- **绑定**: 每个节点必须绑定一个 **演出脚本 (Performance Script)**。
+- **ScriptCall**: 调用演出脚本或嵌套演出图
+- **Wait**: 等待指定时长
+- **Branch**: 分支节点（控制流）
+- **Parallel**: 并行执行节点
 
-### 6.2 参数传递配置 (Parameter Passing)
+### 6.2 右侧：Inspector - Presentation Node 选中
 
-- 当在任意位置（Stage/Transition/GraphNode）绑定了 **演出脚本** 时，Inspector 会显示 **`参数传递`** 区域。用户可以添加需要传递的参数，也可以不添加。
-- **添加参数传递**分为两种：
-  - 传递已有的参数（局部/全局参数）
-  - 新建临时参数:
-    - 若脚本需要额外参数，点击 `+ 临时参数`。
-    - `Param Name`: 目标脚本里的变量名。
-    - 配置 `Type`, `Name`, `Comment`, `Value` (常量或变量引用)
-    - `Value Source`:
-      - 常量: 手填常量值。
-      - 变量引用: 下拉选择当前作用域可见的 Global/Local 变量。
-  
+- **Header**: "[节点类型] NODE" 标签 + Node 名称（可编辑）
+- **BASIC INFO**: ID, Type 选择器
+- **WAIT CONFIGURATION** (仅 Wait 类型): Duration 输入框
+- **PRESENTATION BINDING** (仅 ScriptCall 类型): 
+  - Type: None / Script / Graph
+  - Script 选择器或 Graph 选择器
+  - 选择 Graph 时显示 "Edit →" 按钮可跳转
+- **CONFIGURATION** (Branch/Parallel 类型): 说明文字
+
+### 6.3 参数传递配置 (Parameter Passing)
+
+当绑定了**演出脚本**时，Inspector 会在 PRESENTATION BINDING 区域显示 **参数传递** 配置：
+
+#### 脚本参数 (Script Parameters)
+- 显示脚本定义的参数列表（如有）
+- 每个参数可选择值来源：
+  - **Constant**: 手填常量值
+  - **Variable**: 下拉选择当前作用域可见的 Global/Local 变量
+
+#### 临时参数 (Temporary Parameters)
+- 点击 `+ Temporary Parameter` 添加
+- 配置项：
+  - **Target Param Name**: 目标脚本里的变量名
+  - **Type**: String/Integer/Float/Boolean
+  - **Name**: 显示名称
+  - **Comment**: 可选注释
+  - **Value Source**: Constant（常量值）或 Variable（变量引用）
 
 ------
 
@@ -252,15 +323,34 @@
 - 用于事件监听器的响应配置/用于状态转移的附加操作。
 - **UI**:
   - `Target Variable`: 选择要修改的参数 (Global/Local)。
-  - `Operation`: `Set (=)`, `Add (+)`, `Subtract (-)`.
-  - `Source`: `Constant Value` 或 `Another Variable`.
+  - `Operation`: `Set (=)`, `Add (+)`, `Subtract (-)`。
+  - `Source`: `Constant Value` 或 `Another Variable`。
 
-### 7.3 脚本选择器 (Script Picker)
+### 7.3 事件监听器 (Event Listeners)
 
-- **数据源**: 前端定义的脚本列表（按类型过滤）。
-- 不可以选中“已删除状态”的脚本
+- **添加监听器**: 点击 `+ Add Listener`
+- **Event 选择**: 下拉选择要监听的事件
+- **Action 类型**:
+  - **Invoke Script**: 触发当前对象绑定的生命周期脚本的 OnEventInvoke 回调（无需选择脚本）
+  - **Modify Parameter**: 配置参数修改器
 
-### 7.4 软删除确认弹窗
+### 7.4 演出绑定编辑器 (Presentation Binding Editor)
+
+- **Type 选择**: None / Script / Graph
+- **Script 模式**:
+  - 下拉选择 Performance Script
+  - 显示参数传递配置（脚本参数 + 临时参数）
+- **Graph 模式**:
+  - 下拉选择 Presentation Graph
+  - 显示 "Edit →" 按钮，点击跳转到 Graph 编辑器
+
+### 7.5 资源选择器 (Resource Select)
+
+- **数据源**: 前端定义的资源列表（按类型过滤）
+- **警告显示**: 已标记删除的资源显示红色警告图标
+- **占位文本**: 未选中时显示 placeholder
+
+### 7.6 软删除确认弹窗
 
 - **触发**: 点击 `已标记删除` 条目旁的 `应用删除`。
 - **内容**:
