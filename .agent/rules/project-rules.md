@@ -20,6 +20,7 @@ trigger: always_on
 
 ### General Guidelines
 
+- CRITICAL: All code files should be opened and saved using ** UTF-8 ** format.
 - Before doing any task: 
   - read `overview/Project_Overview.md` to understand core goals, domain model, and preferred tech stack.
   - read necessary docs in `overview/dev/` to understand current project code architecture and task progress.

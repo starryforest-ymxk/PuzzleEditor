@@ -1,6 +1,6 @@
 /**
  * Editor Reducer - 核心 Reducer
- * 使用切片模式组织代码，负责协调领域 reducer 与全局历史/初始化逻辑
+ * 使用切片模式组织代码，负责协调基础 reducer 与全局历史/初始化逻辑
  */
 
 import { EditorState, Action, ProjectContent } from './types';
@@ -9,6 +9,8 @@ import { resolveDeleteAction } from '../utils/resourceLifecycle';
 
 // ========== 常量配置 ==========
 const MAX_HISTORY_LENGTH = 50;
+// P2 只读模式：阻断数据写操作，保留浏览/导航
+const READ_ONLY_MODE = true;
 
 // 触发历史快照的 Actions
 const HISTORY_ACTIONS = new Set([
@@ -25,10 +27,11 @@ const HISTORY_ACTIONS = new Set([
     'ADD_NODE_PARAM', 'UPDATE_NODE_PARAM', 'DELETE_NODE_PARAM'
 ]);
 
+// 只读模式下阻断的数据修改 Actions
+const READONLY_BLOCKED_ACTIONS = new Set<string>(HISTORY_ACTIONS);
+
 // ========== 快照工具函数 ==========
-/**
- * 提取项目数据的纯数据部分用于快照
- */
+/** 提取项目数据的纯数据部分用于快照 */
 const getProjectSnapshot = (state: EditorState): ProjectContent => ({
     stageTree: state.project.stageTree,
     nodes: state.project.nodes,
@@ -42,11 +45,13 @@ const getProjectSnapshot = (state: EditorState): ProjectContent => ({
 
 // ========== Core Business Logic Reducer ==========
 /**
- * 核心业务逻辑 Reducer
- * 将领域相关的 Action 委托给对应的 Slice
+ * 基础业务逻辑 Reducer
+ * 将基础相关的 Action 分派给对应的 Slice
  */
 const internalReducer = (state: EditorState, action: Action): EditorState => {
-    // 使用类型守卫委托到各个 Slice
+    // 使用类型守卫分发到各 Slice
+    // P2 只读模式：阻止数据写操作（初始化/导航/选择等 UI 操作仍允许）
+    if (READ_ONLY_MODE && READONLY_BLOCKED_ACTIONS.has(action.type)) { return state; }
     if (isFsmAction(action)) {
         return fsmReducer(state, action);
     }
@@ -59,7 +64,7 @@ const internalReducer = (state: EditorState, action: Action): EditorState => {
         return nodeParamsReducer(state, action);
     }
 
-    // 处理剩余的全局 Actions
+    // 处理其余的全局 Actions
     switch (action.type) {
         case 'INIT_START':
             return {
@@ -87,7 +92,21 @@ const internalReducer = (state: EditorState, action: Action): EditorState => {
                     triggers: Object.values(action.payload.triggers.triggers || {}),
                     isLoaded: true
                 },
-                ui: { ...state.ui, isLoading: false, errorMessage: null }
+                ui: {
+                    ...state.ui,
+                    isLoading: false,
+                    errorMessage: null,
+                    stageExpanded: {},
+                    // 重置导航状态：清空当前选中的 Stage/Node/Graph
+                    currentStageId: null,
+                    currentNodeId: null,
+                    currentGraphId: null,
+                    lastEditorContext: { stageId: null, nodeId: null },
+                    navStack: [],
+                    selection: { type: 'NONE', id: null },
+                    multiSelectStateIds: [],
+                    view: 'EDITOR'
+                }
             };
 
         case 'INIT_ERROR':
@@ -95,6 +114,18 @@ const internalReducer = (state: EditorState, action: Action): EditorState => {
                 ...state,
                 ui: { ...state.ui, isLoading: false, errorMessage: action.payload.message }
             };
+        case 'ADD_MESSAGE': {
+            return {
+                ...state,
+                ui: { ...state.ui, messages: [...state.ui.messages, action.payload] }
+            };
+        }
+        case 'CLEAR_MESSAGES': {
+            return {
+                ...state,
+                ui: { ...state.ui, messages: [] }
+            };
+        }
 
         case 'SELECT_OBJECT':
             return {
@@ -276,19 +307,22 @@ const internalReducer = (state: EditorState, action: Action): EditorState => {
         }
 
         case 'TOGGLE_STAGE_EXPAND': {
-            const stage = state.project.stageTree.stages[action.payload.id];
-            if (!stage) return state;
+            const current = state.ui.stageExpanded[action.payload.id] ?? state.project.stageTree.stages[action.payload.id]?.isExpanded ?? false;
             return {
                 ...state,
-                project: {
-                    ...state.project,
-                    stageTree: {
-                        ...state.project.stageTree,
-                        stages: {
-                            ...state.project.stageTree.stages,
-                            [action.payload.id]: { ...stage, isExpanded: !stage.isExpanded }
-                        }
-                    }
+                ui: {
+                    ...state.ui,
+                    stageExpanded: { ...state.ui.stageExpanded, [action.payload.id]: !current }
+                }
+            };
+        }
+
+        case 'SET_STAGE_EXPANDED': {
+            return {
+                ...state,
+                ui: {
+                    ...state.ui,
+                    stageExpanded: { ...state.ui.stageExpanded, [action.payload.id]: action.payload.expanded }
                 }
             };
         }
@@ -319,13 +353,13 @@ const internalReducer = (state: EditorState, action: Action): EditorState => {
                 ? action.payload.nodeId
                 : state.ui.currentNodeId;
 
-            // 若显式传入 graphId 则采用；否则只要导航到 Stage/Node 就清空当前演出图，以免画布停留在旧的演出图
+            // 若显式传入 graphId 则采用；否则若导航到 Stage/Node 就清空当前演出图，以免画布停留在旧的演出图
             const isStageOrNodeNav = action.payload.stageId !== undefined || action.payload.nodeId !== undefined;
             const nextGraphId = action.payload.graphId !== undefined
                 ? action.payload.graphId
                 : (isStageOrNodeNav ? null : state.ui.currentGraphId);
 
-            // 记录进入演出图前的上下文，便于面包屑返回
+            // 记录进入演出图前的上下文，以便面包屑返回
             const prevContext = state.ui.lastEditorContext;
             const nextLastContext = action.payload.graphId
                 ? { stageId: state.ui.currentStageId, nodeId: state.ui.currentNodeId }

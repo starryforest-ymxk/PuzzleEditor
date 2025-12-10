@@ -8,9 +8,10 @@ import { useCanvasNavigation } from '../../hooks/useCanvasNavigation';
 interface Props {
   graph: PresentationGraph;
   ownerNodeId?: string | null;
+  readOnly?: boolean;
 }
 
-export const PresentationCanvas = ({ graph, ownerNodeId }: Props) => {
+export const PresentationCanvas = ({ graph, ownerNodeId, readOnly = false }: Props) => {
   const { ui } = useEditorState();
   const dispatch = useEditorDispatch();
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -61,6 +62,10 @@ export const PresentationCanvas = ({ graph, ownerNodeId }: Props) => {
   const handleNodeMouseDown = (e: React.MouseEvent, nodeId: string) => {
     e.stopPropagation();
     if (e.button !== 0) return;
+    if (readOnly) {
+        dispatch({ type: 'SELECT_OBJECT', payload: { type: 'PRESENTATION_NODE', id: nodeId, contextId: graph.id } });
+        return;
+    }
     dispatch({ type: 'SELECT_OBJECT', payload: { type: 'PRESENTATION_NODE', id: nodeId, contextId: graph.id } });
     const pos = getCanvasCoordinates(e);
     const node = graph.nodes[nodeId];
@@ -72,16 +77,17 @@ export const PresentationCanvas = ({ graph, ownerNodeId }: Props) => {
   const handlePortMouseDown = (e: React.MouseEvent, nodeId: string) => {
       e.stopPropagation(); e.preventDefault();
       if (e.button !== 0) return;
+      if (readOnly) return;
       setLinkingFromId(nodeId);
       setMousePos(getCanvasCoordinates(e));
   };
 
   const handleMouseUp = (e: React.MouseEvent, targetNodeId?: string) => {
-      if (linkingFromId && targetNodeId && linkingFromId !== targetNodeId) {
+      if (!readOnly && linkingFromId && targetNodeId && linkingFromId !== targetNodeId) {
           e.stopPropagation();
           dispatch({ type: 'LINK_PRESENTATION_NODES', payload: { graphId: graph.id, fromNodeId: linkingFromId, toNodeId: targetNodeId } });
       }
-      if (draggingNodeId) {
+      if (!readOnly && draggingNodeId) {
           dispatch({ type: 'UPDATE_PRESENTATION_NODE', payload: { graphId: graph.id, nodeId: draggingNodeId, data: { position: { x: mousePos.x - dragOffset.x, y: mousePos.y - dragOffset.y } } } });
       }
       setDraggingNodeId(null);
@@ -90,12 +96,14 @@ export const PresentationCanvas = ({ graph, ownerNodeId }: Props) => {
 
   const handleContextMenu = (e: React.MouseEvent, type: 'CANVAS' | 'NODE', targetId?: string) => {
       e.preventDefault(); e.stopPropagation();
+      if (readOnly) return;
       const pos = getCanvasCoordinates(e);
       setContextMenu({ x: pos.x, y: pos.y, type, targetId });
   };
 
   const handleAddNode = (type: string) => {
       if (!contextMenu) return;
+      if (readOnly) return;
       dispatch({ type: 'ADD_PRESENTATION_NODE', payload: { graphId: graph.id, node: { id: `pnode-${Date.now()}`, name: `New ${type}`, type: type as any, position: { x: contextMenu.x, y: contextMenu.y }, nextIds: [] } } });
       setContextMenu(null);
   };
@@ -114,7 +122,7 @@ export const PresentationCanvas = ({ graph, ownerNodeId }: Props) => {
             </div>
         </div>
 
-        {contextMenu && (
+        {contextMenu && !readOnly && (
             <div ref={menuRef} style={{ position: 'absolute', top: contextMenu.y, left: contextMenu.x, zIndex: 9999, backgroundColor: '#252526', border: '1px solid #454545', padding: '4px 0', minWidth: '140px' }} onClick={(e) => e.stopPropagation()}>
                 {contextMenu.type === 'CANVAS' ? (
                     ['ScriptCall', 'Wait', 'Branch'].map(t => <div key={t} onClick={() => handleAddNode(t)} className="ctx-item">+ {t} Node</div>)

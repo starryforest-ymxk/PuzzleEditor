@@ -4,7 +4,7 @@ import { StateMachineCanvas } from './StateMachineCanvas';
 import { PresentationCanvas } from './PresentationCanvas';
 import { StageOverview } from './StageOverview';
 
-export const Canvas = () => {
+export const Canvas = ({ readOnly = false }: { readOnly?: boolean }) => {
     const { ui, project } = useEditorState();
 
     if (ui.isLoading) {
@@ -20,7 +20,7 @@ export const Canvas = () => {
         if (graph) {
             return (
                 <div className="canvas-area">
-                    <PresentationCanvas graph={graph} ownerNodeId={null} />
+                    <PresentationCanvas graph={graph} ownerNodeId={null} readOnly={readOnly} />
                 </div>
             );
         }
@@ -33,7 +33,7 @@ export const Canvas = () => {
         if (node) {
             return (
                 <div className="canvas-area">
-                    <StateMachineCanvas node={node} />
+                    <StateMachineCanvas node={node} readOnly={readOnly} />
                 </div>
             );
         }

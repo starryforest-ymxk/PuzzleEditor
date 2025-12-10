@@ -17,6 +17,8 @@ const MIN_STAGES_HEIGHT = 20;
 const MAX_STAGES_HEIGHT = 80;
 
 export const MainLayout = () => {
+  // P2 只读模式：统一传递到画布和 Inspector，避免 UI 误导
+  const READ_ONLY = true;
   const dispatch = useEditorDispatch();
   const { ui } = useEditorState();
   const { panelSizes } = ui;
@@ -97,7 +99,7 @@ export const MainLayout = () => {
       {/* Center: Canvas */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
         <Breadcrumb />
-        <Canvas />
+        <Canvas readOnly={READ_ONLY} />
       </div>
 
       {/* Canvas/Inspector Resizer */}
@@ -105,7 +107,7 @@ export const MainLayout = () => {
 
       {/* Right Sidebar: Inspector */}
       <Sidebar title="Inspector" position="right" width={panelSizes.inspectorWidth}>
-        <Inspector />
+        <Inspector readOnly={READ_ONLY} />
       </Sidebar>
     </>
   );
@@ -122,7 +124,7 @@ export const MainLayout = () => {
 
       {/* Right Sidebar: Inspector */}
       <Sidebar title="Inspector" position="right" width={panelSizes.inspectorWidth}>
-        <Inspector />
+        <Inspector readOnly={READ_ONLY} />
       </Sidebar>
     </>
   );
@@ -137,4 +139,3 @@ export const MainLayout = () => {
     </div>
   );
 };
-

@@ -1,24 +1,21 @@
 # 领域模型（Domain Model）
-
-> 本文档描述项目的核心数据结构和类型定义，与 `types/*` 代码保持同步。
->
-> **版本**: 1.0.0 | **更新时间**: 2025-12-09 | **覆盖任务**: P1-T01, P1-T02
+> 本文档描述项目的核心数据结构与类型定义，需与 `types/*` 代码保持同步。  
+> **版本**: 1.0.0 | **更新时间**: 2025-12-09 | **相关任务**: P1-T01, P1-T02
 
 ---
 
-## 1. 核心概念
+## 1. 基础概览
 
 ### 1.1 资源分类
 
 | 分类 | 说明 | 示例 |
 |------|------|------|
-| **黑板资源（唯一）** | 全局定义，被各处引用 | Script, Trigger, Event, Global Variable |
-| **结构实体（可实例化）** | 可在项目中多次创建 | Stage, PuzzleNode, State, Transition |
-| **复合结构** | 嵌套的数据结构 | StateMachine, PresentationGraph, ConditionExpression |
-| **元数据枚举** | 类型标识符 | ResourceState, VariableScope, ScriptCategory |
+| **基础资源（不可实例化）** | 全局定义，被各处引用 | Script、Trigger、Event、Global Variable |
+| **结构实体（可实例化）** | 在项目中可多次创建 | Stage、PuzzleNode、State、Transition |
+| **复合结构** | 嵌套的数据结构 | StateMachine、PresentationGraph、ConditionExpression |
+| **枚举数据集合** | 类型标识符 | ResourceState、VariableScope、ScriptCategory |
 
-### 1.2 概念关系图
-
+### 1.2 模型关系图
 ```mermaid
 graph TB
     subgraph Project
@@ -59,13 +56,13 @@ graph TB
 
 ## 2. ID/Key 与引用规则
 
-- **ID 前缀（内部稳定引用）**
-  - `proj-*` 项目；`stage-*` 阶段；`node-*` 解谜节点
+- **ID 前缀（内部强约束）**
+  - `proj-*` 项目，`stage-*` 阶段，`node-*` 解谜节点
   - `fsm-*` 状态机，`state-*` 状态，`trans-*` 转移
-  - `pres-*` 演出子图，`pnode-*` 演出节点
-  - `script-*` 脚本；触发器/事件/变量推荐 `trigger-*` / `event-*` / `var-*` 或约定俗成大写 token
-- **Key（重命名稳定）**：脚本、触发器、变量、事件都携带 `key`，供外部或兼容场景稳定引用。
-- **引用方式**：在项目内部一律用 `id` 字段；变量引用必须带 `scope`（`Global | StageLocal | NodeLocal | Temporary`）。若未来需要兼容重命名，可在 API 边界使用 `StableRef = {id}|{key}` 再解析为 `id`。
+  - `pres-*` 演出图，`pnode-*` 演出节点
+  - `script-*` 脚本；触发器/事件/变量推荐 `trigger-*` / `event-*` / `var-*`
+- **Key（稳定标识，需唯一）**：脚本、触发器、变量、事件都携带 `key`，用于外部或跨版本兼容。
+- **引用方式**：项目内部统一使用 `id` 字段；变量引用必须携带 `scope`（Global | StageLocal | NodeLocal | Temporary）。如需兼容 key，可在 API 层引入 `StableRef = {id}|{key}` 再解析为 `id`。
 
 ---
 
@@ -76,39 +73,21 @@ graph TB
   "manifestVersion": "1.0.0",
   "exportedAt": "2025-12-09T00:00:00.000Z",
   "project": {
-    "meta": {
-      "id": "proj-xxx",
-      "name": "项目名称",
-      "description": "项目描述",
-      "version": "0.0.1",
-      "createdAt": "2025-12-09T00:00:00.000Z",
-      "updatedAt": "2025-12-09T00:00:00.000Z"
-    },
-    "blackboard": {
-      "globalVariables": { /* VariableId -> VariableDefinition */ },
-      "events": { /* EventId -> EventDefinition */ }
-    },
-    "scripts": {
-      "version": "1.0.0",
-      "scripts": { /* ScriptId -> ScriptDefinition */ }
-    },
-    "triggers": {
-      "triggers": { /* TriggerId -> TriggerDefinition */ }
-    },
-    "stageTree": {
-      "rootId": "stage-root",
-      "stages": { /* StageId -> StageNode */ }
-    },
-    "nodes": { /* PuzzleNodeId -> PuzzleNode */ },
-    "stateMachines": { /* StateMachineId -> StateMachine */ },
-    "presentationGraphs": { /* PresentationGraphId -> PresentationGraph */ }
+    "meta": { "...": "..." },
+    "blackboard": { "globalVariables": {}, "events": {} },
+    "scripts": { "version": "1.0.0", "scripts": {} },
+    "triggers": { "triggers": {} },
+    "stageTree": { "rootId": "stage-root", "stages": {} },
+    "nodes": {},
+    "stateMachines": {},
+    "presentationGraphs": {}
   }
 }
 ```
 
 ---
 
-## 4. 主要类型概要（与代码同步）
+## 4. 主要类型摘要（与代码同步）
 
 ```ts
 // 通用基础
@@ -143,7 +122,7 @@ type EventAction =
 interface EventListener { eventId: string; action: EventAction; }
 ```
 
-### 4.1 黑板资源
+### 4.1 基础资源
 ```ts
 interface VariableDefinition extends Entity {
   id: string;
@@ -180,14 +159,14 @@ interface StageNode extends Entity {
   id: string;               // stage-*
   parentId: string | null;  // stage-*
   childrenIds: string[];    // stage-*
-  isInitial?: boolean;
+  isInitial?: boolean;      // 每个父级的首个子节点应标记为 true
   localVariables: Record<string, VariableDefinition>;
   unlockCondition?: ConditionExpression;
   lifecycleScriptId?: string;  // script-*
   onEnterPresentation?: PresentationBinding;
   onExitPresentation?: PresentationBinding;
   eventListeners: EventListener[];
-  isExpanded?: boolean;
+  isExpanded?: boolean;        // UI 展开状态（持久化）
 }
 
 interface StageTreeData { rootId: string; stages: Record<string, StageNode>; }
@@ -295,7 +274,7 @@ interface ProjectData {
   meta: ProjectMeta;
   blackboard: BlackboardData;
   scripts: ScriptsManifest;
-  triggers: TriggersManifest;  // 触发器类型清单
+  triggers: TriggersManifest;  // 触发器清单
   stageTree: StageTreeData;
   nodes: Record<PuzzleNodeId, PuzzleNode>;
   stateMachines: Record<StateMachineId, StateMachine>;
@@ -313,18 +292,30 @@ interface ExportManifest {
 
 ## 5. 唯一性与引用约束
 
-- **全局唯一**：Script/Trigger/Event，`globalVariables` 的 key/ID。
+- **全局唯一**：Script / Trigger / Event，`globalVariables` 的 key/ID。
 - **局部唯一**：
   - Stage Local Variable：同一 Stage 内 key 不重复
   - Node Local Variable：同一 PuzzleNode 内 key 不重复
   - State / Transition：限定在所属 StateMachine 内唯一
   - PresentationNode：限定在所属 PresentationGraph 内唯一
-- **引用必须携带作用域**：凡是 `variableId` 引用，须带 `variableScope`，禁止通过名称解析。
+- **引用必须携带作用域**：凡是 `variableId` 引用，需带 `variableScope`，禁止通过名称解析。
 
 ---
 
-## 6. 与现代码的对齐要点
+## 6. UI 消息堆栈模型
 
-- 所有模型已在 `types/identity.ts` 定义模板字符串 ID/Key；文档中的 ID 前缀与代码一致。
+- **UiMessage**
+  - `id: string`（唯一标识）
+  - `level: 'info' | 'warning' | 'error'`
+  - `text: string`（可读提示）
+  - `timestamp: ISO8601 string`
+- **存储位置**：`ui.messages: UiMessage[]`，所有全局提示（加载/导入/校验/保存等）都需写入；支持清空。
+- **展示**：顶栏 `Messages` 下拉列表，按时间倒序显示，可一键清空。
+
+---
+
+## 7. 与现代表达的对齐要求
+
+- 所有模型已在 `types/identity.ts` 定义模板字符型 ID/Key；文档中的 ID 前缀与代码一致。
 - `ProjectData` 使用 `nodes`（非 puzzleNodes）字段；黑板脚本清单为 `scripts`（`ScriptsManifest`）。
 - 所有引用字段均使用 `id`，`key` 仅作稳定标识或外部兼容，不参与运行时解析。

@@ -80,6 +80,8 @@ export const BlackboardPanel: React.FC = () => {
     Performance: true, Lifecycle: true, Condition: true, Trigger: true,
     fsm: true, presentation: true
   });
+  const [stateFilter, setStateFilter] = useState<'ALL' | 'Draft' | 'Implemented' | 'MarkedForDelete'>(ui.blackboardView.stateFilter || 'ALL');
+  const [varTypeFilter, setVarTypeFilter] = useState<'ALL' | 'boolean' | 'integer' | 'float' | 'string' | 'enum'>(ui.blackboardView.varTypeFilter || 'ALL');
 
   // Data Sources
   const { globalVariables, events } = project.blackboard || { globalVariables: {}, events: {} };
@@ -124,15 +126,22 @@ export const BlackboardPanel: React.FC = () => {
     const lowerFilter = filter.toLowerCase();
     return list.filter(item => item.name.toLowerCase().includes(lowerFilter) || item.key.toLowerCase().includes(lowerFilter));
   };
+  const matchState = (s?: ResourceState) => stateFilter === 'ALL' || s === stateFilter;
+  const matchVarType = (type?: string) => varTypeFilter === 'ALL' || type === varTypeFilter;
 
-  const filteredVariables = filterFn(variableList);
-  const filteredEvents = filterFn(eventList);
-  const filteredScripts = filterFn(scriptList);
+  const filteredVariables = filterFn(variableList).filter(v => matchState(v.state) && matchVarType((v as any).type));
+  const filteredEvents = filterFn(eventList).filter(e => matchState(e.state));
+  const filteredScripts = filterFn(scriptList).filter(s => matchState(s.state));
   const filteredLocalVariables = useMemo(() => {
-    if (!filter.trim()) return localVariableList;
     const lowerFilter = filter.toLowerCase();
-    return localVariableList.filter(v => v.name.toLowerCase().includes(lowerFilter) || v.key.toLowerCase().includes(lowerFilter) || v.scopeName.toLowerCase().includes(lowerFilter));
-  }, [localVariableList, filter]);
+    return localVariableList.filter(v => {
+      const textMatch = !filter.trim()
+        || v.name.toLowerCase().includes(lowerFilter)
+        || v.key.toLowerCase().includes(lowerFilter)
+        || v.scopeName.toLowerCase().includes(lowerFilter);
+      return textMatch && matchState(v.state) && matchVarType(v.type);
+    });
+  }, [localVariableList, filter, stateFilter, varTypeFilter]);
 
   // Group Scripts by Category
   const scriptGroups = useMemo(() => {
@@ -145,7 +154,7 @@ export const BlackboardPanel: React.FC = () => {
     return groups;
   }, [filteredScripts]);
 
-  const persistState = (next: Partial<{ activeTab: TabType; filter: string; expandedSections: Record<string, boolean> }>) => {
+  const persistState = (next: Partial<{ activeTab: TabType; filter: string; expandedSections: Record<string, boolean>; stateFilter: typeof stateFilter; varTypeFilter: typeof varTypeFilter }>) => {
     dispatch({ type: 'SET_BLACKBOARD_VIEW', payload: next });
   };
 
@@ -544,7 +553,7 @@ export const BlackboardPanel: React.FC = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--bg-color)' }}>
       {/* Header with Compact Tabs */}
-      <div style={{ padding: '16px 20px', borderBottom: '2px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '24px' }}>
+      <div style={{ padding: '16px 20px', borderBottom: '2px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
         {/* Compact Tab Buttons */}
         <div style={{ display: 'flex', gap: '4px' }}>
           {(['Variables', 'Scripts', 'Events', 'Graphs'] as TabType[]).map(tab => (
@@ -564,7 +573,7 @@ export const BlackboardPanel: React.FC = () => {
         </div>
 
         {/* Search Bar */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, maxWidth: '300px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: '220px', maxWidth: '320px' }}>
           <Search size={14} style={{ color: 'var(--text-dim)' }} />
           <input
             type="text"
@@ -580,6 +589,34 @@ export const BlackboardPanel: React.FC = () => {
               borderRadius: 'var(--radius-sm)', color: 'var(--text-primary)', outline: 'none'
             }}
           />
+        </div>
+
+        {/* 状态 / 类型筛选器 */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+          <select
+            value={stateFilter}
+            onChange={(e) => { const next = e.target.value as typeof stateFilter; setStateFilter(next); persistState({ stateFilter: next }); }}
+            style={{ background: 'var(--panel-bg)', color: 'var(--text-primary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', padding: '6px 8px', fontSize: '12px' }}
+          >
+            <option value="ALL">状态: All</option>
+            <option value="Draft">状态: Draft</option>
+            <option value="Implemented">状态: Implemented</option>
+            <option value="MarkedForDelete">状态: Deleted</option>
+          </select>
+          {activeTab === 'Variables' && (
+            <select
+              value={varTypeFilter}
+              onChange={(e) => { const next = e.target.value as typeof varTypeFilter; setVarTypeFilter(next); persistState({ varTypeFilter: next }); }}
+              style={{ background: 'var(--panel-bg)', color: 'var(--text-primary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', padding: '6px 8px', fontSize: '12px' }}
+            >
+              <option value="ALL">类型: All</option>
+              <option value="boolean">boolean</option>
+              <option value="integer">integer</option>
+              <option value="float">float</option>
+              <option value="string">string</option>
+              <option value="enum">enum</option>
+            </select>
+          )}
         </div>
       </div>
 

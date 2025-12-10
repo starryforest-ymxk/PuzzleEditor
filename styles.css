@@ -362,3 +362,103 @@ html {
   stroke: #fff;
   stroke-width: 2px;
 }
+
+/* Message Stack */
+.message-stack-dropdown {
+  position: absolute;
+  right: 20px;
+  top: 50px; /* Aligned closer to the button */
+  width: 400px;
+  max-height: 500px;
+  overflow-y: auto;
+  background-color: var(--panel-bg);
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-md);
+  z-index: 100;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+}
+
+.message-stack-header {
+  padding: 10px 16px;
+  background-color: var(--panel-header-bg);
+  border-bottom: 2px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 700;
+  letter-spacing: 1px;
+  font-size: 11px;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.message-item {
+  padding: 12px 16px;
+  border-bottom: 1px solid #3f3f46;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: background 0.1s;
+  position: relative;
+}
+
+.message-item:hover {
+  background-color: rgba(255, 255, 255, 0.03);
+}
+
+.message-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+}
+
+.message-item.info::before { background-color: var(--accent-success); }
+.message-item.warning::before { background-color: var(--accent-warning); }
+.message-item.error::before { background-color: var(--accent-error); }
+
+.message-item:last-child {
+  border-bottom: none;
+}
+
+.message-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--text-dim);
+}
+
+.message-level {
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 10px;
+}
+
+.message-level.info { color: var(--accent-success); }
+.message-level.warning { color: var(--accent-warning); }
+.message-level.error { color: var(--accent-error); }
+
+.message-text {
+  font-size: 13px;
+  color: var(--text-primary);
+  line-height: 1.4;
+  word-break: break-word; /* Ensure long words wrap */
+}
+
+.message-empty {
+  padding: 40px;
+  text-align: center;
+  color: var(--text-dim);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-style: italic;
+}

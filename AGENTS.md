@@ -18,10 +18,10 @@
 
 ### General Guidelines
 
+- CRITICAL: All code files should be opened and saved using ** UTF-8 ** format.
 - Before doing any task: 
   - read `overview/Project_Overview.md` to understand core goals, domain model, and preferred tech stack.
   - read necessary docs in `overview/dev/` to understand current project code architecture and task progress.
-
 - For the code that has already been implemented, you can evaluate its quality and completeness, compare it with the current requirements, and choose whether to refactor based on the existing code or continue using it according to the actual situation.
 - If any necessary documents need to be produced, please put them in the `overview/dev` directory.
 - After completing any task, update docs in  `overview/dev` to reflect code changes and task completion status.

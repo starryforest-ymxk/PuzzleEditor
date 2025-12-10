@@ -24,6 +24,7 @@ export const Breadcrumb = () => {
     const { project, ui } = useEditorState();
     const dispatch = useEditorDispatch();
     const { currentStageId, currentNodeId, currentGraphId } = ui;
+    const rootStageId = project.stageTree.rootId;
 
     // 构建路径：Root -> Ancestor Stages -> Current Stage -> Current Node -> Graph
     const items: BreadcrumbItem[] = [];
@@ -61,13 +62,19 @@ export const Breadcrumb = () => {
         if (index === items.length - 1) return; // 点击最后一项不跳转
 
         if (item.type === 'ROOT') {
-            dispatch({ type: 'NAVIGATE_TO', payload: { stageId: null, nodeId: null } });
+            // 回到项目根 Stage，确保直接显示根内容而非空画布
+            if (rootStageId) {
+                dispatch({ type: 'NAVIGATE_TO', payload: { stageId: rootStageId, nodeId: null, graphId: null } });
+            }
         } else if (item.type === 'STAGE') {
-            dispatch({ type: 'NAVIGATE_TO', payload: { stageId: item.id, nodeId: null } });
+            dispatch({ type: 'NAVIGATE_TO', payload: { stageId: item.id, nodeId: null, graphId: null } });
+        } else if (item.type === 'NODE') {
+            const node = project.nodes[item.id];
+            const stageId = node?.stageId ?? null;
+            dispatch({ type: 'NAVIGATE_TO', payload: { stageId, nodeId: item.id, graphId: null } });
         } else if (item.type === 'GRAPH') {
             dispatch({ type: 'NAVIGATE_TO', payload: { graphId: item.id } });
         }
-        // Node 层级通常是末端，暂不支持“跳转到中间某Node”的场景(除非有嵌套Node)
     };
 
     const handleBack = () => {

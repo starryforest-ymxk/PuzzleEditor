@@ -1,4 +1,4 @@
-/**
+﻿/**
  * store/types.ts
  * Redux-like Store 类型定义
  */
@@ -27,6 +27,15 @@ export interface ProjectContent {
   meta: ProjectMeta;
   scripts: ScriptsManifest;
   triggers: TriggersManifest;
+}
+
+// ========== UI 消息类型 ==========
+export type MessageLevel = 'info' | 'warning' | 'error';
+export interface UiMessage {
+  id: string;
+  level: MessageLevel;
+  text: string;
+  timestamp: string;
 }
 
 // ========== Editor 全局状态 ==========
@@ -62,13 +71,19 @@ export interface EditorState {
     currentGraphId: string | null; // P2-T07: 当前查看的演出图
     // 进入演出图前的编辑器上下文，用于面包屑返回
     lastEditorContext: { stageId: string | null; nodeId: string | null };
-    // 面包屑“后退”历史栈：存储最近浏览过的上下文（stage/node/graph）
+    // 面包屑"后退"历史栈：存储最近浏览过的上下文（stage/node/graph）
     navStack: { stageId: string | null; nodeId: string | null; graphId: string | null }[];
+    // Stage 展开状态（仅 UI，避免污染导出）
+    stageExpanded: Record<string, boolean>;
+    // 全局消息堆栈
+    messages: UiMessage[];
     // 黑板视图 UI 状态（用于跨视图记忆）
     blackboardView: {
       activeTab: 'Variables' | 'Scripts' | 'Events' | 'Graphs';
       filter: string;
       expandedSections: Record<string, boolean>;
+      stateFilter?: 'ALL' | 'Draft' | 'Implemented' | 'MarkedForDelete';
+      varTypeFilter?: 'ALL' | 'boolean' | 'integer' | 'float' | 'string' | 'enum';
     };
     selection: {
       type: 'STAGE' | 'NODE' | 'STATE' | 'TRANSITION' | 'FSM' | 'PRESENTATION_GRAPH' | 'PRESENTATION_NODE' | 'VARIABLE' | 'SCRIPT' | 'EVENT' | 'NONE';
@@ -116,10 +131,14 @@ export const INITIAL_STATE: EditorState = {
     currentGraphId: null,
     lastEditorContext: { stageId: null, nodeId: null },
     navStack: [],
+    stageExpanded: {},
+    messages: [],
     blackboardView: {
       activeTab: 'Variables',
       filter: '',
-      expandedSections: { global: true, local: true, Performance: true, Lifecycle: true, Condition: true, Trigger: true }
+      expandedSections: { global: true, local: true, Performance: true, Lifecycle: true, Condition: true, Trigger: true },
+      stateFilter: 'ALL',
+      varTypeFilter: 'ALL'
     },
     selection: { type: 'NONE', id: null },
     multiSelectStateIds: [],
@@ -170,11 +189,13 @@ export type Action =
   | { type: 'UPDATE_NODE_PARAM'; payload: { nodeId: string; varId: string; data: Partial<VariableDefinition> } }
   | { type: 'DELETE_NODE_PARAM'; payload: { nodeId: string; varId: string } }
   // Multi-Select (框选)
-  // Multi-Select (框选)
   | { type: 'SET_MULTI_SELECT_STATES'; payload: string[] }
   // Navigation (P2-T02)
   | { type: 'SWITCH_VIEW'; payload: 'EDITOR' | 'BLACKBOARD' }
   | { type: 'NAVIGATE_TO'; payload: { stageId?: string | null; nodeId?: string | null; graphId?: string | null } }
   | { type: 'NAVIGATE_BACK' }
-  | { type: 'SET_BLACKBOARD_VIEW'; payload: { activeTab?: 'Variables' | 'Scripts' | 'Events' | 'Graphs'; filter?: string; expandedSections?: Record<string, boolean> } }
+  | { type: 'SET_BLACKBOARD_VIEW'; payload: { activeTab?: 'Variables' | 'Scripts' | 'Events' | 'Graphs'; filter?: string; expandedSections?: Record<string, boolean>; stateFilter?: 'ALL' | 'Draft' | 'Implemented' | 'MarkedForDelete'; varTypeFilter?: 'ALL' | 'boolean' | 'integer' | 'float' | 'string' | 'enum' } }
+  | { type: 'SET_STAGE_EXPANDED'; payload: { id: string; expanded: boolean } }
+  | { type: 'ADD_MESSAGE'; payload: UiMessage }
+  | { type: 'CLEAR_MESSAGES' }
   | { type: 'SET_PANEL_SIZES'; payload: Partial<{ explorerWidth: number; inspectorWidth: number; stagesHeight: number }> };

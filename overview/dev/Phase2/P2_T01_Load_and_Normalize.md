@@ -14,6 +14,7 @@
 - **加载流程**：
   - `loadProjectData` 并行获取项目与 manifest，manifest 失败不阻断项目加载。
   - 通过归一化结果派发 `INIT_SUCCESS`；异常派发 `INIT_ERROR`。
+  - 同步写入全局消息堆栈（`ADD_MESSAGE`），成功用 info，manifest 失败用 warning，异常用 error，供顶栏 Messages 查看/清空。
 - **兼容策略**：
   - 支持 `ExportManifest`（含 `manifestVersion`）或旧式 `ProjectData`。
   - 元信息、黑板、Stage/Node/FSM/Presentation 缺失字段填默认值；ScriptCall/Wait 参数按类型裁剪。

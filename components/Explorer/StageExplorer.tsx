@@ -3,7 +3,7 @@ import { useEditorState, useEditorDispatch } from '../../store/context';
 import { ChevronRight, ChevronDown, Folder, Flag, Box } from 'lucide-react';
 
 export const StageExplorer = () => {
-  const { project, ui } = useEditorState();
+    const { project, ui } = useEditorState();
   const dispatch = useEditorDispatch();
 
   const handleSelect = (e: React.MouseEvent, id: string) => {
@@ -14,21 +14,23 @@ export const StageExplorer = () => {
     dispatch({ type: 'SELECT_OBJECT', payload: { type: 'STAGE', id } });
   };
 
-  const handleToggle = (e: React.MouseEvent, id: string) => {
-    e.stopPropagation();
-    dispatch({ type: 'TOGGLE_STAGE_EXPAND', payload: { id } });
-  };
+    const handleToggle = (e: React.MouseEvent, id: string) => {
+        e.stopPropagation();
+        dispatch({ type: 'TOGGLE_STAGE_EXPAND', payload: { id } });
+    };
 
-  const renderTree = (stageId: string, depth = 0) => {
-    const stage = project.stageTree.stages[stageId];
-    if (!stage) return null;
+    const renderTree = (stageId: string, depth = 0) => {
+        const stage = project.stageTree.stages[stageId];
+        if (!stage) return null;
 
-    const isSelected = ui.currentStageId === stage.id;
-    const hasChildren = stage.childrenIds.length > 0;
+        const isSelected = ui.currentStageId === stage.id;
+        const hasChildren = stage.childrenIds.length > 0;
+        const isExpanded = ui.stageExpanded[stage.id] ?? stage.isExpanded ?? false;
 
-    // Check if Initial: Root is initial, or it is the first child of its parent
-    const parent = stage.parentId ? project.stageTree.stages[stage.parentId] : null;
-    const isInitial = !parent || parent.childrenIds[0] === stage.id;
+        // 初始阶段判断：优先数据字段 isInitial，其次父节点 childrenIds 的首个子节点
+        const parent = stage.parentId ? project.stageTree.stages[stage.parentId] : null;
+        const isFirstChild = parent ? parent.childrenIds?.[0] === stage.id : false;
+        const isInitial = stage.isInitial === true || isFirstChild;
 
     return (
       <div key={stage.id}>
@@ -47,10 +49,10 @@ export const StageExplorer = () => {
               opacity: hasChildren ? 1 : 0.3,
               color: 'var(--text-secondary)'
             }}
-            onClick={(e) => hasChildren && handleToggle(e, stage.id)}
+              onClick={(e) => hasChildren && handleToggle(e, stage.id)}
           >
             {hasChildren ? (
-              stage.isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />
+              isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />
             ) : (
               <div style={{ width: 14, height: 14 }} />
             )}
@@ -88,7 +90,7 @@ export const StageExplorer = () => {
           )}
         </div>
 
-        {hasChildren && stage.isExpanded && (
+        {hasChildren && isExpanded && (
           <div>
             {stage.childrenIds.map(childId => renderTree(childId, depth + 1))}
           </div>

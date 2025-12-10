@@ -39,10 +39,11 @@ export const useEditorDispatch = () => useContext(DispatchContext);
 export const loadProjectData = async (dispatch: Dispatch<Action>) => {
   dispatch({ type: 'INIT_START' });
   try {
+    let manifestError: Error | undefined;
     const [projectPayload, manifest] = await Promise.all([
       apiService.loadProject(),
       // Manifest 加载失败不阻断主流程，仅用于补充脚本/触发器
-      apiService.loadManifest().catch(() => undefined)
+      apiService.loadManifest().catch((err) => { manifestError = err as Error; return undefined; })
     ]);
 
     const normalized = normalizeProjectForStore(projectPayload as any, manifest);
@@ -61,6 +62,29 @@ export const loadProjectData = async (dispatch: Dispatch<Action>) => {
       }
     });
 
+    // 若 Manifest 加载失败，记录警告消息
+    if (manifestError) {
+      dispatch({
+        type: 'ADD_MESSAGE',
+        payload: {
+          id: `msg-${Date.now()}`,
+          level: 'warning',
+          text: 'Manifest 加载失败，使用项目内置脚本/触发器清单',
+          timestamp: new Date().toISOString()
+        }
+      });
+    } else {
+      dispatch({
+        type: 'ADD_MESSAGE',
+        payload: {
+          id: `msg-${Date.now()}`,
+          level: 'info',
+          text: '项目加载完成',
+          timestamp: new Date().toISOString()
+        }
+      });
+    }
+
     // P2-T02: Navigate to Root Stage by default
     if (normalized.project.stageTree.rootId) {
       dispatch({
@@ -72,5 +96,14 @@ export const loadProjectData = async (dispatch: Dispatch<Action>) => {
     console.error('项目加载失败:', error);
     const message = error?.message ?? '项目加载失败';
     dispatch({ type: 'INIT_ERROR', payload: { message } });
+    dispatch({
+      type: 'ADD_MESSAGE',
+      payload: {
+        id: `msg-${Date.now()}`,
+        level: 'error',
+        text: message,
+        timestamp: new Date().toISOString()
+      }
+    });
   }
 };
