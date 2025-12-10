@@ -8,6 +8,9 @@ import { useCanvasNavigation } from '../../hooks/useCanvasNavigation';
 import { useGraphInteraction } from '../../hooks/useGraphInteraction';
 import { StateNode } from './Elements/StateNode';
 import { ConnectionLine, ConnectionControls } from './Elements/ConnectionLine';
+import { CanvasContextMenu, ContextMenuState } from './Elements/CanvasContextMenu';
+import { CanvasInfoOverlay, BoxSelectOverlay, SnapPointsLayer, CuttingLineOverlay } from './Elements/CanvasOverlays';
+import { TempConnectionLine, ConnectionArrowMarkers } from './Elements/TempConnectionLine';
 
 interface Props {
     node: PuzzleNode;
@@ -133,24 +136,8 @@ export const StateMachineCanvas = ({ node, readOnly = false }: Props) => {
         }
     });
 
-    // 4. Context Menu State
-    const [contextMenu, setContextMenu] = useState<{ x: number; y: number; type: 'CANVAS' | 'NODE' | 'TRANSITION'; targetId?: string; } | null>(null);
-    const menuRef = useRef<HTMLDivElement>(null);
-
-    // Global Context Menu Close
-    useEffect(() => {
-        const handleMouseDown = (e: MouseEvent) => {
-            if (contextMenu) {
-                if (menuRef.current && menuRef.current.contains(e.target as Node)) {
-                    return;
-                }
-                setContextMenu(null);
-                e.stopPropagation();
-            }
-        };
-        window.addEventListener('mousedown', handleMouseDown, { capture: true });
-        return () => window.removeEventListener('mousedown', handleMouseDown, { capture: true });
-    }, [contextMenu]);
+    // 4. Context Menu State（使用导入的类型，关闭逻辑内置于 CanvasContextMenu 组件）
+    const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
 
     // Keyboard Delete (支持多选删除)
     useEffect(() => {
@@ -415,19 +402,6 @@ export const StateMachineCanvas = ({ node, readOnly = false }: Props) => {
 
     if (!fsm) return <div className="empty-state">Missing Data</div>;
 
-    // 计算框选区域样式
-    const boxSelectStyle = boxSelectRect ? {
-        position: 'absolute' as const,
-        left: Math.min(boxSelectRect.startX, boxSelectRect.endX),
-        top: Math.min(boxSelectRect.startY, boxSelectRect.endY),
-        width: Math.abs(boxSelectRect.endX - boxSelectRect.startX),
-        height: Math.abs(boxSelectRect.endY - boxSelectRect.startY),
-        border: '1px dashed var(--accent-color)',
-        backgroundColor: 'rgba(79, 193, 255, 0.1)',
-        pointerEvents: 'none' as const,
-        zIndex: 50
-    } : null;
-
     return (
         <div ref={canvasRef} className="canvas-grid"
             style={{
@@ -439,54 +413,50 @@ export const StateMachineCanvas = ({ node, readOnly = false }: Props) => {
             onMouseUp={handleCanvasMouseUp}
             onContextMenu={(e) => handleContextMenu(e, 'CANVAS')}
         >
-            {/* Info Overlay - 使用 fixed 高度防止内容变化导致布局偏移 */}
-            <div style={{ position: 'sticky', top: 20, left: 20, zIndex: 100, pointerEvents: 'none', height: 0, overflow: 'visible' }}>
-                <div style={{ backgroundColor: 'rgba(0,0,0,0.6)', padding: '8px 12px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.1)', display: 'inline-block' }}>
-                    <div style={{ fontSize: '10px', color: '#888' }}>FSM EDITOR</div>
-                    <div style={{ fontSize: '14px', color: '#eee', fontWeight: 600 }}>{node.name}</div>
-                    {multiSelectIds.length > 0 && (
-                        <div style={{ fontSize: '10px', color: 'var(--accent-color)', marginTop: '4px' }}>
-                            {multiSelectIds.length} node{multiSelectIds.length > 1 ? 's' : ''} selected
-                        </div>
-                    )}
-                    {isLineCuttingMode && (
-                        <div style={{ fontSize: '10px', color: '#ff6b6b', marginTop: '4px' }}>
-                            ✂ Line cutting mode (Ctrl+Click)
-                        </div>
-                    )}
-                </div>
-            </div>
+            {/* 信息覆盖层 */}
+            <CanvasInfoOverlay
+                nodeName={node.name}
+                multiSelectCount={multiSelectIds.length}
+                isLineCuttingMode={isLineCuttingMode}
+            />
 
-            {/* Context Menu */}
+            {/* 右键菜单 */}
             {contextMenu && (
-                <div ref={menuRef}
-                    style={{ position: 'absolute', top: contextMenu.y, left: contextMenu.x, zIndex: 9999, backgroundColor: '#252526', border: '1px solid #444', minWidth: '140px' }}
-                    onClick={(e) => e.stopPropagation()}
-                    onMouseDown={(e) => e.stopPropagation()}
-                >
-                    {contextMenu.type === 'CANVAS' && <div className="ctx-item" onClick={() => { dispatch({ type: 'ADD_STATE', payload: { fsmId: fsm.id, state: { id: `state-${Date.now()}`, name: 'New State', position: { x: contextMenu.x, y: contextMenu.y }, eventListeners: [] } } }); setContextMenu(null); }}>+ Add State</div>}
-                    {contextMenu.type === 'NODE' && (
-                        <>
-                            {fsm.initialStateId !== contextMenu.targetId && <div className="ctx-item" onClick={() => { dispatch({ type: 'UPDATE_FSM', payload: { fsmId: fsm.id, data: { initialStateId: contextMenu.targetId } } }); setContextMenu(null); }}>🏁 Set Initial</div>}
-                            <div className="ctx-item" onClick={(e) => { startLinking({ clientX: contextMenu.x + contentRef.current!.getBoundingClientRect().left, clientY: contextMenu.y + contentRef.current!.getBoundingClientRect().top } as any, contextMenu.targetId!); setContextMenu(null); }}>🔗 Link</div>
-                            <div className="ctx-item danger" onClick={() => { dispatch({ type: 'DELETE_STATE', payload: { fsmId: fsm.id, stateId: contextMenu.targetId! } }); setContextMenu(null); }}>🗑 Delete</div>
-                        </>
-                    )}
-                    {contextMenu.type === 'TRANSITION' && <div className="ctx-item danger" onClick={() => { dispatch({ type: 'DELETE_TRANSITION', payload: { fsmId: fsm.id, transitionId: contextMenu.targetId! } }); setContextMenu(null); }}>🗑 Delete</div>}
-                </div>
+                <CanvasContextMenu
+                    menu={contextMenu}
+                    onClose={() => setContextMenu(null)}
+                    onAddState={(x, y) => dispatch({
+                        type: 'ADD_STATE',
+                        payload: {
+                            fsmId: fsm.id,
+                            state: { id: `state-${Date.now()}`, name: '新状态', position: { x, y }, eventListeners: [] }
+                        }
+                    })}
+                    onSetInitial={(stateId) => dispatch({
+                        type: 'UPDATE_FSM',
+                        payload: { fsmId: fsm.id, data: { initialStateId: stateId } }
+                    })}
+                    onStartLink={(stateId, x, y) => startLinking({ clientX: x, clientY: y } as any, stateId)}
+                    onDeleteState={(stateId) => dispatch({
+                        type: 'DELETE_STATE',
+                        payload: { fsmId: fsm.id, stateId }
+                    })}
+                    onDeleteTransition={(transitionId) => dispatch({
+                        type: 'DELETE_TRANSITION',
+                        payload: { fsmId: fsm.id, transitionId }
+                    })}
+                    isInitialState={contextMenu.type === 'NODE' && fsm.initialStateId === contextMenu.targetId}
+                    contentRef={contentRef}
+                />
             )}
 
             <div ref={contentRef} style={{ position: 'relative', minWidth: `${CANVAS_SIZE}px`, minHeight: `${CANVAS_SIZE}px` }}>
                 {/* 框选区域 */}
-                {boxSelectStyle && <div style={boxSelectStyle} />}
+                <BoxSelectOverlay rect={boxSelectRect} />
 
                 <svg style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', overflow: 'visible', pointerEvents: 'none', zIndex: 0 }}>
-                    <defs>
-                        <marker id="arrow-normal" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#666" /></marker>
-                        <marker id="arrow-selected" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="var(--accent-color)" /></marker>
-                        <marker id="arrow-context" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="var(--accent-warning)" /></marker>
-                        <marker id="arrow-temp" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#888" fillOpacity="0.8" /></marker>
-                    </defs>
+                    {/* 箭头标记定义 */}
+                    <ConnectionArrowMarkers />
 
                     {/* 1. Existing Connections */}
                     {Object.values(fsm.transitions).map((trans: Transition) => {
@@ -557,19 +527,8 @@ export const StateMachineCanvas = ({ node, readOnly = false }: Props) => {
                         return <path d={Geom.getBezierPathData(p1, p2, sSide, eSide)} fill="none" stroke="#888" strokeWidth="2" strokeDasharray="5,5" markerEnd="url(#arrow-temp)" />;
                     })()}
 
-                    {/* 3. Cutting Line Visual (Ctrl+拖拽切线) */}
-                    {cuttingLine && (
-                        <line
-                            x1={cuttingLine.start.x}
-                            y1={cuttingLine.start.y}
-                            x2={cuttingLine.end.x}
-                            y2={cuttingLine.end.y}
-                            stroke="#ff6b6b"
-                            strokeWidth="2"
-                            strokeDasharray="6,4"
-                            style={{ pointerEvents: 'none' }}
-                        />
-                    )}
+                    {/* 3. 切线视觉 (Ctrl+拖拽) */}
+                    <CuttingLineOverlay line={cuttingLine} />
                 </svg>
 
                 {/* 3. HTML Controls for Connections (Labels & Handles) */}
@@ -597,29 +556,11 @@ export const StateMachineCanvas = ({ node, readOnly = false }: Props) => {
                 })}
 
                 {/* 4. 吸附点提示层：连线/调整时展示所有锚点 */}
-                {(linkingState || modifyingTransition) && snapPoints.map(sp => {
-                    const isActive = activeSnapPoint && activeSnapPoint.nodeId === sp.nodeId && activeSnapPoint.side === sp.side;
-                    const size = isActive ? 12 : 8;
-                    return (
-                        <div
-                            key={`snap-${sp.nodeId}-${sp.side}`}
-                            style={{
-                                position: 'absolute',
-                                left: sp.x,
-                                top: sp.y,
-                                width: size,
-                                height: size,
-                                borderRadius: '50%',
-                                backgroundColor: isActive ? 'var(--accent-color)' : 'rgba(255,255,255,0.35)',
-                                opacity: isActive ? 1 : 0.5,
-                                transform: 'translate(-50%, -50%)',
-                                zIndex: 35,
-                                pointerEvents: 'none',
-                                boxShadow: isActive ? '0 0 0 2px rgba(255,255,255,0.25)' : 'none'
-                            }}
-                        />
-                    );
-                })}
+                <SnapPointsLayer
+                    snapPoints={snapPoints}
+                    activeSnapPoint={activeSnapPoint}
+                    visible={Boolean(linkingState || modifyingTransition)}
+                />
 
                 {/* 5. State Nodes */}
                 {Object.values(fsm.states).map((state: State) => (

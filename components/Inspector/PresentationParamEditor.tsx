@@ -18,6 +18,7 @@ interface Props {
     // 临时参数也需要收集，用于作用域传递
     temporaryParams?: VariableDefinition[];
     onTemporaryParamsChange?: (params: VariableDefinition[]) => void;
+    readOnly?: boolean;
 }
 
 // 临时参数定义（用于UI状态）
@@ -40,7 +41,8 @@ export const PresentationParamEditor: React.FC<Props> = ({
     scriptDef,
     bindings,
     onChange,
-    variables
+    variables,
+    readOnly = false
 }) => {
     // 临时参数列表（本地状态）
     const [tempParams, setTempParams] = useState<TempParamDef[]>([]);
@@ -96,7 +98,6 @@ export const PresentationParamEditor: React.FC<Props> = ({
         setTempParams(tempParams.filter(p => p.id !== id));
     };
 
-    // 渲染脚本定义的参数（已有参数绑定）
     const renderDefinedParams = () => {
         if (scriptDef.parameters.length === 0) {
             return (
@@ -277,7 +278,7 @@ export const PresentationParamEditor: React.FC<Props> = ({
     };
 
     return (
-        <div>
+        <div style={{ pointerEvents: readOnly ? 'none' : 'auto', opacity: readOnly ? 0.6 : 1 }}>
             {/* Defined Parameters */}
             <div style={{ marginBottom: '12px' }}>
                 <div style={{ fontSize: '10px', color: '#888', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Script Parameters</div>

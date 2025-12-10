@@ -23,6 +23,7 @@ interface Props {
   variables: VariableDefinition[];
   title?: string;
   onNavigateToGraph?: (graphId: string) => void;
+  readOnly?: boolean;
 }
 
 /**
@@ -36,7 +37,8 @@ export const PresentationBindingEditor: React.FC<Props> = ({
   graphOptions,
   variables,
   title,
-  onNavigateToGraph
+  onNavigateToGraph,
+  readOnly = false
 }) => {
   const currentType = binding?.type || 'None';
 
@@ -50,6 +52,7 @@ export const PresentationBindingEditor: React.FC<Props> = ({
 
   // Handle type switch
   const handleTypeChange = (type: string) => {
+    if (readOnly) return;
     if (type === 'None') {
       onChange(undefined);
     } else if (type === 'Script') {
@@ -61,6 +64,7 @@ export const PresentationBindingEditor: React.FC<Props> = ({
 
   // Handle script selection
   const handleScriptChange = (scriptId: string) => {
+    if (readOnly) return;
     if (binding?.type === 'Script') {
       // When changing script, reset parameters
       onChange({ type: 'Script', scriptId, parameters: [] });
@@ -69,6 +73,7 @@ export const PresentationBindingEditor: React.FC<Props> = ({
 
   // Handle parameter bindings change
   const handleParametersChange = (parameters: ParameterBinding[]) => {
+    if (readOnly) return;
     if (binding?.type === 'Script') {
       onChange({ ...binding, parameters });
     }
@@ -86,6 +91,7 @@ export const PresentationBindingEditor: React.FC<Props> = ({
           onChange={handleScriptChange}
           placeholder="Select performance script"
           warnOnMarkedDelete
+          disabled={readOnly}
         />
 
         {/* Parameter bindings section using PresentationParamEditor */}
@@ -96,6 +102,7 @@ export const PresentationBindingEditor: React.FC<Props> = ({
               bindings={binding.parameters || []}
               onChange={handleParametersChange}
               variables={variables}
+              readOnly={readOnly}
             />
           </div>
         )}
@@ -125,6 +132,7 @@ export const PresentationBindingEditor: React.FC<Props> = ({
               onChange={(val) => onChange({ type: 'Graph', graphId: val })}
               placeholder="Select presentation graph"
               warnOnMarkedDelete
+              disabled={readOnly}
             />
           </div>
           {hasValidGraph && onNavigateToGraph && (
@@ -132,6 +140,7 @@ export const PresentationBindingEditor: React.FC<Props> = ({
               className="btn-ghost"
               onClick={() => onNavigateToGraph(binding.graphId)}
               style={{ fontSize: '11px', padding: '4px 8px' }}
+              disabled={readOnly}
             >
               Edit →
             </button>
@@ -152,6 +161,7 @@ export const PresentationBindingEditor: React.FC<Props> = ({
         <select
           value={currentType}
           onChange={(e) => handleTypeChange(e.target.value)}
+          disabled={readOnly}
           style={{
             background: '#222',
             color: '#eee',

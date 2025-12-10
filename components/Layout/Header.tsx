@@ -81,7 +81,7 @@ export const Header = () => {
           }
         });
 
-        pushMessage('info', '本地 JSON 导入成功');
+        pushMessage('info', 'Local JSON import successful');
 
         // 跳转到新项目的根 Stage 以确保可立即浏览
         if (normalized.project.stageTree.rootId) {
@@ -92,8 +92,8 @@ export const Header = () => {
         }
       } catch (err) {
         console.error('Failed to parse JSON:', err);
-        dispatch({ type: 'INIT_ERROR', payload: { message: 'JSON 导入失败' } });
-        pushMessage('error', 'JSON 导入失败');
+        dispatch({ type: 'INIT_ERROR', payload: { message: 'JSON import failed' } });
+        pushMessage('error', 'JSON import failed');
       }
     };
     reader.readAsText(file);
@@ -103,9 +103,9 @@ export const Header = () => {
 
   const renderMessagesPanel = () => {
     if (!showMessages) return null;
-    
+
     // Sort messages: newest first
-    const sortedMessages = [...ui.messages].sort((a, b) => 
+    const sortedMessages = [...ui.messages].sort((a, b) =>
       new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
     );
 
@@ -115,7 +115,7 @@ export const Header = () => {
           <span>Message Stack</span>
           <button className="btn-ghost" onClick={() => dispatch({ type: 'CLEAR_MESSAGES' })}>Clear All</button>
         </div>
-        
+
         {sortedMessages.length === 0 ? (
           <div className="message-empty">No active messages</div>
         ) : (

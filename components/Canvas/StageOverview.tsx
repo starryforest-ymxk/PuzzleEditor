@@ -94,7 +94,7 @@ export const StageOverview: React.FC<StageOverviewProps> = ({ stageId }) => {
                 }}>
                     <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-dim)' }}>{id.slice(0, 8)}...</span>
                     <span style={{ color: 'var(--accent-color)', fontWeight: 500, display: 'flex', alignItems: 'center', opacity: 0.8 }}>
-                        {type === 'NODE' ? 'Edit Logic →' : 'Enter →'}
+                        {type === 'NODE' ? 'Open Node →' : 'Open Stage →'}
                     </span>
                 </div>
             </div>

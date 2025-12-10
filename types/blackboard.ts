@@ -56,3 +56,18 @@ export type BlackboardVariable = VariableDefinition;
 
 /** @deprecated 使用 BlackboardData 代替 */
 export type BlackboardDefinition = Record<VariableId, VariableDefinition>;
+
+// ========== 带作用域的局部变量 ==========
+/**
+ * 带作用域信息的局部变量类型
+ * 用于在 Blackboard 面板中显示 Stage/Node 级别的局部变量
+ */
+export interface LocalVarWithScope extends VariableDefinition {
+  /** 作用域类型：Stage 或 Node */
+  scopeType: 'Stage' | 'Node';
+  /** 作用域名称（Stage/Node 的名称） */
+  scopeName: string;
+  /** 作用域 ID */
+  scopeId: string;
+}
+

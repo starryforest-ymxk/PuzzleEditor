@@ -65,6 +65,8 @@ export interface EditorState {
   ui: {
     isLoading: boolean;
     errorMessage?: string | null;
+    // 全局只读模式：阶段二默认为 true，后续可切换为可编辑
+    readOnly: boolean;
     view: 'EDITOR' | 'BLACKBOARD'; // P2-T02: 视图切换
     currentStageId: string | null; // P2-T02: 面包屑导航追踪
     currentNodeId: string | null;
@@ -125,6 +127,7 @@ export const INITIAL_STATE: EditorState = {
   ui: {
     isLoading: false,
     errorMessage: null,
+    readOnly: true,
     view: 'EDITOR',
     currentStageId: null,
     currentNodeId: null,
@@ -194,6 +197,7 @@ export type Action =
   | { type: 'SWITCH_VIEW'; payload: 'EDITOR' | 'BLACKBOARD' }
   | { type: 'NAVIGATE_TO'; payload: { stageId?: string | null; nodeId?: string | null; graphId?: string | null } }
   | { type: 'NAVIGATE_BACK' }
+  | { type: 'SET_READ_ONLY'; payload: boolean }
   | { type: 'SET_BLACKBOARD_VIEW'; payload: { activeTab?: 'Variables' | 'Scripts' | 'Events' | 'Graphs'; filter?: string; expandedSections?: Record<string, boolean>; stateFilter?: 'ALL' | 'Draft' | 'Implemented' | 'MarkedForDelete'; varTypeFilter?: 'ALL' | 'boolean' | 'integer' | 'float' | 'string' | 'enum' } }
   | { type: 'SET_STAGE_EXPANDED'; payload: { id: string; expanded: boolean } }
   | { type: 'ADD_MESSAGE'; payload: UiMessage }

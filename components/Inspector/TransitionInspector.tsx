@@ -232,6 +232,7 @@ export const TransitionInspector = ({ fsmId, transitionId, readOnly = false }: P
                         variables={visibleVars}
                         title="On Transition"
                         onNavigateToGraph={(graphId) => dispatch({ type: 'NAVIGATE_TO', payload: { graphId } })}
+                        readOnly={readOnly}
                     />
                 </div>
             </div>

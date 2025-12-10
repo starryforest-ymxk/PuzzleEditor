@@ -17,11 +17,10 @@ const MIN_STAGES_HEIGHT = 20;
 const MAX_STAGES_HEIGHT = 80;
 
 export const MainLayout = () => {
-  // P2 只读模式：统一传递到画布和 Inspector，避免 UI 误导
-  const READ_ONLY = true;
   const dispatch = useEditorDispatch();
   const { ui } = useEditorState();
   const { panelSizes } = ui;
+  const READ_ONLY = ui.readOnly;
 
   // Global Keyboard Shortcuts
   useEffect(() => {
@@ -31,13 +30,12 @@ export const MainLayout = () => {
 
       if (isModifier && e.key.toLowerCase() === 'z') {
         e.preventDefault();
-        if (e.shiftKey) {
-          dispatch({ type: 'REDO' });
-        } else {
-          dispatch({ type: 'UNDO' });
-        }
+        if (READ_ONLY) return;
+        if (e.shiftKey) dispatch({ type: 'REDO' });
+        else dispatch({ type: 'UNDO' });
       } else if (isModifier && e.key.toLowerCase() === 'y') {
         e.preventDefault();
+        if (READ_ONLY) return;
         dispatch({ type: 'REDO' });
       }
 
