@@ -149,3 +149,23 @@
 - **待办/风险**：
   - 触发器/条件/参数等复杂编辑器仍需后续统一应用自适应行样式（P3-T03~T07推进时补齐）；
   - 默认名称/优先级等可考虑再做本地化与校验提示。
+
+## 9. P3-T03 实施记录
+- **功能落地**：
+  - State Inspector 增加 OnEnter / OnExit 脚本绑定，复用 Lifecycle/State 脚本筛选，支持清除。
+  - 事件监听编辑器完善：默认新增监听为 InvokeScript（调用状态生命周期 OnEventInvoke），支持切换 ModifyParameter 并通过 ParameterModifierEditor 编辑目标变量/作用域/操作/值来源；软删除资源保留红色提示。
+- **技术要点**：
+  - `EventAction.InvokeScript` 允许省略 scriptId 以匹配“调用当前生命周期脚本”语义，保留兼容字段。
+  - `ResourceSelect` 支持传入样式/类名以适配紧凑布局；参数修改器/值来源编辑器沿用统一资源选择器与软删告警。
+- **手动测试**：
+  - 状态绑定/清除 Lifecycle、OnEnter、OnExit 脚本；软删脚本选中时展示警示。
+  - 新增监听后切换为 ModifyParameter，编辑目标变量与来源，保存并撤销/重做；InvokeScript 动作说明文案显示正确。
+- **已知限制/后续**：
+  - 监听器未做必填校验（空事件/变量仍可保存），计划在 P3-T09 统一校验与警告；
+  - 未实现“跳转到定义”入口，待阶段四统一打通跨视图导航。
+
+> 更新：生命周期脚本不再区分 OnEnter/OnExit，统一使用单个 lifecycleScript 入口；此前 OnEnter/OnExit 选择器已移除，旧数据字段保留兼容但 UI 不再暴露。
+## 10. P3-T03 UI 补充：事件监听/参数修改器
+- 抽离 VariableSelector 组件，集成变量下拉、类型/作用域筛选、搜索，保持单行与 UI_Style_Guide 的硬质风格。
+- 整平事件监听器、参数修改器下拉高度，选项使用边框+文字色区分类型/作用域，沿用本地变量编辑的配色习惯。
+- 控件宽度动态收缩防止换行，lifecycle script 选择与 Clear 按钮高度对齐，消除过高下拉造成的不一致。

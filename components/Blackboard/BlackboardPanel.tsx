@@ -92,7 +92,7 @@ export const BlackboardPanel: React.FC = () => {
   }, [project.stageTree.stages, project.nodes]);
 
   // ========== Filtering Logic ==========
-  const filterFn = <T extends { name: string; key: string }>(list: T[]) => {
+  const filterFn = <T extends { name: string; key: string }>(list: T[]): T[] => {
     if (!filter.trim()) return list;
     const lowerFilter = filter.toLowerCase();
     return list.filter(item => item.name.toLowerCase().includes(lowerFilter) || item.key.toLowerCase().includes(lowerFilter));

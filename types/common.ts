@@ -126,7 +126,7 @@ export type ValueSource =
 export interface ParameterModifier {
   targetVariableId: VariableId;
   targetScope: VariableScope;
-  operation: 'Set' | 'Add' | 'Subtract' | 'CopyFromVar';
+  operation: 'Set' | 'Add' | 'Subtract' | 'Multiply' | 'Divide' | 'Toggle' | 'CopyFromVar';
   source: ValueSource;
 }
 
@@ -151,8 +151,14 @@ export type PresentationBinding =
 /**
  * 事件触发后执行的动作类型
  */
+// 事件动作：调用当前对象的生命周期脚本或修改参数
 export type EventAction =
-  | { type: 'InvokeScript'; scriptId: ScriptId; parameters?: ParameterBinding[] }
+  | {
+    type: 'InvokeScript';
+    // 生命周期脚本触发无需重新选择脚本，保留可选字段兼容旧数据
+    scriptId?: ScriptId;
+    parameters?: ParameterBinding[];
+  }
   | { type: 'ModifyParameter'; modifier: ParameterModifier };
 
 // ========== 事件监听器 ==========

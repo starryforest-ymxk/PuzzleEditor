@@ -22,7 +22,7 @@ export const CanvasInfoOverlay: React.FC<InfoOverlayProps> = ({
     isPanMode
 }) => (
     <div style={{
-        position: 'sticky',
+        position: 'absolute',
         top: 20,
         left: 20,
         zIndex: 100,

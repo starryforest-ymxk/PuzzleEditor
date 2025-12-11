@@ -6,31 +6,44 @@
  */
 
 // Project-level
-export type ProjectId = `proj-${string}`;
+/** Recommend: proj-* */
+export type ProjectId = string;
 
 // Stage / Node hierarchy
-export type StageId = `stage-${string}`;
-export type PuzzleNodeId = `node-${string}`;
+/** Recommend: stage-* */
+export type StageId = string;
+/** Recommend: node-* */
+export type PuzzleNodeId = string;
 
 // FSM
-export type StateMachineId = `fsm-${string}`;
-export type StateId = `state-${string}`;
-export type TransitionId = `trans-${string}`;
+/** Recommend: fsm-* */
+export type StateMachineId = string;
+/** Recommend: state-* (but often uses fsm prefix) */
+export type StateId = string;
+/** Recommend: trans-* */
+export type TransitionId = string;
 
 // Presentation graph
-export type PresentationGraphId = `pres-${string}`;
-export type PresentationNodeId = `pnode-${string}`;
+/** Recommend: pres-* */
+export type PresentationGraphId = string;
+/** Recommend: pnode-* */
+export type PresentationNodeId = string;
 
 // Blackboard resources
-export type VariableId = string;    // Recommend: var-*; legacy data uses semantic ids
+/** Recommend: var-* */
+export type VariableId = string;
 export type VariableKey = string;
-export type EventId = string;       // Recommend: event-* or EVENT_*
+/** Recommend: event-* or EVENT_* */
+export type EventId = string;
 export type EventKey = string;
 
 // Script/Trigger resources (global manifest)
-export type ScriptId = `script-${string}`;
-export type ScriptKey = `script-${string}`;
-export type TriggerId = string;     // Recommend: trigger-* or uppercase tokens
+/** Recommend: script-* */
+export type ScriptId = string;
+/** Recommend: script-* */
+export type ScriptKey = string;
+/** Recommend: trigger-* or uppercase tokens */
+export type TriggerId = string;
 export type TriggerKey = string;
 
 // Reference helpers

@@ -160,6 +160,7 @@ export const StageInspector: React.FC<StageInspectorProps> = ({ stageId, readOnl
                             className="btn-ghost"
                             onClick={() => updateStage({ lifecycleScriptId: undefined })}
                             disabled={readOnly}
+                            style={{ height: 30, padding: '4px 10px' }}
                         >
                             Clear
                         </button>

@@ -80,6 +80,7 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({ nodeId, readOnly =
                             className="btn-ghost"
                             onClick={() => dispatch({ type: 'UPDATE_NODE', payload: { nodeId: node.id, data: { lifecycleScriptId: undefined } } })}
                             disabled={readOnly}
+                            style={{ height: 30, padding: '4px 10px' }}
                         >
                             Clear
                         </button>

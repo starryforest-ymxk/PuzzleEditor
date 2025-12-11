@@ -197,8 +197,10 @@ interface StateMachine {
 interface State extends Entity {
   id: string;                // state-*
   position: { x: number; y: number };
-  onEnterScriptId?: string;  // script-*
-  onExitScriptId?: string;   // script-*
+  lifecycleScriptId?: ScriptId; // 统一的生命周期脚本（含进入/退出回调，由脚本内部处理）
+  // onEnterScriptId / onExitScriptId 旧字段仅保留兼容，当前实现不再区分
+  onEnterScriptId?: ScriptId;
+  onExitScriptId?: ScriptId;
   eventListeners: EventListener[];
 }
 

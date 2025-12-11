@@ -422,27 +422,7 @@ export const StateMachineCanvas = ({ node, readOnly = false }: Props) => {
     }
 
     return (
-        <div
-            ref={canvasRef}
-            className="canvas-grid"
-            style={{
-                width: '100%',
-                height: '100%',
-                position: 'relative',
-                overflow: 'auto',
-                backgroundColor: '#18181b',
-                cursor: isPanningActive
-                    ? 'grabbing'
-                    : linkingState || modifyingTransition
-                        ? 'crosshair'
-                        : boxSelectRect
-                            ? 'crosshair'
-                            : 'default'
-            }}
-            onMouseDown={handleCanvasMouseDown}
-            onMouseUp={handleCanvasMouseUp}
-            onContextMenu={(e) => handleContextMenu(e, 'CANVAS')}
-        >
+        <div style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
             {/* Info overlay */}
             <CanvasInfoOverlay
                 nodeName={node.name}
@@ -453,173 +433,196 @@ export const StateMachineCanvas = ({ node, readOnly = false }: Props) => {
             />
             <ShortcutPanel visible={showShortcuts} onToggle={() => setShowShortcuts(v => !v)} />
 
-            {/* 右键菜单 */}
-            {contextMenu && (
-                <CanvasContextMenu
-                    menu={contextMenu}
-                    onClose={() => setContextMenu(null)}
-                    onAddState={(x, y) =>
-                        dispatch({
-                            type: 'ADD_STATE',
-                            payload: {
-                                fsmId: fsm.id,
-                                state: { id: `state-${Date.now()}`, name: 'New State', position: { x, y }, eventListeners: [] }
+            <div
+                ref={canvasRef}
+                className="canvas-grid"
+                style={{
+                    width: '100%',
+                    height: '100%',
+                    position: 'relative',
+                    overflow: 'auto',
+                    backgroundColor: '#18181b',
+                    cursor: isPanningActive
+                        ? 'grabbing'
+                        : linkingState || modifyingTransition
+                            ? 'crosshair'
+                            : boxSelectRect
+                                ? 'crosshair'
+                                : 'default'
+                }}
+                onMouseDown={handleCanvasMouseDown}
+                onMouseUp={handleCanvasMouseUp}
+                onContextMenu={(e) => handleContextMenu(e, 'CANVAS')}
+            >
+
+                {/* 右键菜单 */}
+                {contextMenu && (
+                    <CanvasContextMenu
+                        menu={contextMenu}
+                        onClose={() => setContextMenu(null)}
+                        onAddState={(x, y) =>
+                            dispatch({
+                                type: 'ADD_STATE',
+                                payload: {
+                                    fsmId: fsm.id,
+                                    state: { id: `state-${Date.now()}`, name: 'New State', position: { x, y }, eventListeners: [] }
+                                }
+                            })
+                        }
+                        onSetInitial={(stateId) =>
+                            dispatch({
+                                type: 'UPDATE_FSM',
+                                payload: { fsmId: fsm.id, data: { initialStateId: stateId } }
+                            })
+                        }
+                        onStartLink={(stateId, x, y) => startLinking({ clientX: x, clientY: y } as any, stateId)}
+                        onDeleteState={(stateId) =>
+                            dispatch({
+                                type: 'DELETE_STATE',
+                                payload: { fsmId: fsm.id, stateId }
+                            })
+                        }
+                        onDeleteTransition={(transitionId) =>
+                            dispatch({
+                                type: 'DELETE_TRANSITION',
+                                payload: { fsmId: fsm.id, transitionId }
+                            })
+                        }
+                        isInitialState={contextMenu.type === 'NODE' && fsm.initialStateId === contextMenu.targetId}
+                        contentRef={contentRef}
+                    />
+                )}
+
+                <div ref={contentRef} style={{ position: 'relative', minWidth: `${CANVAS_SIZE}px`, minHeight: `${CANVAS_SIZE}px` }}>
+                    {/* 框选区域 */}
+                    <BoxSelectOverlay rect={boxSelectRect} />
+
+                    <svg
+                        style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', overflow: 'visible', pointerEvents: 'none', zIndex: 0 }}
+                    >
+                        {/* 箭头标记定义 */}
+                        <ConnectionArrowMarkers />
+
+                        {/* 1. Existing Connections */}
+                        {Object.values(fsm.transitions).map((trans: Transition) => {
+                            const isModifying = modifyingTransition?.id === trans.id;
+                            const fromPos = getNodeDisplayPosition(trans.fromStateId, fsm.states[trans.fromStateId]?.position || { x: 0, y: 0 });
+                            const toPos = getNodeDisplayPosition(trans.toStateId, fsm.states[trans.toStateId]?.position || { x: 0, y: 0 });
+
+                            return (
+                                <ConnectionLine
+                                    key={trans.id}
+                                    transition={trans}
+                                    fromState={fsm.states[trans.fromStateId]}
+                                    toState={fsm.states[trans.toStateId]}
+                                    isSelected={ui.selection.type === 'TRANSITION' && ui.selection.id === trans.id}
+                                    isContextTarget={contextMenu?.type === 'TRANSITION' && contextMenu?.targetId === trans.id}
+                                    isModifying={isModifying}
+                                    fromPos={fromPos}
+                                    toPos={toPos}
+                                    onSelect={(e, id) => dispatch({ type: 'SELECT_OBJECT', payload: { type: 'TRANSITION', id, contextId: node.id } })}
+                                    onContextMenu={(e, id) => handleContextMenu(e, 'TRANSITION', id)}
+                                    onHandleDown={(e, id, type) => {
+                                        e.stopPropagation();
+                                        startModifyingTransition(e, id, type);
+                                    }}
+                                    onCut={(e, id) => {
+                                        dispatch({ type: 'DELETE_TRANSITION', payload: { fsmId: fsm.id, transitionId: id } });
+                                    }}
+                                />
+                            );
+                        })}
+
+                        {/* 2. Temporary / Dragging Line */}
+                        {(linkingState || modifyingTransition) && (() => {
+                            const mouseOrSnap = activeSnapPoint ? { x: activeSnapPoint.x, y: activeSnapPoint.y } : mousePos;
+
+                            let p1 = mouseOrSnap;
+                            let p2 = mouseOrSnap;
+                            let sSide: Side = 'right';
+                            let eSide: Side = 'left';
+
+                            if (linkingState) {
+                                const sourcePos = getNodeDisplayPosition(linkingState.nodeId, fsm.states[linkingState.nodeId].position);
+                                sSide = Geom.getClosestSide(sourcePos, Geom.STATE_WIDTH, Geom.STATE_ESTIMATED_HEIGHT, mouseOrSnap);
+                                p1 = Geom.getNodeAnchor(sourcePos, Geom.STATE_WIDTH, Geom.STATE_ESTIMATED_HEIGHT, sSide);
+                                p2 = mouseOrSnap;
+                                eSide = activeSnapPoint ? activeSnapPoint.side : Geom.getNaturalEnteringSide(p1, p2);
+                            } else if (modifyingTransition) {
+                                const trans = fsm.transitions[modifyingTransition.id];
+
+                                if (modifyingTransition.handle === 'target') {
+                                    const sourcePos = getNodeDisplayPosition(trans.fromStateId, fsm.states[trans.fromStateId].position);
+                                    sSide = trans.fromSide || Geom.getClosestSide(sourcePos, Geom.STATE_WIDTH, Geom.STATE_ESTIMATED_HEIGHT, mouseOrSnap);
+                                    p1 = Geom.getNodeAnchor(sourcePos, Geom.STATE_WIDTH, Geom.STATE_ESTIMATED_HEIGHT, sSide);
+
+                                    p2 = mouseOrSnap;
+                                    eSide = activeSnapPoint ? activeSnapPoint.side : Geom.getNaturalEnteringSide(p1, p2);
+                                } else {
+                                    const destPos = getNodeDisplayPosition(trans.toStateId, fsm.states[trans.toStateId].position);
+                                    eSide = trans.toSide || Geom.getClosestSide(destPos, Geom.STATE_WIDTH, Geom.STATE_ESTIMATED_HEIGHT, mouseOrSnap);
+                                    p2 = Geom.getNodeAnchor(destPos, Geom.STATE_WIDTH, Geom.STATE_ESTIMATED_HEIGHT, eSide);
+
+                                    p1 = mouseOrSnap;
+                                    sSide = activeSnapPoint
+                                        ? activeSnapPoint.side
+                                        : Geom.getClosestSide({ x: p1.x - Geom.STATE_WIDTH / 2, y: p1.y - Geom.STATE_ESTIMATED_HEIGHT / 2 } as any, Geom.STATE_WIDTH, Geom.STATE_ESTIMATED_HEIGHT, p2);
+                                }
                             }
-                        })
-                    }
-                    onSetInitial={(stateId) =>
-                        dispatch({
-                            type: 'UPDATE_FSM',
-                            payload: { fsmId: fsm.id, data: { initialStateId: stateId } }
-                        })
-                    }
-                    onStartLink={(stateId, x, y) => startLinking({ clientX: x, clientY: y } as any, stateId)}
-                    onDeleteState={(stateId) =>
-                        dispatch({
-                            type: 'DELETE_STATE',
-                            payload: { fsmId: fsm.id, stateId }
-                        })
-                    }
-                    onDeleteTransition={(transitionId) =>
-                        dispatch({
-                            type: 'DELETE_TRANSITION',
-                            payload: { fsmId: fsm.id, transitionId }
-                        })
-                    }
-                    isInitialState={contextMenu.type === 'NODE' && fsm.initialStateId === contextMenu.targetId}
-                    contentRef={contentRef}
-                />
-            )}
 
-            <div ref={contentRef} style={{ position: 'relative', minWidth: `${CANVAS_SIZE}px`, minHeight: `${CANVAS_SIZE}px` }}>
-                {/* 框选区域 */}
-                <BoxSelectOverlay rect={boxSelectRect} />
+                            return <path d={Geom.getBezierPathData(p1, p2, sSide, eSide)} fill="none" stroke="#888" strokeWidth="2" strokeDasharray="5,5" markerEnd="url(#arrow-temp)" />;
+                        })()}
 
-                <svg
-                    style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', overflow: 'visible', pointerEvents: 'none', zIndex: 0 }}
-                >
-                    {/* 箭头标记定义 */}
-                    <ConnectionArrowMarkers />
+                        {/* 3. 切线视觉 (Ctrl+拖拽) */}
+                        <CuttingLineOverlay line={cuttingLine} />
+                    </svg>
 
-                    {/* 1. Existing Connections */}
+                    {/* 3. HTML Controls for Connections (Labels & Handles) */}
                     {Object.values(fsm.transitions).map((trans: Transition) => {
-                        const isModifying = modifyingTransition?.id === trans.id;
-                        const fromPos = getNodeDisplayPosition(trans.fromStateId, fsm.states[trans.fromStateId]?.position || { x: 0, y: 0 });
-                        const toPos = getNodeDisplayPosition(trans.toStateId, fsm.states[trans.toStateId]?.position || { x: 0, y: 0 });
-
+                        if (modifyingTransition?.id === trans.id) return null;
+                        const fromPos = getNodeDisplayPosition(trans.fromStateId, fsm.states[trans.fromStateId]?.position);
+                        const toPos = getNodeDisplayPosition(trans.toStateId, fsm.states[trans.toStateId]?.position);
                         return (
-                            <ConnectionLine
-                                key={trans.id}
+                            <ConnectionControls
+                                key={`ctrl-${trans.id}`}
                                 transition={trans}
-                                fromState={fsm.states[trans.fromStateId]}
-                                toState={fsm.states[trans.toStateId]}
-                                isSelected={ui.selection.type === 'TRANSITION' && ui.selection.id === trans.id}
-                                isContextTarget={contextMenu?.type === 'TRANSITION' && contextMenu?.targetId === trans.id}
-                                isModifying={isModifying}
                                 fromPos={fromPos}
                                 toPos={toPos}
+                                isSelected={ui.selection.type === 'TRANSITION' && ui.selection.id === trans.id}
+                                isContextTarget={contextMenu?.type === 'TRANSITION' && contextMenu?.targetId === trans.id}
                                 onSelect={(e, id) => dispatch({ type: 'SELECT_OBJECT', payload: { type: 'TRANSITION', id, contextId: node.id } })}
                                 onContextMenu={(e, id) => handleContextMenu(e, 'TRANSITION', id)}
                                 onHandleDown={(e, id, type) => {
                                     e.stopPropagation();
                                     startModifyingTransition(e, id, type);
                                 }}
-                                onCut={(e, id) => {
-                                    dispatch({ type: 'DELETE_TRANSITION', payload: { fsmId: fsm.id, transitionId: id } });
-                                }}
+                                readOnly={readOnly}
                             />
                         );
                     })}
 
-                    {/* 2. Temporary / Dragging Line */}
-                    {(linkingState || modifyingTransition) && (() => {
-                        const mouseOrSnap = activeSnapPoint ? { x: activeSnapPoint.x, y: activeSnapPoint.y } : mousePos;
+                    {/* 4. 吸附点提示层：连线调整时展示所有锚点 */}
+                    <SnapPointsLayer snapPoints={snapPoints} activeSnapPoint={activeSnapPoint} visible={Boolean(linkingState || modifyingTransition)} />
 
-                        let p1 = mouseOrSnap;
-                        let p2 = mouseOrSnap;
-                        let sSide: Side = 'right';
-                        let eSide: Side = 'left';
-
-                        if (linkingState) {
-                            const sourcePos = getNodeDisplayPosition(linkingState.nodeId, fsm.states[linkingState.nodeId].position);
-                            sSide = Geom.getClosestSide(sourcePos, Geom.STATE_WIDTH, Geom.STATE_ESTIMATED_HEIGHT, mouseOrSnap);
-                            p1 = Geom.getNodeAnchor(sourcePos, Geom.STATE_WIDTH, Geom.STATE_ESTIMATED_HEIGHT, sSide);
-                            p2 = mouseOrSnap;
-                            eSide = activeSnapPoint ? activeSnapPoint.side : Geom.getNaturalEnteringSide(p1, p2);
-                        } else if (modifyingTransition) {
-                            const trans = fsm.transitions[modifyingTransition.id];
-
-                            if (modifyingTransition.handle === 'target') {
-                                const sourcePos = getNodeDisplayPosition(trans.fromStateId, fsm.states[trans.fromStateId].position);
-                                sSide = trans.fromSide || Geom.getClosestSide(sourcePos, Geom.STATE_WIDTH, Geom.STATE_ESTIMATED_HEIGHT, mouseOrSnap);
-                                p1 = Geom.getNodeAnchor(sourcePos, Geom.STATE_WIDTH, Geom.STATE_ESTIMATED_HEIGHT, sSide);
-
-                                p2 = mouseOrSnap;
-                                eSide = activeSnapPoint ? activeSnapPoint.side : Geom.getNaturalEnteringSide(p1, p2);
-                            } else {
-                                const destPos = getNodeDisplayPosition(trans.toStateId, fsm.states[trans.toStateId].position);
-                                eSide = trans.toSide || Geom.getClosestSide(destPos, Geom.STATE_WIDTH, Geom.STATE_ESTIMATED_HEIGHT, mouseOrSnap);
-                                p2 = Geom.getNodeAnchor(destPos, Geom.STATE_WIDTH, Geom.STATE_ESTIMATED_HEIGHT, eSide);
-
-                                p1 = mouseOrSnap;
-                                sSide = activeSnapPoint
-                                    ? activeSnapPoint.side
-                                    : Geom.getClosestSide({ x: p1.x - Geom.STATE_WIDTH / 2, y: p1.y - Geom.STATE_ESTIMATED_HEIGHT / 2 } as any, Geom.STATE_WIDTH, Geom.STATE_ESTIMATED_HEIGHT, p2);
-                            }
-                        }
-
-                        return <path d={Geom.getBezierPathData(p1, p2, sSide, eSide)} fill="none" stroke="#888" strokeWidth="2" strokeDasharray="5,5" markerEnd="url(#arrow-temp)" />;
-                    })()}
-
-                    {/* 3. 切线视觉 (Ctrl+拖拽) */}
-                    <CuttingLineOverlay line={cuttingLine} />
-                </svg>
-
-                {/* 3. HTML Controls for Connections (Labels & Handles) */}
-                {Object.values(fsm.transitions).map((trans: Transition) => {
-                    if (modifyingTransition?.id === trans.id) return null;
-                    const fromPos = getNodeDisplayPosition(trans.fromStateId, fsm.states[trans.fromStateId]?.position);
-                    const toPos = getNodeDisplayPosition(trans.toStateId, fsm.states[trans.toStateId]?.position);
-                    return (
-                        <ConnectionControls
-                            key={`ctrl-${trans.id}`}
-                            transition={trans}
-                            fromPos={fromPos}
-                            toPos={toPos}
-                            isSelected={ui.selection.type === 'TRANSITION' && ui.selection.id === trans.id}
-                            isContextTarget={contextMenu?.type === 'TRANSITION' && contextMenu?.targetId === trans.id}
-                            onSelect={(e, id) => dispatch({ type: 'SELECT_OBJECT', payload: { type: 'TRANSITION', id, contextId: node.id } })}
-                            onContextMenu={(e, id) => handleContextMenu(e, 'TRANSITION', id)}
-                            onHandleDown={(e, id, type) => {
-                                e.stopPropagation();
-                                startModifyingTransition(e, id, type);
-                            }}
+                    {/* 5. State Nodes */}
+                    {Object.values(fsm.states).map((state: State) => (
+                        <StateNode
+                            key={state.id}
+                            state={state}
+                            position={getNodeDisplayPosition(state.id, state.position)}
+                            isSelected={ui.selection.type === 'STATE' && ui.selection.id === state.id}
+                            isMultiSelected={multiSelectIds.includes(state.id)}
+                            isInitial={fsm.initialStateId === state.id}
+                            isContextTarget={contextMenu?.type === 'NODE' && contextMenu?.targetId === state.id}
+                            onMouseDown={handleStateMouseDown}
+                            onMouseUp={handleStateMouseUp}
+                            onContextMenu={(e) => handleContextMenu(e, 'NODE', state.id)}
                             readOnly={readOnly}
                         />
-                    );
-                })}
-
-                {/* 4. 吸附点提示层：连线调整时展示所有锚点 */}
-                <SnapPointsLayer snapPoints={snapPoints} activeSnapPoint={activeSnapPoint} visible={Boolean(linkingState || modifyingTransition)} />
-
-                {/* 5. State Nodes */}
-                {Object.values(fsm.states).map((state: State) => (
-                    <StateNode
-                        key={state.id}
-                        state={state}
-                        position={getNodeDisplayPosition(state.id, state.position)}
-                        isSelected={ui.selection.type === 'STATE' && ui.selection.id === state.id}
-                        isMultiSelected={multiSelectIds.includes(state.id)}
-                        isInitial={fsm.initialStateId === state.id}
-                        isContextTarget={contextMenu?.type === 'NODE' && contextMenu?.targetId === state.id}
-                        onMouseDown={handleStateMouseDown}
-                        onMouseUp={handleStateMouseUp}
-                        onContextMenu={(e) => handleContextMenu(e, 'NODE', state.id)}
-                        readOnly={readOnly}
-                    />
-                ))}
+                    ))}
+                </div>
+                <style>{` .ctx-item { padding: 8px 12px; font-size: 13px; cursor: pointer; color: #eee; } .ctx-item:hover { background: #3e3e42; } .ctx-item.danger { color: #ff6b6b; } .handle { position: absolute; width: 12px; height: 12px; background: rgba(255, 255, 255, 0.2); border: 1px solid rgba(255,255,255,0.5); border-radius: 50%; transform: translate(-50%, -50%); cursor: grab; opacity: 0; transition: opacity 0.2s, background 0.2s; } .handle:hover { opacity: 1; background: var(--accent-color); border-color: #fff; } `}</style>
             </div>
-            <style>{` .ctx-item { padding: 8px 12px; font-size: 13px; cursor: pointer; color: #eee; } .ctx-item:hover { background: #3e3e42; } .ctx-item.danger { color: #ff6b6b; } .handle { position: absolute; width: 12px; height: 12px; background: rgba(255, 255, 255, 0.2); border: 1px solid rgba(255,255,255,0.5); border-radius: 50%; transform: translate(-50%, -50%); cursor: grab; opacity: 0; transition: opacity 0.2s, background 0.2s; } .handle:hover { opacity: 1; background: var(--accent-color); border-color: #fff; } `}</style>
         </div>
     );
 };
