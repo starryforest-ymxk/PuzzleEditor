@@ -94,7 +94,7 @@ export const StageOverview: React.FC<StageOverviewProps> = ({ stageId }) => {
                 }}>
                     <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-dim)' }}>{id.slice(0, 8)}...</span>
                     <span style={{ color: 'var(--accent-color)', fontWeight: 500, display: 'flex', alignItems: 'center', opacity: 0.8 }}>
-                        {type === 'NODE' ? 'Open Node →' : 'Open Stage →'}
+                        {type === 'NODE' ? 'Open Node ->' : 'Open Stage ->'}
                     </span>
                 </div>
             </div>
@@ -170,7 +170,7 @@ export const StageOverview: React.FC<StageOverviewProps> = ({ stageId }) => {
                             color: 'var(--text-dim)',
                             backgroundColor: 'rgba(255,255,255,0.02)'
                         }}>
-                            <div style={{ fontSize: '24px', marginBottom: '8px' }}>∅</div>
+                            <div style={{ fontSize: '24px', marginBottom: '8px' }}>Empty</div>
                             <div>This stage is empty</div>
                         </div>
                     )}

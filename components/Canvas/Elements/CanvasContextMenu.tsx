@@ -1,7 +1,6 @@
 /**
  * components/Canvas/Elements/CanvasContextMenu.tsx
- * 画布右键菜单组件
- * 从 StateMachineCanvas.tsx 拆分而来
+ * Canvas context menu for state machine editor
  */
 
 import React, { useRef, useEffect } from 'react';
@@ -26,8 +25,7 @@ interface CanvasContextMenuProps {
 }
 
 /**
- * 画布右键菜单
- * 支持三种类型：CANVAS（添加状态）、NODE（设为初始/连线/删除）、TRANSITION（删除）
+ * Right-click context menu on the canvas/state/transition.
  */
 export const CanvasContextMenu: React.FC<CanvasContextMenuProps> = ({
     menu,
@@ -42,7 +40,7 @@ export const CanvasContextMenu: React.FC<CanvasContextMenuProps> = ({
 }) => {
     const menuRef = useRef<HTMLDivElement>(null);
 
-    // 点击菜单外部时关闭
+    // Close when clicking outside the menu
     useEffect(() => {
         const handleMouseDown = (e: MouseEvent) => {
             if (menuRef.current && menuRef.current.contains(e.target as Node)) {
@@ -65,7 +63,7 @@ export const CanvasContextMenu: React.FC<CanvasContextMenuProps> = ({
                 zIndex: 9999,
                 backgroundColor: '#252526',
                 border: '1px solid #444',
-                minWidth: '140px',
+                minWidth: '160px',
                 borderRadius: '4px',
                 boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
             }}
@@ -80,7 +78,7 @@ export const CanvasContextMenu: React.FC<CanvasContextMenuProps> = ({
                         onClose();
                     }}
                 >
-                    + 添加状态
+                    + Add State
                 </div>
             )}
             {menu.type === 'NODE' && menu.targetId && (
@@ -93,7 +91,7 @@ export const CanvasContextMenu: React.FC<CanvasContextMenuProps> = ({
                                 onClose();
                             }}
                         >
-                            🏁 设为初始状态
+                            Set as Initial State
                         </div>
                     )}
                     <div
@@ -106,7 +104,7 @@ export const CanvasContextMenu: React.FC<CanvasContextMenuProps> = ({
                             onClose();
                         }}
                     >
-                        🔗 创建连线
+                        Create Transition
                     </div>
                     <div
                         className="ctx-item danger"
@@ -115,7 +113,7 @@ export const CanvasContextMenu: React.FC<CanvasContextMenuProps> = ({
                             onClose();
                         }}
                     >
-                        🗑 删除
+                        Delete State
                     </div>
                 </>
             )}
@@ -127,7 +125,7 @@ export const CanvasContextMenu: React.FC<CanvasContextMenuProps> = ({
                         onClose();
                     }}
                 >
-                    🗑 删除连线
+                    Delete Transition
                 </div>
             )}
         </div>

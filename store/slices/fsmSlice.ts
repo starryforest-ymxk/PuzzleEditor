@@ -33,6 +33,9 @@ export const fsmReducer = (state: EditorState, action: FsmAction): EditorState =
             const fsm = state.project.stateMachines[fsmId];
             if (!fsm) return state;
 
+            // 首个状态自动设为初始状态，提升可用性
+            const nextInitial = fsm.initialStateId || newState.id;
+
             return {
                 ...state,
                 project: {
@@ -41,7 +44,8 @@ export const fsmReducer = (state: EditorState, action: FsmAction): EditorState =
                         ...state.project.stateMachines,
                         [fsmId]: {
                             ...fsm,
-                            states: { ...fsm.states, [newState.id]: newState }
+                            states: { ...fsm.states, [newState.id]: newState },
+                            initialStateId: nextInitial
                         }
                     }
                 }

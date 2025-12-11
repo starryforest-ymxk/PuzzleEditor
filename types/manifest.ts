@@ -8,6 +8,7 @@ import {
   VariableType,
   ResourceState,
   ScriptCategory,
+  LifecycleScriptTarget,
   ScriptId,
   ScriptKey,
   TriggerId,
@@ -35,6 +36,8 @@ export interface ScriptDefinition extends Entity {
   id: ScriptId;                        // 稳定 ID，内部引用使用
   key: ScriptKey;                      // 系统生成的稳定 Key，不随重命名变化
   category: ScriptCategory;            // 脚本分类
+  // 生命周期脚本的挂载对象范围（仅 category === 'Lifecycle' 时生效）
+  lifecycleType?: LifecycleScriptTarget;
   state: ResourceState;
 }
 

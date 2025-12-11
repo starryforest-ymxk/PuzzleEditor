@@ -238,7 +238,9 @@ html {
 
 /* Properties Table */
 .prop-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(90px, 140px) minmax(0, 1fr);
+  column-gap: 12px;
   padding: 10px 16px;
   border-bottom: 1px solid #3f3f46;
   font-size: 12px;
@@ -246,19 +248,64 @@ html {
 }
 
 .prop-label {
-  width: 100px;
   color: var(--text-secondary);
-  flex-shrink: 0;
-  padding-right: 12px;
+  padding-right: 4px;
   font-family: 'Inter', sans-serif;
+  white-space: nowrap;
+}
+
+.prop-value,
+.prop-row input,
+.prop-row select,
+.prop-row textarea,
+.prop-row button {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .prop-value {
-  flex: 1;
   color: var(--text-primary);
   word-break: break-all;
   font-family: 'JetBrains Mono', monospace;
   /* Code font for data */
+}
+
+/* Inspector 通用响应式行：名称/类型/按钮并列，随宽度收缩 */
+.inspector-inline-row {
+  display: grid;
+  grid-template-columns: minmax(140px, 1fr) minmax(100px, 160px) auto;
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+}
+
+.inspector-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+  width: 100%;
+}
+
+.inspector-row > * {
+  min-width: 0;
+}
+
+.inspector-row .grow {
+  flex: 1;
+}
+
+@media (max-width: 1280px) {
+  .inspector-inline-row {
+    grid-template-columns: minmax(120px, 1fr) minmax(90px, 140px) auto;
+  }
+}
+
+@media (max-width: 1024px) {
+  .inspector-inline-row {
+    grid-template-columns: minmax(110px, 1fr) minmax(80px, 130px) auto;
+  }
 }
 
 /* Card Styling for Stage Overview - "Data Cartridge" Look */

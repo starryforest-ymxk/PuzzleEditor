@@ -30,8 +30,9 @@ export interface PuzzleNode extends Entity {
   localVariables: Record<VariableId, VariableDefinition>;
 
   // 生命周期脚本
-  onCreateScriptId?: ScriptId;    // 节点创建时执行
-  onDestroyScriptId?: ScriptId;   // 节点销毁时执行
+  lifecycleScriptId?: ScriptId;    // 节点生命周期脚本（进入/退出节点作用域）
+  onCreateScriptId?: ScriptId;     // 兼容旧字段：节点创建时执行
+  onDestroyScriptId?: ScriptId;    // 兼容旧字段：节点销毁时执行
 
   // 事件监听
   eventListeners: EventListener[];

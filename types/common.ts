@@ -96,6 +96,9 @@ export type VariableScope = 'Global' | 'StageLocal' | 'NodeLocal' | 'Temporary';
  */
 export type ScriptCategory = 'Performance' | 'Lifecycle' | 'Condition' | 'Trigger';
 
+// 生命周期脚本作用范围
+export type LifecycleScriptTarget = 'Stage' | 'Node' | 'State';
+
 // ========== 基础实体接口 ==========
 /**
  * 所有可识别实体的基础接口

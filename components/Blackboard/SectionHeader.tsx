@@ -17,6 +17,8 @@ interface SectionHeaderProps {
     expanded: boolean;
     /** 点击切换展开/折叠的回调 */
     onToggle: () => void;
+    /** 层级 (default: 1) */
+    level?: number;
 }
 
 // ========== 组件 ==========
@@ -29,8 +31,11 @@ export const SectionHeader: React.FC<SectionHeaderProps> = ({
     title,
     count,
     expanded,
-    onToggle
+    onToggle,
+    level = 1
 }) => {
+    const isChild = level > 1;
+
     return (
         <div
             onClick={onToggle}
@@ -40,11 +45,12 @@ export const SectionHeader: React.FC<SectionHeaderProps> = ({
                 justifyContent: 'space-between',
                 padding: '8px 12px',
                 cursor: 'pointer',
-                background: 'var(--panel-header-bg)',
-                borderBottom: '1px solid var(--border-color)',
+                background: isChild ? 'var(--panel-bg)' : 'var(--panel-header-bg)',
+                borderBottom: isChild ? 'none' : '1px solid var(--border-color)',
                 borderRadius: 'var(--radius-sm)',
-                marginBottom: '8px',
-                userSelect: 'none'
+                marginBottom: '4px', // Reduced margin for tighter tree feel
+                marginTop: isChild ? '0' : '4px',
+                userSelect: 'none',
             }}
         >
             {/* 左侧：展开图标 + 标题 */}
@@ -64,7 +70,7 @@ export const SectionHeader: React.FC<SectionHeaderProps> = ({
             <span style={{
                 fontSize: '10px',
                 color: 'var(--text-dim)',
-                background: 'var(--bg-color)',
+                background: isChild ? 'var(--bg-color-hover)' : 'var(--bg-color)',
                 padding: '2px 6px',
                 borderRadius: 'var(--radius-sm)'
             }}>

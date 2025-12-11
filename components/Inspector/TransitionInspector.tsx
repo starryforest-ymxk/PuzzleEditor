@@ -147,7 +147,7 @@ export const TransitionInspector = ({ fsmId, transitionId, readOnly = false }: P
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', pointerEvents: readOnly ? 'none' : 'auto', opacity: readOnly ? 0.6 : 1 }}>
                     {triggers.map((t, idx) => (
                         <div key={idx} style={{ border: '1px solid #444', padding: '8px', borderRadius: '4px', background: '#1f1f1f' }}>
-                            <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '6px' }}>
+                            <div className="inspector-row" style={{ marginBottom: '6px' }}>
                                 <select
                                     value={t.type}
                                     onChange={(e) => {

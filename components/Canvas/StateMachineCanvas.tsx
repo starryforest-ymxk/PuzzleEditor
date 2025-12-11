@@ -9,8 +9,8 @@ import { useGraphInteraction } from '../../hooks/useGraphInteraction';
 import { StateNode } from './Elements/StateNode';
 import { ConnectionLine, ConnectionControls } from './Elements/ConnectionLine';
 import { CanvasContextMenu, ContextMenuState } from './Elements/CanvasContextMenu';
-import { CanvasInfoOverlay, BoxSelectOverlay, SnapPointsLayer, CuttingLineOverlay } from './Elements/CanvasOverlays';
-import { TempConnectionLine, ConnectionArrowMarkers } from './Elements/TempConnectionLine';
+import { CanvasInfoOverlay, BoxSelectOverlay, SnapPointsLayer, CuttingLineOverlay, ShortcutPanel } from './Elements/CanvasOverlays';
+import { ConnectionArrowMarkers } from './Elements/TempConnectionLine';
 
 interface Props {
     node: PuzzleNode;
@@ -24,22 +24,27 @@ export const StateMachineCanvas = ({ node, readOnly = false }: Props) => {
     const dispatch = useEditorDispatch();
     const canvasRef = useRef<HTMLDivElement>(null);
     const contentRef = useRef<HTMLDivElement>(null);
+    const lastNodeIdRef = useRef<string | null>(null);
 
-    // Ctrl+拖拽切线模式状态
+    // 剪线模式开关（按下 Ctrl 提示开启剪线）
     const [isLineCuttingMode, setIsLineCuttingMode] = useState(false);
+    // 快捷键帮助面板开关
+    const [showShortcuts, setShowShortcuts] = useState(false);
+    // Shift 按下时提示连线模式（即使尚未进入拖拽状态）
+    const [isLinkKeyActive, setIsLinkKeyActive] = useState(false);
 
-    // 切线拖拽状态
-    const [cuttingLine, setCuttingLine] = useState<{ start: { x: number, y: number }, end: { x: number, y: number } } | null>(null);
-    const cuttingPrevPos = useRef<{ x: number, y: number } | null>(null);
-    const cutTransitionsSet = useRef<Set<string>>(new Set()); // 记录已切断的连线ID
+    // 剪线拖拽状态：记录起点/终点与前一帧位置
+    const [cuttingLine, setCuttingLine] = useState<{ start: { x: number; y: number }; end: { x: number; y: number } } | null>(null);
+    const cuttingPrevPos = useRef<{ x: number; y: number } | null>(null);
+    const cutTransitionsSet = useRef<Set<string>>(new Set()); // 记录已剪断的连线ID
 
-    // 延迟到鼠标抬起的选中请求，保持所有选中行为在同一时刻触发
+    // 选中请求延迟到鼠标抬起，保证同一帧内交互顺序一致
     const pendingStateSelect = useRef<string | null>(null);
     const pendingCanvasSelect = useRef(false);
     const isBoxSelecting = useRef(false);
-    const blankClickStart = useRef<{ x: number, y: number } | null>(null);
-    // 记录节点点击的起点，用于判定是否为拖拽，拖拽状态下不改变选中
-    const dragStartPos = useRef<{ x: number, y: number } | null>(null);
+    const blankClickStart = useRef<{ x: number; y: number } | null>(null);
+    // 记录节点点击的起点，用于判断是否为拖拽，拖拽中不改变选中
+    const dragStartPos = useRef<{ x: number; y: number } | null>(null);
     const dragMoved = useRef(false);
     const DRAG_THRESHOLD = 4; // 鼠标移动超过该像素视为拖拽
 
@@ -56,18 +61,36 @@ export const StateMachineCanvas = ({ node, readOnly = false }: Props) => {
     const fsm = project.stateMachines[node.stateMachineId];
     const multiSelectIds = ui.multiSelectStateIds || [];
 
+    // 进入状态机画布时，默认选中当前 PuzzleNode，满足“下钻后默认选中节点”需求
+    useEffect(() => {
+        if (lastNodeIdRef.current !== node.id) {
+            lastNodeIdRef.current = node.id;
+            dispatch({ type: 'SELECT_OBJECT', payload: { type: 'NODE', id: node.id } });
+        }
+    }, [node.id, dispatch]);
+
     // 3. Interaction Logic (Hook)
     const {
-        draggingNodeId, linkingState, modifyingTransition, activeSnapPoint, snapPoints, mousePos,
-        boxSelectRect, isDraggingMultiple,
-        startNodeDrag, startMultiNodeDrag, startLinking, startModifyingTransition,
-        startBoxSelect, getNodeDisplayPosition
+        draggingNodeId,
+        linkingState,
+        modifyingTransition,
+        activeSnapPoint,
+        snapPoints,
+        mousePos,
+        boxSelectRect,
+        isDraggingMultiple,
+        startNodeDrag,
+        startMultiNodeDrag,
+        startLinking,
+        startModifyingTransition,
+        startBoxSelect,
+        getNodeDisplayPosition
     } = useGraphInteraction({
         getNodes: () => fsm?.states || {},
         getContentOffset: getLocalCoordinates,
         onNodeMove: (id, pos) => dispatch({ type: 'UPDATE_STATE', payload: { fsmId: fsm.id, stateId: id, data: { position: pos } } }),
         onMultiNodeMove: (nodeIds, delta) => {
-            // 批量更新所有选中节点的位置
+            // 批量更新所有已选节点的位置
             nodeIds.forEach(id => {
                 const state = fsm.states[id];
                 if (state) {
@@ -83,7 +106,7 @@ export const StateMachineCanvas = ({ node, readOnly = false }: Props) => {
             });
         },
         onLinkComplete: (sourceId, targetId, options) => {
-            // Check duplicates
+            // 重复连接保护
             if (Object.values(fsm.transitions).some((t: Transition) => t.fromStateId === sourceId && t.toStateId === targetId)) return;
 
             const sourcePos = getNodeDisplayPosition(sourceId, fsm.states[sourceId].position);
@@ -96,9 +119,16 @@ export const StateMachineCanvas = ({ node, readOnly = false }: Props) => {
                 payload: {
                     fsmId: fsm.id,
                     transition: {
-                        id: `trans-${Date.now()}`, name: 'Transition', fromStateId: sourceId, toStateId: targetId,
-                        fromSide, toSide, condition: { type: 'LITERAL', value: true }, priority: 0,
-                        triggers: [{ type: 'Always' }], parameterModifiers: []
+                        id: `trans-${Date.now()}`,
+                        name: 'Transition',
+                        fromStateId: sourceId,
+                        toStateId: targetId,
+                        fromSide,
+                        toSide,
+                        condition: { type: 'LITERAL', value: true },
+                        priority: 0,
+                        triggers: [{ type: 'Always' }],
+                        parameterModifiers: []
                     }
                 }
             });
@@ -136,10 +166,10 @@ export const StateMachineCanvas = ({ node, readOnly = false }: Props) => {
         }
     });
 
-    // 4. Context Menu State（使用导入的类型，关闭逻辑内置于 CanvasContextMenu 组件）
+    // 4. Context Menu State（右键菜单的开关与目标）
     const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
 
-    // Keyboard Delete (支持多选删除)
+    // Keyboard Delete（支持多选批量删除）+ Ctrl/Shift 模式提示
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             const target = e.target as HTMLElement;
@@ -147,7 +177,6 @@ export const StateMachineCanvas = ({ node, readOnly = false }: Props) => {
 
             if (e.key === 'Delete' || e.key === 'Backspace') {
                 if (readOnly) return;
-                // 删除多选的节点
                 if (multiSelectIds.length > 0) {
                     multiSelectIds.forEach(stateId => {
                         dispatch({ type: 'DELETE_STATE', payload: { fsmId: fsm.id, stateId } });
@@ -163,19 +192,19 @@ export const StateMachineCanvas = ({ node, readOnly = false }: Props) => {
                 }
             }
 
-            // Escape 取消多选
             if (e.key === 'Escape') {
                 dispatch({ type: 'SET_MULTI_SELECT_STATES', payload: [] });
             }
         };
 
-        // 监听 Ctrl 键用于切线模式
         const handleKeyDown2 = (e: KeyboardEvent) => {
             if (readOnly) return;
             if (e.key === 'Control') setIsLineCuttingMode(true);
+            if (e.key === 'Shift') setIsLinkKeyActive(true);
         };
         const handleKeyUp = (e: KeyboardEvent) => {
             if (e.key === 'Control') setIsLineCuttingMode(false);
+            if (e.key === 'Shift') setIsLinkKeyActive(false);
         };
 
         window.addEventListener('keydown', handleKeyDown);
@@ -186,34 +215,24 @@ export const StateMachineCanvas = ({ node, readOnly = false }: Props) => {
             window.removeEventListener('keydown', handleKeyDown2);
             window.removeEventListener('keyup', handleKeyUp);
         };
-    }, [ui.selection, fsm?.id, node.id, multiSelectIds]);
+    }, [ui.selection, fsm?.id, node.id, multiSelectIds, readOnly, dispatch]);
 
     // Handlers
     const handleCanvasMouseDown = (e: React.MouseEvent) => {
         pendingCanvasSelect.current = false;
         if (handlePanMouseDown(e)) return;
         if (e.button !== 0) return;
-        if (e.button !== 0) return;
-        if (readOnly) {
-            // 只允许框选（如果是为了查看检查）或者平移
-            // ReadOnly usually implies simpler interaction.
-            // If we allow box selecting to see multi-inspector, keep it.
-            // But disable cutting line.
-        }
-        else {
-            if (linkingState || modifyingTransition) return;
-        }
 
         if (readOnly) {
-            // In ReadOnly, prevent cutting mode.
-            // Allow Pan (handled above) and Box Select.
+            // 只允许平移/框选，禁用剪线与连线模式
         } else {
-            // Ctrl+左键拖动开始切线模式
+            if (linkingState || modifyingTransition) return;
+            // Ctrl+左键拖拽开始剪线
             if (e.ctrlKey || e.metaKey) {
                 const pos = getLocalCoordinates(e.clientX, e.clientY);
                 setCuttingLine({ start: pos, end: pos });
                 cuttingPrevPos.current = pos;
-                cutTransitionsSet.current = new Set(); // 重置已切断记录
+                cutTransitionsSet.current = new Set();
                 return;
             }
         }
@@ -221,7 +240,7 @@ export const StateMachineCanvas = ({ node, readOnly = false }: Props) => {
         const rect = contentRef.current?.getBoundingClientRect();
         const isInsideContent = rect ? (e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom) : true;
 
-        // 左键点击空白区域开始框选，选中延迟到 mouseup；框选过程不应触发空白选中
+        // 左键点击空白区域开始框选，空白选中延迟到 mouseup
         pendingCanvasSelect.current = false;
         isBoxSelecting.current = true;
         blankClickStart.current = isInsideContent ? { x: e.clientX, y: e.clientY } : null;
@@ -230,7 +249,7 @@ export const StateMachineCanvas = ({ node, readOnly = false }: Props) => {
 
     const handleCanvasMouseUp = (e: React.MouseEvent) => {
         if (e.button !== 0) return;
-        // 切线或其他交互时不触发空白选中
+        // 剪线或连线过程中不触发空白选中
         if (cuttingLine || linkingState || modifyingTransition) {
             pendingCanvasSelect.current = false;
             return;
@@ -246,33 +265,31 @@ export const StateMachineCanvas = ({ node, readOnly = false }: Props) => {
             return;
         }
 
-        // 仅当按下时在空白区域（未走框选），抬起仍在空白区域且移动极小，才视为空白点击用于取消选中
+        // 按下/抬起都在空白区且未移动，则视为空白点击，恢复到节点上层选中
         if (blankClickStart.current) {
             const dx = Math.abs(e.clientX - blankClickStart.current.x);
             const dy = Math.abs(e.clientY - blankClickStart.current.y);
             const CLICK_THRESHOLD = 3;
             if (dx <= CLICK_THRESHOLD && dy <= CLICK_THRESHOLD) {
-                // 空白点击：回到当前节点上下文，清除状态/连线选中，保持画布可见
                 dispatch({ type: 'SELECT_OBJECT', payload: { type: 'NODE', id: node.id } });
             }
             blankClickStart.current = null;
         }
     };
 
-    // Ctrl+拖拽切线的鼠标移动处理
+    // Ctrl 拖拽剪线的鼠标移动处理
     useEffect(() => {
         if (!cuttingLine) return;
 
         const handleMouseMove = (e: MouseEvent) => {
             const pos = getLocalCoordinates(e.clientX, e.clientY);
-            setCuttingLine(prev => prev ? { ...prev, end: pos } : null);
+            setCuttingLine(prev => (prev ? { ...prev, end: pos } : null));
 
-            // 检测与连线的交点（只记录，不立即删除）
+            // 记录连线交点，先收集待删除的 transition
             if (cuttingPrevPos.current && fsm) {
                 const prevPos = cuttingPrevPos.current;
 
                 Object.values(fsm.transitions).forEach((trans: Transition) => {
-                    // 已经标记过的不再检测
                     if (cutTransitionsSet.current.has(trans.id)) return;
 
                     const fromState = fsm.states[trans.fromStateId];
@@ -289,7 +306,7 @@ export const StateMachineCanvas = ({ node, readOnly = false }: Props) => {
                     const curveEnd = Geom.getNodeAnchor(toPos, Geom.STATE_WIDTH, Geom.STATE_ESTIMATED_HEIGHT, toSide);
 
                     if (Geom.doesLineIntersectBezier(prevPos, pos, curveStart, curveEnd, fromSide, toSide)) {
-                        cutTransitionsSet.current.add(trans.id); // 只记录，不删除
+                        cutTransitionsSet.current.add(trans.id);
                     }
                 });
             }
@@ -298,7 +315,6 @@ export const StateMachineCanvas = ({ node, readOnly = false }: Props) => {
         };
 
         const handleMouseUp = () => {
-            // 释放鼠标时才执行删除
             if (fsm && cutTransitionsSet.current.size > 0) {
                 cutTransitionsSet.current.forEach(transId => {
                     dispatch({ type: 'DELETE_TRANSITION', payload: { fsmId: fsm.id, transitionId: transId } });
@@ -315,7 +331,7 @@ export const StateMachineCanvas = ({ node, readOnly = false }: Props) => {
             window.removeEventListener('mousemove', handleMouseMove);
             window.removeEventListener('mouseup', handleMouseUp);
         };
-    }, [cuttingLine, fsm]);
+    }, [cuttingLine, fsm, dispatch, getNodeDisplayPosition]);
 
     const handleStateMouseDown = (e: React.MouseEvent, stateId: string) => {
         e.stopPropagation();
@@ -323,18 +339,18 @@ export const StateMachineCanvas = ({ node, readOnly = false }: Props) => {
 
         const isLinkInteraction = !readOnly && (e.shiftKey || Boolean(linkingState) || Boolean(modifyingTransition));
 
-        // 先清空本次可能的延迟选中记录
+        // 清空本次可能的延迟选中记录
         pendingStateSelect.current = null;
         dragMoved.current = false;
         dragStartPos.current = { x: e.clientX, y: e.clientY };
 
-        // 如果点击的是多选中的节点，开始多节点拖拽 (仅非只读)
+        // 如果点击的是多选中的节点，开始多节点拖拽（仅非只读）
         if (multiSelectIds.includes(stateId) && !isLinkInteraction && !readOnly) {
             startMultiNodeDrag(e, multiSelectIds);
             return;
         }
 
-        // 清除多选（除非按住Ctrl添加到多选）
+        // 清除多选（除非按住 Ctrl/Meta 追加）
         if (multiSelectIds.length > 0 && !e.ctrlKey && !e.metaKey) {
             dispatch({ type: 'SET_MULTI_SELECT_STATES', payload: [] });
         }
@@ -351,7 +367,7 @@ export const StateMachineCanvas = ({ node, readOnly = false }: Props) => {
             pendingStateSelect.current = stateId;
         }
 
-        // 非连线或拖拽的单击选中在 mouseup 触发
+        // 非连线/拖拽的单击选中在 mouseup 触发
         if (!isLinkInteraction && !pendingStateSelect.current) {
             pendingStateSelect.current = stateId;
         }
@@ -370,7 +386,7 @@ export const StateMachineCanvas = ({ node, readOnly = false }: Props) => {
         dragMoved.current = false;
     };
 
-    // 监听全局鼠标移动以判定拖拽距离，拖拽时不触发选中
+    // 监听全局鼠标移动判断是否进入拖拽状态，拖拽时不触发选中
     useEffect(() => {
         const handleMove = (e: MouseEvent) => {
             if (!pendingStateSelect.current || !dragStartPos.current) return;
@@ -394,57 +410,82 @@ export const StateMachineCanvas = ({ node, readOnly = false }: Props) => {
     }, []);
 
     const handleContextMenu = (e: React.MouseEvent, type: 'CANVAS' | 'NODE' | 'TRANSITION', targetId?: string) => {
-        e.preventDefault(); e.stopPropagation();
+        e.preventDefault();
+        e.stopPropagation();
         if (readOnly) return;
         const pos = getLocalCoordinates(e.clientX, e.clientY);
         setContextMenu({ x: pos.x, y: pos.y, type, targetId });
     };
 
-    if (!fsm) return <div className="empty-state">Missing Data</div>;
+    if (!fsm) {
+        return <div className="empty-state">Missing Data</div>;
+    }
 
     return (
-        <div ref={canvasRef} className="canvas-grid"
+        <div
+            ref={canvasRef}
+            className="canvas-grid"
             style={{
-                width: '100%', height: '100%', position: 'relative', overflow: 'auto',
+                width: '100%',
+                height: '100%',
+                position: 'relative',
+                overflow: 'auto',
                 backgroundColor: '#18181b',
-                cursor: isPanningActive ? 'grabbing' : (linkingState || modifyingTransition ? 'crosshair' : (boxSelectRect ? 'crosshair' : 'default'))
+                cursor: isPanningActive
+                    ? 'grabbing'
+                    : linkingState || modifyingTransition
+                        ? 'crosshair'
+                        : boxSelectRect
+                            ? 'crosshair'
+                            : 'default'
             }}
             onMouseDown={handleCanvasMouseDown}
             onMouseUp={handleCanvasMouseUp}
             onContextMenu={(e) => handleContextMenu(e, 'CANVAS')}
         >
-            {/* 信息覆盖层 */}
+            {/* Info overlay */}
             <CanvasInfoOverlay
                 nodeName={node.name}
                 multiSelectCount={multiSelectIds.length}
                 isLineCuttingMode={isLineCuttingMode}
+                isLinkMode={Boolean(linkingState) || isLinkKeyActive}
+                isPanMode={isPanningActive}
             />
+            <ShortcutPanel visible={showShortcuts} onToggle={() => setShowShortcuts(v => !v)} />
 
             {/* 右键菜单 */}
             {contextMenu && (
                 <CanvasContextMenu
                     menu={contextMenu}
                     onClose={() => setContextMenu(null)}
-                    onAddState={(x, y) => dispatch({
-                        type: 'ADD_STATE',
-                        payload: {
-                            fsmId: fsm.id,
-                            state: { id: `state-${Date.now()}`, name: '新状态', position: { x, y }, eventListeners: [] }
-                        }
-                    })}
-                    onSetInitial={(stateId) => dispatch({
-                        type: 'UPDATE_FSM',
-                        payload: { fsmId: fsm.id, data: { initialStateId: stateId } }
-                    })}
+                    onAddState={(x, y) =>
+                        dispatch({
+                            type: 'ADD_STATE',
+                            payload: {
+                                fsmId: fsm.id,
+                                state: { id: `state-${Date.now()}`, name: 'New State', position: { x, y }, eventListeners: [] }
+                            }
+                        })
+                    }
+                    onSetInitial={(stateId) =>
+                        dispatch({
+                            type: 'UPDATE_FSM',
+                            payload: { fsmId: fsm.id, data: { initialStateId: stateId } }
+                        })
+                    }
                     onStartLink={(stateId, x, y) => startLinking({ clientX: x, clientY: y } as any, stateId)}
-                    onDeleteState={(stateId) => dispatch({
-                        type: 'DELETE_STATE',
-                        payload: { fsmId: fsm.id, stateId }
-                    })}
-                    onDeleteTransition={(transitionId) => dispatch({
-                        type: 'DELETE_TRANSITION',
-                        payload: { fsmId: fsm.id, transitionId }
-                    })}
+                    onDeleteState={(stateId) =>
+                        dispatch({
+                            type: 'DELETE_STATE',
+                            payload: { fsmId: fsm.id, stateId }
+                        })
+                    }
+                    onDeleteTransition={(transitionId) =>
+                        dispatch({
+                            type: 'DELETE_TRANSITION',
+                            payload: { fsmId: fsm.id, transitionId }
+                        })
+                    }
                     isInitialState={contextMenu.type === 'NODE' && fsm.initialStateId === contextMenu.targetId}
                     contentRef={contentRef}
                 />
@@ -454,7 +495,9 @@ export const StateMachineCanvas = ({ node, readOnly = false }: Props) => {
                 {/* 框选区域 */}
                 <BoxSelectOverlay rect={boxSelectRect} />
 
-                <svg style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', overflow: 'visible', pointerEvents: 'none', zIndex: 0 }}>
+                <svg
+                    style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', overflow: 'visible', pointerEvents: 'none', zIndex: 0 }}
+                >
                     {/* 箭头标记定义 */}
                     <ConnectionArrowMarkers />
 
@@ -503,8 +546,7 @@ export const StateMachineCanvas = ({ node, readOnly = false }: Props) => {
                             p1 = Geom.getNodeAnchor(sourcePos, Geom.STATE_WIDTH, Geom.STATE_ESTIMATED_HEIGHT, sSide);
                             p2 = mouseOrSnap;
                             eSide = activeSnapPoint ? activeSnapPoint.side : Geom.getNaturalEnteringSide(p1, p2);
-                        }
-                        else if (modifyingTransition) {
+                        } else if (modifyingTransition) {
                             const trans = fsm.transitions[modifyingTransition.id];
 
                             if (modifyingTransition.handle === 'target') {
@@ -520,7 +562,9 @@ export const StateMachineCanvas = ({ node, readOnly = false }: Props) => {
                                 p2 = Geom.getNodeAnchor(destPos, Geom.STATE_WIDTH, Geom.STATE_ESTIMATED_HEIGHT, eSide);
 
                                 p1 = mouseOrSnap;
-                                sSide = activeSnapPoint ? activeSnapPoint.side : Geom.getClosestSide({ x: p1.x - Geom.STATE_WIDTH / 2, y: p1.y - Geom.STATE_ESTIMATED_HEIGHT / 2 } as any, Geom.STATE_WIDTH, Geom.STATE_ESTIMATED_HEIGHT, p2);
+                                sSide = activeSnapPoint
+                                    ? activeSnapPoint.side
+                                    : Geom.getClosestSide({ x: p1.x - Geom.STATE_WIDTH / 2, y: p1.y - Geom.STATE_ESTIMATED_HEIGHT / 2 } as any, Geom.STATE_WIDTH, Geom.STATE_ESTIMATED_HEIGHT, p2);
                             }
                         }
 
@@ -555,12 +599,8 @@ export const StateMachineCanvas = ({ node, readOnly = false }: Props) => {
                     );
                 })}
 
-                {/* 4. 吸附点提示层：连线/调整时展示所有锚点 */}
-                <SnapPointsLayer
-                    snapPoints={snapPoints}
-                    activeSnapPoint={activeSnapPoint}
-                    visible={Boolean(linkingState || modifyingTransition)}
-                />
+                {/* 4. 吸附点提示层：连线调整时展示所有锚点 */}
+                <SnapPointsLayer snapPoints={snapPoints} activeSnapPoint={activeSnapPoint} visible={Boolean(linkingState || modifyingTransition)} />
 
                 {/* 5. State Nodes */}
                 {Object.values(fsm.states).map((state: State) => (

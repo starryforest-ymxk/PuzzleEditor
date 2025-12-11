@@ -32,7 +32,7 @@ export const StageInspector: React.FC<StageInspectorProps> = ({ stageId, readOnl
         .filter(s => s.category === 'Performance')
         .map(s => ({ id: s.id, name: s.name, state: s.state }));
     const lifecycleScriptOptions = Object.values(scriptDefs)
-        .filter(s => s.category === 'Lifecycle')
+        .filter(s => s.category === 'Lifecycle' && (!s.lifecycleType || s.lifecycleType === 'Stage'))
         .map(s => ({ id: s.id, name: s.name, state: s.state }));
     const graphOptions = Object.values(project.presentationGraphs || {}).map(g => ({ id: g.id, name: g.name, state: 'Draft' as any }));
     const eventOptions = Object.values(project.blackboard.events || {}).map(e => ({ id: e.id, name: e.name, state: e.state }));
@@ -146,7 +146,7 @@ export const StageInspector: React.FC<StageInspectorProps> = ({ stageId, readOnl
             {/* Lifecycle Script Section */}
             <div className="inspector-section">
                 <div className="section-title">Lifecycle Script</div>
-                <div className={readOnly ? 'inspector-section--readonly' : ''} style={{ display: 'flex', gap: '8px', alignItems: 'center', pointerEvents: readOnly ? 'none' : 'auto', opacity: readOnly ? 0.6 : 1 }}>
+                <div className={readOnly ? 'inspector-section--readonly inspector-row' : 'inspector-row'} style={{ pointerEvents: readOnly ? 'none' : 'auto', opacity: readOnly ? 0.6 : 1 }}>
                     <ResourceSelect
                         options={lifecycleScriptOptions}
                         value={stage.lifecycleScriptId || ''}
@@ -222,4 +222,3 @@ export const StageInspector: React.FC<StageInspectorProps> = ({ stageId, readOnl
         </div>
     );
 };
-

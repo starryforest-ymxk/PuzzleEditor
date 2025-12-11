@@ -18,65 +18,175 @@ export const MOCK_STAGES: StageTreeData = {
       id: 'stage-root',
       name: 'Root',
       parentId: null,
-      childrenIds: ['stage-01', 'stage-02'],
+      childrenIds: ['stage-act1', 'stage-act2', 'stage-act3'],
       localVariables: {},
       eventListeners: [],
       isExpanded: true
     },
-    'stage-01': {
-      id: 'stage-01',
-      name: 'Chapter 1: The Awakening',
+    'stage-act1': {
+      id: 'stage-act1',
+      name: 'Act 1: Arrival',
       parentId: 'stage-root',
+      childrenIds: ['stage-act1a', 'stage-act1b'],
+      description: 'Reach the underground facility entrance and regain bearings.',
+      localVariables: {},
+      eventListeners: [],
+      isInitial: true,
+      isExpanded: true
+    },
+    'stage-act1a': {
+      id: 'stage-act1a',
+      name: 'Lab Wing',
+      parentId: 'stage-act1',
       childrenIds: [],
-      description: 'Player wakes up in the lab.',
+      description: 'Stabilize power and recover lab notes.',
       localVariables: {},
       eventListeners: [],
       isInitial: true,
       isExpanded: false
     },
-    'stage-02': {
-      id: 'stage-02',
-      name: 'Chapter 2: Escape',
+    'stage-act1b': {
+      id: 'stage-act1b',
+      name: 'Security Wing',
+      parentId: 'stage-act1',
+      childrenIds: [],
+      description: 'Disable security grid to access deeper halls.',
+      localVariables: {},
+      eventListeners: [],
+      isExpanded: false
+    },
+    'stage-act2': {
+      id: 'stage-act2',
+      name: 'Act 2: Investigation',
+      parentId: 'stage-root',
+      childrenIds: ['stage-act2a', 'stage-act2b', 'stage-act2c'],
+      description: 'Piece together the conspiracy from fragmented evidence.',
+      localVariables: {},
+      eventListeners: [],
+      isExpanded: true
+    },
+    'stage-act2a': {
+      id: 'stage-act2a',
+      name: 'Archive Stack',
+      parentId: 'stage-act2',
+      childrenIds: [],
+      description: 'Unlock and parse stored case files.',
+      localVariables: {},
+      eventListeners: [],
+      isInitial: true,
+      isExpanded: false
+    },
+    'stage-act2b': {
+      id: 'stage-act2b',
+      name: 'Server Corridor',
+      parentId: 'stage-act2',
+      childrenIds: [],
+      description: 'Bypass digital defenses.',
+      localVariables: {},
+      eventListeners: [],
+      isExpanded: false
+    },
+    'stage-act2c': {
+      id: 'stage-act2c',
+      name: 'Interrogation Deck',
+      parentId: 'stage-act2',
+      childrenIds: [],
+      description: 'Extract intel under pressure.',
+      localVariables: {},
+      eventListeners: [],
+      isExpanded: false
+    },
+    'stage-act3': {
+      id: 'stage-act3',
+      name: 'Act 3: Escape',
       parentId: 'stage-root',
       childrenIds: [],
-      description: 'Finding the way out.',
+      description: 'Sequence the final escape and seal the facility.',
       localVariables: {},
-      eventListeners: []
+      eventListeners: [],
+      isExpanded: false
     }
   }
 };
 
 // ========== 解谜节点模拟数据 ==========
 export const MOCK_NODES: Record<string, PuzzleNode> = {
-  'node-01': {
-    id: 'node-01',
-    name: 'Generator Puzzle',
-    description: 'Fix the power generator to open the door.',
-    stageId: 'stage-01',
-    stateMachineId: 'fsm-01',
+  'node-act1-main1': {
+    id: 'node-act1-main1',
+    name: 'Wake Up Call',
+    description: 'Restore consciousness and gather the first clues.',
+    stageId: 'stage-act1',
+    stateMachineId: 'fsm-act1-main1',
     localVariables: {
-      'power_level': {
-        id: 'power_level',
-        key: 'power_level',
-        name: 'Current Power',
+      'node-act1-main1-progress': {
+        id: 'node-act1-main1-progress',
+        key: 'node-act1-main1-progress',
+        name: 'Progress',
         type: 'integer',
         defaultValue: 0,
         state: 'Implemented',
         scope: 'NodeLocal'
       },
-      'max_voltage': {
-        id: 'max_voltage',
-        key: 'max_voltage',
-        name: 'Target Voltage',
-        type: 'float',
-        defaultValue: 220.5,
+      'node-act1-main1-solved': {
+        id: 'node-act1-main1-solved',
+        key: 'node-act1-main1-solved',
+        name: 'Memory Stabilized',
+        type: 'boolean',
+        defaultValue: false,
+        state: 'Draft',
+        scope: 'NodeLocal'
+      }
+    },
+    eventListeners: []
+  },
+  'node-act1-main2': {
+    id: 'node-act1-main2',
+    name: 'Broken Elevator',
+    description: 'Power up the service lift to descend.',
+    stageId: 'stage-act1',
+    stateMachineId: 'fsm-act1-main2',
+    localVariables: {
+      'node-act1-main2-progress': {
+        id: 'node-act1-main2-progress',
+        key: 'node-act1-main2-progress',
+        name: 'Progress',
+        type: 'integer',
+        defaultValue: 0,
         state: 'Implemented',
         scope: 'NodeLocal'
       },
-      'has_fuse': {
-        id: 'has_fuse',
-        key: 'has_fuse',
-        name: 'Fuse Inserted',
+      'node-act1-main2-solved': {
+        id: 'node-act1-main2-solved',
+        key: 'node-act1-main2-solved',
+        name: 'Lift Online',
+        type: 'boolean',
+        defaultValue: false,
+        state: 'Draft',
+        scope: 'NodeLocal'
+      }
+    },
+    eventListeners: []
+  },
+  'node-act1a-1': {
+    id: 'node-act1a-1',
+    name: 'Fuse Hunt',
+    description: 'Collect fuses to stabilize the lab power rails.',
+    stageId: 'stage-act1a',
+    stateMachineId: 'fsm-act1a-1',
+    localVariables: {
+      'node-act1a-1-progress': {
+        id: 'node-act1a-1-progress',
+        key: 'node-act1a-1-progress',
+        name: 'Fuses Inserted',
+        type: 'integer',
+        defaultValue: 0,
+        state: 'Implemented',
+        scope: 'NodeLocal'
+      },
+      'node-act1a-1-solved': {
+        id: 'node-act1a-1-solved',
+        key: 'node-act1a-1-solved',
+        name: 'Power Stable',
         type: 'boolean',
         defaultValue: false,
         state: 'Implemented',
@@ -85,48 +195,505 @@ export const MOCK_NODES: Record<string, PuzzleNode> = {
     },
     eventListeners: []
   },
-  'node-02': {
-    id: 'node-02',
-    name: 'Keypad Lock',
-    description: 'Enter code 0451.',
-    stageId: 'stage-01',
-    stateMachineId: 'fsm-02',
+  'node-act1a-2': {
+    id: 'node-act1a-2',
+    name: 'Memory Console',
+    description: 'Reconstruct the corrupted audio log.',
+    stageId: 'stage-act1a',
+    stateMachineId: 'fsm-act1a-2',
     localVariables: {
-      'passcode': {
-        id: 'passcode',
-        key: 'passcode',
-        name: 'Secret Code',
-        type: 'string',
-        defaultValue: '0451',
+      'node-act1a-2-progress': {
+        id: 'node-act1a-2-progress',
+        key: 'node-act1a-2-progress',
+        name: 'Fragments Restored',
+        type: 'integer',
+        defaultValue: 0,
         state: 'Implemented',
         scope: 'NodeLocal'
       },
-      'attempts': {
-        id: 'attempts',
-        key: 'attempts',
-        name: 'Failed Attempts',
-        type: 'integer',
-        defaultValue: 0,
+      'node-act1a-2-solved': {
+        id: 'node-act1a-2-solved',
+        key: 'node-act1a-2-solved',
+        name: 'Transcript Ready',
+        type: 'boolean',
+        defaultValue: false,
         state: 'Implemented',
         scope: 'NodeLocal'
       }
     },
     eventListeners: []
   },
-  'node-03': {
-    id: 'node-03',
-    name: 'Guard Patrol',
-    description: 'Avoid the guard.',
-    stageId: 'stage-02',
-    stateMachineId: 'fsm-03',
+  'node-act1a-3': {
+    id: 'node-act1a-3',
+    name: 'Specimen Containment',
+    description: 'Balance pressure valves to unlock the containment rack.',
+    stageId: 'stage-act1a',
+    stateMachineId: 'fsm-act1a-3',
     localVariables: {
-      'alert_level': {
-        id: 'alert_level',
-        key: 'alert_level',
-        name: 'Alert Level',
-        type: 'string',
-        defaultValue: 'NORMAL',
+      'node-act1a-3-progress': {
+        id: 'node-act1a-3-progress',
+        key: 'node-act1a-3-progress',
+        name: 'Valve Alignment',
+        type: 'integer',
+        defaultValue: 0,
         state: 'Implemented',
+        scope: 'NodeLocal'
+      },
+      'node-act1a-3-solved': {
+        id: 'node-act1a-3-solved',
+        key: 'node-act1a-3-solved',
+        name: 'Containment Released',
+        type: 'boolean',
+        defaultValue: false,
+        state: 'Draft',
+        scope: 'NodeLocal'
+      }
+    },
+    eventListeners: []
+  },
+  'node-act1b-1': {
+    id: 'node-act1b-1',
+    name: 'Laser Grid',
+    description: 'Sync mirror plates to disrupt the laser grid.',
+    stageId: 'stage-act1b',
+    stateMachineId: 'fsm-act1b-1',
+    localVariables: {
+      'node-act1b-1-progress': {
+        id: 'node-act1b-1-progress',
+        key: 'node-act1b-1-progress',
+        name: 'Mirrors Set',
+        type: 'integer',
+        defaultValue: 0,
+        state: 'Implemented',
+        scope: 'NodeLocal'
+      },
+      'node-act1b-1-solved': {
+        id: 'node-act1b-1-solved',
+        key: 'node-act1b-1-solved',
+        name: 'Grid Disabled',
+        type: 'boolean',
+        defaultValue: false,
+        state: 'Implemented',
+        scope: 'NodeLocal'
+      }
+    },
+    eventListeners: []
+  },
+  'node-act1b-2': {
+    id: 'node-act1b-2',
+    name: 'Ventilation Riddle',
+    description: 'Route smoke to reveal hidden vents.',
+    stageId: 'stage-act1b',
+    stateMachineId: 'fsm-act1b-2',
+    localVariables: {
+      'node-act1b-2-progress': {
+        id: 'node-act1b-2-progress',
+        key: 'node-act1b-2-progress',
+        name: 'Vents Mapped',
+        type: 'integer',
+        defaultValue: 0,
+        state: 'Implemented',
+        scope: 'NodeLocal'
+      },
+      'node-act1b-2-solved': {
+        id: 'node-act1b-2-solved',
+        key: 'node-act1b-2-solved',
+        name: 'Route Clear',
+        type: 'boolean',
+        defaultValue: false,
+        state: 'Draft',
+        scope: 'NodeLocal'
+      }
+    },
+    eventListeners: []
+  },
+  'node-act1b-3': {
+    id: 'node-act1b-3',
+    name: 'Chemical Mixer',
+    description: 'Mix compounds to create a solvent.',
+    stageId: 'stage-act1b',
+    stateMachineId: 'fsm-act1b-3',
+    localVariables: {
+      'node-act1b-3-progress': {
+        id: 'node-act1b-3-progress',
+        key: 'node-act1b-3-progress',
+        name: 'Formula Progress',
+        type: 'integer',
+        defaultValue: 0,
+        state: 'Implemented',
+        scope: 'NodeLocal'
+      },
+      'node-act1b-3-solved': {
+        id: 'node-act1b-3-solved',
+        key: 'node-act1b-3-solved',
+        name: 'Solvent Ready',
+        type: 'boolean',
+        defaultValue: false,
+        state: 'Implemented',
+        scope: 'NodeLocal'
+      }
+    },
+    eventListeners: []
+  },
+  'node-act2-main1': {
+    id: 'node-act2-main1',
+    name: 'Crime Board',
+    description: 'Link suspects and evidence.',
+    stageId: 'stage-act2',
+    stateMachineId: 'fsm-act2-main1',
+    localVariables: {
+      'node-act2-main1-progress': {
+        id: 'node-act2-main1-progress',
+        key: 'node-act2-main1-progress',
+        name: 'Connections Made',
+        type: 'integer',
+        defaultValue: 0,
+        state: 'Implemented',
+        scope: 'NodeLocal'
+      },
+      'node-act2-main1-solved': {
+        id: 'node-act2-main1-solved',
+        key: 'node-act2-main1-solved',
+        name: 'Board Solved',
+        type: 'boolean',
+        defaultValue: false,
+        state: 'Implemented',
+        scope: 'NodeLocal'
+      }
+    },
+    eventListeners: []
+  },
+  'node-act2-main2': {
+    id: 'node-act2-main2',
+    name: 'Power Relay',
+    description: 'Reroute energy between wings.',
+    stageId: 'stage-act2',
+    stateMachineId: 'fsm-act2-main2',
+    localVariables: {
+      'node-act2-main2-progress': {
+        id: 'node-act2-main2-progress',
+        key: 'node-act2-main2-progress',
+        name: 'Relays Synced',
+        type: 'integer',
+        defaultValue: 0,
+        state: 'Implemented',
+        scope: 'NodeLocal'
+      },
+      'node-act2-main2-solved': {
+        id: 'node-act2-main2-solved',
+        key: 'node-act2-main2-solved',
+        name: 'Grid Balanced',
+        type: 'boolean',
+        defaultValue: false,
+        state: 'Draft',
+        scope: 'NodeLocal'
+      }
+    },
+    eventListeners: []
+  },
+  'node-act2a-1': {
+    id: 'node-act2a-1',
+    name: 'Archive Locks',
+    description: 'Decode the archival door pins.',
+    stageId: 'stage-act2a',
+    stateMachineId: 'fsm-act2a-1',
+    localVariables: {
+      'node-act2a-1-progress': {
+        id: 'node-act2a-1-progress',
+        key: 'node-act2a-1-progress',
+        name: 'Locks Opened',
+        type: 'integer',
+        defaultValue: 0,
+        state: 'Implemented',
+        scope: 'NodeLocal'
+      },
+      'node-act2a-1-solved': {
+        id: 'node-act2a-1-solved',
+        key: 'node-act2a-1-solved',
+        name: 'Archives Ready',
+        type: 'boolean',
+        defaultValue: false,
+        state: 'Implemented',
+        scope: 'NodeLocal'
+      }
+    },
+    eventListeners: []
+  },
+  'node-act2a-2': {
+    id: 'node-act2a-2',
+    name: 'Microfilm Scanner',
+    description: 'Align lenses to read microfilm.',
+    stageId: 'stage-act2a',
+    stateMachineId: 'fsm-act2a-2',
+    localVariables: {
+      'node-act2a-2-progress': {
+        id: 'node-act2a-2-progress',
+        key: 'node-act2a-2-progress',
+        name: 'Frames Parsed',
+        type: 'integer',
+        defaultValue: 0,
+        state: 'Implemented',
+        scope: 'NodeLocal'
+      },
+      'node-act2a-2-solved': {
+        id: 'node-act2a-2-solved',
+        key: 'node-act2a-2-solved',
+        name: 'Film Decoded',
+        type: 'boolean',
+        defaultValue: false,
+        state: 'Draft',
+        scope: 'NodeLocal'
+      }
+    },
+    eventListeners: []
+  },
+  'node-act2a-3': {
+    id: 'node-act2a-3',
+    name: 'Keyphrase Decipher',
+    description: 'Match ciphers to reconstruct the keyword.',
+    stageId: 'stage-act2a',
+    stateMachineId: 'fsm-act2a-3',
+    localVariables: {
+      'node-act2a-3-progress': {
+        id: 'node-act2a-3-progress',
+        key: 'node-act2a-3-progress',
+        name: 'Ciphers Solved',
+        type: 'integer',
+        defaultValue: 0,
+        state: 'Implemented',
+        scope: 'NodeLocal'
+      },
+      'node-act2a-3-solved': {
+        id: 'node-act2a-3-solved',
+        key: 'node-act2a-3-solved',
+        name: 'Keyword Found',
+        type: 'boolean',
+        defaultValue: false,
+        state: 'Implemented',
+        scope: 'NodeLocal'
+      }
+    },
+    eventListeners: []
+  },
+  'node-act2b-1': {
+    id: 'node-act2b-1',
+    name: 'Server Firewall',
+    description: 'Trace packets to find the weak node.',
+    stageId: 'stage-act2b',
+    stateMachineId: 'fsm-act2b-1',
+    localVariables: {
+      'node-act2b-1-progress': {
+        id: 'node-act2b-1-progress',
+        key: 'node-act2b-1-progress',
+        name: 'Ports Mapped',
+        type: 'integer',
+        defaultValue: 0,
+        state: 'Implemented',
+        scope: 'NodeLocal'
+      },
+      'node-act2b-1-solved': {
+        id: 'node-act2b-1-solved',
+        key: 'node-act2b-1-solved',
+        name: 'Firewall Breached',
+        type: 'boolean',
+        defaultValue: false,
+        state: 'Implemented',
+        scope: 'NodeLocal'
+      }
+    },
+    eventListeners: []
+  },
+  'node-act2b-2': {
+    id: 'node-act2b-2',
+    name: 'Admin Override',
+    description: 'Spoof credentials before lockdown hits.',
+    stageId: 'stage-act2b',
+    stateMachineId: 'fsm-act2b-2',
+    localVariables: {
+      'node-act2b-2-progress': {
+        id: 'node-act2b-2-progress',
+        key: 'node-act2b-2-progress',
+        name: 'Credentials Forged',
+        type: 'integer',
+        defaultValue: 0,
+        state: 'Implemented',
+        scope: 'NodeLocal'
+      },
+      'node-act2b-2-solved': {
+        id: 'node-act2b-2-solved',
+        key: 'node-act2b-2-solved',
+        name: 'Override Granted',
+        type: 'boolean',
+        defaultValue: false,
+        state: 'Draft',
+        scope: 'NodeLocal'
+      }
+    },
+    eventListeners: []
+  },
+  'node-act2b-3': {
+    id: 'node-act2b-3',
+    name: 'Data Shredder',
+    description: 'Recover fragments before deletion completes.',
+    stageId: 'stage-act2b',
+    stateMachineId: 'fsm-act2b-3',
+    localVariables: {
+      'node-act2b-3-progress': {
+        id: 'node-act2b-3-progress',
+        key: 'node-act2b-3-progress',
+        name: 'Fragments Saved',
+        type: 'integer',
+        defaultValue: 0,
+        state: 'Implemented',
+        scope: 'NodeLocal'
+      },
+      'node-act2b-3-solved': {
+        id: 'node-act2b-3-solved',
+        key: 'node-act2b-3-solved',
+        name: 'Data Restored',
+        type: 'boolean',
+        defaultValue: false,
+        state: 'Implemented',
+        scope: 'NodeLocal'
+      }
+    },
+    eventListeners: []
+  },
+  'node-act2c-1': {
+    id: 'node-act2c-1',
+    name: 'Interrogation Timing',
+    description: 'Time responses to break the suspect rhythm.',
+    stageId: 'stage-act2c',
+    stateMachineId: 'fsm-act2c-1',
+    localVariables: {
+      'node-act2c-1-progress': {
+        id: 'node-act2c-1-progress',
+        key: 'node-act2c-1-progress',
+        name: 'Beats Matched',
+        type: 'integer',
+        defaultValue: 0,
+        state: 'Implemented',
+        scope: 'NodeLocal'
+      },
+      'node-act2c-1-solved': {
+        id: 'node-act2c-1-solved',
+        key: 'node-act2c-1-solved',
+        name: 'Timing Mastered',
+        type: 'boolean',
+        defaultValue: false,
+        state: 'Implemented',
+        scope: 'NodeLocal'
+      }
+    },
+    eventListeners: []
+  },
+  'node-act2c-2': {
+    id: 'node-act2c-2',
+    name: 'Lie Detector',
+    description: 'Correlate heartbeats to statements.',
+    stageId: 'stage-act2c',
+    stateMachineId: 'fsm-act2c-2',
+    localVariables: {
+      'node-act2c-2-progress': {
+        id: 'node-act2c-2-progress',
+        key: 'node-act2c-2-progress',
+        name: 'Signals Synced',
+        type: 'integer',
+        defaultValue: 0,
+        state: 'Implemented',
+        scope: 'NodeLocal'
+      },
+      'node-act2c-2-solved': {
+        id: 'node-act2c-2-solved',
+        key: 'node-act2c-2-solved',
+        name: 'Truth Locked',
+        type: 'boolean',
+        defaultValue: false,
+        state: 'Draft',
+        scope: 'NodeLocal'
+      }
+    },
+    eventListeners: []
+  },
+  'node-act2c-3': {
+    id: 'node-act2c-3',
+    name: 'Guard Distraction',
+    description: 'Orchestrate noises to move patrol routes.',
+    stageId: 'stage-act2c',
+    stateMachineId: 'fsm-act2c-3',
+    localVariables: {
+      'node-act2c-3-progress': {
+        id: 'node-act2c-3-progress',
+        key: 'node-act2c-3-progress',
+        name: 'Noise Triggers',
+        type: 'integer',
+        defaultValue: 0,
+        state: 'Implemented',
+        scope: 'NodeLocal'
+      },
+      'node-act2c-3-solved': {
+        id: 'node-act2c-3-solved',
+        key: 'node-act2c-3-solved',
+        name: 'Patrol Shifted',
+        type: 'boolean',
+        defaultValue: false,
+        state: 'Implemented',
+        scope: 'NodeLocal'
+      }
+    },
+    eventListeners: []
+  },
+  'node-act3-main1': {
+    id: 'node-act3-main1',
+    name: 'Escape Route',
+    description: 'Plot the safest route to the roof.',
+    stageId: 'stage-act3',
+    stateMachineId: 'fsm-act3-main1',
+    localVariables: {
+      'node-act3-main1-progress': {
+        id: 'node-act3-main1-progress',
+        key: 'node-act3-main1-progress',
+        name: 'Paths Evaluated',
+        type: 'integer',
+        defaultValue: 0,
+        state: 'Implemented',
+        scope: 'NodeLocal'
+      },
+      'node-act3-main1-solved': {
+        id: 'node-act3-main1-solved',
+        key: 'node-act3-main1-solved',
+        name: 'Route Locked',
+        type: 'boolean',
+        defaultValue: false,
+        state: 'Implemented',
+        scope: 'NodeLocal'
+      }
+    },
+    eventListeners: []
+  },
+  'node-act3-main2': {
+    id: 'node-act3-main2',
+    name: 'Final Door',
+    description: 'Synchronize keys and timer to open the final blast door.',
+    stageId: 'stage-act3',
+    stateMachineId: 'fsm-act3-main2',
+    localVariables: {
+      'node-act3-main2-progress': {
+        id: 'node-act3-main2-progress',
+        key: 'node-act3-main2-progress',
+        name: 'Locks Released',
+        type: 'integer',
+        defaultValue: 0,
+        state: 'Implemented',
+        scope: 'NodeLocal'
+      },
+      'node-act3-main2-solved': {
+        id: 'node-act3-main2-solved',
+        key: 'node-act3-main2-solved',
+        name: 'Door Opened',
+        type: 'boolean',
+        defaultValue: false,
+        state: 'Draft',
         scope: 'NodeLocal'
       }
     },
@@ -135,152 +702,126 @@ export const MOCK_NODES: Record<string, PuzzleNode> = {
 };
 
 // ========== 状态机模拟数据 ==========
-export const MOCK_STATE_MACHINES: Record<string, StateMachine> = {
-  'fsm-01': {
-    id: 'fsm-01',
-    initialStateId: 'state-idle',
-    states: {
-      'state-idle': {
-        id: 'state-idle',
-        name: 'Idle',
-        description: 'Waiting for player interaction',
-        position: { x: 100, y: 150 },
-        eventListeners: []
-      },
-      'state-active': {
-        id: 'state-active',
-        name: 'Active',
-        description: 'Generator is running',
-        position: { x: 400, y: 150 },
-        onEnterScriptId: 'script-play-anim',
-        eventListeners: []
-      },
-      'state-broken': {
-        id: 'state-broken',
-        name: 'Broken',
-        description: 'Failed attempt',
-        position: { x: 250, y: 300 },
-        eventListeners: []
-      }
+const buildTwoStepFsm = (fsmId: string, nodeId: string, idleName: string, solvingName: string, solvedName: string): StateMachine => ({
+  id: fsmId,
+  initialStateId: `${fsmId}-state-idle`,
+  states: {
+    [`${fsmId}-state-idle`]: {
+      id: `${fsmId}-state-idle`,
+      name: idleName,
+      description: 'Waiting for the next clue.',
+      position: { x: 120, y: 140 },
+      eventListeners: []
     },
-    transitions: {
-      'trans-01': {
-        id: 'trans-01',
-        name: 'Switch On',
-        fromStateId: 'state-idle',
-        toStateId: 'state-active',
-        priority: 1,
-        triggers: [{ type: 'Always' }],
-        parameterModifiers: [],
-        // 复杂条件示例: (power_level >= 80) AND has_fuse
-        condition: {
-          type: 'AND',
-          children: [
-            {
-              type: 'COMPARISON',
-              operator: '>=',
-              left: { type: 'VARIABLE_REF', variableId: 'power_level', variableScope: 'NodeLocal' },
-              right: { type: 'LITERAL', value: 80 }
-            },
-            {
-              type: 'VARIABLE_REF',
-              variableId: 'has_fuse',
-              variableScope: 'NodeLocal'
-            }
-          ]
-        }
-      },
-      'trans-02': {
-        id: 'trans-02',
-        name: 'Overheat',
-        fromStateId: 'state-active',
-        toStateId: 'state-broken',
-        priority: 1,
-        triggers: [{ type: 'Always' }],
-        parameterModifiers: [],
-        condition: {
-          type: 'COMPARISON',
-          operator: '>',
-          left: { type: 'VARIABLE_REF', variableId: 'temperature', variableScope: 'NodeLocal' },
-          right: { type: 'LITERAL', value: 100 }
-        }
-      },
-      'trans-03': {
-        id: 'trans-03',
-        name: 'Repair',
-        fromStateId: 'state-broken',
-        toStateId: 'state-idle',
-        priority: 1,
-        triggers: [{ type: 'Always' }],
-        parameterModifiers: [],
-        condition: { type: 'LITERAL', value: true }
-      }
+    [`${fsmId}-state-solving`]: {
+      id: `${fsmId}-state-solving`,
+      name: solvingName,
+      description: 'Player is interacting with the puzzle.',
+      position: { x: 360, y: 140 },
+      onEnterScriptId: 'script-lifecycle-state',
+      eventListeners: []
+    },
+    [`${fsmId}-state-solved`]: {
+      id: `${fsmId}-state-solved`,
+      name: solvedName,
+      description: 'Puzzle completed.',
+      position: { x: 600, y: 140 },
+      onEnterScriptId: 'script-dialogue',
+      eventListeners: []
     }
   },
-  'fsm-02': {
-    id: 'fsm-02',
-    initialStateId: 'state-locked',
-    states: {
-      'state-locked': {
-        id: 'state-locked',
-        name: 'Locked',
-        position: { x: 200, y: 200 },
-        eventListeners: []
-      }
+  transitions: {
+    [`${fsmId}-t-begin`]: {
+      id: `${fsmId}-t-begin`,
+      name: 'Begin',
+      fromStateId: `${fsmId}-state-idle`,
+      toStateId: `${fsmId}-state-solving`,
+      priority: 1,
+      triggers: [{ type: 'OnEvent', eventId: 'event-case-start' }],
+      parameterModifiers: [],
+      condition: { type: 'LITERAL', value: true }
     },
-    transitions: {}
-  },
-  'fsm-03': {
-    id: 'fsm-03',
-    initialStateId: 'state-patrol',
-    states: {
-      'state-patrol': {
-        id: 'state-patrol',
-        name: 'Patrol',
-        position: { x: 200, y: 200 },
-        eventListeners: []
+    [`${fsmId}-t-complete`]: {
+      id: `${fsmId}-t-complete`,
+      name: 'Complete',
+      fromStateId: `${fsmId}-state-solving`,
+      toStateId: `${fsmId}-state-solved`,
+      priority: 1,
+      triggers: [{ type: 'Always' }],
+      parameterModifiers: [],
+      condition: {
+        type: 'COMPARISON',
+        operator: '>=',
+        left: { type: 'VARIABLE_REF', variableId: `${nodeId}-progress`, variableScope: 'NodeLocal' },
+        right: { type: 'LITERAL', value: 1 }
       }
-    },
-    transitions: {}
+    }
   }
+});
+
+export const MOCK_STATE_MACHINES: Record<string, StateMachine> = {
+  'fsm-act1-main1': buildTwoStepFsm('fsm-act1-main1', 'node-act1-main1', 'Unsteady', 'Searching', 'Centered'),
+  'fsm-act1-main2': buildTwoStepFsm('fsm-act1-main2', 'node-act1-main2', 'Offline', 'Rewiring', 'Powered'),
+  'fsm-act1a-1': buildTwoStepFsm('fsm-act1a-1', 'node-act1a-1', 'Dark', 'Slotting', 'Stabilized'),
+  'fsm-act1a-2': buildTwoStepFsm('fsm-act1a-2', 'node-act1a-2', 'Static', 'Reordering', 'Clear Audio'),
+  'fsm-act1a-3': buildTwoStepFsm('fsm-act1a-3', 'node-act1a-3', 'Sealed', 'Balancing', 'Unlocked'),
+  'fsm-act1b-1': buildTwoStepFsm('fsm-act1b-1', 'node-act1b-1', 'Shielded', 'Aligning', 'Disabled'),
+  'fsm-act1b-2': buildTwoStepFsm('fsm-act1b-2', 'node-act1b-2', 'Hidden', 'Tracing', 'Revealed'),
+  'fsm-act1b-3': buildTwoStepFsm('fsm-act1b-3', 'node-act1b-3', 'Cold', 'Mixing', 'Reactive'),
+  'fsm-act2-main1': buildTwoStepFsm('fsm-act2-main1', 'node-act2-main1', 'Blank', 'Linking', 'Mapped'),
+  'fsm-act2-main2': buildTwoStepFsm('fsm-act2-main2', 'node-act2-main2', 'Unbalanced', 'Routing', 'Stable'),
+  'fsm-act2a-1': buildTwoStepFsm('fsm-act2a-1', 'node-act2a-1', 'Locked', 'Decoding', 'Open'),
+  'fsm-act2a-2': buildTwoStepFsm('fsm-act2a-2', 'node-act2a-2', 'Blurred', 'Focusing', 'Readable'),
+  'fsm-act2a-3': buildTwoStepFsm('fsm-act2a-3', 'node-act2a-3', 'Obscured', 'Matching', 'Decoded'),
+  'fsm-act2b-1': buildTwoStepFsm('fsm-act2b-1', 'node-act2b-1', 'Secured', 'Scanning', 'Bypassed'),
+  'fsm-act2b-2': buildTwoStepFsm('fsm-act2b-2', 'node-act2b-2', 'Guarded', 'Spoofing', 'Granted'),
+  'fsm-act2b-3': buildTwoStepFsm('fsm-act2b-3', 'node-act2b-3', 'Shredding', 'Reassembling', 'Recovered'),
+  'fsm-act2c-1': buildTwoStepFsm('fsm-act2c-1', 'node-act2c-1', 'Tense', 'Pacing', 'Broken Rhythm'),
+  'fsm-act2c-2': buildTwoStepFsm('fsm-act2c-2', 'node-act2c-2', 'Unclear', 'Calibrating', 'Verified'),
+  'fsm-act2c-3': buildTwoStepFsm('fsm-act2c-3', 'node-act2c-3', 'Routine', 'Distracting', 'Shifted'),
+  'fsm-act3-main1': buildTwoStepFsm('fsm-act3-main1', 'node-act3-main1', 'Scouting', 'Planning', 'Route Locked'),
+  'fsm-act3-main2': buildTwoStepFsm('fsm-act3-main2', 'node-act3-main2', 'Sealed', 'Synchronizing', 'Opened')
 };
 
 // ========== 演出子图模拟数据 ==========
 export const MOCK_PRESENTATION_GRAPHS: Record<string, PresentationGraph> = {
-  'pres-01': {
-    id: 'pres-01',
-    name: 'Activation Cutscene',
-    description: 'Plays when generator starts',
-    startNodeId: 'pnode-01',
+  'pres-escape': {
+    id: 'pres-escape',
+    name: 'Escape Countdown',
+    description: 'Final countdown cinematic when the last door opens.',
+    startNodeId: 'pnode-escape-01',
     nodes: {
-      'pnode-01': {
-        id: 'pnode-01',
-        name: 'Log Start',
+      'pnode-escape-01': {
+        id: 'pnode-escape-01',
+        name: 'Alarm Wail',
         type: 'ScriptCall',
-        position: { x: 100, y: 100 },
+        position: { x: 80, y: 100 },
         scriptId: 'script-log',
         parameters: [
-          { paramName: 'message', source: { type: 'Constant', value: 'Starting sequence...' } }
+          { paramName: 'message', source: { type: 'Constant', value: 'Evacuation protocol triggered.' } }
         ],
-        nextIds: ['pnode-02']
+        nextIds: ['pnode-escape-02']
       },
-      'pnode-02': {
-        id: 'pnode-02',
-        name: 'Wait 2s',
-        type: 'Wait',
-        position: { x: 300, y: 100 },
-        duration: 2.0,
-        nextIds: ['pnode-03']
-      },
-      'pnode-03': {
-        id: 'pnode-03',
-        name: 'Sparks Effect',
+      'pnode-escape-02': {
+        id: 'pnode-escape-02',
+        name: 'Timer Overlay',
         type: 'ScriptCall',
-        position: { x: 500, y: 100 },
+        position: { x: 320, y: 100 },
         scriptId: 'script-play-anim',
         parameters: [
-          { paramName: 'target', source: { type: 'Constant', value: 'VFX_Sparks' } },
-          { paramName: 'animName', source: { type: 'Constant', value: 'Play' } }
+          { paramName: 'target', source: { type: 'Constant', value: 'UI_Timer' } },
+          { paramName: 'animName', source: { type: 'Constant', value: 'Countdown' } }
+        ],
+        nextIds: ['pnode-escape-03']
+      },
+      'pnode-escape-03': {
+        id: 'pnode-escape-03',
+        name: 'Roof Door Open',
+        type: 'ScriptCall',
+        position: { x: 560, y: 100 },
+        scriptId: 'script-dialogue',
+        parameters: [
+          { paramName: 'message', source: { type: 'Constant', value: 'Final door unlocked. Move!' } }
         ],
         nextIds: []
       }
@@ -320,7 +861,26 @@ export const MOCK_SCRIPTS: ScriptDefinition[] = [
     name: 'Node Lifecycle',
     category: 'Lifecycle',
     description: 'Handles node enter/exit lifecycle events',
+    lifecycleType: 'Node',
     state: 'Implemented'
+  },
+  {
+    id: 'script-lifecycle-node-audit',
+    key: 'script-lifecycle-node-audit',
+    name: 'Node Audit Hook',
+    category: 'Lifecycle',
+    description: 'Logs node entry/exit for telemetry.',
+    lifecycleType: 'Node',
+    state: 'Draft'
+  },
+  {
+    id: 'script-lifecycle-node-legacy',
+    key: 'script-lifecycle-node-legacy',
+    name: 'Node Legacy Cleanup',
+    category: 'Lifecycle',
+    description: 'Deprecated node cleanup flow kept for migration.',
+    lifecycleType: 'Node',
+    state: 'MarkedForDelete'
   },
   {
     id: 'script-lifecycle-state',
@@ -328,7 +888,53 @@ export const MOCK_SCRIPTS: ScriptDefinition[] = [
     name: 'State Lifecycle',
     category: 'Lifecycle',
     description: 'Handles state enter/exit lifecycle events',
+    lifecycleType: 'State',
     state: 'Implemented'
+  },
+  {
+    id: 'script-lifecycle-state-audit',
+    key: 'script-lifecycle-state-audit',
+    name: 'State Audit Hook',
+    category: 'Lifecycle',
+    description: 'Records state transitions for debugging.',
+    lifecycleType: 'State',
+    state: 'Draft'
+  },
+  {
+    id: 'script-lifecycle-state-legacy',
+    key: 'script-lifecycle-state-legacy',
+    name: 'State Legacy Bridge',
+    category: 'Lifecycle',
+    description: 'Legacy state enter/exit behavior slated for removal.',
+    lifecycleType: 'State',
+    state: 'MarkedForDelete'
+  },
+  {
+    id: 'script-lifecycle-stage',
+    key: 'script-lifecycle-stage',
+    name: 'Stage Lifecycle',
+    category: 'Lifecycle',
+    description: 'Handles stage-level enter/exit hooks',
+    lifecycleType: 'Stage',
+    state: 'Implemented'
+  },
+  {
+    id: 'script-lifecycle-stage-audit',
+    key: 'script-lifecycle-stage-audit',
+    name: 'Stage Audit Hook',
+    category: 'Lifecycle',
+    description: 'Captures stage-level analytics on enter/exit.',
+    lifecycleType: 'Stage',
+    state: 'Draft'
+  },
+  {
+    id: 'script-lifecycle-stage-legacy',
+    key: 'script-lifecycle-stage-legacy',
+    name: 'Stage Legacy Intro/Outro',
+    category: 'Lifecycle',
+    description: 'Deprecated stage intro/outro kept for compatibility.',
+    lifecycleType: 'Stage',
+    state: 'MarkedForDelete'
   },
   {
     id: 'script-condition-check',
@@ -345,6 +951,14 @@ export const MOCK_SCRIPTS: ScriptDefinition[] = [
     category: 'Trigger',
     description: 'Custom trigger script for transitions',
     state: 'Draft'
+  },
+  {
+    id: 'script-old-broadcast',
+    key: 'script-old-broadcast',
+    name: 'Legacy Broadcast',
+    category: 'Performance',
+    description: 'Deprecated broadcast effect kept for migration tests',
+    state: 'MarkedForDelete'
   }
 ];
 
@@ -400,6 +1014,15 @@ export const MOCK_BLACKBOARD: BlackboardData = {
       defaultValue: 100,
       state: 'Draft',
       scope: 'Global'
+    },
+    'var-retired-route': {
+      id: 'var-retired-route',
+      key: 'var-retired-route',
+      name: 'Retired Route Flag',
+      type: 'boolean',
+      defaultValue: false,
+      state: 'MarkedForDelete',
+      scope: 'Global'
     }
   },
   events: {
@@ -416,6 +1039,20 @@ export const MOCK_BLACKBOARD: BlackboardData = {
       name: 'Power Restored',
       description: 'Generator back online',
       state: 'Draft'
+    },
+    'event-case-start': {
+      id: 'event-case-start',
+      key: 'EVENT_CASE_START',
+      name: 'Case Start',
+      description: 'Signals the beginning of any puzzle interaction.',
+      state: 'Implemented'
+    },
+    'event-retired-siren': {
+      id: 'event-retired-siren',
+      key: 'EVENT_RETIRED_SIREN',
+      name: 'Retired Siren',
+      description: 'Deprecated alert sound kept for compatibility testing.',
+      state: 'MarkedForDelete'
     }
   }
 };

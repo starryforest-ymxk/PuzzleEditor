@@ -65,7 +65,7 @@ export interface EditorState {
   ui: {
     isLoading: boolean;
     errorMessage?: string | null;
-    // 全局只读模式：阶段二默认为 true，后续可切换为可编辑
+    // 全局只读模式：阶段三起默认关闭，如需只读可再切换
     readOnly: boolean;
     view: 'EDITOR' | 'BLACKBOARD'; // P2-T02: 视图切换
     currentStageId: string | null; // P2-T02: 面包屑导航追踪
@@ -127,7 +127,7 @@ export const INITIAL_STATE: EditorState = {
   ui: {
     isLoading: false,
     errorMessage: null,
-    readOnly: true,
+    readOnly: false,
     view: 'EDITOR',
     currentStageId: null,
     currentNodeId: null,

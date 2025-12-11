@@ -118,7 +118,7 @@ export const PresentationCanvas = ({ graph, ownerNodeId, readOnly = false }: Pro
              <div style={{ backgroundColor: 'rgba(30,30,30,0.8)', padding: '12px', borderRadius: '4px', border: '1px solid #444' }}>
                 <div style={{ fontSize: '10px', color: '#c586c0' }}>PRESENTATION EDITOR</div>
                 <div style={{ fontSize: '16px', color: '#eee', fontWeight: 600 }}>{graph.name}</div>
-                {ownerNodeId && <button onClick={() => dispatch({ type: 'SELECT_OBJECT', payload: { type: 'NODE', id: ownerNodeId } })} style={{ pointerEvents: 'auto', marginTop: 8, background: 'transparent', border: '1px solid #666', color: '#ccc', padding: '4px 8px', borderRadius: '3px', cursor: 'pointer', fontSize: '11px' }}>← Back to Node</button>}
+                {ownerNodeId && <button onClick={() => dispatch({ type: 'SELECT_OBJECT', payload: { type: 'NODE', id: ownerNodeId } })} style={{ pointerEvents: 'auto', marginTop: 8, background: 'transparent', border: '1px solid #666', color: '#ccc', padding: '4px 8px', borderRadius: '3px', cursor: 'pointer', fontSize: '11px' }}>Back to Node</button>}
             </div>
         </div>
 
@@ -153,7 +153,7 @@ export const PresentationCanvas = ({ graph, ownerNodeId, readOnly = false }: Pro
                 
                 const pos = getNodePosition(node.id);
                 const borderColor = node.type === 'ScriptCall' ? '#c586c0' : (node.type === 'Wait' ? '#ce9178' : '#555');
-                const icon = node.type === 'ScriptCall' ? '▶' : (node.type === 'Wait' ? '⧖' : '○');
+                const icon = node.type === 'ScriptCall' ? '>' : (node.type === 'Wait' ? 'W' : 'O');
 
                 return (
                     <div key={node.id} onMouseDown={(e) => handleNodeMouseDown(e, node.id)} onMouseUp={(e) => handleMouseUp(e, node.id)} onContextMenu={(e) => handleContextMenu(e, 'NODE', node.id)}

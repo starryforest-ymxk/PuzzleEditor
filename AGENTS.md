@@ -5,6 +5,7 @@
 ### Scope & Sources
 
 - This project implements the **web-based puzzle editor frontend only**.
+- CRITICAL: All UI displays should use **English**.
 
 ### Project Structure
 

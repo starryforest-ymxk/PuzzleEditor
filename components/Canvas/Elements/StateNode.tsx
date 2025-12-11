@@ -75,7 +75,7 @@ export const StateNode = React.memo(({
                 fontWeight: 700,
                 borderRadius: '6px 6px 0 0'
             }}>
-                {isInitial && <span style={{ color: '#4fc1ff', marginRight: '4px' }}>▶</span>}
+                {isInitial && <span style={{ color: '#4fc1ff', marginRight: '4px' }}>{'>'}</span>}
                 <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{state.name}</span>
             </div>
 
@@ -85,4 +85,3 @@ export const StateNode = React.memo(({
         </div>
     );
 });
-

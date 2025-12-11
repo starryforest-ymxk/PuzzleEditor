@@ -52,7 +52,8 @@ export const BlackboardPanel: React.FC = () => {
   const [filter, setFilter] = useState(ui.blackboardView.filter || '');
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>(ui.blackboardView.expandedSections || {
     global: true, local: true,
-    Performance: true, Lifecycle: true, Condition: true, Trigger: true,
+    Lifecycle: true, 'Lifecycle:Stage': true, 'Lifecycle:Node': true, 'Lifecycle:State': true,
+    Performance: true, Condition: true, Trigger: true,
     fsm: true, presentation: true
   });
   const [stateFilter, setStateFilter] = useState<'ALL' | 'Draft' | 'Implemented' | 'MarkedForDelete'>(ui.blackboardView.stateFilter || 'ALL');
@@ -113,15 +114,30 @@ export const BlackboardPanel: React.FC = () => {
     });
   }, [localVariableList, filter, stateFilter, varTypeFilter]);
 
-  // 按分类分组脚本
+  // 按分类分组脚本（Lifecycle 细分作用范围）
   const scriptGroups = useMemo(() => {
-    const groups: Record<ScriptCategory, ScriptDefinition[]> = {
-      Performance: [], Lifecycle: [], Condition: [], Trigger: []
+    const groups: Record<Exclude<ScriptCategory, 'Lifecycle'>, ScriptDefinition[]> = {
+      Performance: [], Condition: [], Trigger: []
     };
     filteredScripts.forEach(s => {
-      if (groups[s.category]) groups[s.category].push(s);
+      if (s.category === 'Lifecycle') return;
+      if (groups[s.category as Exclude<ScriptCategory, 'Lifecycle'>]) {
+        groups[s.category as Exclude<ScriptCategory, 'Lifecycle'>].push(s);
+      }
     });
     return groups;
+  }, [filteredScripts]);
+
+  const lifecycleGroups = useMemo(() => {
+    return filteredScripts
+      .filter(s => s.category === 'Lifecycle')
+      .reduce<Record<'Stage' | 'Node' | 'State', ScriptDefinition[]>>((acc, cur) => {
+        const key = cur.lifecycleType === 'Stage' || cur.lifecycleType === 'Node' || cur.lifecycleType === 'State'
+          ? cur.lifecycleType
+          : 'Stage';
+        acc[key].push(cur);
+        return acc;
+      }, { Stage: [], Node: [], State: [] });
   }, [filteredScripts]);
 
   // 筛选图形
@@ -144,7 +160,8 @@ export const BlackboardPanel: React.FC = () => {
 
   const toggleSection = (key: string) => {
     setExpandedSections(prev => {
-      const next = { ...prev, [key]: !prev[key] };
+      const current = prev[key] ?? true; // 未初始化时视为展开
+      const next = { ...prev, [key]: !current };
       persistState({ expandedSections: next });
       return next;
     });
@@ -168,8 +185,8 @@ export const BlackboardPanel: React.FC = () => {
   // ========== Tab Content Renderers ==========
   const renderVariablesTab = () => (
     <>
-      <SectionHeader title="Global Variables" count={filteredVariables.length} expanded={expandedSections['global']} onToggle={() => toggleSection('global')} />
-      {expandedSections['global'] && (
+      <SectionHeader title="Global Variables" count={filteredVariables.length} expanded={expandedSections['global'] ?? true} onToggle={() => toggleSection('global')} />
+      {(expandedSections['global'] ?? true) && (
         <div className="card-grid card-grid--with-margin">
           {filteredVariables.length === 0
             ? <div className="empty-state empty-state--inline">No global variables defined</div>
@@ -179,8 +196,8 @@ export const BlackboardPanel: React.FC = () => {
           }
         </div>
       )}
-      <SectionHeader title="Local Variables" count={filteredLocalVariables.length} expanded={expandedSections['local']} onToggle={() => toggleSection('local')} />
-      {expandedSections['local'] && (
+      <SectionHeader title="Local Variables" count={filteredLocalVariables.length} expanded={expandedSections['local'] ?? true} onToggle={() => toggleSection('local')} />
+      {(expandedSections['local'] ?? true) && (
         <div className="card-grid">
           {filteredLocalVariables.length === 0
             ? <div className="empty-state empty-state--inline">No local variables in Stages or Nodes</div>
@@ -195,10 +212,45 @@ export const BlackboardPanel: React.FC = () => {
 
   const renderScriptsTab = () => (
     <>
-      {(['Performance', 'Lifecycle', 'Condition', 'Trigger'] as ScriptCategory[]).map(category => (
+      {/* Lifecycle first, with nested groups */}
+      <SectionHeader
+        title="Lifecycle Scripts"
+        count={lifecycleGroups.Stage.length + lifecycleGroups.Node.length + lifecycleGroups.State.length}
+        expanded={expandedSections['Lifecycle'] ?? true}
+        onToggle={() => toggleSection('Lifecycle')}
+      />
+      {(expandedSections['Lifecycle'] ?? true) && (
+        <>
+          {([['Stage', 'Lifecycle · Stage'] as const, ['Node', 'Lifecycle · Node'] as const, ['State', 'Lifecycle · State'] as const]
+            .map(([key, title]) => (
+              <React.Fragment key={key}>
+                <SectionHeader
+                  title={title}
+                  count={lifecycleGroups[key as 'Stage' | 'Node' | 'State'].length}
+                  expanded={expandedSections[`Lifecycle:${key}`] ?? true}
+                  onToggle={() => toggleSection(`Lifecycle:${key}`)}
+                  level={2}
+                />
+                {(expandedSections[`Lifecycle:${key}`] ?? true) && (
+                  <div className="card-grid card-grid--with-margin">
+                    {lifecycleGroups[key as 'Stage' | 'Node' | 'State'].length === 0
+                      ? <div className="empty-state empty-state--inline">No lifecycle scripts</div>
+                      : lifecycleGroups[key as 'Stage' | 'Node' | 'State'].map(s => (
+                        <ScriptCard key={s.id} script={s} isSelected={ui.selection.type === 'SCRIPT' && ui.selection.id === s.id} onClick={() => handleSelectScript(s.id)} />
+                      ))
+                    }
+                  </div>
+                )}
+              </React.Fragment>
+            )))}
+        </>
+      )}
+
+      {/* Then Performance, Condition, Trigger in order */}
+      {(['Performance', 'Condition', 'Trigger'] as Exclude<ScriptCategory, 'Lifecycle'>[]).map(category => (
         <React.Fragment key={category}>
-          <SectionHeader title={`${category} Scripts`} count={scriptGroups[category].length} expanded={expandedSections[category]} onToggle={() => toggleSection(category)} />
-          {expandedSections[category] && (
+          <SectionHeader title={`${category} Scripts`} count={scriptGroups[category].length} expanded={expandedSections[category] ?? true} onToggle={() => toggleSection(category)} />
+          {(expandedSections[category] ?? true) && (
             <div className="card-grid card-grid--with-margin">
               {scriptGroups[category].length === 0
                 ? <div className="empty-state empty-state--inline">No {category.toLowerCase()} scripts</div>
@@ -227,8 +279,8 @@ export const BlackboardPanel: React.FC = () => {
   const renderGraphsTab = () => (
     <>
       {/* State Machines Section */}
-      <SectionHeader title="State Machines" count={filteredFsms.length} expanded={expandedSections['fsm']} onToggle={() => toggleSection('fsm')} />
-      {expandedSections['fsm'] && (
+      <SectionHeader title="State Machines" count={filteredFsms.length} expanded={expandedSections['fsm'] ?? true} onToggle={() => toggleSection('fsm')} />
+      {(expandedSections['fsm'] ?? true) && (
         <div className="card-grid" style={{ marginBottom: '20px' }}>
           {filteredFsms.length === 0
             ? <div className="empty-state empty-state--inline">No state machines defined</div>
@@ -239,8 +291,8 @@ export const BlackboardPanel: React.FC = () => {
         </div>
       )}
       {/* Presentation Graphs Section */}
-      <SectionHeader title="Presentation Graphs" count={filteredGraphs.length} expanded={expandedSections['presentation']} onToggle={() => toggleSection('presentation')} />
-      {expandedSections['presentation'] && (
+      <SectionHeader title="Presentation Graphs" count={filteredGraphs.length} expanded={expandedSections['presentation'] ?? true} onToggle={() => toggleSection('presentation')} />
+      {(expandedSections['presentation'] ?? true) && (
         <div className="card-grid">
           {filteredGraphs.length === 0
             ? <div className="empty-state empty-state--inline">No presentation graphs defined</div>

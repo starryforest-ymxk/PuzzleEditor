@@ -30,6 +30,7 @@ export const ScriptCard: React.FC<ScriptCardProps> = ({
     onClick
 }) => {
     const isDeleted = script.state === 'MarkedForDelete';
+    const lifecycleSuffix = script.category === 'Lifecycle' && script.lifecycleType ? ` (${script.lifecycleType} lifecycle)` : '';
 
     return (
         <div
@@ -73,7 +74,7 @@ export const ScriptCard: React.FC<ScriptCardProps> = ({
             {/* 分类 */}
             <div style={{ fontSize: '11px' }}>
                 <span style={{ color: 'var(--text-secondary)' }}>Category: </span>
-                <span style={{ color: 'var(--accent-color)' }}>{script.category}</span>
+                <span style={{ color: 'var(--accent-color)' }}>{script.category}{lifecycleSuffix}</span>
             </div>
 
             {/* 描述（可选） */}
