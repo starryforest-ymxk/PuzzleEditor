@@ -8,7 +8,7 @@ import { ConditionExpression } from '../../../types/stateMachine';
 import { VariableDefinition } from '../../../types/blackboard';
 import { ScriptDefinition } from '../../../types/manifest';
 import { ValueSource, VariableType } from '../../../types/common';
-import { ResourceSelect } from '../ResourceSelect';
+import { ResourceSelect, ResourceDetailsCard } from '../ResourceSelect';
 import { VariableSelector } from '../VariableSelector';
 import { ValueSourceEditor } from '../ValueSourceEditor';
 import {
@@ -21,7 +21,8 @@ import {
     operatorSelectStyle,
     buttonStyles,
     COLORS,
-    INPUT_HEIGHT
+    INPUT_HEIGHT,
+    ROW_GAP
 } from './conditionStyles';
 
 interface LeafConditionEditorProps {
@@ -189,7 +190,7 @@ export const LeafConditionEditor: React.FC<LeafConditionEditorProps> = ({
     return (
         <div style={conditionRowStyle(style)}>
             {/* Header Row: Handle + Type + Inline Content + Delete */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: `${ROW_GAP}px`, width: '100%' }}>
                 {/* 拖拽手柄（仅非根级显示） */}
                 {showDragHandle && (
                     <span
@@ -240,8 +241,16 @@ export const LeafConditionEditor: React.FC<LeafConditionEditorProps> = ({
                         <ResourceSelect
                             value={condition.scriptId || ''}
                             onChange={(val) => onChange && onChange({ ...condition, scriptId: val })}
-                            options={conditionScripts.map(s => ({ id: s.id, name: s.name, state: s.state }))}
+                            options={conditionScripts.map(s => ({
+                                id: s.id,
+                                name: s.name,
+                                state: s.state,
+                                key: s.key,
+                                category: s.category,
+                                description: s.description
+                            }))}
                             placeholder="Select condition script"
+                            showDetails={false} // Disable internal details to maintain row layout
                             style={{ width: '100%' }}
                             height={INPUT_HEIGHT}
                         />
@@ -311,6 +320,24 @@ export const LeafConditionEditor: React.FC<LeafConditionEditorProps> = ({
                     </button>
                 )}
             </div>
+
+            {/* SCRIPT_REF 详细信息显示 (Rendered below row to verify layout) */}
+            {condition.type === 'SCRIPT_REF' && condition.scriptId && (() => {
+                const selectedScript = conditionScripts.find(s => s.id === condition.scriptId);
+                if (!selectedScript) return null;
+                return (
+                    <div style={{ marginTop: `${ROW_GAP}px` }}>
+                        <ResourceDetailsCard resource={{
+                            id: selectedScript.id,
+                            name: selectedScript.name,
+                            state: selectedScript.state,
+                            key: selectedScript.key,
+                            category: selectedScript.category,
+                            description: selectedScript.description
+                        }} />
+                    </div>
+                );
+            })()}
 
             {/* COMPARISON 类型：独立的主体块 */}
             {condition.type === 'COMPARISON' && (
@@ -397,7 +424,7 @@ const ComparisonEditor: React.FC<ComparisonEditorProps> = ({
         : ['boolean', 'integer', 'float', 'string', 'enum'];
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%', marginTop: '4px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: `${ROW_GAP}px`, width: '100%', marginTop: `${ROW_GAP}px` }}>
             {/* 左侧变量选择器 */}
             <div style={{ width: '100%' }}>
                 <VariableSelector

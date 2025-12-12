@@ -72,7 +72,7 @@ export const ValueSourceEditor: React.FC<Props> = ({ source, onChange, variables
           padding: '4px 8px',
           fontSize: '12px',
           flex: 1,
-          height: 30,
+          height: height, // Use prop instead of hardcoded value
           boxSizing: 'border-box',
           borderRadius: '4px',
           outline: 'none',
@@ -98,7 +98,7 @@ export const ValueSourceEditor: React.FC<Props> = ({ source, onChange, variables
         border: '1px solid #52525b',
         padding: '4px 8px',
         fontSize: '12px',
-        height: 30,
+        height: height, // Use prop instead of hardcoded value
         boxSizing: 'border-box',
         borderRadius: '4px',
         outline: 'none',
@@ -134,6 +134,7 @@ export const ValueSourceEditor: React.FC<Props> = ({ source, onChange, variables
                 variables={variables}
                 placeholder="Select variable"
                 allowedTypes={allowedTypes}
+                height={height}
               />
             </div>
           )}
@@ -158,6 +159,7 @@ export const ValueSourceEditor: React.FC<Props> = ({ source, onChange, variables
             variables={variables}
             placeholder="Select variable"
             allowedTypes={allowedTypes}
+            height={height}
           />
         </div>
       )}

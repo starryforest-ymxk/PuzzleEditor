@@ -120,53 +120,7 @@ export const ResourceSelect: React.FC<Props> = ({
 
       {/* Script Details Card */}
       {showDetails && selected && (
-        <div style={{
-          padding: '12px',
-          background: '#222',
-          border: '1px solid #3e3e42',
-          borderRadius: '4px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '8px',
-          fontSize: '12px',
-          animation: 'fadeIn 0.2s ease-out'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
-            <span style={{ fontWeight: 600, color: '#e4e4e7' }}>{selected.name}</span>
-            <span style={{ fontSize: '10px', color: '#666', fontFamily: 'monospace' }}>{selected.key}</span>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '8px', fontSize: '11px' }}>
-            {selected.category && (
-              <>
-                <span style={{ color: '#888' }}>Category:</span>
-                <span style={{ color: '#ccc' }}>{selected.category}</span>
-              </>
-            )}
-
-            {selected.state && (
-              <>
-                <span style={{ color: '#888' }}>State:</span>
-                <span style={{ color: selected.state === 'Implemented' ? '#4ec9b0' : '#ce9178' }}>
-                  {selected.state}
-                </span>
-              </>
-            )}
-          </div>
-
-          {selected.description && (
-            <div style={{
-              marginTop: '4px',
-              paddingTop: '8px',
-              borderTop: '1px solid #333',
-              color: '#9ca3af',
-              fontStyle: 'italic',
-              lineHeight: 1.4
-            }}>
-              {selected.description}
-            </div>
-          )}
-        </div>
+        <ResourceDetailsCard resource={selected} />
       )}
 
       {/* Warning: selected a resource marked for delete */}
@@ -178,3 +132,55 @@ export const ResourceSelect: React.FC<Props> = ({
     </div>
   );
 };
+
+export const ResourceDetailsCard: React.FC<{ resource: ResourceOption }> = ({ resource }) => (
+  <div style={{
+    padding: '12px',
+    background: '#222',
+    border: '1px solid #3e3e42',
+    borderRadius: '4px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '8px',
+    fontSize: '12px',
+    animation: 'fadeIn 0.2s ease-out',
+    width: '100%',
+    boxSizing: 'border-box'
+  }}>
+    <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
+      <span style={{ fontWeight: 600, color: '#e4e4e7' }}>{resource.name}</span>
+      <span style={{ fontSize: '10px', color: '#666', fontFamily: 'monospace' }}>{resource.key}</span>
+    </div>
+
+    <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '8px', fontSize: '11px' }}>
+      {resource.category && (
+        <>
+          <span style={{ color: '#888' }}>Category:</span>
+          <span style={{ color: '#ccc' }}>{resource.category}</span>
+        </>
+      )}
+
+      {resource.state && (
+        <>
+          <span style={{ color: '#888' }}>State:</span>
+          <span style={{ color: resource.state === 'Implemented' ? '#4ec9b0' : '#ce9178' }}>
+            {resource.state}
+          </span>
+        </>
+      )}
+    </div>
+
+    {resource.description && (
+      <div style={{
+        marginTop: '4px',
+        paddingTop: '8px',
+        borderTop: '1px solid #333',
+        color: '#9ca3af',
+        fontStyle: 'italic',
+        lineHeight: 1.4
+      }}>
+        {resource.description}
+      </div>
+    )}
+  </div>
+);

@@ -9,6 +9,7 @@ interface Props {
   onChange: (variableId: string, scope: VariableScope, picked?: VariableDefinition) => void;
   placeholder?: string;
   allowedTypes?: VariableType[]; // 允许的类型列表，用于筛选
+  height?: number; // 控件高度
 }
 
 // UI Style Guide Colors
@@ -69,7 +70,8 @@ export const VariableSelector: React.FC<Props> = ({
   variables,
   onChange,
   placeholder = 'Select variable',
-  allowedTypes
+  allowedTypes,
+  height = 30
 }) => {
   const [open, setOpen] = useState(false);
   const [typeFilter, setTypeFilter] = useState<VariableType | 'all'>('all');
@@ -138,7 +140,7 @@ export const VariableSelector: React.FC<Props> = ({
           alignItems: 'center',
           justifyContent: 'space-between',
           cursor: 'pointer',
-          minHeight: 30, // Standardized height
+          height: height, // Use prop instead of hardcoded value
           boxSizing: 'border-box',
           transition: 'border-color 0.15s ease',
         }}

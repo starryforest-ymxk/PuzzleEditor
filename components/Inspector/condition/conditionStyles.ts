@@ -153,6 +153,11 @@ export const typeChipStyle = (style: BlockStyle): React.CSSProperties => ({
 export const INPUT_HEIGHT = 26;
 
 /**
+ * 行间距（控件行之间的垂直间隔）
+ */
+export const ROW_GAP = 8;
+
+/**
  * 类型选择下拉框样式 (合并了 Chip 的视觉风格)
  */
 export const typeSelectStyle = (style: BlockStyle): React.CSSProperties => ({
