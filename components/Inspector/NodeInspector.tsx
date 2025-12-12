@@ -35,7 +35,13 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({ nodeId, readOnly =
             category: s.category,
             description: s.description
         }));
-    const eventOptions = Object.values<EventDefinition>(project.blackboard.events || {}).map(e => ({ id: e.id, name: e.name, state: e.state }));
+    const eventOptions = Object.values<EventDefinition>(project.blackboard.events || {}).map(e => ({
+        id: e.id,
+        name: e.name,
+        state: e.state,
+        key: e.key,
+        description: e.description
+    }));
 
     const node = project.nodes[nodeId];
     if (!node) return <div className="empty-state">Node not found</div>;

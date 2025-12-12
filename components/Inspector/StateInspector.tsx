@@ -43,7 +43,13 @@ export const StateInspector = ({ fsmId, stateId, readOnly = false }: Props) => {
         const vars = collectVisibleVariables(stateTree, owningNode?.stageId, owningNode?.id);
         return vars.all.filter(v => v.state !== 'MarkedForDelete');
     }, [stateTree, owningNode]);
-    const eventOptions = useMemo(() => Object.values<EventDefinition>(project.blackboard.events).map(e => ({ id: e.id, name: e.name, state: e.state })), [project.blackboard.events]);
+    const eventOptions = useMemo(() => Object.values<EventDefinition>(project.blackboard.events).map(e => ({
+        id: e.id,
+        name: e.name,
+        state: e.state,
+        key: e.key,
+        description: e.description
+    })), [project.blackboard.events]);
     const scriptRecords = project.scripts.scripts;
     const scriptOptions = useMemo(() => Object.values<ScriptDefinition>(scriptRecords).map(s => ({ id: s.id, name: s.name, state: s.state })), [scriptRecords]);
     const lifecycleScriptOptions = useMemo(() => Object.values<ScriptDefinition>(scriptRecords)

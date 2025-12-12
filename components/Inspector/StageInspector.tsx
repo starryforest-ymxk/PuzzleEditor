@@ -46,7 +46,13 @@ export const StageInspector: React.FC<StageInspectorProps> = ({ stageId, readOnl
             description: s.description
         }));
     const graphOptions = Object.values<PresentationGraph>(project.presentationGraphs).map((g) => ({ id: g.id, name: g.name, state: 'Draft' as any }));
-    const eventOptions = Object.values<EventDefinition>(project.blackboard.events).map((e) => ({ id: e.id, name: e.name, state: e.state }));
+    const eventOptions = Object.values<EventDefinition>(project.blackboard.events).map((e) => ({
+        id: e.id,
+        name: e.name,
+        state: e.state,
+        key: e.key,
+        description: e.description
+    }));
 
     const stage = project.stageTree.stages[stageId];
     if (!stage) return <div className="empty-state">Stage not found</div>;

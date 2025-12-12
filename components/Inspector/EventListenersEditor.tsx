@@ -249,14 +249,14 @@ export const EventListenersEditor: React.FC<Props> = ({
       {/* Add button */}
       <div style={{ textAlign: 'center', marginTop: '8px' }}>
         <button
+          className="btn-ghost"
           onClick={handleAdd}
           style={{
-            background: '#2e7d32',
-            color: '#fff',
-            border: 'none',
+            width: '100%',
+            justifyContent: 'center',
+            borderStyle: 'dashed',
+            opacity: 0.7,
             padding: '6px 12px',
-            borderRadius: '3px',
-            cursor: 'pointer',
             fontSize: '11px'
           }}
         >
