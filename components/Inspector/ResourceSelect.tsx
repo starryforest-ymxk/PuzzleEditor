@@ -66,17 +66,21 @@ export const ResourceSelect: React.FC<Props> = ({
           style={{
             flex: 1,
             width: '100%',
+            minWidth: 0,
             background: '#27272a',
             color: isSelectedDeleted ? '#ef4444' : '#e4e4e7',
             border: `1px solid ${isSelectedDeleted ? '#ef4444' : '#52525b'}`,
-            padding: '0 8px', // Reduced vertical padding for centering
+            padding: '0 8px',
             fontSize: '12px',
             borderRadius: '4px',
             height: height,
             boxSizing: 'border-box',
             lineHeight: `${height - 2}px`,
             outline: 'none',
-            fontFamily: 'Inter, sans-serif'
+            fontFamily: 'Inter, sans-serif',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap'
           }}
         >
           <option value="" disabled hidden>{placeholder}</option>
@@ -147,19 +151,14 @@ export const ResourceDetailsCard: React.FC<{ resource: ResourceOption }> = ({ re
     width: '100%',
     boxSizing: 'border-box'
   }}>
+    {/* Header: Name + ID */}
     <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
       <span style={{ fontWeight: 600, color: '#e4e4e7' }}>{resource.name}</span>
-      <span style={{ fontSize: '10px', color: '#666', fontFamily: 'monospace' }}>{resource.key}</span>
+      <span style={{ fontSize: '10px', color: '#666', fontFamily: 'monospace' }}>{resource.id}</span>
     </div>
 
-    <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '8px', fontSize: '11px' }}>
-      {resource.category && (
-        <>
-          <span style={{ color: '#888' }}>Category:</span>
-          <span style={{ color: '#ccc' }}>{resource.category}</span>
-        </>
-      )}
-
+    {/* Grid: State */}
+    <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '4px 8px', fontSize: '11px' }}>
       {resource.state && (
         <>
           <span style={{ color: '#888' }}>State:</span>
@@ -170,6 +169,7 @@ export const ResourceDetailsCard: React.FC<{ resource: ResourceOption }> = ({ re
       )}
     </div>
 
+    {/* Description */}
     {resource.description && (
       <div style={{
         marginTop: '4px',

@@ -237,7 +237,7 @@ export const LeafConditionEditor: React.FC<LeafConditionEditorProps> = ({
 
                 {/* SCRIPT_REF 类型：脚本选择器 (Inline) */}
                 {condition.type === 'SCRIPT_REF' && (
-                    <div style={{ flex: 1, minWidth: '180px' }}>
+                    <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
                         <ResourceSelect
                             value={condition.scriptId || ''}
                             onChange={(val) => onChange && onChange({ ...condition, scriptId: val })}
@@ -264,7 +264,7 @@ export const LeafConditionEditor: React.FC<LeafConditionEditorProps> = ({
 
                 {/* VARIABLE_REF 类型：布尔变量选择器 (Inline) */}
                 {condition.type === 'VARIABLE_REF' && (
-                    <div style={{ flex: 1, minWidth: '180px' }}>
+                    <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
                         <VariableSelector
                             value={condition.variableId || ''}
                             variables={booleanVars}
@@ -294,9 +294,13 @@ export const LeafConditionEditor: React.FC<LeafConditionEditorProps> = ({
                             ...selectStyle,
                             color: '#ce9178',
                             flex: 1,
+                            minWidth: 0,
                             height: INPUT_HEIGHT,
-                            padding: '0 6px', // adjust for custom height
-                            lineHeight: `${INPUT_HEIGHT - 2}px`
+                            padding: '0 6px',
+                            lineHeight: `${INPUT_HEIGHT - 2}px`,
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap'
                         }}
                     >
                         <option value="true">Always True</option>
