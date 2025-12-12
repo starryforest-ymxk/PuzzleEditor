@@ -8,6 +8,10 @@ import { ParameterModifier } from '../../types/common';
 import { ResourceSelect } from './ResourceSelect';
 import { ParameterModifierEditor } from './ParameterModifierEditor';
 import { PresentationBindingEditor } from './PresentationBindingEditor';
+import type { PuzzleNode } from '../../types/puzzleNode';
+import type { EventDefinition } from '../../types/blackboard';
+import type { ScriptDefinition } from '../../types/manifest';
+import type { PresentationGraph } from '../../types/presentation';
 
 interface Props {
     fsmId: string;
@@ -16,7 +20,9 @@ interface Props {
 }
 
 export const TransitionInspector = ({ fsmId, transitionId, readOnly = false }: Props) => {
-    const { project } = useEditorState();
+    // 直接持有完整状态，方便传递给可见变量收集器
+    const state = useEditorState();
+    const { project } = state;
     const dispatch = useEditorDispatch();
 
     const fsm = project.stateMachines[fsmId];
@@ -24,22 +30,24 @@ export const TransitionInspector = ({ fsmId, transitionId, readOnly = false }: P
 
     // Lookup owning node by stateMachineId (assume 1:1; if multiple, pick first)
     const owningNode = useMemo(() => {
-        return Object.values(project.nodes).find(n => n.stateMachineId === fsmId) || null;
+        return Object.values<PuzzleNode>(project.nodes).find(n => n.stateMachineId === fsmId) || null;
     }, [project.nodes, fsmId]);
 
     // Visible variables (filter MarkedForDelete)
     const visibleVars = useMemo(() => {
-        const vars = collectVisibleVariables({ project, ui: { selection: { type: 'NONE', id: null }, multiSelectStateIds: [] }, history: { past: [], future: [] } } as any, owningNode?.stageId, owningNode?.id);
+        // 过滤掉已标记删除的变量，避免下拉列表出现无效引用
+        const vars = collectVisibleVariables(state, owningNode?.stageId, owningNode?.id);
         return vars.all.filter(v => v.state !== 'MarkedForDelete');
-    }, [project, owningNode]);
+    }, [state, owningNode]);
 
-    // Event & script options (filter MarkedForDelete)
-    const eventOptions = useMemo(() => Object.values(project.blackboard.events || {}).map(e => ({ id: e.id, name: e.name, state: e.state })), [project.blackboard.events]);
-    const triggerScriptOptions = useMemo(() => Object.values(project.scripts.scripts || {}).filter(s => s.category === 'Trigger').map(s => ({ id: s.id, name: s.name, state: s.state })), [project.scripts]);
-    const conditionScriptOptions = useMemo(() => Object.values(project.scripts.scripts || {}).filter(s => s.category === 'Condition').map(s => ({ id: s.id, name: s.name, state: s.state })), [project.scripts]);
-    const performanceScriptOptions = useMemo(() => Object.values(project.scripts.scripts || {}).filter(s => s.category === 'Performance').map(s => ({ id: s.id, name: s.name, state: s.state })), [project.scripts]);
-    const scriptDefs = project.scripts.scripts || {};
-    const graphOptions = useMemo(() => Object.values(project.presentationGraphs || {}).map(g => ({ id: g.id, name: g.name, state: 'Draft' as any })), [project.presentationGraphs]);
+    // Event & script options（仅保留有效资源）
+    const eventOptions = useMemo(() => Object.values<EventDefinition>(project.blackboard.events).map(e => ({ id: e.id, name: e.name, state: e.state })), [project.blackboard.events]);
+    const scriptRecords = project.scripts.scripts;
+    const triggerScriptOptions = useMemo(() => Object.values<ScriptDefinition>(scriptRecords).filter(s => s.category === 'Trigger').map(s => ({ id: s.id, name: s.name, state: s.state })), [scriptRecords]);
+    const conditionScriptOptions = useMemo(() => Object.values<ScriptDefinition>(scriptRecords).filter(s => s.category === 'Condition').map(s => ({ id: s.id, name: s.name, state: s.state })), [scriptRecords]);
+    const performanceScriptOptions = useMemo(() => Object.values<ScriptDefinition>(scriptRecords).filter(s => s.category === 'Performance').map(s => ({ id: s.id, name: s.name, state: s.state })), [scriptRecords]);
+    const scriptDefs = scriptRecords;
+    const graphOptions = useMemo(() => Object.values<PresentationGraph>(project.presentationGraphs).map(g => ({ id: g.id, name: g.name, state: 'Draft' as const })), [project.presentationGraphs]);
 
     if (!trans || !fsm) return <div className="empty-state">Transition not found</div>;
 
@@ -152,7 +160,7 @@ export const TransitionInspector = ({ fsmId, transitionId, readOnly = false }: P
                                     value={t.type}
                                     onChange={(e) => {
                                         const newType = e.target.value as TriggerConfig['type'];
-                                        const base =
+                                        const base: TriggerConfig =
                                             newType === 'OnEvent'
                                                 ? { type: 'OnEvent', eventId: '' }
                                                 : newType === 'CustomScript'

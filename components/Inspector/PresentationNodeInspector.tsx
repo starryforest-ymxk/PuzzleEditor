@@ -5,6 +5,11 @@ import { PresentationBindingEditor } from './PresentationBindingEditor';
 import { ParameterBinding } from '../../types/common';
 import { VariableDefinition } from '../../types/blackboard';
 import { collectVisibleVariables } from '../../utils/variableScope';
+import type { StageNode } from '../../types/stage';
+import type { PuzzleNode } from '../../types/puzzleNode';
+import type { StateMachine } from '../../types/stateMachine';
+import type { ScriptDefinition } from '../../types/manifest';
+import type { PresentationGraph } from '../../types/presentation';
 
 interface Props {
     graphId: string;
@@ -25,7 +30,7 @@ export const PresentationNodeInspector = ({ graphId, nodeId, readOnly = false }:
         let nodeIdCtx: string | null = null;
 
         // 1) Stage onEnter/onExit
-        Object.values(project.stageTree.stages).some(s => {
+        Object.values<StageNode>(project.stageTree.stages).some(s => {
             const enterMatch = s.onEnterPresentation?.type === 'Graph' && s.onEnterPresentation.graphId === graphId;
             const exitMatch = s.onExitPresentation?.type === 'Graph' && s.onExitPresentation.graphId === graphId;
             if (enterMatch || exitMatch) {
@@ -37,9 +42,9 @@ export const PresentationNodeInspector = ({ graphId, nodeId, readOnly = false }:
 
         // 2) FSM states / transitions (通过所属 node 推断 stage)
         if (!stageId) {
-            const nodeEntries = Object.values(project.nodes);
+            const nodeEntries = Object.values<PuzzleNode>(project.nodes);
             for (const n of nodeEntries) {
-                const fsm = project.stateMachines[n.stateMachineId];
+                const fsm = project.stateMachines[n.stateMachineId] as StateMachine | undefined;
                 if (!fsm) continue;
                 const hasState = Object.values(fsm.states).some(st => st.presentation?.type === 'Graph' && st.presentation.graphId === graphId);
                 const hasTrans = Object.values(fsm.transitions).some(tr => tr.presentation?.type === 'Graph' && tr.presentation.graphId === graphId);
@@ -90,13 +95,13 @@ export const PresentationNodeInspector = ({ graphId, nodeId, readOnly = false }:
         handleChange('parameters', nextBindings);
     };
 
-    const scriptList = Object.values(project.scripts.scripts || {});
+    const scriptList = Object.values<ScriptDefinition>(project.scripts.scripts || {});
     const performanceScriptList = scriptList.filter(s => s.category === 'Performance');
-    const selectedScriptDef = node.scriptId ? scriptList.find(s => s.id === node.scriptId) : null;
+    const selectedScriptDef = node.scriptId ? scriptList.find(s => s.id === node.scriptId) || null : null;
 
     // Presentation binding options
     const performanceScriptOptions = useMemo(() => performanceScriptList.map(s => ({ id: s.id, name: s.name, state: s.state })), [performanceScriptList]);
-    const graphOptions = useMemo(() => Object.values(project.presentationGraphs || {}).filter(g => g.id !== graphId).map(g => ({ id: g.id, name: g.name, state: 'Draft' as any })), [project.presentationGraphs, graphId]);
+    const graphOptions = useMemo(() => Object.values<PresentationGraph>(project.presentationGraphs || {}).filter(g => g.id !== graphId).map(g => ({ id: g.id, name: g.name, state: 'Draft' as const })), [project.presentationGraphs, graphId]);
     const scriptDefs = project.scripts.scripts || {};
 
     // 依据推断到的作用域收集可见变量，并过滤已标记删除

@@ -4,6 +4,9 @@ import { collectVisibleVariables } from '../../utils/variableScope';
 import { EventListener } from '../../types/common';
 import { EventListenersEditor } from './EventListenersEditor';
 import { ResourceSelect } from './ResourceSelect';
+import type { PuzzleNode } from '../../types/puzzleNode';
+import type { EventDefinition } from '../../types/blackboard';
+import type { ScriptDefinition } from '../../types/manifest';
 
 interface Props {
     fsmId: string;
@@ -12,7 +15,8 @@ interface Props {
 }
 
 export const StateInspector = ({ fsmId, stateId, readOnly = false }: Props) => {
-    const { project } = useEditorState();
+    const stateTree = useEditorState();
+    const { project } = stateTree;
     const dispatch = useEditorDispatch();
 
     const fsm = project.stateMachines[fsmId];
@@ -33,16 +37,18 @@ export const StateInspector = ({ fsmId, stateId, readOnly = false }: Props) => {
 
     const isInitial = fsm.initialStateId === state.id;
 
-    const owningNode = useMemo(() => Object.values(project.nodes).find(n => n.stateMachineId === fsmId) || null, [project.nodes, fsmId]);
+    const owningNode = useMemo(() => Object.values<PuzzleNode>(project.nodes).find(n => n.stateMachineId === fsmId) || null, [project.nodes, fsmId]);
     const visibleVars = useMemo(() => {
-        const vars = collectVisibleVariables({ project, ui: { selection: { type: 'NONE', id: null }, multiSelectStateIds: [] }, history: { past: [], future: [] } } as any, owningNode?.stageId, owningNode?.id);
+        // 过滤掉已标记删除的变量，确保编辑器不会引用无效资源
+        const vars = collectVisibleVariables(stateTree, owningNode?.stageId, owningNode?.id);
         return vars.all.filter(v => v.state !== 'MarkedForDelete');
-    }, [project, owningNode]);
-    const eventOptions = useMemo(() => Object.values(project.blackboard.events || {}).map(e => ({ id: e.id, name: e.name, state: e.state })), [project.blackboard.events]);
-    const scriptOptions = useMemo(() => Object.values(project.scripts.scripts || {}).map(s => ({ id: s.id, name: s.name, state: s.state })), [project.scripts]);
-    const lifecycleScriptOptions = useMemo(() => Object.values(project.scripts.scripts || {})
+    }, [stateTree, owningNode]);
+    const eventOptions = useMemo(() => Object.values<EventDefinition>(project.blackboard.events).map(e => ({ id: e.id, name: e.name, state: e.state })), [project.blackboard.events]);
+    const scriptRecords = project.scripts.scripts;
+    const scriptOptions = useMemo(() => Object.values<ScriptDefinition>(scriptRecords).map(s => ({ id: s.id, name: s.name, state: s.state })), [scriptRecords]);
+    const lifecycleScriptOptions = useMemo(() => Object.values<ScriptDefinition>(scriptRecords)
         .filter(s => s.category === 'Lifecycle' && (!s.lifecycleType || s.lifecycleType === 'State'))
-        .map(s => ({ id: s.id, name: s.name, state: s.state })), [project.scripts]);
+        .map(s => ({ id: s.id, name: s.name, state: s.state })), [scriptRecords]);
 
     const handleSetInitial = () => {
         dispatch({

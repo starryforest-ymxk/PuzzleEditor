@@ -6,6 +6,7 @@
 
 import React from 'react';
 import { useEditorState } from '../../store/context';
+import type { PuzzleNode } from '../../types/puzzleNode';
 
 interface FsmInspectorProps {
     fsmId: string;
@@ -23,7 +24,7 @@ export const FsmInspector: React.FC<FsmInspectorProps> = ({ fsmId, readOnly = fa
     const initialState = fsm.initialStateId ? fsm.states[fsm.initialStateId] : null;
 
     // 查找所属的 Puzzle Node
-    const ownerNode = Object.values(project.nodes).find(n => n.stateMachineId === fsm.id);
+    const ownerNode = Object.values<PuzzleNode>(project.nodes).find(n => n.stateMachineId === fsm.id);
 
     return (
         <div>

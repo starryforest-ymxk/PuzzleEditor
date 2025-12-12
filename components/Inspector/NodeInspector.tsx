@@ -10,6 +10,8 @@ import { BlackboardEditor } from './BlackboardEditor';
 import { EventListenersEditor } from './EventListenersEditor';
 import { ResourceSelect } from './ResourceSelect';
 import { collectVisibleVariables } from '../../utils/variableScope';
+import type { ScriptDefinition } from '../../types/manifest';
+import type { EventDefinition } from '../../types/blackboard';
 
 interface NodeInspectorProps {
     nodeId: string;
@@ -22,11 +24,11 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({ nodeId, readOnly =
 
     // 预先获取脚本、事件选项
     const scriptDefs = project.scripts.scripts || {};
-    const scriptOptions = Object.values(scriptDefs).map(s => ({ id: s.id, name: s.name, state: s.state }));
-    const lifecycleScriptOptions = Object.values(scriptDefs)
+    const scriptOptions = Object.values<ScriptDefinition>(scriptDefs).map(s => ({ id: s.id, name: s.name, state: s.state }));
+    const lifecycleScriptOptions = Object.values<ScriptDefinition>(scriptDefs)
         .filter(s => s.category === 'Lifecycle' && (!s.lifecycleType || s.lifecycleType === 'Node'))
         .map(s => ({ id: s.id, name: s.name, state: s.state }));
-    const eventOptions = Object.values(project.blackboard.events || {}).map(e => ({ id: e.id, name: e.name, state: e.state }));
+    const eventOptions = Object.values<EventDefinition>(project.blackboard.events || {}).map(e => ({ id: e.id, name: e.name, state: e.state }));
 
     const node = project.nodes[nodeId];
     if (!node) return <div className="empty-state">Node not found</div>;

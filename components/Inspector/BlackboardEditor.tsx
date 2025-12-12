@@ -1,6 +1,7 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { VariableDefinition } from '../../types/blackboard';
-import { MessageLevel, VariableType } from '../../types/common';
+import type { VariableType } from '../../types/common';
+import type { MessageLevel } from '../../store/types';
 import { useEditorDispatch, useEditorState } from '../../store/context';
 import { withScope } from '../../utils/variableScope';
 import { findNodeVariableReferences } from '../../utils/variableReferences';

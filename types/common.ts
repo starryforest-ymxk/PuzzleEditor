@@ -2,7 +2,7 @@
  * types/common.ts
  * 通用基础类型定义 - 包含所有模块共享的类型
  */
-import {
+import type {
   ProjectId,
   StageId,
   PuzzleNodeId,
@@ -24,7 +24,7 @@ import {
   StableRef
 } from './identity';
 
-export {
+export type {
   ProjectId,
   StageId,
   PuzzleNodeId,
@@ -44,7 +44,7 @@ export {
   IdRef,
   KeyRef,
   StableRef
-};
+} from './identity';
 
 // ========== 基础 ID 类型 ==========
 export type ID = string;

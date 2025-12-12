@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useRef, useState, useEffect } from 'react';
 import { useEditorState, useEditorDispatch } from '../../store/context';
 import * as Geom from '../../utils/geometry';

@@ -10,6 +10,9 @@
 import React from 'react';
 import { useEditorState, useEditorDispatch } from '../../store/context';
 import { StageNode } from '../../types/stage';
+import { ScriptDefinition } from '../../types/manifest';
+import { PresentationGraph } from '../../types/presentation';
+import { EventDefinition, VariableDefinition } from '../../types/blackboard';
 import { EventListenersEditor } from './EventListenersEditor';
 import { PresentationBindingEditor } from './PresentationBindingEditor';
 import { ConditionEditor } from './ConditionEditor';
@@ -26,16 +29,17 @@ export const StageInspector: React.FC<StageInspectorProps> = ({ stageId, readOnl
     const dispatch = useEditorDispatch();
 
     // 预先获取脚本、事件选项，避免条件分支中的 Hook 调用问题
-    const scriptDefs = project.scripts.scripts || {};
-    const scriptOptions = Object.values(scriptDefs).map(s => ({ id: s.id, name: s.name, state: s.state }));
-    const performanceScriptOptions = Object.values(scriptDefs)
-        .filter(s => s.category === 'Performance')
-        .map(s => ({ id: s.id, name: s.name, state: s.state }));
-    const lifecycleScriptOptions = Object.values(scriptDefs)
-        .filter(s => s.category === 'Lifecycle' && (!s.lifecycleType || s.lifecycleType === 'Stage'))
-        .map(s => ({ id: s.id, name: s.name, state: s.state }));
-    const graphOptions = Object.values(project.presentationGraphs || {}).map(g => ({ id: g.id, name: g.name, state: 'Draft' as any }));
-    const eventOptions = Object.values(project.blackboard.events || {}).map(e => ({ id: e.id, name: e.name, state: e.state }));
+    const scriptDefsMap: Record<string, ScriptDefinition> = project.scripts?.scripts ?? {};
+    const scriptList = Object.values(scriptDefsMap);
+    const scriptOptions = scriptList.map((s) => ({ id: s.id, name: s.name, state: s.state }));
+    const performanceScriptOptions = scriptList
+        .filter((s) => s.category === 'Performance')
+        .map((s) => ({ id: s.id, name: s.name, state: s.state }));
+    const lifecycleScriptOptions = scriptList
+        .filter((s) => s.category === 'Lifecycle' && (!s.lifecycleType || s.lifecycleType === 'Stage'))
+        .map((s) => ({ id: s.id, name: s.name, state: s.state }));
+    const graphOptions = Object.values<PresentationGraph>(project.presentationGraphs).map((g) => ({ id: g.id, name: g.name, state: 'Draft' as any }));
+    const eventOptions = Object.values<EventDefinition>(project.blackboard.events).map((e) => ({ id: e.id, name: e.name, state: e.state }));
 
     const stage = project.stageTree.stages[stageId];
     if (!stage) return <div className="empty-state">Stage not found</div>;
@@ -68,7 +72,7 @@ export const StageInspector: React.FC<StageInspectorProps> = ({ stageId, readOnl
 
     // 渲染局部变量列表
     const renderLocalVariables = () => {
-        const vars = Object.values(stage.localVariables || {});
+        const vars: VariableDefinition[] = Object.values(stage.localVariables || {});
         if (vars.length === 0) {
             return <div style={{ padding: '12px 16px', color: '#666', fontSize: '12px' }}>No stage local variables</div>;
         }
@@ -137,7 +141,7 @@ export const StageInspector: React.FC<StageInspectorProps> = ({ stageId, readOnl
                             condition={stage.unlockCondition || { type: 'LITERAL', value: true }}
                             onChange={readOnly ? undefined : (next) => updateStage({ unlockCondition: next })}
                             variables={visibleVars}
-                            conditionScripts={Object.values(scriptDefs).filter(s => s.category === 'Condition')}
+                            conditionScripts={scriptList.filter((s) => s.category === 'Condition')}
                         />
                     </div>
                 )}
@@ -176,7 +180,7 @@ export const StageInspector: React.FC<StageInspectorProps> = ({ stageId, readOnl
                         <PresentationBindingEditor
                             binding={stage.onEnterPresentation}
                             onChange={(next) => updateStage({ onEnterPresentation: next })}
-                            scriptDefs={scriptDefs}
+                            scriptDefs={scriptDefsMap}
                             scriptOptions={performanceScriptOptions}
                             graphOptions={graphOptions}
                             variables={visibleVars}
@@ -189,7 +193,7 @@ export const StageInspector: React.FC<StageInspectorProps> = ({ stageId, readOnl
                         <PresentationBindingEditor
                             binding={stage.onExitPresentation}
                             onChange={(next) => updateStage({ onExitPresentation: next })}
-                            scriptDefs={scriptDefs}
+                            scriptDefs={scriptDefsMap}
                             scriptOptions={performanceScriptOptions}
                             graphOptions={graphOptions}
                             variables={visibleVars}

@@ -15,18 +15,19 @@
 
 import React, { useMemo, useState } from 'react';
 import { useEditorState, useEditorDispatch } from '../../store/context';
-import { ResourceState, ScriptCategory } from '../../types/common';
-import { VariableDefinition, EventDefinition } from '../../types/blackboard';
-import { ScriptDefinition } from '../../types/manifest';
-import { PresentationGraph } from '../../types/presentation';
-import { StateMachine } from '../../types/stateMachine';
+import type { ResourceState, ScriptCategory } from '../../types/common';
+import type { VariableDefinition, EventDefinition, LocalVarWithScope } from '../../types/blackboard';
+import type { ScriptDefinition } from '../../types/manifest';
+import type { PresentationGraph } from '../../types/presentation';
+import type { StateMachine } from '../../types/stateMachine';
+import type { StageNode } from '../../types/stage';
+import type { PuzzleNode } from '../../types/puzzleNode';
 import { Database, Code, Zap, Search, Layers } from 'lucide-react';
 
 // ========== 子组件导入 ==========
 import { SectionHeader } from './SectionHeader';
 import { VariableCard } from './VariableCard';
 import { LocalVariableCard } from './LocalVariableCard';
-import { LocalVarWithScope } from '../../types/blackboard';
 import { ScriptCard } from './ScriptCard';
 import { EventCard } from './EventCard';
 import { GraphCard } from './GraphCard';
@@ -63,27 +64,27 @@ export const BlackboardPanel: React.FC = () => {
   const { globalVariables, events } = project.blackboard || { globalVariables: {}, events: {} };
   const scriptsRecord = project.scripts?.scripts || {};
 
-  const variableList = useMemo(() => Object.values(globalVariables || {}) as VariableDefinition[], [globalVariables]);
-  const eventList = useMemo(() => Object.values(events || {}) as EventDefinition[], [events]);
-  const scriptList = useMemo(() => Object.values(scriptsRecord) as ScriptDefinition[], [scriptsRecord]);
-  const graphList = useMemo(() => Object.values(project.presentationGraphs || {}) as PresentationGraph[], [project.presentationGraphs]);
-  const fsmList = useMemo(() => Object.values(project.stateMachines || {}) as StateMachine[], [project.stateMachines]);
+  const variableList = useMemo(() => Object.values<VariableDefinition>(globalVariables || {}), [globalVariables]);
+  const eventList = useMemo(() => Object.values<EventDefinition>(events || {}), [events]);
+  const scriptList = useMemo(() => Object.values<ScriptDefinition>(scriptsRecord || {}), [scriptsRecord]);
+  const graphList = useMemo(() => Object.values<PresentationGraph>(project.presentationGraphs || {}), [project.presentationGraphs]);
+  const fsmList = useMemo(() => Object.values<StateMachine>(project.stateMachines || {}), [project.stateMachines]);
 
   // 收集 Stage 和 Node 的局部变量（带作用域信息）
   const localVariableList = useMemo<LocalVarWithScope[]>(() => {
     const result: LocalVarWithScope[] = [];
     // Stage 局部变量
-    Object.values(project.stageTree.stages || {}).forEach(stage => {
+    Object.values<StageNode>(project.stageTree.stages || {}).forEach(stage => {
       if (stage.localVariables) {
-        Object.values(stage.localVariables).forEach(v => {
+        Object.values<VariableDefinition>(stage.localVariables).forEach(v => {
           result.push({ ...v, scopeType: 'Stage', scopeName: stage.name, scopeId: stage.id });
         });
       }
     });
     // Node 局部变量
-    Object.values(project.nodes || {}).forEach(node => {
+    Object.values<PuzzleNode>(project.nodes || {}).forEach(node => {
       if (node.localVariables) {
-        Object.values(node.localVariables).forEach(v => {
+        Object.values<VariableDefinition>(node.localVariables).forEach(v => {
           result.push({ ...v, scopeType: 'Node', scopeName: node.name, scopeId: node.id });
         });
       }
@@ -92,7 +93,7 @@ export const BlackboardPanel: React.FC = () => {
   }, [project.stageTree.stages, project.nodes]);
 
   // ========== Filtering Logic ==========
-  const filterFn = <T extends { name: string; key: string }>(list: T[]): T[] => {
+  const filterFn = <T extends { name: string; key: string; state?: ResourceState; type?: string }>(list: T[]): T[] => {
     if (!filter.trim()) return list;
     const lowerFilter = filter.toLowerCase();
     return list.filter(item => item.name.toLowerCase().includes(lowerFilter) || item.key.toLowerCase().includes(lowerFilter));
@@ -100,9 +101,9 @@ export const BlackboardPanel: React.FC = () => {
   const matchState = (s?: ResourceState) => stateFilter === 'ALL' || s === stateFilter;
   const matchVarType = (type?: string) => varTypeFilter === 'ALL' || type === varTypeFilter;
 
-  const filteredVariables = filterFn(variableList).filter(v => matchState(v.state) && matchVarType((v as any).type));
-  const filteredEvents = filterFn(eventList).filter(e => matchState(e.state));
-  const filteredScripts = filterFn(scriptList).filter(s => matchState(s.state));
+  const filteredVariables = filterFn<VariableDefinition>(variableList).filter(v => matchState(v.state) && matchVarType(v.type));
+  const filteredEvents = filterFn<EventDefinition>(eventList).filter(e => matchState(e.state));
+  const filteredScripts = filterFn<ScriptDefinition>(scriptList).filter(s => matchState(s.state));
   const filteredLocalVariables = useMemo(() => {
     const lowerFilter = filter.toLowerCase();
     return localVariableList.filter(v => {
@@ -176,7 +177,7 @@ export const BlackboardPanel: React.FC = () => {
   const handleSelectFsm = (id: string) => dispatch({ type: 'SELECT_OBJECT', payload: { type: 'FSM', id } });
   const handleOpenFsm = (fsmId: string) => {
     // 查找拥有此 FSM 的节点并导航
-    const ownerNode = Object.values(project.nodes).find(n => n.stateMachineId === fsmId);
+    const ownerNode = Object.values<PuzzleNode>(project.nodes).find(n => n.stateMachineId === fsmId);
     if (ownerNode) {
       dispatch({ type: 'NAVIGATE_TO', payload: { nodeId: ownerNode.id, stageId: ownerNode.stageId, graphId: null } });
     }

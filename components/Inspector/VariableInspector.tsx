@@ -6,6 +6,9 @@
 
 import React from 'react';
 import { useEditorState } from '../../store/context';
+import type { VariableDefinition } from '../../types/blackboard';
+import type { StageNode } from '../../types/stage';
+import type { PuzzleNode } from '../../types/puzzleNode';
 
 interface VariableInspectorProps {
     variableId: string;
@@ -16,14 +19,14 @@ export const VariableInspector: React.FC<VariableInspectorProps> = ({ variableId
     const { project } = useEditorState();
 
     // 在全局变量中查找
-    let variable = project.blackboard.globalVariables[variableId];
+    let variable: VariableDefinition | undefined = project.blackboard.globalVariables[variableId];
     let variableScope: 'Global' | 'Stage' | 'Node' = 'Global';
     let scopeOwnerName = '';
     let scopeOwnerId = '';
 
     // 如果全局未找到，在 Stage 中查找
     if (!variable) {
-        for (const stage of Object.values(project.stageTree.stages)) {
+        for (const stage of Object.values<StageNode>(project.stageTree.stages)) {
             if (stage.localVariables && stage.localVariables[variableId]) {
                 variable = stage.localVariables[variableId];
                 variableScope = 'Stage';
@@ -36,7 +39,7 @@ export const VariableInspector: React.FC<VariableInspectorProps> = ({ variableId
 
     // 如果 Stage 未找到，在 Node 中查找
     if (!variable) {
-        for (const node of Object.values(project.nodes)) {
+        for (const node of Object.values<PuzzleNode>(project.nodes)) {
             if (node.localVariables && node.localVariables[variableId]) {
                 variable = node.localVariables[variableId];
                 variableScope = 'Node';
