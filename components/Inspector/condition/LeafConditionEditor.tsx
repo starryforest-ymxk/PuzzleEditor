@@ -3,7 +3,7 @@
  * 用于编辑叶子条件（COMPARISON / SCRIPT_REF / VARIABLE_REF / LITERAL）
  */
 
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { ConditionExpression } from '../../../types/stateMachine';
 import { VariableDefinition } from '../../../types/blackboard';
 import { ScriptDefinition } from '../../../types/manifest';
@@ -16,10 +16,12 @@ import {
     getBlockStyle,
     conditionRowStyle,
     typeChipStyle,
+    typeSelectStyle,
     selectStyle,
     operatorSelectStyle,
     buttonStyles,
-    COLORS
+    COLORS,
+    INPUT_HEIGHT
 } from './conditionStyles';
 
 interface LeafConditionEditorProps {
@@ -51,6 +53,50 @@ export const LeafConditionEditor: React.FC<LeafConditionEditorProps> = ({
     conditionScripts
 }) => {
     const style = getBlockStyle(condition.type);
+
+    // 预处理 COMPARISON 类型：若 left/right/operator 缺失，在此填充默认值，避免类型切换瞬间传入不完整数据导致渲染崩溃
+    useEffect(() => {
+        if (!onChange) return;
+        if (condition.type !== 'COMPARISON') return;
+
+        const needLeft = !condition.left || condition.left.type !== 'VARIABLE_REF';
+        const needRight = !condition.right || (condition.right.type !== 'VARIABLE_REF' && condition.right.type !== 'LITERAL');
+        const needOperator = !condition.operator;
+
+        if (needLeft || needRight || needOperator) {
+            onChange({
+                type: 'COMPARISON',
+                operator: condition.operator || '==',
+                left: needLeft
+                    ? { type: 'VARIABLE_REF', variableId: '', variableScope: 'NodeLocal' }
+                    : {
+                        ...condition.left,
+                        variableScope: condition.left!.variableScope || 'NodeLocal'
+                    },
+                right: needRight
+                    ? { type: 'LITERAL', value: '' }
+                    : (condition.right!.type === 'VARIABLE_REF'
+                        ? {
+                            type: 'VARIABLE_REF',
+                            variableId: condition.right!.variableId || '',
+                            variableScope: condition.right!.variableScope || 'NodeLocal'
+                        }
+                        : { type: 'LITERAL', value: condition.right!.value ?? '' })
+            });
+        }
+    }, [condition, onChange]);
+
+    // VARIABLE_REF é¡¹ç›®ç¼ºå°‘ä½œç”¨åŸŸæ—¶ï¼Œè¡¥ä¸Šé»˜è®¤ NodeLocal è§†å›¾å†…å¯è§?
+    useEffect(() => {
+        if (!onChange) return;
+        if (condition.type !== 'VARIABLE_REF') return;
+        if (condition.variableScope) return;
+
+        onChange({
+            ...condition,
+            variableScope: 'NodeLocal'
+        });
+    }, [condition, onChange]);
 
     // 过滤可用变量（排除已标记删除的）
     const availableVars = useMemo(
@@ -142,7 +188,8 @@ export const LeafConditionEditor: React.FC<LeafConditionEditorProps> = ({
 
     return (
         <div style={conditionRowStyle(style)}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+            {/* Header Row: Handle + Type + Inline Content + Delete */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%' }}>
                 {/* 拖拽手柄（仅非根级显示） */}
                 {showDragHandle && (
                     <span
@@ -156,38 +203,38 @@ export const LeafConditionEditor: React.FC<LeafConditionEditorProps> = ({
                     >⋮⋮</span>
                 )}
 
-                {/* 类型标签 Chip */}
-                <span style={typeChipStyle(style)}>
-                    {condition.type === 'COMPARISON' ? 'COMPARE' :
-                        condition.type === 'SCRIPT_REF' ? 'SCRIPT' : condition.type}
-                </span>
+                {/* 类型选择器 (合并了显示标记) */}
+                {/* 自绘箭头容器，避免浏览器默认箭头重复平铺导致的花纹 */}
+                <div style={{ position: 'relative', display: 'inline-block' }}>
+                    <select
+                        value={condition.type}
+                        onChange={(e) => handleTypeChange(e.target.value)}
+                        disabled={!onChange}
+                        style={typeSelectStyle(style)}
+                    >
+                        <option value="COMPARISON">COMPARE</option>
+                        <option value="SCRIPT_REF">SCRIPT</option>
+                        <option value="VARIABLE_REF">VARIABLE</option>
+                        <option value="LITERAL">LITERAL</option>
+                    </select>
+                    <span
+                        aria-hidden
+                        style={{
+                            position: 'absolute',
+                            right: 8,
+                            top: '50%',
+                            transform: 'translateY(-50%)',
+                            color: style.labelColor,
+                            fontSize: '10px',
+                            pointerEvents: 'none',
+                            userSelect: 'none'
+                        }}
+                    >
+                        ▼
+                    </span>
+                </div>
 
-                {/* 类型选择器 */}
-                <select
-                    value={condition.type}
-                    onChange={(e) => handleTypeChange(e.target.value)}
-                    disabled={!onChange}
-                    style={selectStyle}
-                >
-                    <option value="COMPARISON">Compare</option>
-                    <option value="SCRIPT_REF">Script</option>
-                    <option value="VARIABLE_REF">Variable</option>
-                    <option value="LITERAL">Literal</option>
-                </select>
-
-                {/* COMPARISON 类型：左操作数 + 操作符 + 右操作数 */}
-                {condition.type === 'COMPARISON' && (
-                    <ComparisonEditor
-                        condition={condition}
-                        onChange={onChange}
-                        availableVars={availableVars}
-                        selectedLeftVar={selectedLeftVar}
-                        comparisonOperators={comparisonOperators}
-                        renderVariableWarning={renderVariableWarning}
-                    />
-                )}
-
-                {/* SCRIPT_REF 类型：脚本选择器 */}
+                {/* SCRIPT_REF 类型：脚本选择器 (Inline) */}
                 {condition.type === 'SCRIPT_REF' && (
                     <div style={{ flex: 1, minWidth: '180px' }}>
                         <ResourceSelect
@@ -196,6 +243,7 @@ export const LeafConditionEditor: React.FC<LeafConditionEditorProps> = ({
                             options={conditionScripts.map(s => ({ id: s.id, name: s.name, state: s.state }))}
                             placeholder="Select condition script"
                             style={{ width: '100%' }}
+                            height={INPUT_HEIGHT}
                         />
                         {(scriptState.missing || scriptState.marked) && (
                             <div style={{ color: COLORS.danger, fontSize: '11px', marginTop: '4px' }}>
@@ -205,7 +253,7 @@ export const LeafConditionEditor: React.FC<LeafConditionEditorProps> = ({
                     </div>
                 )}
 
-                {/* VARIABLE_REF 类型：布尔变量选择器 */}
+                {/* VARIABLE_REF 类型：布尔变量选择器 (Inline) */}
                 {condition.type === 'VARIABLE_REF' && (
                     <div style={{ flex: 1, minWidth: '180px' }}>
                         <VariableSelector
@@ -221,12 +269,13 @@ export const LeafConditionEditor: React.FC<LeafConditionEditorProps> = ({
                                 });
                             }}
                             placeholder="Select variable"
+                            height={INPUT_HEIGHT}
                         />
                         {renderVariableWarning(condition.variableId)}
                     </div>
                 )}
 
-                {/* LITERAL 类型：布尔值切换 */}
+                {/* LITERAL 类型：布尔值切换 (Inline) */}
                 {condition.type === 'LITERAL' && (
                     <select
                         value={condition.value === true ? 'true' : 'false'}
@@ -234,7 +283,11 @@ export const LeafConditionEditor: React.FC<LeafConditionEditorProps> = ({
                         disabled={!onChange}
                         style={{
                             ...selectStyle,
-                            color: '#ce9178'
+                            color: '#ce9178',
+                            flex: 1,
+                            height: INPUT_HEIGHT,
+                            padding: '0 6px', // adjust for custom height
+                            lineHeight: `${INPUT_HEIGHT - 2}px`
                         }}
                     >
                         <option value="true">Always True</option>
@@ -242,7 +295,7 @@ export const LeafConditionEditor: React.FC<LeafConditionEditorProps> = ({
                     </select>
                 )}
 
-                {/* 删除按钮 */}
+                {/* 删除按钮 (Always Layout Right) */}
                 {onRemove && (
                     <button
                         onClick={onRemove}
@@ -258,6 +311,18 @@ export const LeafConditionEditor: React.FC<LeafConditionEditorProps> = ({
                     </button>
                 )}
             </div>
+
+            {/* COMPARISON 类型：独立的主体块 */}
+            {condition.type === 'COMPARISON' && (
+                <ComparisonEditor
+                    condition={condition}
+                    onChange={onChange}
+                    availableVars={availableVars}
+                    selectedLeftVar={selectedLeftVar}
+                    comparisonOperators={comparisonOperators}
+                    renderVariableWarning={renderVariableWarning}
+                />
+            )}
         </div>
     );
 };
@@ -284,6 +349,8 @@ const ComparisonEditor: React.FC<ComparisonEditorProps> = ({
     renderVariableWarning
 }) => {
     if (condition.type !== 'COMPARISON') return null;
+    // 防御性检查：避免切换类型时导致 left/right 尚未初始化的瞬态崩溃
+    if (!condition.left || !condition.right) return null;
 
     // 将 ConditionExpression 转换为 ValueSource
     const rightAsValueSource = (): ValueSource => {
@@ -330,9 +397,9 @@ const ComparisonEditor: React.FC<ComparisonEditorProps> = ({
         : ['boolean', 'integer', 'float', 'string', 'enum'];
 
     return (
-        <>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%', marginTop: '4px' }}>
             {/* 左侧变量选择器 */}
-            <div style={{ flex: 1, minWidth: '140px' }}>
+            <div style={{ width: '100%' }}>
                 <VariableSelector
                     value={condition.left?.variableId || ''}
                     variables={availableVars}
@@ -348,31 +415,44 @@ const ComparisonEditor: React.FC<ComparisonEditorProps> = ({
                             }
                         });
                     }}
-                    placeholder="Select variable"
+                    placeholder="Select left variable"
+                    height={INPUT_HEIGHT}
                 />
                 {condition.left?.type === 'VARIABLE_REF' && renderVariableWarning(condition.left?.variableId)}
             </div>
 
-            {/* 操作符选择器 */}
-            <select
-                value={condition.operator || '=='}
-                onChange={(e) => onChange && onChange({ ...condition, operator: e.target.value as any })}
-                disabled={!onChange}
-                style={operatorSelectStyle}
-            >
-                {comparisonOperators.map(op => <option key={op} value={op}>{op}</option>)}
-            </select>
-
-            {/* 右值编辑器 - 支持常量或变量 */}
-            <div style={{ flex: 1, minWidth: '120px' }}>
-                <ValueSourceEditor
-                    source={rightAsValueSource()}
-                    onChange={handleRightChange}
-                    variables={availableVars.filter(v => allowedRightTypes.includes(v.type))}
-                    valueType={varType}
-                    allowedTypes={allowedRightTypes}
-                />
-            </div>
-        </>
+            {/* 操作符 + 右值编辑器 */}
+            <ValueSourceEditor
+                source={rightAsValueSource()}
+                onChange={handleRightChange}
+                variables={availableVars.filter(v => allowedRightTypes.includes(v.type))}
+                valueType={varType}
+                allowedTypes={allowedRightTypes}
+                height={INPUT_HEIGHT}
+                prefixElement={
+                    <select
+                        value={condition.operator || '=='}
+                        onChange={(e) => onChange && onChange({ ...condition, operator: e.target.value as any })}
+                        disabled={!onChange}
+                        style={{
+                            background: '#27272a',
+                            color: '#e4e4e7',
+                            border: '1px solid #52525b',
+                            padding: '4px 8px',
+                            fontSize: '12px',
+                            borderRadius: '4px',
+                            flex: 1,
+                            minWidth: 0,
+                            height: INPUT_HEIGHT, // Unified Height
+                            outline: 'none',
+                            fontFamily: 'Inter, sans-serif',
+                            lineHeight: `${INPUT_HEIGHT - 2}px`
+                        }}
+                    >
+                        {comparisonOperators.map(op => <option key={op} value={op}>{op}</option>)}
+                    </select>
+                }
+            />
+        </div>
     );
 };

@@ -31,6 +31,7 @@ interface Props {
   style?: React.CSSProperties;
   showDetails?: boolean;
   onClear?: () => void;
+  height?: number; // New optional height prop
 }
 
 /**
@@ -46,13 +47,14 @@ export const ResourceSelect: React.FC<Props> = ({
   className,
   style,
   showDetails = false,
-  onClear
+  onClear,
+  height = 30 // Default
 }) => {
   const selected = options.find(opt => opt.id === value);
   // 默认隐藏已标记删除的选项，若当前值已被标记则仅保留当前值以便提示
   const visibleOptions = options.filter(opt => opt.state !== 'MarkedForDelete' || opt.id === value);
   const isSelectedDeleted = selected?.state === 'MarkedForDelete';
-  const optionStyle: React.CSSProperties = { padding: '6px 8px', height: 30, lineHeight: '18px' };
+  const optionStyle: React.CSSProperties = { padding: '6px 8px', height: height, lineHeight: `${height * 0.6}px` };
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px', ...(style || {}) }} className={className}>
@@ -67,12 +69,12 @@ export const ResourceSelect: React.FC<Props> = ({
             background: '#27272a',
             color: isSelectedDeleted ? '#ef4444' : '#e4e4e7',
             border: `1px solid ${isSelectedDeleted ? '#ef4444' : '#52525b'}`,
-            padding: '4px 8px',
+            padding: '0 8px', // Reduced vertical padding for centering
             fontSize: '12px',
             borderRadius: '4px',
-            height: 30,
+            height: height,
             boxSizing: 'border-box',
-            lineHeight: '18px',
+            lineHeight: `${height - 2}px`,
             outline: 'none',
             fontFamily: 'Inter, sans-serif'
           }}

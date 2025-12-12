@@ -10,10 +10,11 @@ interface Props {
   valueType?: VariableType; // Optional: hint for constant input type
   prefixElement?: React.ReactNode;
   allowedTypes?: VariableType[]; // 允许的来源变量类型
+  height?: number; // New optional height prop
 }
 
 // Value source editor: choose constant or variable reference; blocks soft-deleted vars
-export const ValueSourceEditor: React.FC<Props> = ({ source, onChange, variables, valueType, prefixElement, allowedTypes }) => {
+export const ValueSourceEditor: React.FC<Props> = ({ source, onChange, variables, valueType, prefixElement, allowedTypes, height = 30 }) => {
   const type = source?.type || 'Constant';
 
   const renderConstantInput = () => {
@@ -27,11 +28,11 @@ export const ValueSourceEditor: React.FC<Props> = ({ source, onChange, variables
             background: '#27272a', // Zinc-800
             color: '#e4e4e7',      // Zinc-200
             border: '1px solid #52525b', // Zinc-600
-            padding: '4px 8px',
+            padding: '0 8px',
             fontSize: '12px',
-            height: 30,
+            height: height,
             boxSizing: 'border-box',
-            lineHeight: '18px', // vertically centered text
+            lineHeight: `${height - 2}px`, // vertically centered text
             borderRadius: '4px',
             outline: 'none',
             fontFamily: 'IBM Plex Mono, monospace', // For values

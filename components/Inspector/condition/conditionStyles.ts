@@ -145,6 +145,38 @@ export const typeChipStyle = (style: BlockStyle): React.CSSProperties => ({
 });
 
 /**
+ * 类型选择下拉框样式 (合并了 Chip 的视觉风格)
+ */
+/**
+ * 标准输入控件高度 (与 LogicModeButton 视觉对齐)
+ */
+export const INPUT_HEIGHT = 26;
+
+/**
+ * 类型选择下拉框样式 (合并了 Chip 的视觉风格)
+ */
+export const typeSelectStyle = (style: BlockStyle): React.CSSProperties => ({
+    // 确保在不同浏览器下都能展示文字与色块（此前在 Windows 下出现仅剩箭头的默认灰底样式）
+    appearance: 'none',
+    WebkitAppearance: 'none',
+    MozAppearance: 'none',
+    backgroundColor: '#222', // Modified to Deep Dark Background
+    color: style.labelColor,
+    border: `1px solid ${style.labelColor}`,
+    borderRadius: '4px',
+    fontSize: '11px',
+    fontWeight: 700,
+    height: INPUT_HEIGHT,
+    padding: '0 24px 0 10px', // Adjusted for fixed height centering
+    lineHeight: `${INPUT_HEIGHT - 2}px`, // Adjusted line-height to center text vertically
+    cursor: 'pointer',
+    textAlign: 'center',
+    backgroundImage: 'none', // 去掉背景图，改为容器内自绘箭头，避免重复平铺
+    letterSpacing: '0.5px', // Added match LogicModeButton
+    boxSizing: 'border-box'
+});
+
+/**
  * 下拉选择器基础样式
  */
 export const selectStyle: React.CSSProperties = {
