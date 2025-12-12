@@ -126,7 +126,7 @@ export type ValueSource =
 export interface ParameterModifier {
   targetVariableId: VariableId;
   targetScope: VariableScope;
-  operation: 'Set' | 'Add' | 'Subtract' | 'Multiply' | 'Divide' | 'Toggle' | 'CopyFromVar';
+  operation: 'Set' | 'Add' | 'Subtract' | 'Multiply' | 'Divide' | 'Toggle';
   source: ValueSource;
 }
 

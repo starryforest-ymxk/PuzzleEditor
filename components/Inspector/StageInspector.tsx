@@ -151,7 +151,7 @@ export const StageInspector: React.FC<StageInspectorProps> = ({ stageId, readOnl
                 ) : (
                     <div className={readOnly ? 'inspector-section--readonly' : ''}>
                         <ConditionEditor
-                            condition={stage.unlockCondition || { type: 'LITERAL', value: true }}
+                            condition={stage.unlockCondition}
                             onChange={readOnly ? undefined : (next) => updateStage({ unlockCondition: next })}
                             variables={visibleVars}
                             conditionScripts={scriptList.filter((s) => s.category === 'Condition')}

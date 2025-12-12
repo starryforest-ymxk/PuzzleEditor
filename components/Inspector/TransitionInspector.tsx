@@ -161,7 +161,7 @@ export const TransitionInspector = ({ fsmId, transitionId, readOnly = false }: P
                 <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Condition</div>
                 <div style={{ pointerEvents: readOnly ? 'none' : 'auto', opacity: readOnly ? 0.6 : 1 }}>
                     <ConditionEditor
-                        condition={trans.condition || { type: 'LITERAL', value: true }}
+                        condition={trans.condition}
                         onChange={(newCond) => handleChange('condition', newCond)}
                         variables={visibleVars}
                         conditionScripts={conditionScriptOptions}

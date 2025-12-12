@@ -50,7 +50,7 @@ export const ParameterModifierEditor: React.FC<Props> = ({ modifier, onChange, v
   // - Int/Float 目标：int 和 float 可以互换赋值/运算
   const allowedSourceTypes = useMemo((): VariableType[] => {
     if (!targetType) return ['boolean', 'integer', 'float', 'string', 'enum'];
-    if (targetType === 'string') return ['string', 'integer', 'float', 'boolean'];
+    if (targetType === 'string') return ['string', 'integer', 'float', 'boolean', 'enum'];
     if (targetType === 'boolean') return ['boolean'];
     if (targetType === 'integer' || targetType === 'float') return ['integer', 'float'];
     return ['boolean', 'integer', 'float', 'string', 'enum'];
