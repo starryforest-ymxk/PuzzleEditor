@@ -49,7 +49,7 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({ nodeId, readOnly =
             </div>
 
             {/* Basic Info Section */}
-            <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-color)' }}>
+            <div className="inspector-basic-info" style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-color)' }}>
                 <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Basic Info</div>
                 <div className="prop-row">
                     <div className="prop-label">ID</div>

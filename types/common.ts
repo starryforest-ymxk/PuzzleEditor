@@ -159,7 +159,7 @@ export type EventAction =
     scriptId?: ScriptId;
     parameters?: ParameterBinding[];
   }
-  | { type: 'ModifyParameter'; modifier: ParameterModifier };
+  | { type: 'ModifyParameter'; modifiers: ParameterModifier[] };
 
 // ========== 事件监听器 ==========
 /**

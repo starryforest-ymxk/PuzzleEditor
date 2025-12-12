@@ -98,11 +98,11 @@ export const StateInspector = ({ fsmId, stateId, readOnly = false }: Props) => {
             </div>
 
             {/* Basic Info Section */}
-            <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-color)' }}>
+            <div className="inspector-basic-info" style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-color)' }}>
                 <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Basic Info</div>
                 <div className="prop-row">
-                    <div className="prop-label" style={{ display: 'flex', flex: 1, }}>ID</div>
-                    <div className="prop-value" style={{ display: 'flex', flex: 1, fontFamily: 'monospace', color: '#666', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{state.id}</div>
+                    <div className="prop-label">ID</div>
+                    <div className="prop-value" style={{ fontFamily: 'monospace', color: '#666' }}>{state.id}</div>
                 </div>
                 <div style={{ marginTop: '8px' }}>
                     <div style={{ color: '#888', marginBottom: '4px', fontSize: '11px' }}>Description</div>

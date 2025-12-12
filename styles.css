@@ -271,6 +271,24 @@ html {
   /* Code font for data */
 }
 
+/* ========== Container Query for Responsive Property Rows ========== */
+.inspector-basic-info {
+  container-type: inline-size;
+}
+
+@container (max-width: 300px) {
+  .inspector-basic-info .prop-row {
+    grid-template-columns: 1fr;
+    row-gap: 4px;
+    padding: 12px 16px;
+  }
+
+  .inspector-basic-info .prop-label {
+    padding-right: 0;
+    margin-bottom: 2px;
+  }
+}
+
 /* Inspector 通用响应式行：名称/类型/按钮并列，随宽度收缩 */
 .inspector-inline-row {
   display: grid;
@@ -795,4 +813,189 @@ html {
   gap: 6px;
   padding: 6px 12px;
   font-size: 11px;
+}
+/* ========== 文本删除按钮 ========== */
+.btn-remove-text {
+    background: transparent;
+    border: none;
+    color: #666;
+    cursor: pointer;
+    font-size: 12px;
+    padding: 0 4px;
+    transition: color 0.1s;
+}
+
+.btn-remove-text:hover {
+    color: var(--accent-error);
+}
+/* ========== Blackboard Variable Item Responsive ========== */
+.blackboard-var-item {
+    container-type: inline-size;
+    padding: 8px 12px;
+    border-bottom: 1px solid #2a2a2a;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    background-color: rgba(0, 0, 0, 0.1);
+    position: relative;
+}
+
+.blackboard-var-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.blackboard-var-info {
+    display: flex;
+    flex: 1;
+    min-width: 0;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.blackboard-var-meta {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+    align-items: center;
+}
+
+@container (max-width: 340px) {
+    .blackboard-var-info {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 4px;
+    }
+
+    .blackboard-var-meta {
+        justify-content: flex-start;
+    }
+
+    /* Make input full width when stacked */
+    .blackboard-var-info input {
+        width: 100% !important;
+    }
+}
+/* ========== Blackboard Variable Item Responsive ========== */
+.blackboard-var-item {
+    container-type: inline-size;
+    padding: 8px 12px;
+    border-bottom: 1px solid #2a2a2a;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    background-color: rgba(0, 0, 0, 0.1);
+    position: relative;
+}
+
+.blackboard-var-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.blackboard-var-info {
+    display: flex;
+    flex: 1;
+    min-width: 0;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.blackboard-var-meta {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+    align-items: center;
+    flex-wrap: wrap;
+    /* Allow wrapping */
+}
+
+@container (max-width: 340px) {
+    .blackboard-var-info {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 4px;
+    }
+
+    .blackboard-var-meta {
+        justify-content: flex-start;
+    }
+
+    /* Make input full width when stacked */
+    .blackboard-var-info input {
+        width: 100% !important;
+    }
+}
+/* ========== Blackboard Add Row ========== */
+.blackboard-add-row {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    width: 100%;
+    padding: 8px 12px;
+}
+
+.blackboard-add-row input {
+    flex: 1;
+    min-width: 60px;
+    /* Allow shrinking but keep usable */
+    width: auto !important;
+    /* Override fixed width */
+}
+
+.blackboard-add-row select {
+    flex: 0 0 75px;
+    /* Fixed width for type selector */
+    width: auto !important;
+    /* Override fixed width */
+}
+
+.blackboard-add-row button {
+    flex: 0 0 auto;
+    width: auto !important;
+    /* Override fixed width */
+    padding: 6px 10px !important;
+}
+/* ========== Blackboard Add Row Refined ========== */
+.blackboard-add-row {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    width: 100%;
+    padding: 8px 12px;
+}
+
+.blackboard-add-row input {
+    flex: 5 1 0px;
+    /* 50% weight */
+    min-width: 0;
+    width: auto !important;
+}
+
+.blackboard-add-row select {
+    flex: 3 1 0px;
+    /* 30% weight */
+    min-width: 0;
+    width: auto !important;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.blackboard-add-row button {
+    flex: 2 1 0px;
+    /* 20% weight */
+    min-width: 0;
+    width: auto !important;
+    padding: 6px 4px !important;
+    /* Smaller horizontal padding */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }

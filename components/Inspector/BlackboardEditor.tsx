@@ -219,18 +219,10 @@ export const BlackboardEditor = ({ variables, nodeId, readOnly = false }: Props)
     return (
         <div>
             {vars.map(v => (
-                <div key={v.id} style={{
-                    padding: '8px 12px',
-                    borderBottom: '1px solid #2a2a2a',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '6px',
-                    backgroundColor: 'rgba(0,0,0,0.1)',
-                    position: 'relative'
-                }}>
+                <div key={v.id} className="blackboard-var-item">
                     {/* Header: Name and Type */}
-                    <div className="inspector-row" style={{ justifyContent: 'space-between' }}>
-                        <div className="inspector-row" style={{ justifyContent: 'flex-start' }}>
+                    <div className="blackboard-var-header">
+                        <div className="blackboard-var-info">
                             {/* 编辑名称 */}
                             {nodeId ? (
                                 <input
@@ -238,24 +230,27 @@ export const BlackboardEditor = ({ variables, nodeId, readOnly = false }: Props)
                                     value={v.name}
                                     onChange={(e) => handleUpdate(v.id, 'name', e.target.value)}
                                     disabled={readOnly}
-                                    style={{ background: 'transparent', border: 'none', borderBottom: '1px dashed #444', color: '#ddd', width: '140px' }}
+                                    style={{ background: 'transparent', border: 'none', borderBottom: '1px dashed #444', color: '#ddd', width: '140px', minWidth: '100px' }}
                                 />
                             ) : (
-                                <span style={{ color: '#ddd', fontSize: '12px' }}>{v.name}</span>
+                                <span style={{ color: '#ddd', fontSize: '12px', fontWeight: 600 }}>{v.name}</span>
                             )}
-                            {/* Hide ID; keep status and reference hints */}
-                            <span style={{ color: '#666', fontSize: '10px' }}>Status: {v.state}</span>
-                            {referenceMap[v.id]?.length > 0 && (
-                                <span style={{ color: '#f9a825', fontSize: '10px' }}>
-                                    {referenceMap[v.id].length} reference(s)
-                                </span>
-                            )}
+
+                            <div className="blackboard-var-meta">
+                                {/* Hide ID; keep status and reference hints */}
+                                <span style={{ color: '#666', fontSize: '10px' }}>Status: {v.state}</span>
+                                {referenceMap[v.id]?.length > 0 && (
+                                    <span style={{ color: '#f9a825', fontSize: '10px' }}>
+                                        {referenceMap[v.id].length} reference(s)
+                                    </span>
+                                )}
+                            </div>
                         </div>
 
                         {nodeId && !readOnly && (
                             <button
                                 onClick={() => handleDelete(v.id)}
-                                style={{ background: 'transparent', border: 'none', color: '#666', cursor: 'pointer', fontSize: '14px' }}
+                                style={{ background: 'transparent', border: 'none', color: '#666', cursor: 'pointer', fontSize: '14px', alignSelf: 'flex-start', padding: '0 0 0 8px' }}
                             >
                                 &times;
                             </button>
@@ -325,14 +320,14 @@ export const BlackboardEditor = ({ variables, nodeId, readOnly = false }: Props)
 
             {/* Add New Row */}
             {nodeId && (
-                <div style={{ padding: '8px 12px' }} className="inspector-inline-row">
+                <div className="blackboard-add-row">
                     <input
                         type="text"
-                        placeholder="New variable name..."
+                        placeholder="New var..."
                         value={newVarName}
                         onChange={(e) => setNewVarName(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
-                        style={{ width: '100%', background: '#222', border: '1px solid #444', color: '#ccc', fontSize: '11px', padding: '4px', boxSizing: 'border-box' }}
+                        style={{ background: '#222', border: '1px solid #444', color: '#ccc', fontSize: '11px', padding: '4px', boxSizing: 'border-box' }}
                         disabled={readOnly}
                     />
                     <select
@@ -343,7 +338,7 @@ export const BlackboardEditor = ({ variables, nodeId, readOnly = false }: Props)
                             setNewVarValue(getDefaultValueByType(nextType));
                         }}
                         disabled={readOnly}
-                        style={{ width: '100%', background: '#222', border: '1px solid #444', color: '#ccc', fontSize: '11px', padding: '4px', boxSizing: 'border-box' }}
+                        style={{ background: '#222', border: '1px solid #444', color: '#ccc', fontSize: '11px', padding: '4px', boxSizing: 'border-box' }}
                     >
                         <option value="string">String</option>
                         <option value="integer">Integer</option>
@@ -353,7 +348,7 @@ export const BlackboardEditor = ({ variables, nodeId, readOnly = false }: Props)
                     <button
                         onClick={handleAdd}
                         disabled={!newVarName || readOnly}
-                        style={{ background: '#264f78', border: '1px solid #264f78', color: '#fff', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', padding: '6px 12px', width: '100%', boxSizing: 'border-box' }}
+                        style={{ background: '#264f78', border: '1px solid #264f78', color: '#fff', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', boxSizing: 'border-box' }}
                     >
                         Add
                     </button>
@@ -400,18 +395,18 @@ export const BlackboardEditor = ({ variables, nodeId, readOnly = false }: Props)
                                 overflow: 'auto',
                                 marginBottom: '12px'
                             }}>
-                        <div style={{ fontSize: '12px', color: '#a1a1aa', marginBottom: '6px' }}>Reference preview</div>
-                        {confirmDialog.refs.map((r, idx) => (
-                            <div key={idx} style={{ fontSize: '12px', color: '#e4e4e7', lineHeight: 1.4 }}>• {r}</div>
-                        ))}
-                        {referenceMap[confirmDialog.varId]?.length > confirmDialog.refs.length && (
-                            <div style={{ fontSize: '12px', color: '#a1a1aa', marginTop: '4px' }}>... {referenceMap[confirmDialog.varId].length - confirmDialog.refs.length} more reference(s)</div>
+                                <div style={{ fontSize: '12px', color: '#a1a1aa', marginBottom: '6px' }}>Reference preview</div>
+                                {confirmDialog.refs.map((r, idx) => (
+                                    <div key={idx} style={{ fontSize: '12px', color: '#e4e4e7', lineHeight: 1.4 }}>• {r}</div>
+                                ))}
+                                {referenceMap[confirmDialog.varId]?.length > confirmDialog.refs.length && (
+                                    <div style={{ fontSize: '12px', color: '#a1a1aa', marginTop: '4px' }}>... {referenceMap[confirmDialog.varId].length - confirmDialog.refs.length} more reference(s)</div>
+                                )}
+                            </div>
                         )}
-                    </div>
-                )}
-                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
-                    <button
-                        onClick={() => setConfirmDialog(null)}
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                            <button
+                                onClick={() => setConfirmDialog(null)}
                                 style={{
                                     padding: '8px 14px',
                                     borderRadius: '4px',
@@ -419,13 +414,13 @@ export const BlackboardEditor = ({ variables, nodeId, readOnly = false }: Props)
                                     background: '#27272a',
                                     color: '#e4e4e7',
                                     cursor: 'pointer'
-                        }}
-                    >
-                        Cancel
-                    </button>
-                    <button
-                        onClick={handleConfirmDelete}
-                        style={{
+                                }}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleConfirmDelete}
+                                style={{
                                     padding: '8px 14px',
                                     borderRadius: '4px',
                                     border: '1px solid #f97316',
@@ -433,14 +428,14 @@ export const BlackboardEditor = ({ variables, nodeId, readOnly = false }: Props)
                                     color: '#0b0b0f',
                                     fontWeight: 600,
                                     cursor: 'pointer'
-                        }}
-                    >
-                        Delete
-                    </button>
+                                }}
+                            >
+                                Delete
+                            </button>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </div>
-    )}
+            )}
         </div>
     );
 };

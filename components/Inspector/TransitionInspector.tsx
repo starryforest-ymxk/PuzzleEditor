@@ -250,7 +250,25 @@ export const TransitionInspector = ({ fsmId, transitionId, readOnly = false }: P
                 <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Parameter Modifier</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', pointerEvents: readOnly ? 'none' : 'auto', opacity: readOnly ? 0.6 : 1 }}>
                     {modifiers.map((m, idx) => (
-                        <div key={idx} style={{ border: '1px solid #444', padding: '8px', borderRadius: '4px', background: '#1f1f1f' }}>
+                        <div key={idx} style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '4px',
+                            padding: '8px',
+                            background: 'rgba(255,255,255,0.03)',
+                            border: '1px solid #333',
+                            borderRadius: '4px',
+                            position: 'relative'
+                        }}>
+                            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                                <button
+                                    onClick={() => updateModifiers(modifiers.filter((_, i) => i !== idx))}
+                                    className="btn-remove-text"
+                                    title="Remove Modifier"
+                                >
+                                    × Remove
+                                </button>
+                            </div>
                             <ParameterModifierEditor
                                 modifier={m}
                                 onChange={(pm) => {
@@ -260,12 +278,6 @@ export const TransitionInspector = ({ fsmId, transitionId, readOnly = false }: P
                                 }}
                                 variables={visibleVars}
                             />
-                            <button
-                                onClick={() => updateModifiers(modifiers.filter((_, i) => i !== idx))}
-                                style={{ marginTop: '8px', background: 'transparent', color: '#ff6b6b', border: 'none', padding: '2px 6px', cursor: 'pointer', fontSize: '11px' }}
-                            >
-                                Remove
-                            </button>
                         </div>
                     ))}
 
@@ -274,10 +286,17 @@ export const TransitionInspector = ({ fsmId, transitionId, readOnly = false }: P
                     )}
 
                     <button
+                        className="btn-ghost"
                         onClick={() => updateModifiers([...modifiers, { targetVariableId: '', targetScope: 'NodeLocal', operation: 'Set', source: { type: 'Constant', value: '' } }])}
-                        style={{ background: '#2e7d32', color: '#fff', border: 'none', padding: '6px 8px', cursor: 'pointer', borderRadius: '3px', fontSize: '11px', alignSelf: 'flex-start' }}
+                        style={{
+                            width: '100%',
+                            justifyContent: 'center',
+                            marginTop: '4px',
+                            borderStyle: 'dashed',
+                            opacity: 0.7
+                        }}
                     >
-                        + Add Modifier
+                        + Add Parameter Modifier
                     </button>
                 </div>
             </div>

@@ -85,7 +85,9 @@ const collectFromEventListeners = (
     if (l.action.type === 'InvokeScript') {
       collectFromBindings(l.action.parameters, variableId, collector, `${base} · 调用脚本参数`);
     } else if (l.action.type === 'ModifyParameter') {
-      collectFromModifier(l.action.modifier, variableId, collector, `${base} · 参数修改`);
+      l.action.modifiers.forEach((m, mIdx) => {
+        collectFromModifier(m, variableId, collector, `${base} · 参数修改${mIdx + 1}`);
+      });
     }
   });
 };

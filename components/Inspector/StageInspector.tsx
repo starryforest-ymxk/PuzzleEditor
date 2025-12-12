@@ -116,7 +116,7 @@ export const StageInspector: React.FC<StageInspectorProps> = ({ stageId, readOnl
             </div>
 
             {/* Basic Info Section */}
-            <div className="inspector-section">
+            <div className="inspector-section inspector-basic-info">
                 <div className="section-title">Basic Info</div>
                 <div className="prop-row">
                     <div className="prop-label">ID</div>
@@ -211,7 +211,7 @@ export const StageInspector: React.FC<StageInspectorProps> = ({ stageId, readOnl
                 <div className={readOnly ? 'inspector-section--readonly' : ''} style={{ pointerEvents: readOnly ? 'none' : 'auto', opacity: readOnly ? 0.6 : 1 }}>
                     <EventListenersEditor
                         listeners={stage.eventListeners || []}
-                        onChange={readOnly ? () => {} : (next) => updateStage({ eventListeners: next })}
+                        onChange={readOnly ? () => { } : (next) => updateStage({ eventListeners: next })}
                         eventOptions={eventOptions}
                         scriptOptions={scriptOptions}
                         variables={visibleVars}

@@ -58,10 +58,59 @@ export const EventListenersEditor: React.FC<Props> = ({
       handleUpdate(index, {
         action: {
           type: 'ModifyParameter',
-          modifier: { targetVariableId: '', targetScope: 'Global', operation: 'Set', source: { type: 'Constant', value: '' } }
+          modifiers: []
         }
       });
     }
+  };
+
+  // 添加一个新的修改器
+  const handleAddModifier = (listenerIndex: number) => {
+    const listener = listeners[listenerIndex];
+    if (listener.action.type !== 'ModifyParameter') return;
+
+    const newModifier: ParameterModifier = {
+      targetVariableId: '',
+      targetScope: 'Global',
+      operation: 'Set',
+      source: { type: 'Constant', value: '' }
+    };
+
+    handleUpdate(listenerIndex, {
+      action: {
+        ...listener.action,
+        modifiers: [...listener.action.modifiers, newModifier]
+      }
+    });
+  };
+
+  // 更新修改器
+  const handleUpdateModifier = (listenerIndex: number, modifierIndex: number, newModifier: ParameterModifier) => {
+    const listener = listeners[listenerIndex];
+    if (listener.action.type !== 'ModifyParameter') return;
+
+    const newModifiers = [...listener.action.modifiers];
+    newModifiers[modifierIndex] = newModifier;
+
+    handleUpdate(listenerIndex, {
+      action: {
+        ...listener.action,
+        modifiers: newModifiers
+      }
+    });
+  };
+
+  // 删除修改器
+  const handleDeleteModifier = (listenerIndex: number, modifierIndex: number) => {
+    const listener = listeners[listenerIndex];
+    if (listener.action.type !== 'ModifyParameter') return;
+
+    handleUpdate(listenerIndex, {
+      action: {
+        ...listener.action,
+        modifiers: listener.action.modifiers.filter((_, i) => i !== modifierIndex)
+      }
+    });
   };
 
   return (
@@ -147,14 +196,50 @@ export const EventListenersEditor: React.FC<Props> = ({
               </div>
             )}
 
-            {/* ModifyParameter: 允许配置参数修改器 */}
+            {/* ModifyParameter: 允许配置多个参数修改器 */}
             {listener.action.type === 'ModifyParameter' && (
-              <div style={{ marginTop: '4px', display: 'flex', flexDirection: 'column', width: '100%' }}>
-                <ParameterModifierEditor
-                  modifier={listener.action.modifier as ParameterModifier}
-                  onChange={(pm) => handleUpdate(index, { action: { type: 'ModifyParameter', modifier: pm } })}
-                  variables={variables}
-                />
+              <div style={{ marginTop: '4px', display: 'flex', flexDirection: 'column', width: '100%', gap: '8px' }}>
+                {listener.action.modifiers.map((modifier, mIdx) => (
+                  <div key={mIdx} style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '4px',
+                    padding: '8px',
+                    background: 'rgba(255,255,255,0.03)',
+                    border: '1px solid #333',
+                    borderRadius: '4px',
+                    position: 'relative'
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                      <button
+                        onClick={() => handleDeleteModifier(index, mIdx)}
+                        className="btn-remove-text"
+                        title="Remove Modifier"
+                      >
+                        × Remove
+                      </button>
+                    </div>
+                    <ParameterModifierEditor
+                      modifier={modifier}
+                      onChange={(pm) => handleUpdateModifier(index, mIdx, pm)}
+                      variables={variables}
+                    />
+                  </div>
+                ))}
+
+                <button
+                  className="btn-ghost"
+                  onClick={() => handleAddModifier(index)}
+                  style={{
+                    width: '100%',
+                    justifyContent: 'center',
+                    marginTop: '4px',
+                    borderStyle: 'dashed',
+                    opacity: 0.7
+                  }}
+                >
+                  + Add Parameter Modifier
+                </button>
               </div>
             )}
           </div>
