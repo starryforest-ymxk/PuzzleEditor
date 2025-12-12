@@ -27,7 +27,14 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({ nodeId, readOnly =
     const scriptOptions = Object.values<ScriptDefinition>(scriptDefs).map(s => ({ id: s.id, name: s.name, state: s.state }));
     const lifecycleScriptOptions = Object.values<ScriptDefinition>(scriptDefs)
         .filter(s => s.category === 'Lifecycle' && (!s.lifecycleType || s.lifecycleType === 'Node'))
-        .map(s => ({ id: s.id, name: s.name, state: s.state }));
+        .map(s => ({
+            id: s.id,
+            name: s.name,
+            state: s.state,
+            key: s.key,
+            category: s.category,
+            description: s.description
+        }));
     const eventOptions = Object.values<EventDefinition>(project.blackboard.events || {}).map(e => ({ id: e.id, name: e.name, state: e.state }));
 
     const node = project.nodes[nodeId];
@@ -76,17 +83,9 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({ nodeId, readOnly =
                         placeholder="Select lifecycle script"
                         warnOnMarkedDelete
                         disabled={readOnly}
+                        showDetails
+                        onClear={node.lifecycleScriptId ? () => dispatch({ type: 'UPDATE_NODE', payload: { nodeId: node.id, data: { lifecycleScriptId: undefined } } }) : undefined}
                     />
-                    {node.lifecycleScriptId && (
-                        <button
-                            className="btn-ghost"
-                            onClick={() => dispatch({ type: 'UPDATE_NODE', payload: { nodeId: node.id, data: { lifecycleScriptId: undefined } } })}
-                            disabled={readOnly}
-                            style={{ height: 30, padding: '4px 10px' }}
-                        >
-                            Clear
-                        </button>
-                    )}
                 </div>
             </div>
 

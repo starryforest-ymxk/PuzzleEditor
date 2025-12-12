@@ -98,8 +98,11 @@ export const PresentationParamEditor: React.FC<Props> = ({
         setTempParams(tempParams.filter(p => p.id !== id));
     };
 
+    // 安全访问 parameters，避免 undefined 错误
+    const params = (scriptDef as any).parameters || [];
+
     const renderDefinedParams = () => {
-        if (scriptDef.parameters.length === 0) {
+        if (params.length === 0) {
             return (
                 <div style={{ fontSize: '11px', color: '#666', fontStyle: 'italic', padding: '8px' }}>
                     No parameters defined in script.
@@ -107,7 +110,7 @@ export const PresentationParamEditor: React.FC<Props> = ({
             );
         }
 
-        return scriptDef.parameters.map(param => {
+        return params.map(param => {
             const existing = bindings.find(b => b.paramName === param.name);
             const sourceType = existing?.source.type || 'Constant';
             const constantValue = existing?.source.type === 'Constant' ? existing.source.value : (param.defaultValue ?? '');

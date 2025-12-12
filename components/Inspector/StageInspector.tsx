@@ -37,7 +37,14 @@ export const StageInspector: React.FC<StageInspectorProps> = ({ stageId, readOnl
         .map((s) => ({ id: s.id, name: s.name, state: s.state }));
     const lifecycleScriptOptions = scriptList
         .filter((s) => s.category === 'Lifecycle' && (!s.lifecycleType || s.lifecycleType === 'Stage'))
-        .map((s) => ({ id: s.id, name: s.name, state: s.state }));
+        .map((s) => ({
+            id: s.id,
+            name: s.name,
+            state: s.state,
+            key: s.key,
+            category: s.category,
+            description: s.description
+        }));
     const graphOptions = Object.values<PresentationGraph>(project.presentationGraphs).map((g) => ({ id: g.id, name: g.name, state: 'Draft' as any }));
     const eventOptions = Object.values<EventDefinition>(project.blackboard.events).map((e) => ({ id: e.id, name: e.name, state: e.state }));
 
@@ -158,17 +165,9 @@ export const StageInspector: React.FC<StageInspectorProps> = ({ stageId, readOnl
                         placeholder="Select lifecycle script"
                         warnOnMarkedDelete
                         disabled={readOnly}
+                        showDetails
+                        onClear={stage.lifecycleScriptId ? () => updateStage({ lifecycleScriptId: undefined }) : undefined}
                     />
-                    {stage.lifecycleScriptId && (
-                        <button
-                            className="btn-ghost"
-                            onClick={() => updateStage({ lifecycleScriptId: undefined })}
-                            disabled={readOnly}
-                            style={{ height: 30, padding: '4px 10px' }}
-                        >
-                            Clear
-                        </button>
-                    )}
                 </div>
             </div>
 

@@ -48,7 +48,14 @@ export const StateInspector = ({ fsmId, stateId, readOnly = false }: Props) => {
     const scriptOptions = useMemo(() => Object.values<ScriptDefinition>(scriptRecords).map(s => ({ id: s.id, name: s.name, state: s.state })), [scriptRecords]);
     const lifecycleScriptOptions = useMemo(() => Object.values<ScriptDefinition>(scriptRecords)
         .filter(s => s.category === 'Lifecycle' && (!s.lifecycleType || s.lifecycleType === 'State'))
-        .map(s => ({ id: s.id, name: s.name, state: s.state })), [scriptRecords]);
+        .map(s => ({
+            id: s.id,
+            name: s.name,
+            state: s.state,
+            key: s.key,
+            category: s.category,
+            description: s.description
+        })), [scriptRecords]);
 
     const handleSetInitial = () => {
         dispatch({
@@ -127,17 +134,9 @@ export const StateInspector = ({ fsmId, stateId, readOnly = false }: Props) => {
                         placeholder="Select lifecycle script"
                         warnOnMarkedDelete
                         disabled={readOnly}
+                        showDetails
+                        onClear={state.lifecycleScriptId ? () => handleChange('lifecycleScriptId', undefined) : undefined}
                     />
-                    {state.lifecycleScriptId && (
-                        <button
-                            className="btn-ghost"
-                            onClick={() => handleChange('lifecycleScriptId', undefined)}
-                            disabled={readOnly}
-                            style={{ height: 30, padding: '4px 10px' }}
-                        >
-                            Clear
-                        </button>
-                    )}
                 </div>
             </div>
 
