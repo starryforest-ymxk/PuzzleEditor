@@ -7,13 +7,17 @@ interface Props {
     state: State;
     position: { x: number; y: number };
     isSelected: boolean;
-    isMultiSelected?: boolean;  // 新增：框选多选状态
+    isMultiSelected?: boolean;  // 框选多选状态
     isInitial: boolean;
     isContextTarget: boolean;
     onMouseDown: (e: React.MouseEvent, stateId: string) => void;
     onMouseUp: (e: React.MouseEvent, stateId: string) => void;
     onContextMenu: (e: React.MouseEvent, stateId: string) => void;
     readOnly?: boolean;
+    /** 是否存在校验错误（引用已删除资源） */
+    hasError?: boolean;
+    /** 错误提示信息 */
+    errorTooltip?: string;
 }
 
 export const StateNode = React.memo(({
@@ -26,10 +30,15 @@ export const StateNode = React.memo(({
     onMouseDown,
     onMouseUp,
     onContextMenu,
-    readOnly
+    readOnly,
+    hasError = false,
+    errorTooltip
 }: Props) => {
-    // 计算边框样式
+    // 计算边框样式：错误状态优先显示红色边框
     const getBoxShadow = () => {
+        if (hasError) {
+            return '0 0 0 2px var(--accent-error, #ef4444), var(--shadow-md)';
+        }
         if (isContextTarget) {
             return '0 0 0 2px var(--accent-warning), var(--shadow-md)';
         }
@@ -49,6 +58,7 @@ export const StateNode = React.memo(({
             onMouseUp={(e) => onMouseUp(e, state.id)}
             onContextMenu={(e) => onContextMenu(e, state.id)}
             onClick={(e) => e.stopPropagation()}
+            title={hasError ? errorTooltip : undefined}
             style={{
                 position: 'absolute',
                 left: position.x,
@@ -65,7 +75,11 @@ export const StateNode = React.memo(({
 
             <div style={{
                 height: 28,
-                background: isInitial ? 'linear-gradient(90deg, #1e3a5f, #2d2d2d)' : '#383838',
+                background: hasError
+                    ? 'linear-gradient(90deg, #3f1515, #2d2d2d)'  // 错误状态：红色渐变
+                    : isInitial
+                        ? 'linear-gradient(90deg, #1e3a5f, #2d2d2d)'
+                        : '#383838',
                 borderBottom: '1px solid rgba(0,0,0,0.5)',
                 display: 'flex',
                 alignItems: 'center',
@@ -75,8 +89,17 @@ export const StateNode = React.memo(({
                 fontWeight: 700,
                 borderRadius: '6px 6px 0 0'
             }}>
-                {isInitial && <span style={{ color: '#4fc1ff', marginRight: '4px' }}>{'>'}</span>}
-                <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{state.name}</span>
+                {/* 错误图标 */}
+                {hasError && (
+                    <span style={{
+                        color: '#ef4444',
+                        marginRight: '4px',
+                        fontSize: '12px',
+                        fontWeight: 'bold'
+                    }}>⚠</span>
+                )}
+                {isInitial && !hasError && <span style={{ color: '#4fc1ff', marginRight: '4px' }}>{'>'}</span>}
+                <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flex: 1 }}>{state.name}</span>
             </div>
 
             <div style={{ padding: '8px', minHeight: 40, fontSize: '11px', color: '#aaa' }}>

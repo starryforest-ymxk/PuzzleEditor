@@ -59,6 +59,9 @@ export const ConnectionArrowMarkers: React.FC = () => (
         <marker id="arrow-context" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
             <path d="M0,0 L0,6 L9,3 z" fill="var(--accent-warning)" />
         </marker>
+        <marker id="arrow-error" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L9,3 z" fill="#ef4444" />
+        </marker>
         <marker id="arrow-temp" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
             <path d="M0,0 L0,6 L9,3 z" fill="#888" fillOpacity="0.8" />
         </marker>

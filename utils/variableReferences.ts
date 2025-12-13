@@ -30,7 +30,7 @@ const collectFromBindings = (
   collector: (info: VariableReferenceInfo) => void,
   origin: string
 ) => {
-  bindings?.forEach(b => collectFromValueSource(b.source, variableId, collector, `${origin} · 参数 ${b.paramName}`));
+  bindings?.forEach(b => collectFromValueSource(b.source, variableId, collector, `${origin} · Param ${b.paramName}`));
 };
 
 const collectFromModifier = (
@@ -41,9 +41,9 @@ const collectFromModifier = (
 ) => {
   if (!modifier) return;
   if (modifier.targetVariableId === variableId && modifier.targetScope === 'NodeLocal') {
-    collector({ location: `${origin} · 目标` });
+    collector({ location: `${origin} · Target` });
   }
-  collectFromValueSource(modifier.source, variableId, collector, `${origin} · 源`);
+  collectFromValueSource(modifier.source, variableId, collector, `${origin} · Source`);
 };
 
 const collectFromCondition = (
@@ -61,16 +61,16 @@ const collectFromCondition = (
   }
 
   if (condition.type === 'AND' || condition.type === 'OR') {
-    condition.children?.forEach((c, idx) => collectFromCondition(c, variableId, collector, `${origin} · 子条件${idx + 1}`));
+    condition.children?.forEach((c, idx) => collectFromCondition(c, variableId, collector, `${origin} · Sub condition ${idx + 1}`));
   }
 
   if (condition.type === 'NOT' && condition.operand) {
-    collectFromCondition(condition.operand, variableId, collector, `${origin} · 取反`);
+    collectFromCondition(condition.operand, variableId, collector, `${origin} · Not`);
   }
 
   if (condition.type === 'COMPARISON') {
-    if (condition.left) collectFromCondition(condition.left, variableId, collector, `${origin} · 左侧`);
-    if (condition.right) collectFromCondition(condition.right, variableId, collector, `${origin} · 右侧`);
+    if (condition.left) collectFromCondition(condition.left, variableId, collector, `${origin} · Left`);
+    if (condition.right) collectFromCondition(condition.right, variableId, collector, `${origin} · Right`);
   }
 };
 
@@ -81,12 +81,12 @@ const collectFromEventListeners = (
   origin: string
 ) => {
   listeners?.forEach((l, idx) => {
-    const base = `${origin} · 监听${idx + 1}`;
+    const base = `${origin} · Listener ${idx + 1}`;
     if (l.action.type === 'InvokeScript') {
-      collectFromBindings(l.action.parameters, variableId, collector, `${base} · 调用脚本参数`);
+      collectFromBindings(l.action.parameters, variableId, collector, `${base} · Invoke script params`);
     } else if (l.action.type === 'ModifyParameter') {
       l.action.modifiers.forEach((m, mIdx) => {
-        collectFromModifier(m, variableId, collector, `${base} · 参数修改${mIdx + 1}`);
+        collectFromModifier(m, variableId, collector, `${base} · Param modifier ${mIdx + 1}`);
       });
     }
   });
@@ -101,12 +101,12 @@ const collectFromPresentationBinding = (
 ) => {
   if (!binding) return;
   if (binding.type === 'Script') {
-    collectFromBindings(binding.parameters, variableId, collector, `${origin} · 演出脚本参数`);
+    collectFromBindings(binding.parameters, variableId, collector, `${origin} · Presentation script params`);
   } else if (binding.type === 'Graph') {
     const graph = graphs[binding.graphId];
     if (!graph) return;
     Object.values(graph.nodes).forEach(node => {
-      collectFromBindings(node.parameters, variableId, collector, `${origin} · 子图节点 ${node.name || node.id}`);
+      collectFromBindings(node.parameters, variableId, collector, `${origin} · Subgraph node ${node.name || node.id}`);
     });
   }
 };
@@ -118,10 +118,10 @@ const collectFromTransition = (
   variableId: string,
   collector: (info: VariableReferenceInfo) => void
 ) => {
-  collectFromCondition(trans.condition, variableId, collector, `转移 ${trans.name || trans.id} · 条件`);
-  collectFromPresentationBinding(trans.presentation, graphs, variableId, collector, `转移 ${trans.name || trans.id} · 演出`);
+  collectFromCondition(trans.condition, variableId, collector, `Transition ${trans.name || trans.id} · Condition`);
+  collectFromPresentationBinding(trans.presentation, graphs, variableId, collector, `Transition ${trans.name || trans.id} · Presentation`);
   (trans.parameterModifiers || []).forEach((m, idx) =>
-    collectFromModifier(m, variableId, collector, `转移 ${trans.name || trans.id} · 参数修改${idx + 1}`)
+    collectFromModifier(m, variableId, collector, `Transition ${trans.name || trans.id} · Param modifier ${idx + 1}`)
   );
 };
 
@@ -132,7 +132,7 @@ const collectFromStatePresentation = (
   collector: (info: VariableReferenceInfo) => void
 ) => {
   if (!state) return;
-  collectFromPresentationBinding(state.presentation, graphs, variableId, collector, `状态 ${state.name || state.id} · 演出`);
+  collectFromPresentationBinding(state.presentation, graphs, variableId, collector, `State ${state.name || state.id} · Presentation`);
 };
 
 /**
@@ -153,12 +153,12 @@ export const findNodeVariableReferences = (
   const push = (info: VariableReferenceInfo) => refs.push(info);
 
   // 1) PuzzleNode 自身的事件监听
-  collectFromEventListeners(node.eventListeners, variableId, push, `PuzzleNode ${node.name || node.id} 事件监听`);
+  collectFromEventListeners(node.eventListeners, variableId, push, `PuzzleNode ${node.name || node.id} event listeners`);
 
   // 2) 状态机内部
   if (fsm) {
     Object.values(fsm.states || {}).forEach(state => {
-      collectFromEventListeners(state.eventListeners, variableId, push, `状态 ${state.name || state.id} 事件监听`);
+      collectFromEventListeners(state.eventListeners, variableId, push, `State ${state.name || state.id} event listeners`);
       collectFromStatePresentation(state as any, graphs, variableId, push);
     });
 
@@ -168,7 +168,7 @@ export const findNodeVariableReferences = (
   // 3) 演出子图直接被此节点引用的情况（防御性遍历：若外部直接关联也能检测到）
   Object.values(project.presentationGraphs || {}).forEach(graph => {
     Object.values(graph.nodes).forEach(nodeItem => {
-      collectFromBindings(nodeItem.parameters, variableId, push, `演出图 ${graph.name || graph.id} · 节点 ${nodeItem.name || nodeItem.id}`);
+      collectFromBindings(nodeItem.parameters, variableId, push, `Presentation graph ${graph.name || graph.id} · Node ${nodeItem.name || nodeItem.id}`);
     });
   });
 

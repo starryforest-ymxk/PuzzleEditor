@@ -5,6 +5,7 @@ import type { MessageLevel } from '../../store/types';
 import { useEditorDispatch, useEditorState } from '../../store/context';
 import { withScope } from '../../utils/variableScope';
 import { findNodeVariableReferences } from '../../utils/variableReferences';
+import { ConfirmDialog } from './ConfirmDialog';
 
 export type LocalVariableOwner = 'node' | 'stage';
 
@@ -20,6 +21,8 @@ export interface LocalVariableEditorProps {
     onUpdateVariable?: (varId: string, data: Partial<VariableDefinition>) => void;
     onDeleteVariable?: (varId: string) => void;
 }
+
+type ConfirmMode = 'soft-delete' | 'hard-delete' | 'delete';
 
 // 类型对应的 UI 颜色
 const getTypeColor = (type: string) => {
@@ -71,6 +74,7 @@ export const LocalVariableEditor: React.FC<LocalVariableEditorProps> = ({
         title: string;
         message: string;
         refs: string[];
+        mode: ConfirmMode;
     } | null>(null);
     const [prevDefaults, setPrevDefaults] = useState<Record<string, any>>({});
 
@@ -154,6 +158,8 @@ export const LocalVariableEditor: React.FC<LocalVariableEditorProps> = ({
 
     const handleUpdate = (id: string, field: string, value: any) => {
         if (!canMutate || !ownerId) return;
+        const variable = variables[id];
+        if (!variable || variable.state === 'MarkedForDelete') return;
 
         if (field === 'name') {
             const trimmed = String(value).trim();
@@ -183,53 +189,75 @@ export const LocalVariableEditor: React.FC<LocalVariableEditorProps> = ({
         setErrors(prev => ({ ...prev, [id]: '' }));
     };
 
-    const handleDelete = (id: string) => {
-        if (!canMutate || !ownerId) return;
-        const variable = variables[id];
-        const refs = referenceMap[id] || [];
-        const needsConfirm = (variable?.state === 'Implemented') || refs.length > 0;
-
-        // 无需确认则直接删除
-        if (!needsConfirm) {
-            if (onDeleteVariable) {
-                onDeleteVariable(id);
-            } else if (supportsBuiltInActions) {
-                dispatch({ type: 'DELETE_NODE_PARAM', payload: { nodeId: ownerId, varId: id } });
-            }
-            pushMessage('info', `Deleted ${scopeLabel} variable "${variable?.name || id}".`);
+    // 软删/硬删统一出口，保持消息语义一致
+    const applyDeleteAction = (varId: string, mode: ConfirmMode, refs: string[]) => {
+        const variable = variables[varId];
+        if (!variable) {
+            setConfirmDialog(null);
             return;
         }
 
-        // 需要确认时展示引用摘要
-        const preview = refs.slice(0, 5);
-        const msg = [
-            `Variable "${variable?.name || id}"${variable?.state === 'Implemented' ? ' is Implemented' : ''}${refs.length > 0 ? ` and referenced ${refs.length} time(s)` : ''}.`,
-            refs.length > 0 ? 'Deleting it requires fixing related conditions/parameters manually.' : ''
-        ].join(' ');
+        if (onDeleteVariable) {
+            onDeleteVariable(varId);
+        } else if (supportsBuiltInActions) {
+            dispatch({ type: 'DELETE_NODE_PARAM', payload: { nodeId: ownerId!, varId } });
+        }
 
-        setConfirmDialog({
-            varId: id,
-            title: 'Confirm Delete',
-            message: msg,
-            refs: preview
-        });
+        if (mode === 'soft-delete' && variable.state === 'Implemented') {
+            pushMessage('warning', `Marked ${scopeLabel} variable "${variable.name}" for delete. Editing is now locked.`);
+        } else if (mode === 'hard-delete' || variable.state === 'MarkedForDelete') {
+            pushMessage(refs.length > 0 ? 'warning' : 'info', `Permanently deleted ${scopeLabel} variable "${variable.name}".`);
+        } else {
+            pushMessage(refs.length > 0 ? 'warning' : 'info', `Deleted ${scopeLabel} variable "${variable.name}".`);
+        }
+
+        setConfirmDialog(null);
+    };
+
+    const handleDelete = (id: string) => {
+        if (!canMutate || !ownerId) return;
+        const variable = variables[id];
+        if (!variable) return;
+        const refs = referenceMap[id] || [];
+        const preview = refs.slice(0, 5);
+        const hasRefs = refs.length > 0;
+
+        if (variable.state === 'MarkedForDelete') {
+            setConfirmDialog({
+                varId: id,
+                title: 'Apply Delete (Irreversible)',
+                message: 'This variable is already marked for delete. Applying delete will permanently remove it. This action cannot be undone.',
+                refs: preview,
+                mode: 'hard-delete'
+            });
+            return;
+        }
+
+        if (hasRefs) {
+            const isImplemented = variable.state === 'Implemented';
+            setConfirmDialog({
+                varId: id,
+                title: isImplemented ? 'Mark For Delete' : 'Confirm Delete',
+                message: `Variable "${variable.name}" is referenced ${refs.length} time(s). ${isImplemented ? 'It will be marked as "MarkedForDelete" and locked.' : 'Deleting it will require fixing those references manually.'}`,
+                refs: preview,
+                mode: isImplemented ? 'soft-delete' : 'delete'
+            });
+            return;
+        }
+
+        if (variable.state === 'Implemented') {
+            applyDeleteAction(id, 'soft-delete', refs);
+            return;
+        }
+
+        applyDeleteAction(id, 'delete', refs);
     };
 
     const handleConfirmDelete = () => {
         if (!confirmDialog || !canMutate || !ownerId) return;
-        const { varId, refs } = confirmDialog;
-        const variable = variables[varId];
-        if (onDeleteVariable) {
-            onDeleteVariable(varId);
-        } else if (supportsBuiltInActions) {
-            dispatch({ type: 'DELETE_NODE_PARAM', payload: { nodeId: ownerId, varId } });
-        }
-        if (refs.length > 0) {
-            pushMessage('warning', `Deleted referenced ${scopeLabel} variable "${variable?.name || varId}". Please review ${referenceMap[varId]?.length || refs.length} reference(s).`);
-        } else {
-            pushMessage('info', `Deleted ${scopeLabel} variable "${variable?.name || varId}".`);
-        }
-        setConfirmDialog(null);
+        const { varId, mode, refs } = confirmDialog;
+        const actualRefs = referenceMap[varId] || refs;
+        applyDeleteAction(varId, mode, actualRefs);
     };
 
     // 数值类型失焦校验：无效则回退到上一次合法值
@@ -237,6 +265,7 @@ export const LocalVariableEditor: React.FC<LocalVariableEditorProps> = ({
         if (!canMutate || !ownerId) return;
         const variable = variables[varId];
         if (!variable) return;
+        if (variable.state === 'MarkedForDelete') return;
         const type = variable.type;
         if (type !== 'integer' && type !== 'float') return;
 
@@ -259,6 +288,12 @@ export const LocalVariableEditor: React.FC<LocalVariableEditorProps> = ({
         }
     };
 
+    const confirmButtonLabel = confirmDialog?.mode === 'hard-delete'
+        ? 'Apply Delete'
+        : confirmDialog?.mode === 'soft-delete'
+            ? 'Mark for Delete'
+            : 'Delete';
+
     return (
         <div>
             {vars.length === 0 && (
@@ -267,8 +302,14 @@ export const LocalVariableEditor: React.FC<LocalVariableEditorProps> = ({
                 </div>
             )}
 
-            {vars.map(v => (
-                <div key={v.id} className="blackboard-var-item">
+            {vars.map(v => {
+                const isMarkedForDelete = v.state === 'MarkedForDelete';
+                return (
+                    <div
+                        key={v.id}
+                        className="blackboard-var-item"
+                        style={{ opacity: isMarkedForDelete ? 0.55 : 1 }}
+                    >
                     {/* Header: Name and Type */}
                     <div className="blackboard-var-header">
                         <div className="blackboard-var-info">
@@ -278,7 +319,7 @@ export const LocalVariableEditor: React.FC<LocalVariableEditorProps> = ({
                                     className="prop-value"
                                     value={v.name}
                                     onChange={(e) => handleUpdate(v.id, 'name', e.target.value)}
-                                    disabled={readOnly || !canMutate}
+                                    disabled={readOnly || !canMutate || isMarkedForDelete}
                                     style={{ background: 'transparent', border: 'none', borderBottom: '1px dashed #444', color: '#ddd', width: '140px', minWidth: '100px' }}
                                 />
                             ) : (
@@ -311,7 +352,7 @@ export const LocalVariableEditor: React.FC<LocalVariableEditorProps> = ({
                         <select
                             value={v.type}
                             onChange={(e) => handleUpdate(v.id, 'type', e.target.value as VariableType)}
-                            disabled={!canMutate}
+                            disabled={!canMutate || isMarkedForDelete}
                             style={{
                                 fontSize: '9px', padding: '2px 4px', borderRadius: '3px',
                                 background: '#222', border: `1px solid ${getTypeColor(v.type)}`,
@@ -330,7 +371,7 @@ export const LocalVariableEditor: React.FC<LocalVariableEditorProps> = ({
                                     <select
                                         value={(v.defaultValue === true || v.defaultValue === 'true') ? 'true' : 'false'}
                                         onChange={(e) => handleUpdate(v.id, 'defaultValue', e.target.value === 'true')}
-                                        disabled={!canMutate}
+                                        disabled={!canMutate || isMarkedForDelete}
                                         style={{
                                             width: '100%', background: '#1e1e1e', border: '1px solid #333',
                                             color: '#e0e0e0', fontFamily: 'monospace', fontSize: '11px', padding: '2px 4px',
@@ -346,7 +387,7 @@ export const LocalVariableEditor: React.FC<LocalVariableEditorProps> = ({
                                         value={String(v.defaultValue ?? '')}
                                         onChange={(e) => handleUpdate(v.id, 'defaultValue', e.target.value)}
                                         onBlur={(e) => handleNumberBlur(v.id, e.target.value)}
-                                        disabled={!canMutate}
+                                        disabled={!canMutate || isMarkedForDelete}
                                         style={{
                                             width: '100%', background: '#1e1e1e', border: '1px solid #333',
                                             color: '#e0e0e0', fontFamily: 'monospace', fontSize: '11px', padding: '2px 4px',
@@ -371,7 +412,7 @@ export const LocalVariableEditor: React.FC<LocalVariableEditorProps> = ({
                             <textarea
                                 value={v.description || ''}
                                 onChange={(e) => handleUpdate(v.id, 'description', e.target.value)}
-                                disabled={!canMutate}
+                                disabled={!canMutate || isMarkedForDelete}
                                 placeholder="Description"
                                 style={{
                                     width: '100%', minHeight: '32px', background: '#1e1e1e', border: '1px solid #333',
@@ -385,8 +426,9 @@ export const LocalVariableEditor: React.FC<LocalVariableEditorProps> = ({
                             </div>
                         )}
                     </div>
-                </div>
-            ))}
+                    </div>
+                );
+            })}
 
             {/* Add New Row */}
             {canMutate && (
@@ -428,83 +470,16 @@ export const LocalVariableEditor: React.FC<LocalVariableEditorProps> = ({
                 </div>
             )}
 
-            {/* Custom confirmation dialog */}
             {confirmDialog && canMutate && (
-                <div style={{
-                    position: 'fixed',
-                    top: 0, left: 0, right: 0, bottom: 0,
-                    background: 'rgba(0,0,0,0.55)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 9999
-                }}>
-                    <div style={{
-                        width: '420px',
-                        background: '#1f1f23',
-                        border: '1px solid #52525b',
-                        borderRadius: '6px',
-                        boxShadow: '0 12px 32px rgba(0,0,0,0.45)',
-                        padding: '20px',
-                        color: '#e4e4e7',
-                        fontFamily: 'Inter, "IBM Plex Mono", monospace'
-                    }}>
-                        <div style={{ fontSize: '13px', letterSpacing: '0.5px', color: '#f97316', marginBottom: '8px', textTransform: 'uppercase' }}>
-                            {confirmDialog.title}
-                        </div>
-                        <div style={{ fontSize: '14px', marginBottom: '12px', lineHeight: 1.5 }}>
-                            {confirmDialog.message}
-                        </div>
-                        {confirmDialog.refs.length > 0 && (
-                            <div style={{
-                                border: '1px solid #2f2f36',
-                                borderRadius: '4px',
-                                padding: '10px',
-                                background: '#18181b',
-                                maxHeight: '140px',
-                                overflow: 'auto',
-                                marginBottom: '12px'
-                            }}>
-                                <div style={{ fontSize: '12px', color: '#a1a1aa', marginBottom: '6px' }}>Reference preview</div>
-                                {confirmDialog.refs.map((r, idx) => (
-                                    <div key={idx} style={{ fontSize: '12px', color: '#e4e4e7', lineHeight: 1.4 }}>? {r}</div>
-                                ))}
-                                {referenceMap[confirmDialog.varId]?.length > confirmDialog.refs.length && (
-                                    <div style={{ fontSize: '12px', color: '#a1a1aa', marginTop: '4px' }}>... {referenceMap[confirmDialog.varId].length - confirmDialog.refs.length} more reference(s)</div>
-                                )}
-                            </div>
-                        )}
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
-                            <button
-                                onClick={() => setConfirmDialog(null)}
-                                style={{
-                                    padding: '8px 14px',
-                                    borderRadius: '4px',
-                                    border: '1px solid #3f3f46',
-                                    background: '#27272a',
-                                    color: '#e4e4e7',
-                                    cursor: 'pointer'
-                                }}
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={handleConfirmDelete}
-                                style={{
-                                    padding: '8px 14px',
-                                    borderRadius: '4px',
-                                    border: '1px solid #f97316',
-                                    background: '#f97316',
-                                    color: '#0b0b0f',
-                                    fontWeight: 600,
-                                    cursor: 'pointer'
-                                }}
-                            >
-                                Delete
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                <ConfirmDialog
+                    title={confirmDialog.title}
+                    message={confirmDialog.message}
+                    confirmText={confirmButtonLabel}
+                    references={confirmDialog.refs}
+                    totalReferences={referenceMap[confirmDialog.varId]?.length}
+                    onCancel={() => setConfirmDialog(null)}
+                    onConfirm={handleConfirmDelete}
+                />
             )}
         </div>
     );

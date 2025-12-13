@@ -12,6 +12,8 @@ interface InfoOverlayProps {
     isLineCuttingMode: boolean;
     isLinkMode: boolean;
     isPanMode: boolean;
+    /** 是否缺少初始状态 */
+    hasNoInitialState?: boolean;
 }
 
 export const CanvasInfoOverlay: React.FC<InfoOverlayProps> = ({
@@ -19,7 +21,8 @@ export const CanvasInfoOverlay: React.FC<InfoOverlayProps> = ({
     multiSelectCount,
     isLineCuttingMode,
     isLinkMode,
-    isPanMode
+    isPanMode,
+    hasNoInitialState = false
 }) => (
     <div style={{
         position: 'absolute',
@@ -39,6 +42,20 @@ export const CanvasInfoOverlay: React.FC<InfoOverlayProps> = ({
         }}>
             <div style={{ fontSize: '10px', color: '#888' }}>FSM Editor</div>
             <div style={{ fontSize: '14px', color: '#eee', fontWeight: 600 }}>{nodeName}</div>
+            {/* 无初始状态警告 */}
+            {hasNoInitialState && (
+                <div style={{
+                    fontSize: '10px',
+                    color: '#ef4444',
+                    marginTop: '4px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px'
+                }}>
+                    <span style={{ fontSize: '12px' }}>⚠</span>
+                    No initial state set
+                </div>
+            )}
             {multiSelectCount > 0 && (
                 <div style={{ fontSize: '10px', color: 'var(--accent-color)', marginTop: '4px' }}>
                     {`Selected ${multiSelectCount} node(s)`}

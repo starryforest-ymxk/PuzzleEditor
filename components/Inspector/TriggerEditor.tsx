@@ -1,6 +1,7 @@
 import React from 'react';
 import { TriggerConfig } from '../../types/stateMachine';
 import { ResourceSelect, ResourceOption } from './ResourceSelect';
+import { InspectorWarning } from './InspectorInfo';
 
 interface Props {
     triggers: TriggerConfig[];
@@ -113,23 +114,7 @@ export const TriggerEditor: React.FC<Props> = ({
                 ))}
 
                 {triggers.length === 0 && (
-                    <div style={{
-                        color: '#f97316',
-                        fontSize: '11px',
-                        padding: '12px',
-                        textAlign: 'center',
-                        background: 'rgba(249, 115, 22, 0.1)',
-                        border: '1px solid rgba(249, 115, 22, 0.3)',
-                        borderRadius: '4px',
-                        marginBottom: '8px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '6px'
-                    }}>
-                        <span>⚠</span>
-                        <span>Warning: At least one trigger is required.</span>
-                    </div>
+                    <InspectorWarning message="At least one trigger is required." />
                 )}
 
                 <button

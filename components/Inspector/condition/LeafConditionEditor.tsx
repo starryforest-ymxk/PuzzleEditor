@@ -24,6 +24,7 @@ import {
     INPUT_HEIGHT,
     ROW_GAP
 } from './conditionStyles';
+import { InspectorError } from '../InspectorInfo';
 
 interface LeafConditionEditorProps {
     condition: ConditionExpression;
@@ -176,14 +177,15 @@ export const LeafConditionEditor: React.FC<LeafConditionEditorProps> = ({
         }
     };
 
-    // 渲染变量状态警告
+    // 渲染变量状态警告（使用 InspectorError 组件）
     const renderVariableWarning = (variableId?: string) => {
         const state = checkVariableState(variableId);
         if (!state.missing && !state.marked) return null;
         return (
-            <div style={{ color: COLORS.danger, fontSize: '11px', marginTop: '4px' }}>
-                {state.missing ? 'Variable unavailable' : 'Variable is marked for delete'}
-            </div>
+            <InspectorError
+                message={state.missing ? 'Variable unavailable' : 'Variable is marked for delete'}
+                style={{ marginTop: '4px', marginBottom: 0 }}
+            />
         );
     };
 
@@ -255,11 +257,6 @@ export const LeafConditionEditor: React.FC<LeafConditionEditorProps> = ({
                             style={{ width: '100%' }}
                             height={INPUT_HEIGHT}
                         />
-                        {(scriptState.missing || scriptState.marked) && (
-                            <div style={{ color: COLORS.danger, fontSize: '11px', marginTop: '4px' }}>
-                                {scriptState.missing ? 'Script unavailable' : 'Script is marked for delete'}
-                            </div>
-                        )}
                     </div>
                 )}
 
@@ -281,7 +278,6 @@ export const LeafConditionEditor: React.FC<LeafConditionEditorProps> = ({
                             placeholder="Select variable"
                             height={INPUT_HEIGHT}
                         />
-                        {renderVariableWarning(condition.variableId)}
                     </div>
                 )}
 
@@ -325,6 +321,26 @@ export const LeafConditionEditor: React.FC<LeafConditionEditorProps> = ({
                     </button>
                 )}
             </div>
+
+            {/* SCRIPT_REF 错误提示（显示在 Header Row 下一行） */}
+            {condition.type === 'SCRIPT_REF' && (scriptState.missing || scriptState.marked) && (
+                <InspectorError
+                    message={scriptState.missing ? 'Script unavailable' : 'Script is marked for delete'}
+                    style={{ marginTop: `${ROW_GAP}px`, marginBottom: 0 }}
+                />
+            )}
+
+            {/* VARIABLE_REF 错误提示（显示在 Header Row 下一行） */}
+            {condition.type === 'VARIABLE_REF' && (() => {
+                const state = checkVariableState(condition.variableId);
+                if (!state.missing && !state.marked) return null;
+                return (
+                    <InspectorError
+                        message={state.missing ? 'Variable unavailable' : 'Variable is marked for delete'}
+                        style={{ marginTop: `${ROW_GAP}px`, marginBottom: 0 }}
+                    />
+                );
+            })()}
 
             {/* SCRIPT_REF 详细信息显示 (Rendered below row to verify layout) */}
             {condition.type === 'SCRIPT_REF' && condition.scriptId && (() => {

@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useMemo } from 'react';
 import { useEditorState, useEditorDispatch } from '../../store/context';
 import { PuzzleNode } from '../../types/puzzleNode';
 import { State, Transition } from '../../types/stateMachine';
@@ -11,6 +11,7 @@ import { ConnectionLine, ConnectionControls } from './Elements/ConnectionLine';
 import { CanvasContextMenu, ContextMenuState } from './Elements/CanvasContextMenu';
 import { CanvasInfoOverlay, BoxSelectOverlay, SnapPointsLayer, CuttingLineOverlay, ShortcutPanel } from './Elements/CanvasOverlays';
 import { ConnectionArrowMarkers } from './Elements/TempConnectionLine';
+import { validateStateMachine } from '../../utils/fsmValidation';
 
 interface Props {
     node: PuzzleNode;
@@ -60,6 +61,13 @@ export const StateMachineCanvas = ({ node, readOnly = false }: Props) => {
 
     const fsm = project.stateMachines[node.stateMachineId];
     const multiSelectIds = ui.multiSelectStateIds || [];
+
+    // ========== FSM 校验：检测引用已删除资源的节点/连线 ==========
+    const editorState = useEditorState();
+    const validationResult = useMemo(() => {
+        if (!fsm) return { states: {}, transitions: {}, hasInitialState: true };
+        return validateStateMachine(fsm.id, editorState, node.id);
+    }, [fsm, editorState, node.id]);
 
     // 进入状态机画布时，默认选中当前 PuzzleNode，满足“下钻后默认选中节点”需求
     useEffect(() => {
@@ -430,6 +438,7 @@ export const StateMachineCanvas = ({ node, readOnly = false }: Props) => {
                 isLineCuttingMode={isLineCuttingMode}
                 isLinkMode={Boolean(linkingState) || isLinkKeyActive}
                 isPanMode={isPanningActive}
+                hasNoInitialState={!validationResult.hasInitialState}
             />
             <ShortcutPanel visible={showShortcuts} onToggle={() => setShowShortcuts(v => !v)} />
 
@@ -509,6 +518,8 @@ export const StateMachineCanvas = ({ node, readOnly = false }: Props) => {
                             const fromPos = getNodeDisplayPosition(trans.fromStateId, fsm.states[trans.fromStateId]?.position || { x: 0, y: 0 });
                             const toPos = getNodeDisplayPosition(trans.toStateId, fsm.states[trans.toStateId]?.position || { x: 0, y: 0 });
 
+                            // 获取连线校验结果
+                            const transValidation = validationResult.transitions[trans.id];
                             return (
                                 <ConnectionLine
                                     key={trans.id}
@@ -529,6 +540,7 @@ export const StateMachineCanvas = ({ node, readOnly = false }: Props) => {
                                     onCut={(e, id) => {
                                         dispatch({ type: 'DELETE_TRANSITION', payload: { fsmId: fsm.id, transitionId: id } });
                                     }}
+                                    hasError={transValidation?.hasError}
                                 />
                             );
                         })}
@@ -582,6 +594,11 @@ export const StateMachineCanvas = ({ node, readOnly = false }: Props) => {
                         if (modifyingTransition?.id === trans.id) return null;
                         const fromPos = getNodeDisplayPosition(trans.fromStateId, fsm.states[trans.fromStateId]?.position);
                         const toPos = getNodeDisplayPosition(trans.toStateId, fsm.states[trans.toStateId]?.position);
+                        // 获取连线校验结果
+                        const transValidation = validationResult.transitions[trans.id];
+                        const errorTooltip = transValidation?.hasError
+                            ? transValidation.issues.map(i => i.message).join('\n')
+                            : undefined;
                         return (
                             <ConnectionControls
                                 key={`ctrl-${trans.id}`}
@@ -597,6 +614,8 @@ export const StateMachineCanvas = ({ node, readOnly = false }: Props) => {
                                     startModifyingTransition(e, id, type);
                                 }}
                                 readOnly={readOnly}
+                                hasError={transValidation?.hasError}
+                                errorTooltip={errorTooltip}
                             />
                         );
                     })}
@@ -605,21 +624,30 @@ export const StateMachineCanvas = ({ node, readOnly = false }: Props) => {
                     <SnapPointsLayer snapPoints={snapPoints} activeSnapPoint={activeSnapPoint} visible={Boolean(linkingState || modifyingTransition)} />
 
                     {/* 5. State Nodes */}
-                    {Object.values(fsm.states).map((state: State) => (
-                        <StateNode
-                            key={state.id}
-                            state={state}
-                            position={getNodeDisplayPosition(state.id, state.position)}
-                            isSelected={ui.selection.type === 'STATE' && ui.selection.id === state.id}
-                            isMultiSelected={multiSelectIds.includes(state.id)}
-                            isInitial={fsm.initialStateId === state.id}
-                            isContextTarget={contextMenu?.type === 'NODE' && contextMenu?.targetId === state.id}
-                            onMouseDown={handleStateMouseDown}
-                            onMouseUp={handleStateMouseUp}
-                            onContextMenu={(e) => handleContextMenu(e, 'NODE', state.id)}
-                            readOnly={readOnly}
-                        />
-                    ))}
+                    {Object.values(fsm.states).map((state: State) => {
+                        // 获取状态校验结果
+                        const stateValidation = validationResult.states[state.id];
+                        const errorTooltip = stateValidation?.hasError
+                            ? stateValidation.issues.map(i => i.message).join('\n')
+                            : undefined;
+                        return (
+                            <StateNode
+                                key={state.id}
+                                state={state}
+                                position={getNodeDisplayPosition(state.id, state.position)}
+                                isSelected={ui.selection.type === 'STATE' && ui.selection.id === state.id}
+                                isMultiSelected={multiSelectIds.includes(state.id)}
+                                isInitial={fsm.initialStateId === state.id}
+                                isContextTarget={contextMenu?.type === 'NODE' && contextMenu?.targetId === state.id}
+                                onMouseDown={handleStateMouseDown}
+                                onMouseUp={handleStateMouseUp}
+                                onContextMenu={(e) => handleContextMenu(e, 'NODE', state.id)}
+                                readOnly={readOnly}
+                                hasError={stateValidation?.hasError}
+                                errorTooltip={errorTooltip}
+                            />
+                        );
+                    })}
                 </div>
                 <style>{` .ctx-item { padding: 8px 12px; font-size: 13px; cursor: pointer; color: #eee; } .ctx-item:hover { background: #3e3e42; } .ctx-item.danger { color: #ff6b6b; } .handle { position: absolute; width: 12px; height: 12px; background: rgba(255, 255, 255, 0.2); border: 1px solid rgba(255,255,255,0.5); border-radius: 50%; transform: translate(-50%, -50%); cursor: grab; opacity: 0; transition: opacity 0.2s, background 0.2s; } .handle:hover { opacity: 1; background: var(--accent-color); border-color: #fff; } `}</style>
             </div>

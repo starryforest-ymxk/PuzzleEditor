@@ -212,3 +212,43 @@
   - Transition Inspector、Event Listeners、Trigger Editor、Presentation Binding 中的新增按钮均呈虚线边框、11px 字重 500 文本；
   - Hover 时背景/边框高亮一致；
   - ReadOnly/disabled 时透明度下降且不可点击。
+
+## 18. P3-T09 实施记录：画布校验与错误标记
+- **功能落地**：
+  - 在 FSM 画布上实现局部即时校验，当节点/连线引用已删除资源时显示红色错误标记。
+  - 在 Info Overlay（画布左上角）显示无初始状态警告。
+  - State 节点引用已删除脚本/变量/事件时，显示红色边框和警告图标（⚠）。
+  - Transition 连线引用已删除资源时，连线和标签变为红色并显示警告图标。
+  - 鼠标悬停在错误节点/连线上时，tooltip 显示具体错误信息。
+- **技术实现**：
+  - 新增 `utils/fsmValidation.ts` 校验工具，提供 `checkStateValidation`、`checkTransitionValidation`、`validateStateMachine` 函数。
+  - 校验涵盖：生命周期脚本、事件监听器、触发器、条件表达式、参数修改器、演出绑定中的资源引用。
+  - 修改 `StateNode.tsx` 添加 `hasError`、`errorTooltip` 属性，错误时显示红色边框和警告图标。
+  - 修改 `ConnectionLine.tsx` 添加错误状态下的红色连线和标签样式。
+  - 修改 `TempConnectionLine.tsx` 添加 `arrow-error` 箭头标记定义。
+  - 修改 `CanvasOverlays.tsx` 的 `CanvasInfoOverlay` 添加无初始状态警告显示。
+  - 在 `StateMachineCanvas.tsx` 中使用 `useMemo` 计算并缓存校验结果，传递给节点和连线组件。
+- **校验规则**：
+  - 检测 `MarkedForDelete` 状态的脚本、事件、变量引用。
+  - 支持 Global、StageLocal、NodeLocal 作用域的变量引用检查。
+  - 递归检查条件表达式中的 AND/OR/NOT/COMPARISON/SCRIPT_REF/VARIABLE_REF。
+- **手动测试**（待用户验证）：
+  - 进入 FSM 画布，在 Blackboard 将某脚本标记为 `MarkedForDelete`，观察引用该脚本的状态/连线是否显示红色警告。
+  - 检查无初始状态时 Info Overlay 是否显示警告。
+  - 验证 tooltip 显示具体错误信息。
+- **已知限制/后续**：
+  - 演出图（PresentationGraph）暂无软删除状态，相关引用暂不校验。
+  - 当前为被动校验，未来可考虑在导出时进行阻断性校验。
+
+## 19. P3-T01 补充：局部变量软删二段确认
+- **背景**：Implemented 状态的局部变量第一次删除应仅软删除、锁定编辑，二次确认后才物理移除，避免误删生产变量。
+- **方案**：LocalVariableEditor 引入三态删除模式：`soft-delete`（Implemented → MarkedForDelete）、`hard-delete`（MarkedForDelete → 物理移除）、`delete`（Draft/其他直接删除）。MarkedForDelete 变量在列表中置灰，所有表单控件禁用，但保留右上角删除按钮以便应用删除。
+- **交互**：
+  - 首次删除 Implemented 变量弹窗提示“Mark For Delete”，确认后变为 MarkedForDelete 并锁定；
+  - 已 MarkedForDelete 再次删除弹窗“Apply Delete (Irreversible)”，明确不可撤销，确认后彻底移除；
+  - 无引用的 Implemented 变量可直接删除，自动进入 MarkedForDelete 并锁定；有引用时仍需确认；
+  - 引用预览仍显示前 5 条，消息堆栈分别推送 warning/info。
+- **手动测试**：
+  1) 对 Implemented 变量执行首次删除 -> 状态变 MarkedForDelete、输入/选择控件禁用、卡片置灰；
+  2) 再次点击删除 -> 弹出不可撤销提示并确认，变量从列表移除；
+  3) Draft 变量无引用时仍可直接删除，带引用时弹一次确认。
