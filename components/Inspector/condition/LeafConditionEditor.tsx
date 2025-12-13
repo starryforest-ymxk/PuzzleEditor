@@ -264,7 +264,7 @@ export const LeafConditionEditor: React.FC<LeafConditionEditorProps> = ({
 
                 {/* VARIABLE_REF 类型：布尔变量选择器 (Inline) */}
                 {condition.type === 'VARIABLE_REF' && (
-                    <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
                         <VariableSelector
                             value={condition.variableId || ''}
                             variables={booleanVars}
