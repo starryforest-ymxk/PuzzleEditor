@@ -290,22 +290,13 @@
 
 ### 6.3 参数传递配置（Parameter Passing）
 
-当绑定了 **演出脚本** 时，Inspector 会在 PRESENTATION BINDING 区域显示 **参数传递** 配置。
+当绑定了 **演出脚本** 时，Inspector 会在 PRESENTATION BINDING 区域显示 **参数传递** 配置。可以添加如下的参数传递：
 
-#### 脚本参数（Script Parameters）
-- 展示脚本定义的参数列表（如有）。
-- 每个参数可选择值来源：
-  - **Constant**：手填常量值
-  - **Variable**：下拉选择当前作用域可见的 Global/Local 变量
+#### 已有变量（Variables）
+- 将已定义的全局变量，或者当前能访问的局部变量传递给脚本。
 
 #### 临时参数（Temporary Parameters）
-- 点击 `+ Temporary Parameter` 添加
-- 配置项：
-  - **Target Param Name**：目标脚本内的变量名
-  - **Type**：String/Integer/Float/Boolean
-  - **Name**：显示名称
-  - **Comment**：可选注释
-  - **Value Source**：Constant（常量值）或 Variable（变量引用）
+- 
 
 ---
 

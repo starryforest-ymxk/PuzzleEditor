@@ -61,9 +61,9 @@ export const TransitionInspector = ({ fsmId, transitionId, readOnly = false }: P
             description: s.description
         })), [scriptRecords]);
     const conditionScriptOptions = useMemo(() => Object.values<ScriptDefinition>(scriptRecords).filter(s => s.category === 'Condition').map(s => ({ id: s.id, name: s.name, state: s.state })), [scriptRecords]);
-    const performanceScriptOptions = useMemo(() => Object.values<ScriptDefinition>(scriptRecords).filter(s => s.category === 'Performance').map(s => ({ id: s.id, name: s.name, state: s.state })), [scriptRecords]);
+    const performanceScriptOptions = useMemo(() => Object.values<ScriptDefinition>(scriptRecords).filter(s => s.category === 'Performance').map(s => ({ id: s.id, name: s.name, state: s.state, description: s.description })), [scriptRecords]);
     const scriptDefs = scriptRecords;
-    const graphOptions = useMemo(() => Object.values<PresentationGraph>(project.presentationGraphs).map(g => ({ id: g.id, name: g.name, state: 'Draft' as const })), [project.presentationGraphs]);
+    const graphOptions = useMemo(() => Object.values<PresentationGraph>(project.presentationGraphs).map(g => ({ id: g.id, name: g.name, state: 'Draft' as const, description: g.description })), [project.presentationGraphs]);
 
     if (!trans || !fsm) return <div className="empty-state">Transition not found</div>;
 
@@ -179,6 +179,7 @@ export const TransitionInspector = ({ fsmId, transitionId, readOnly = false }: P
                         scriptDefs={scriptDefs}
                         scriptOptions={performanceScriptOptions}
                         graphOptions={graphOptions}
+                        graphData={project.presentationGraphs}
                         variables={visibleVars}
                         title="On Transition"
                         onNavigateToGraph={(graphId) => dispatch({ type: 'NAVIGATE_TO', payload: { graphId } })}

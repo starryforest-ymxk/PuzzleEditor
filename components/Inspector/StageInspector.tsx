@@ -12,11 +12,12 @@ import { useEditorState, useEditorDispatch } from '../../store/context';
 import { StageNode } from '../../types/stage';
 import { ScriptDefinition } from '../../types/manifest';
 import { PresentationGraph } from '../../types/presentation';
-import { EventDefinition, VariableDefinition } from '../../types/blackboard';
+import { EventDefinition } from '../../types/blackboard';
 import { EventListenersEditor } from './EventListenersEditor';
 import { PresentationBindingEditor } from './PresentationBindingEditor';
 import { ConditionEditor } from './ConditionEditor';
 import { ResourceSelect } from './ResourceSelect';
+import { LocalVariableEditor } from './LocalVariableEditor';
 import { collectVisibleVariables } from '../../utils/variableScope';
 
 interface StageInspectorProps {
@@ -31,10 +32,10 @@ export const StageInspector: React.FC<StageInspectorProps> = ({ stageId, readOnl
     // 预先获取脚本、事件选项，避免条件分支中的 Hook 调用问题
     const scriptDefsMap: Record<string, ScriptDefinition> = project.scripts?.scripts ?? {};
     const scriptList = Object.values(scriptDefsMap);
-    const scriptOptions = scriptList.map((s) => ({ id: s.id, name: s.name, state: s.state }));
+    const scriptOptions = scriptList.map((s) => ({ id: s.id, name: s.name, state: s.state, description: s.description }));
     const performanceScriptOptions = scriptList
         .filter((s) => s.category === 'Performance')
-        .map((s) => ({ id: s.id, name: s.name, state: s.state }));
+        .map((s) => ({ id: s.id, name: s.name, state: s.state, description: s.description }));
     const lifecycleScriptOptions = scriptList
         .filter((s) => s.category === 'Lifecycle' && (!s.lifecycleType || s.lifecycleType === 'Stage'))
         .map((s) => ({
@@ -45,7 +46,7 @@ export const StageInspector: React.FC<StageInspectorProps> = ({ stageId, readOnl
             category: s.category,
             description: s.description
         }));
-    const graphOptions = Object.values<PresentationGraph>(project.presentationGraphs).map((g) => ({ id: g.id, name: g.name, state: 'Draft' as any }));
+    const graphOptions = Object.values<PresentationGraph>(project.presentationGraphs).map((g) => ({ id: g.id, name: g.name, state: 'Draft' as any, description: g.description }));
     const eventOptions = Object.values<EventDefinition>(project.blackboard.events).map((e) => ({
         id: e.id,
         name: e.name,
@@ -81,43 +82,6 @@ export const StageInspector: React.FC<StageInspectorProps> = ({ stageId, readOnl
                 }
             }
         });
-    };
-
-    // 渲染局部变量列表
-    const renderLocalVariables = () => {
-        const vars: VariableDefinition[] = Object.values(stage.localVariables || {});
-        if (vars.length === 0) {
-            return <div style={{ padding: '12px 16px', color: '#666', fontSize: '12px' }}>No stage local variables</div>;
-        }
-        return (
-            <div className="local-var-list">
-                {vars.map(v => (
-                    <div key={v.id} className="local-var-item">
-                        <div className="local-var-item__header">
-                            <div className="local-var-item__name">{v.name}</div>
-                            <span className="local-var-item__key">{v.key}</span>
-                        </div>
-                        <div className="local-var-item__props">
-                            <div>
-                                <span className="label">Type: </span>
-                                <span className="value">{v.type}</span>
-                            </div>
-                            <div>
-                                <span className="label">Default: </span>
-                                <span className="value">{String(v.defaultValue)}</span>
-                            </div>
-                            <div>
-                                <span className="label">State: </span>
-                                <span>{v.state}</span>
-                            </div>
-                        </div>
-                        {v.description && (
-                            <div style={{ fontSize: '11px', color: '#9ca3af' }}>{v.description}</div>
-                        )}
-                    </div>
-                ))}
-            </div>
-        );
     };
 
     return (
@@ -188,6 +152,7 @@ export const StageInspector: React.FC<StageInspectorProps> = ({ stageId, readOnl
                             scriptDefs={scriptDefsMap}
                             scriptOptions={performanceScriptOptions}
                             graphOptions={graphOptions}
+                            graphData={project.presentationGraphs}
                             variables={visibleVars}
                             title="On Enter"
                             onNavigateToGraph={(graphId) => dispatch({ type: 'NAVIGATE_TO', payload: { graphId } })}
@@ -201,6 +166,7 @@ export const StageInspector: React.FC<StageInspectorProps> = ({ stageId, readOnl
                             scriptDefs={scriptDefsMap}
                             scriptOptions={performanceScriptOptions}
                             graphOptions={graphOptions}
+                            graphData={project.presentationGraphs}
                             variables={visibleVars}
                             title="On Exit"
                             onNavigateToGraph={(graphId) => dispatch({ type: 'NAVIGATE_TO', payload: { graphId } })}
@@ -227,7 +193,12 @@ export const StageInspector: React.FC<StageInspectorProps> = ({ stageId, readOnl
             {/* Local Variables Section */}
             <div className="inspector-section" style={{ borderBottom: 'none' }}>
                 <div className="section-title">Local Variables</div>
-                {renderLocalVariables()}
+                <LocalVariableEditor
+                    variables={stage.localVariables || {}}
+                    ownerType="stage"
+                    ownerId={stage.id}
+                    readOnly={true}
+                />
             </div>
         </div>
     );

@@ -17,7 +17,7 @@ interface ConfirmDialogProps {
 
 /**
  * 确认弹窗组件
- * 复用 BlackboardEditor 的弹窗样式，保持 UI 一致性
+ * 复用 LocalVariableEditor 的弹窗样式，保持 UI 一致性
  */
 export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
     title,

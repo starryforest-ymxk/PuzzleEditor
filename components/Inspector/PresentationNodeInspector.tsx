@@ -100,8 +100,8 @@ export const PresentationNodeInspector = ({ graphId, nodeId, readOnly = false }:
     const selectedScriptDef = node.scriptId ? scriptList.find(s => s.id === node.scriptId) || null : null;
 
     // Presentation binding options
-    const performanceScriptOptions = useMemo(() => performanceScriptList.map(s => ({ id: s.id, name: s.name, state: s.state })), [performanceScriptList]);
-    const graphOptions = useMemo(() => Object.values<PresentationGraph>(project.presentationGraphs || {}).filter(g => g.id !== graphId).map(g => ({ id: g.id, name: g.name, state: 'Draft' as const })), [project.presentationGraphs, graphId]);
+    const performanceScriptOptions = useMemo(() => performanceScriptList.map(s => ({ id: s.id, name: s.name, state: s.state, description: s.description })), [performanceScriptList]);
+    const graphOptions = useMemo(() => Object.values<PresentationGraph>(project.presentationGraphs || {}).filter(g => g.id !== graphId).map(g => ({ id: g.id, name: g.name, state: 'Draft' as const, description: g.description })), [project.presentationGraphs, graphId]);
     const scriptDefs = project.scripts.scripts || {};
 
     // 依据推断到的作用域收集可见变量，并过滤已标记删除
@@ -183,6 +183,7 @@ export const PresentationNodeInspector = ({ graphId, nodeId, readOnly = false }:
                             scriptDefs={scriptDefs}
                             scriptOptions={performanceScriptOptions}
                             graphOptions={graphOptions}
+                            graphData={project.presentationGraphs}
                             variables={visibleVars}
                             title="Script / Graph"
                             onNavigateToGraph={(gid) => dispatch({ type: 'NAVIGATE_TO', payload: { graphId: gid } })}

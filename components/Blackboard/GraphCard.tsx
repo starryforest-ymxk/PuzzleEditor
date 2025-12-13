@@ -93,6 +93,21 @@ export const GraphCard: React.FC<GraphCardProps> = ({
                 )}
             </div>
 
+            {/* 描述信息 */}
+            {graph.description && (
+                <div style={{
+                    marginTop: '8px',
+                    paddingTop: '8px',
+                    borderTop: '1px solid #333',
+                    fontSize: '11px',
+                    color: '#9ca3af',
+                    fontStyle: 'italic',
+                    lineHeight: 1.4
+                }}>
+                    {graph.description}
+                </div>
+            )}
+
             {/* 提示文字 */}
             <div style={{
                 marginTop: '8px',

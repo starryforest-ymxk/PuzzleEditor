@@ -177,3 +177,9 @@
 ## 12. P3-T06 条件构造器补充
 - ConditionEditor 依赖可见变量列表自动过滤软删，并在变量选择时同步作用域，选项展示 scope/type。
 - 布尔/字符串/枚举仅允许 ==/!= 操作符，数值允许全套比较，减少类型不匹配；缺失变量或软删变量给出警示。
+
+## 13. P3-T01 组件拆分：LocalVariableEditor（Node/Stage 通用）
+- **目标**：将 BlackboardEditor/NodeLocalVariableEditor 合并为通用 LocalVariableEditor，未来无论 PuzzleNode 还是 Stage 的局部变量都能复用，减少耦合与重复实现。
+- **技术实现**：LocalVariableEditor 支持 ownerType="node"|"stage"，Node 场景默认派发 ADD/UPDATE/DELETE_NODE_PARAM，Stage/其他场景可通过回调自定义；保留名称校验、类型切换重置默认值、引用确认、失焦校验等逻辑。旧文件保留为别名以兼容存量引用。
+- **集成点**：NodeInspector 改用 LocalVariableEditor；StageInspector 以只读模式复用同一组件以统一展示样式。
+- **手动验证**：在 FSM 画布空白选中 PuzzleNode 后，验证新增/重命名/切换类型/删除变量与引用提示行为，表现与拆分前一致；Stage Inspector 仅展示不可编辑列表。

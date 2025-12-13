@@ -6,7 +6,7 @@
 
 import React from 'react';
 import { useEditorState, useEditorDispatch } from '../../store/context';
-import { BlackboardEditor } from './BlackboardEditor';
+import { LocalVariableEditor } from './LocalVariableEditor';
 import { EventListenersEditor } from './EventListenersEditor';
 import { ResourceSelect } from './ResourceSelect';
 import { collectVisibleVariables } from '../../utils/variableScope';
@@ -24,7 +24,7 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({ nodeId, readOnly =
 
     // 预先获取脚本、事件选项
     const scriptDefs = project.scripts.scripts || {};
-    const scriptOptions = Object.values<ScriptDefinition>(scriptDefs).map(s => ({ id: s.id, name: s.name, state: s.state }));
+    const scriptOptions = Object.values<ScriptDefinition>(scriptDefs).map(s => ({ id: s.id, name: s.name, state: s.state, description: s.description }));
     const lifecycleScriptOptions = Object.values<ScriptDefinition>(scriptDefs)
         .filter(s => s.category === 'Lifecycle' && (!s.lifecycleType || s.lifecycleType === 'Node'))
         .map(s => ({
@@ -113,7 +113,12 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({ nodeId, readOnly =
             <div style={{ padding: '12px 16px' }}>
                 <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Local Variables</div>
                 <div style={{ pointerEvents: readOnly ? 'none' : 'auto', opacity: readOnly ? 0.6 : 1 }}>
-                    <BlackboardEditor variables={node.localVariables} nodeId={node.id} readOnly={readOnly} />
+                    <LocalVariableEditor
+                        variables={node.localVariables}
+                        ownerType="node"
+                        ownerId={node.id}
+                        readOnly={readOnly}
+                    />
                 </div>
             </div>
         </div>

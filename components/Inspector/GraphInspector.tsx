@@ -44,6 +44,13 @@ export const GraphInspector: React.FC<GraphInspectorProps> = ({ graphId, readOnl
                     <div className="prop-label">Start Node</div>
                     <div className="prop-value" style={{ color: '#4fc1ff' }}>{startNode ? startNode.name : '-'}</div>
                 </div>
+                {/* 描述信息 */}
+                <div className="prop-row" style={{ alignItems: 'flex-start', marginTop: '8px' }}>
+                    <div className="prop-label">Description</div>
+                    <div className="prop-value" style={{ color: graph.description ? '#9ca3af' : '#666', fontStyle: graph.description ? 'italic' : 'normal' }}>
+                        {graph.description || 'No description'}
+                    </div>
+                </div>
             </div>
 
             {/* Nodes Section */}

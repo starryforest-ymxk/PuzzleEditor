@@ -51,7 +51,7 @@ export const StateInspector = ({ fsmId, stateId, readOnly = false }: Props) => {
         description: e.description
     })), [project.blackboard.events]);
     const scriptRecords = project.scripts.scripts;
-    const scriptOptions = useMemo(() => Object.values<ScriptDefinition>(scriptRecords).map(s => ({ id: s.id, name: s.name, state: s.state })), [scriptRecords]);
+    const scriptOptions = useMemo(() => Object.values<ScriptDefinition>(scriptRecords).map(s => ({ id: s.id, name: s.name, state: s.state, description: s.description })), [scriptRecords]);
     const lifecycleScriptOptions = useMemo(() => Object.values<ScriptDefinition>(scriptRecords)
         .filter(s => s.category === 'Lifecycle' && (!s.lifecycleType || s.lifecycleType === 'State'))
         .map(s => ({
