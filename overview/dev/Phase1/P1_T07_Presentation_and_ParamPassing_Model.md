@@ -19,7 +19,7 @@
 - 两种形态：
   - `{ type: 'Script'; scriptId; parameters: ParameterBinding[] }` —— 直接调用脚本
   - `{ type: 'Graph'; graphId }` —— 触发一个演出子图
-- 绑定位置：Stage onEnter/onExit、State onEnter/onExit、Transition（执行时）等。
+- 绑定位置：Stage onEnter/onExit、Transition（执行时）。
 
 ## 3. 参数传递模型（ParameterBinding）
 
@@ -33,7 +33,7 @@
 
 - `types/presentation.ts` 已定义 Graph/Node 结构；`types/common.ts` 已定义 `ParameterBinding` 与 `PresentationBinding`。
 - `types/common.ts` 的 `ValueSource` 已支持 Constant / VariableRef（带 scope）。
-- `types/stateMachine.ts` 的 Transition/State 通过 `presentation?: PresentationBinding` 绑定演出。
+- `types/stateMachine.ts` 的 Transition 通过 `presentation?: PresentationBinding` 绑定演出（State 不再支持演出绑定）。
 
 ## 5. 后续工作建议
 

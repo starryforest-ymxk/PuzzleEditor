@@ -451,6 +451,66 @@ html {
   background: transparent;
 }
 
+/* Trigger Editor */
+.trigger-editor-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.trigger-editor-container.is-readonly {
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+.trigger-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.trigger-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid #333;
+  border-radius: 4px;
+  position: relative;
+}
+
+.trigger-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.trigger-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.trigger-type-label {
+  font-size: 11px;
+  color: #888;
+}
+
+.trigger-type-select {
+  background: #222;
+  color: #eee;
+  border: 1px solid #444;
+  padding: 2px 4px;
+  font-size: 12px;
+  border-radius: 3px;
+  outline: none;
+}
+
+.trigger-add-btn {
+  margin-top: 4px;
+}
+
 /* Transition Handles */
 .transition-handle {
   transition: fill 0.1s, stroke 0.1s;
@@ -1259,4 +1319,40 @@ html {
 /* 添加按钮的上边距 */
 .btn-add-ghost--with-margin {
   margin-top: 4px;
+}
+
+/* Canvas context menu items */
+.ctx-item {
+  padding: 8px 12px;
+  font-size: 13px;
+  cursor: pointer;
+  color: #eee;
+}
+
+.ctx-item:hover {
+  background: #3e3e42;
+}
+
+.ctx-item.danger {
+  color: #ff6b6b;
+}
+
+/* Connection handle styling for canvas links */
+.handle {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  cursor: grab;
+  opacity: 0;
+  transition: opacity 0.2s, background 0.2s;
+}
+
+.handle:hover {
+  opacity: 1;
+  background: var(--accent-color);
+  border-color: #fff;
 }

@@ -30,9 +30,6 @@ export interface State extends Entity {
   // 生命周期脚本（统一入口，不再区分 OnEnter/OnExit）
   lifecycleScriptId?: ScriptId;
 
-  // 演出绑定（可选，进入状态时触发）
-  presentation?: PresentationBinding;
-
   // 事件监听
   eventListeners: EventListener[];
 }

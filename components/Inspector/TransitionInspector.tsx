@@ -28,6 +28,12 @@ export const TransitionInspector = ({ fsmId, transitionId, readOnly = false }: P
     const { project } = state;
     const dispatch = useEditorDispatch();
 
+    const parsePriority = (value: string, current: number | undefined) => {
+        const num = Number(value);
+        if (Number.isFinite(num)) return num;
+        return Number.isFinite(current) ? current : 0;
+    };
+
     const fsm = project.stateMachines[fsmId];
     const trans = fsm ? fsm.transitions[transitionId] : null;
 
@@ -140,7 +146,7 @@ export const TransitionInspector = ({ fsmId, transitionId, readOnly = false }: P
                     <input
                         type="number"
                         value={trans.priority}
-                        onChange={(e) => handleChange('priority', parseInt(e.target.value))}
+                        onChange={(e) => handleChange('priority', parsePriority(e.target.value, trans.priority))}
                         disabled={readOnly}
                         className="inspector-number-input"
                     />

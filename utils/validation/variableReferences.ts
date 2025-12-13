@@ -127,16 +127,6 @@ const collectFromTransition = (
   );
 };
 
-const collectFromStatePresentation = (
-  state: any,
-  graphs: Record<string, PresentationGraph>,
-  variableId: string,
-  collector: (info: VariableReferenceInfo) => void
-) => {
-  if (!state) return;
-  collectFromPresentationBinding(state.presentation, graphs, variableId, collector, `State ${state.name || state.id} · Presentation`);
-};
-
 /**
  * 收集指定 PuzzleNode 的 NodeLocal 变量被引用的位置
  */
@@ -161,7 +151,6 @@ export const findNodeVariableReferences = (
   if (fsm) {
     Object.values(fsm.states || {}).forEach(state => {
       collectFromEventListeners(state.eventListeners, variableId, push, `State ${state.name || state.id} event listeners`);
-      collectFromStatePresentation(state as any, graphs, variableId, push);
     });
 
     Object.values(fsm.transitions || {}).forEach(trans => collectFromTransition(trans, fsm, graphs, variableId, push));

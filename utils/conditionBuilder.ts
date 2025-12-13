@@ -137,65 +137,6 @@ export const isEmptyGroup = (condition: ConditionExpression): boolean => {
   return getChildCount(condition) === 0;
 };
 
-// ===== ParameterModifier Builders =====
-
-export const setToConstant = (
-  targetVariableId: string,
-  targetScope: VariableScope,
-  value: any
-): ParameterModifier => ({
-  targetVariableId,
-  targetScope,
-  operation: 'Set',
-  source: { type: 'Constant', value }
-});
-
-export const copyFromVariable = (
-  targetVariableId: string,
-  targetScope: VariableScope,
-  sourceVariableId: string,
-  sourceScope: VariableScope
-): ParameterModifier => ({
-  targetVariableId,
-  targetScope,
-  operation: 'CopyFromVar',
-  source: { type: 'VariableRef', variableId: sourceVariableId, scope: sourceScope }
-});
-
-export const addFromVariable = (
-  targetVariableId: string,
-  targetScope: VariableScope,
-  sourceVariableId: string,
-  sourceScope: VariableScope
-): ParameterModifier => ({
-  targetVariableId,
-  targetScope,
-  operation: 'Add',
-  source: { type: 'VariableRef', variableId: sourceVariableId, scope: sourceScope }
-});
-
-export const addConstant = (
-  targetVariableId: string,
-  targetScope: VariableScope,
-  value: number
-): ParameterModifier => ({
-  targetVariableId,
-  targetScope,
-  operation: 'Add',
-  source: { type: 'Constant', value }
-});
-
-export const subtractConstant = (
-  targetVariableId: string,
-  targetScope: VariableScope,
-  value: number
-): ParameterModifier => ({
-  targetVariableId,
-  targetScope,
-  operation: 'Subtract',
-  source: { type: 'Constant', value }
-});
-
 // ===== Trigger helpers（方便 UI 填充默认触发器） =====
 export const alwaysTrigger = (): TriggerConfig => ({ type: 'Always' });
 export const onEventTrigger = (eventId: string): TriggerConfig => ({ type: 'OnEvent', eventId });

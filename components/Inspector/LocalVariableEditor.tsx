@@ -6,6 +6,7 @@ import { useEditorDispatch, useEditorState } from '../../store/context';
 import { withScope } from '../../utils/variableScope';
 import { findNodeVariableReferences } from '../../utils/variableReferences';
 import { ConfirmDialog } from './ConfirmDialog';
+import { LocalVariableCard } from './localVariable/LocalVariableCard';
 
 export type LocalVariableOwner = 'node' | 'stage';
 
@@ -23,17 +24,6 @@ export interface LocalVariableEditorProps {
 }
 
 type ConfirmMode = 'soft-delete' | 'hard-delete' | 'delete';
-
-// 类型对应的 UI 颜色
-const getTypeColor = (type: string) => {
-    switch (type) {
-        case 'boolean': return '#569cd6';
-        case 'integer': return '#b5cea8';
-        case 'float': return '#4ec9b0';
-        case 'string': return '#ce9178';
-        default: return '#ccc';
-    }
-};
 
 // 按类型返回默认值，避免类型不匹配
 const getDefaultValueByType = (type: VariableType) => {
@@ -302,169 +292,23 @@ export const LocalVariableEditor: React.FC<LocalVariableEditorProps> = ({
                 </div>
             )}
 
-            {vars.map(v => {
-                const isMarkedForDelete = v.state === 'MarkedForDelete';
-                return (
-                    <div
-                        key={v.id}
-                        className="blackboard-var-item"
-                        style={{ opacity: isMarkedForDelete ? 0.55 : 1 }}
-                    >
-                    {/* Header: Name and Type */}
-                    <div className="blackboard-var-header">
-                        <div className="blackboard-var-info">
-                            {/* 编辑名称 */}
-                            {canMutate ? (
-                                <input
-                                    className="prop-value"
-                                    value={v.name}
-                                    onChange={(e) => handleUpdate(v.id, 'name', e.target.value)}
-                                    disabled={readOnly || !canMutate || isMarkedForDelete}
-                                    style={{ background: 'transparent', border: 'none', borderBottom: '1px dashed #444', color: '#ddd', width: '140px', minWidth: '100px' }}
-                                />
-                            ) : (
-                                <span style={{ color: '#ddd', fontSize: '12px', fontWeight: 600 }}>{v.name}</span>
-                            )}
+            {vars.map(v => (
+                <LocalVariableCard
+                    key={v.id}
+                    variable={v}
+                    canMutate={canMutate}
+                    readOnly={readOnly}
+                    referenceCount={referenceMap[v.id]?.length || 0}
+                    error={errors[v.id]}
+                    onUpdate={(field, val) => handleUpdate(v.id, field as string, val)}
+                    onDelete={() => handleDelete(v.id)}
+                    onNumberBlur={(raw) => handleNumberBlur(v.id, raw)}
+                />
+            ))}
 
-                            <div className="blackboard-var-meta">
-                                {/* Hide ID; keep status and reference hints */}
-                                <span style={{ color: '#666', fontSize: '10px' }}>Status: {v.state}</span>
-                                {referenceMap[v.id]?.length > 0 && (
-                                    <span style={{ color: '#f9a825', fontSize: '10px' }}>
-                                        {referenceMap[v.id].length} reference(s)
-                                    </span>
-                                )}
-                            </div>
-                        </div>
-
-                        {canMutate && (
-                            <button
-                                onClick={() => handleDelete(v.id)}
-                                style={{ background: 'transparent', border: 'none', color: '#666', cursor: 'pointer', fontSize: '14px', alignSelf: 'flex-start', padding: '0 0 0 8px' }}
-                            >
-                                &times;
-                            </button>
-                        )}
-                    </div>
-
-                    {/* Edit Type and Default Value */}
-                    <div className="inspector-row" style={{ gap: '8px', alignItems: 'center' }}>
-                        <select
-                            value={v.type}
-                            onChange={(e) => handleUpdate(v.id, 'type', e.target.value as VariableType)}
-                            disabled={!canMutate || isMarkedForDelete}
-                            style={{
-                                fontSize: '9px', padding: '2px 4px', borderRadius: '3px',
-                                background: '#222', border: `1px solid ${getTypeColor(v.type)}`,
-                                color: getTypeColor(v.type), textTransform: 'uppercase'
-                            }}
-                        >
-                            <option value="string">String</option>
-                            <option value="integer">Integer</option>
-                            <option value="float">Float</option>
-                            <option value="boolean">Boolean</option>
-                        </select>
-
-                        <div style={{ flex: 1 }}>
-                            {canMutate ? (
-                                v.type === 'boolean' ? (
-                                    <select
-                                        value={(v.defaultValue === true || v.defaultValue === 'true') ? 'true' : 'false'}
-                                        onChange={(e) => handleUpdate(v.id, 'defaultValue', e.target.value === 'true')}
-                                        disabled={!canMutate || isMarkedForDelete}
-                                        style={{
-                                            width: '100%', background: '#1e1e1e', border: '1px solid #333',
-                                            color: '#e0e0e0', fontFamily: 'monospace', fontSize: '11px', padding: '2px 4px',
-                                            boxSizing: 'border-box'
-                                        }}
-                                    >
-                                        <option value="true">True</option>
-                                        <option value="false">False</option>
-                                    </select>
-                                ) : (
-                                    <input
-                                        type="text"
-                                        value={String(v.defaultValue ?? '')}
-                                        onChange={(e) => handleUpdate(v.id, 'defaultValue', e.target.value)}
-                                        onBlur={(e) => handleNumberBlur(v.id, e.target.value)}
-                                        disabled={!canMutate || isMarkedForDelete}
-                                        style={{
-                                            width: '100%', background: '#1e1e1e', border: '1px solid #333',
-                                            color: '#e0e0e0', fontFamily: 'monospace', fontSize: '11px', padding: '2px 4px',
-                                            boxSizing: 'border-box'
-                                        }}
-                                    />
-                                )
-                            ) : (
-                                <span style={{ color: '#e0e0e0', fontFamily: 'monospace', fontSize: '11px' }}>
-                                    {String(v.defaultValue)}
-                                </span>
-                            )}
-                        </div>
-                    </div>
-                    {errors[v.id] && (
-                        <div style={{ color: '#f2777a', fontSize: '11px' }}>{errors[v.id]}</div>
-                    )}
-
-                    {/* Description */}
-                    <div style={{ marginTop: '6px' }}>
-                        {canMutate ? (
-                            <textarea
-                                value={v.description || ''}
-                                onChange={(e) => handleUpdate(v.id, 'description', e.target.value)}
-                                disabled={!canMutate || isMarkedForDelete}
-                                placeholder="Description"
-                                style={{
-                                    width: '100%', minHeight: '32px', background: '#1e1e1e', border: '1px solid #333',
-                                    color: '#e0e0e0', fontSize: '11px', padding: '6px 8px', resize: 'vertical',
-                                    boxSizing: 'border-box', borderRadius: '4px'
-                                }}
-                            />
-                        ) : (
-                            <div style={{ color: '#9ca3af', fontSize: '11px', lineHeight: 1.5 }}>
-                                {v.description || 'No description'}
-                            </div>
-                        )}
-                    </div>
-                    </div>
-                );
-            })}
-
-            {/* Add New Row */}
             {canMutate && (
                 <div className="blackboard-add-row" style={{ padding: 0, textAlign: 'center', marginTop: '8px' }}>
-                    <button
-                        onClick={handleAdd}
-                        disabled={!canMutate}
-                        style={{
-                            width: '100%',
-                            justifyContent: 'center',
-                            borderStyle: 'dashed',
-                            opacity: 0.7,
-                            padding: '6px 12px',
-                            fontSize: '11px',
-                            fontFamily: 'Inter, sans-serif',
-                            fontWeight: 500,
-                            background: 'transparent',
-                            borderWidth: '1px',
-                            borderColor: '#52525b',
-                            color: '#e4e4e7',
-                            borderRadius: '4px',
-                            cursor: 'pointer',
-                            boxSizing: 'border-box',
-                            transition: 'background 0.15s ease, border-color 0.15s ease, opacity 0.15s ease'
-                        }}
-                        onMouseEnter={(e) => {
-                            e.currentTarget.style.background = '#2d2d30';
-                            e.currentTarget.style.borderColor = '#6b7280';
-                            e.currentTarget.style.opacity = '1';
-                        }}
-                        onMouseLeave={(e) => {
-                            e.currentTarget.style.background = 'transparent';
-                            e.currentTarget.style.borderColor = '#52525b';
-                            e.currentTarget.style.opacity = '0.7';
-                        }}
-                    >
+                    <button className="btn-add-ghost" onClick={handleAdd} disabled={!canMutate}>
                         + Add Variable
                     </button>
                 </div>

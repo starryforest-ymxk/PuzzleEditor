@@ -9,6 +9,7 @@
 
 import type { State, Transition, ConditionExpression, TriggerConfig } from '../../types/stateMachine';
 import type { ParameterModifier, EventListener, PresentationBinding, ValueSource, ResourceState } from '../../types/common';
+import type { VariableDefinition } from '../../types/blackboard';
 import type { EditorState } from '../../store/types';
 
 // ========== 校验结果类型 ==========
@@ -173,6 +174,37 @@ function checkConditionExpression(
 /**
  * 检查参数修改器中的变量引用
  */
+const ALLOWED_MODIFIER_OPS = new Set(['Set', 'Add', 'Subtract']);
+
+function resolveVariableByScope(state: EditorState, scope: string, variableId: string, nodeId: string): VariableDefinition | undefined {
+  if (!variableId) return undefined;
+
+  if (scope === 'Global') {
+    return state.project.blackboard?.globalVariables?.[variableId];
+  }
+
+  if (scope === 'NodeLocal') {
+    const node = state.project.nodes[nodeId];
+    return node?.localVariables?.[variableId];
+  }
+
+  if (scope === 'StageLocal') {
+    const node = state.project.nodes[nodeId];
+    const stageId = node?.stageId;
+    if (stageId) {
+      return state.project.stageTree?.stages?.[stageId]?.localVariables?.[variableId];
+    }
+    // 防御性：若缺 stageId，则尝试全表搜索
+    const stages = state.project.stageTree?.stages || {};
+    for (const stage of Object.values(stages)) {
+      const found = stage.localVariables?.[variableId];
+      if (found) return found;
+    }
+  }
+
+  return undefined;
+}
+
 function checkParameterModifiers(
   modifiers: ParameterModifier[] | undefined,
   state: EditorState,
@@ -182,11 +214,28 @@ function checkParameterModifiers(
   if (!modifiers) return;
 
   modifiers.forEach(modifier => {
-    // 检查目标变量
-    if (isVariableMarkedForDelete(state, modifier.targetVariableId, modifier.targetScope, nodeId)) {
+    // 操作合法性校验
+    if (!ALLOWED_MODIFIER_OPS.has(modifier.operation as string)) {
       issues.push({
         type: 'error',
-        message: `Modifier targets deleted variable: ${modifier.targetVariableId}`,
+        message: `Unsupported modifier operation: ${modifier.operation}`,
+        resourceType: 'variable',
+        resourceId: modifier.targetVariableId
+      });
+    }
+
+    const targetVar = resolveVariableByScope(state, modifier.targetScope, modifier.targetVariableId, nodeId);
+    if (!targetVar) {
+      issues.push({
+        type: 'error',
+        message: `Modifier target variable not found: ${modifier.targetVariableId}`,
+        resourceType: 'variable',
+        resourceId: modifier.targetVariableId
+      });
+    } else if ((modifier.operation === 'Add' || modifier.operation === 'Subtract') && !(targetVar.type === 'integer' || targetVar.type === 'float')) {
+      issues.push({
+        type: 'error',
+        message: `Modifier operation ${modifier.operation} requires numeric target`,
         resourceType: 'variable',
         resourceId: modifier.targetVariableId
       });
@@ -195,6 +244,23 @@ function checkParameterModifiers(
     // 检查来源变量（如果来源是变量引用）
     if (modifier.source?.type === 'VariableRef') {
       const source = modifier.source as { type: 'VariableRef'; variableId: string; scope: string };
+      const sourceVar = resolveVariableByScope(state, source.scope, source.variableId, nodeId);
+      if (!sourceVar) {
+        issues.push({
+          type: 'error',
+          message: `Modifier source variable not found: ${source.variableId}`,
+          resourceType: 'variable',
+          resourceId: source.variableId
+        });
+      } else if ((modifier.operation === 'Add' || modifier.operation === 'Subtract') && !(sourceVar.type === 'integer' || sourceVar.type === 'float')) {
+        issues.push({
+          type: 'error',
+          message: `Modifier operation ${modifier.operation} requires numeric source`,
+          resourceType: 'variable',
+          resourceId: source.variableId
+        });
+      }
+
       if (isVariableMarkedForDelete(state, source.variableId, source.scope, nodeId)) {
         issues.push({
           type: 'error',
@@ -203,6 +269,25 @@ function checkParameterModifiers(
           resourceId: source.variableId
         });
       }
+    } else if (modifier.source?.type === 'Constant') {
+      if ((modifier.operation === 'Add' || modifier.operation === 'Subtract') && typeof modifier.source.value !== 'number') {
+        issues.push({
+          type: 'error',
+          message: `Modifier operation ${modifier.operation} requires numeric constant`,
+          resourceType: 'variable',
+          resourceId: modifier.targetVariableId
+        });
+      }
+    }
+
+    // 检查目标变量软删除
+    if (isVariableMarkedForDelete(state, modifier.targetVariableId, modifier.targetScope, nodeId)) {
+      issues.push({
+        type: 'error',
+        message: `Modifier targets deleted variable: ${modifier.targetVariableId}`,
+        resourceType: 'variable',
+        resourceId: modifier.targetVariableId
+      });
     }
   });
 }
@@ -358,9 +443,6 @@ export function checkStateValidation(
 
   // 检查事件监听器
   checkEventListeners(stateNode.eventListeners, editorState, nodeId, issues);
-
-  // 检查演出绑定
-  checkPresentationBinding(stateNode.presentation, editorState, nodeId, issues);
 
   return {
     hasError: issues.length > 0,

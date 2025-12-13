@@ -171,7 +171,6 @@ export const PresentationCanvas = ({ graph, ownerNodeId, readOnly = false }: Pro
                 );
             })}
         </div>
-        <style>{` .ctx-item { padding: 8px 12px; font-size: 13px; cursor: pointer; color: #eee; } .ctx-item:hover { background: #3e3e42; } .ctx-item.danger { color: #ff6b6b; } `}</style>
     </div>
   );
 };

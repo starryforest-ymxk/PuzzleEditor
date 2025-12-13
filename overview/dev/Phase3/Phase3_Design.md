@@ -64,7 +64,7 @@
   - 空白点击 -> 选中 PuzzleNode 本体，右侧切换到 Node Inspector（局部变量）。
 - **Inspector**：
   - **PuzzleNode 层**：局部变量列表（表格式：名称/类型/默认值/状态/引用计数），新增/编辑/删除，删除时做引用检查提示。
-  - **State Inspector**：名称/描述输入，初始状态按钮，OnEnter/OnExit 脚本选择器（过滤软删），事件监听列表（事件选择器 + Action 配置）。
+  - **State Inspector**：名称/描述输入，初始状态按钮，生命周期脚本选择器（过滤软删），事件监听列表（事件选择器 + Action 配置）。
   - **Transition Inspector**：基础信息（From/To/优先级/描述），触发器编辑器（多条，类型切换显示对应字段），条件构造器（嵌套 AND/OR + 变量/脚本节点，作用域筛选），演出绑定编辑器，参数修改器列表（目标作用域/变量/操作/值来源选择器）。
   - 选择器类统一复用资源选择组件，带软删红标，空态 placeholder。
 - **弹窗/确认**：
@@ -79,7 +79,7 @@
 
 ### 3.5 路由与导航
 - 维持现有导航：双击 PuzzleNode 卡片进入 FSM 视图；面包屑/左侧树同步；进入演出子图时记忆返回位置（已在 Phase2 修复）。
-- Transition/State Inspector 中的演出绑定「编辑子图」按钮跳转到 Presentation 编辑器，并缓存返回位置。
+- Transition Inspector 中的演出绑定「编辑子图」按钮跳转到 Presentation 编辑器，并缓存返回位置（State 不支持演出绑定）。
 
 ### 3.6 错误处理与消息堆栈
 - 所有阻塞/重要异常（如创建 Transition 时缺少目标/源）通过 `ADD_MESSAGE` 推送到 message stack。
@@ -101,7 +101,7 @@
 3) P3-T04 + P3-T05：Transition 基础 + 触发器编辑。  
 4) P3-T06：条件构造器集成（复用 utils/variableScope + conditionBuilder）。  
 5) P3-T07：参数修改器配置。  
-6) P3-T08：演出绑定与参数传递（Transition/State Inspector）。  
+6) P3-T08：演出绑定与参数传递（仅 Transition Inspector）。
 7) P3-T03：State 事件监听 & 生命周期脚本绑定（需资源选择器完善）。  
 8) P3-T09：体验补全与轻量校验、软删警示、测试回归。  
 
@@ -252,3 +252,8 @@
   1) 对 Implemented 变量执行首次删除 -> 状态变 MarkedForDelete、输入/选择控件禁用、卡片置灰；
   2) 再次点击删除 -> 弹出不可撤销提示并确认，变量从列表移除；
   3) Draft 变量无引用时仍可直接删除，带引用时弹一次确认。
+
+## 20. P3-T09 UI 清理：画布样式外置
+- **变更**：将 FSM/Presentation 画布的上下文菜单项 `.ctx-item` 与连线手柄 `.handle` 样式从组件内联 `<style>` 移入全局 `styles.css`，避免重复定义并保持主题一致。
+- **影响面**：`StateMachineCanvas`、`StateMachineCanvas.generated`、`PresentationCanvas` 移除内联样式块；全局样式沿用现有橙色强调配色，无功能行为变更。
+- **测试**：手动打开 FSM 画布右键菜单与拖拽连线手柄，外观与交互与改前一致（hover 态颜色与透明度仍正确）。

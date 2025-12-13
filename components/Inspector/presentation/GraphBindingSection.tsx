@@ -1,0 +1,125 @@
+import React from 'react';
+import { PresentationBinding } from '../../../types/common';
+import { PresentationGraph } from '../../../types/presentation';
+import { ResourceSelect, ResourceOption } from '../ResourceSelect';
+
+interface GraphBindingSectionProps {
+    binding: PresentationBinding & { type: 'Graph' };
+    onChange: (binding: PresentationBinding) => void;
+    graphOptions: ResourceOption[];
+    graphData?: Record<string, PresentationGraph>;
+    onNavigateToGraph?: (graphId: string) => void;
+    readOnly?: boolean;
+}
+
+// 演出子图绑定区，显示选中图的概要信息
+export const GraphBindingSection: React.FC<GraphBindingSectionProps> = ({
+    binding,
+    onChange,
+    graphOptions,
+    graphData,
+    onNavigateToGraph,
+    readOnly = false
+}) => {
+    const selectedGraph = binding.graphId ? graphOptions.find(g => g.id === binding.graphId) : null;
+    const fullGraphData = binding.graphId && graphData ? graphData[binding.graphId] : null;
+    const nodeCount = fullGraphData ? Object.keys(fullGraphData.nodes || {}).length : 0;
+    const startNode = fullGraphData?.startNodeId ? fullGraphData.nodes[fullGraphData.startNodeId] : null;
+
+    return (
+        <div style={{ marginTop: '8px' }}>
+            <ResourceSelect
+                options={graphOptions}
+                value={binding.graphId || ''}
+                onChange={(val) => onChange({ type: 'Graph', graphId: val })}
+                placeholder="Select presentation graph"
+                warnOnMarkedDelete
+                disabled={readOnly}
+                onClear={binding.graphId ? () => onChange({ type: 'Graph', graphId: '' }) : undefined}
+            />
+
+            {selectedGraph && (
+                <div style={{
+                    marginTop: '8px',
+                    padding: '12px',
+                    background: '#222',
+                    border: '1px solid #3e3e42',
+                    borderRadius: '4px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '8px',
+                    fontSize: '12px',
+                    animation: 'fadeIn 0.2s ease-out',
+                    width: '100%',
+                    boxSizing: 'border-box'
+                }}>
+                    <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
+                        <span style={{ fontWeight: 600, color: '#e4e4e7' }}>{selectedGraph.name}</span>
+                        <span style={{ fontSize: '10px', color: '#666', fontFamily: 'monospace' }}>{selectedGraph.id}</span>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '4px 8px', fontSize: '11px' }}>
+                        {selectedGraph.state && (
+                            <>
+                                <span style={{ color: '#888' }}>State:</span>
+                                <span style={{ color: selectedGraph.state === 'Implemented' ? '#4ec9b0' : '#ce9178' }}>
+                                    {selectedGraph.state}
+                                </span>
+                            </>
+                        )}
+                        {fullGraphData && (
+                            <>
+                                <span style={{ color: '#888' }}>Nodes:</span>
+                                <span style={{ color: '#f97316' }}>{nodeCount}</span>
+                            </>
+                        )}
+                        {fullGraphData && (
+                            <>
+                                <span style={{ color: '#888' }}>Start Node:</span>
+                                <span style={{ color: '#4fc1ff' }}>{startNode ? startNode.name : '-'}</span>
+                            </>
+                        )}
+                    </div>
+
+                    {selectedGraph.description && (
+                        <div style={{
+                            marginTop: '4px',
+                            paddingTop: '8px',
+                            borderTop: '1px solid #333',
+                            color: '#9ca3af',
+                            fontStyle: 'italic',
+                            lineHeight: 1.4
+                        }}>
+                            {selectedGraph.description}
+                        </div>
+                    )}
+
+                    {onNavigateToGraph && (
+                        <div style={{
+                            marginTop: '4px',
+                            paddingTop: '8px',
+                            borderTop: '1px solid #333',
+                            display: 'flex',
+                            justifyContent: 'flex-end'
+                        }}>
+                            <button
+                                className="btn-ghost"
+                                onClick={() => onNavigateToGraph(binding.graphId)}
+                                style={{ fontSize: '11px', padding: '4px 12px' }}
+                                disabled={readOnly}
+                            >
+                                Edit Graph →
+                            </button>
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {binding.graphId && !selectedGraph && (
+                <div style={{ marginTop: '8px', padding: '8px', color: '#ff6b6b', fontSize: '11px', background: '#2a1a1a', borderRadius: '4px' }}>
+                    Warning: Presentation graph not found
+                </div>
+            )}
+        </div>
+    );
+};

@@ -464,6 +464,5 @@ return (<div ref={canvasRef} className="canvas-grid" style={{
                 {/* 5. State Nodes */}
                 {Object.values(fsm.states).map((state) => (<StateNode key={state.id} state={state} position={getNodeDisplayPosition(state.id, state.position)} isSelected={ui.selection.type === 'STATE' && ui.selection.id === state.id} isMultiSelected={multiSelectIds.includes(state.id)} isInitial={fsm.initialStateId === state.id} isContextTarget={contextMenu?.type === 'NODE' && contextMenu?.targetId === state.id} onMouseDown={handleStateMouseDown} onMouseUp={handleStateMouseUp} onContextMenu={(e) => handleContextMenu(e, 'NODE', state.id)} readOnly={readOnly}/>))}
             </div>
-            <style>{` .ctx-item { padding: 8px 12px; font-size: 13px; cursor: pointer; color: #eee; } .ctx-item:hover { background: #3e3e42; } .ctx-item.danger { color: #ff6b6b; } .handle { position: absolute; width: 12px; height: 12px; background: rgba(255, 255, 255, 0.2); border: 1px solid rgba(255,255,255,0.5); border-radius: 50%; transform: translate(-50%, -50%); cursor: grab; opacity: 0; transition: opacity 0.2s, background 0.2s; } .handle:hover { opacity: 1; background: var(--accent-color); border-color: #fff; } `}</style>
         </div>);
 ;

@@ -28,9 +28,8 @@ export const ParameterModifierEditor: React.FC<Props> = ({ modifier, onChange, v
 
   // 根据目标变量类型限定可用操作
   const opOptions = useMemo(() => {
-    if (targetType === 'boolean') return ['Set', 'Toggle'];
-    if (targetType === 'integer' || targetType === 'float') return ['Set', 'Add', 'Subtract', 'Multiply', 'Divide'];
-    if (targetType === 'string') return ['Set'];
+    if (targetType === 'boolean') return ['Set'];
+    if (targetType === 'integer' || targetType === 'float') return ['Set', 'Add', 'Subtract'];
     return ['Set'];
   }, [targetType]);
 
@@ -72,61 +71,36 @@ export const ParameterModifierEditor: React.FC<Props> = ({ modifier, onChange, v
       />
 
       {/* 操作与来源：使用 ValueSourceEditor 的 prefixElement 以实现 2 行布局 */}
-      {validOperation !== 'Toggle' ? (
-        <ValueSourceEditor
-          source={modifier.source}
-          onChange={(v) => onChange({ ...modifier, source: v })}
-          variables={sourceVariables}
-          valueType={targetType}
-          allowedTypes={allowedSourceTypes}
-          prefixElement={
-            <select
-              value={validOperation}
-              onChange={(e) => onChange({ ...modifier, operation: e.target.value as any })}
-              style={{
-                background: '#27272a',
-                color: '#e4e4e7',
-                border: '1px solid #52525b',
-                padding: '4px 8px',
-                fontSize: '12px',
-                borderRadius: '4px',
-                flex: 1,
-                minWidth: 0,
-                height: 30,
-                outline: 'none',
-                fontFamily: 'Inter, sans-serif'
-              }}
-            >
-              {opOptions.map(op => (
-                <option key={op} value={op}>{op}</option>
-              ))}
-            </select>
-          }
-        />
-      ) : (
-        // Toggle 操作不需要来源，但为了保持一致性，显示一个占位的 Toggle 下拉框？或者只显示操作下拉框。
-        // 根据需求，Toggle 只需要 Operation 即可。
-        <select
-          value={validOperation}
-          onChange={(e) => onChange({ ...modifier, operation: e.target.value as any })}
-          style={{
-            background: '#27272a',
-            color: '#e4e4e7',
-            border: '1px solid #52525b',
-            padding: '4px 8px',
-            fontSize: '12px',
-            borderRadius: '4px',
-            width: '100%',
-            height: 30,
-            outline: 'none',
-            fontFamily: 'Inter, sans-serif'
-          }}
-        >
-          {opOptions.map(op => (
-            <option key={op} value={op}>{op}</option>
-          ))}
-        </select>
-      )}
+      <ValueSourceEditor
+        source={modifier.source}
+        onChange={(v) => onChange({ ...modifier, source: v })}
+        variables={sourceVariables}
+        valueType={targetType}
+        allowedTypes={allowedSourceTypes}
+        prefixElement={
+          <select
+            value={validOperation}
+            onChange={(e) => onChange({ ...modifier, operation: e.target.value as any })}
+            style={{
+              background: '#27272a',
+              color: '#e4e4e7',
+              border: '1px solid #52525b',
+              padding: '4px 8px',
+              fontSize: '12px',
+              borderRadius: '4px',
+              flex: 1,
+              minWidth: 0,
+              height: 30,
+              outline: 'none',
+              fontFamily: 'Inter, sans-serif'
+            }}
+          >
+            {opOptions.map(op => (
+              <option key={op} value={op}>{op}</option>
+            ))}
+          </select>
+        }
+      />
     </div>
   );
 };

@@ -46,34 +46,17 @@ export const TriggerEditor: React.FC<Props> = ({
     };
 
     return (
-        <div style={{ pointerEvents: readOnly ? 'none' : 'auto', opacity: readOnly ? 0.6 : 1 }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <div className={`trigger-editor-container${readOnly ? ' is-readonly' : ''}`}>
+            <div className="trigger-list">
                 {triggers.map((t, idx) => (
-                    <div key={idx} style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '8px',
-                        padding: '8px',
-                        background: 'rgba(255,255,255,0.03)',
-                        border: '1px solid #333',
-                        borderRadius: '4px',
-                        position: 'relative'
-                    }}>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <span style={{ fontSize: '11px', color: '#888' }}>Type</span>
+                    <div key={idx} className="trigger-card">
+                        <div className="trigger-header">
+                            <div className="trigger-header-left">
+                                <span className="trigger-type-label">Type</span>
                                 <select
                                     value={t.type}
                                     onChange={(e) => handleTypeChange(idx, e.target.value as TriggerConfig['type'])}
-                                    style={{
-                                        background: '#222',
-                                        color: '#eee',
-                                        border: '1px solid #444',
-                                        padding: '2px 4px',
-                                        fontSize: '12px',
-                                        borderRadius: '3px',
-                                        outline: 'none'
-                                    }}
+                                    className="trigger-type-select"
                                 >
                                     <option value="Always">Always</option>
                                     <option value="OnEvent">On Event</option>
@@ -118,10 +101,9 @@ export const TriggerEditor: React.FC<Props> = ({
                 )}
 
                 <button
-                    className="btn-add-ghost"
+                    className="btn-add-ghost trigger-add-btn"
                     onClick={handleAddTrigger}
                     disabled={readOnly}
-                    style={{ marginTop: '4px' }}
                 >
                     + Add Trigger
                 </button>

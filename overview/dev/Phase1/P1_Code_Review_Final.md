@@ -57,7 +57,7 @@
 - `types/stateMachine.ts` 定义了 `ConditionExpression` AST 结构
   - 支持 AND/OR/NOT/COMPARISON/LITERAL/VARIABLE_REF/SCRIPT_REF
 - `types/common.ts` 定义了 `ParameterModifier` 结构
-  - 操作类型：Set/Add/Subtract/CopyFromVar
+  - 操作类型：Set/Add/Subtract（不支持 CopyFromVar，使用 VariableRef + Set/Add/Sub 即可覆盖复制场景）
   - 值来源：常量/变量引用
 - `utils/conditionBuilder.ts` 提供了构造辅助函数
 - `ConditionEditor.tsx` 实现了可视化编辑（支持 AND/OR 逻辑嵌套）
