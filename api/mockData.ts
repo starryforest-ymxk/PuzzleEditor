@@ -718,7 +718,7 @@ const buildTwoStepFsm = (fsmId: string, nodeId: string, idleName: string, solvin
       name: solvingName,
       description: 'Player is interacting with the puzzle.',
       position: { x: 360, y: 140 },
-      onEnterScriptId: 'script-lifecycle-state',
+      lifecycleScriptId: 'script-lifecycle-state',
       eventListeners: []
     },
     [`${fsmId}-state-solved`]: {
@@ -726,7 +726,7 @@ const buildTwoStepFsm = (fsmId: string, nodeId: string, idleName: string, solvin
       name: solvedName,
       description: 'Puzzle completed.',
       position: { x: 600, y: 140 },
-      onEnterScriptId: 'script-dialogue',
+      lifecycleScriptId: 'script-dialogue',
       eventListeners: []
     }
   },

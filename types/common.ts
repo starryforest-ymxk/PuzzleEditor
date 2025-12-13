@@ -163,15 +163,11 @@ export type PresentationBinding =
 // ========== 事件动作 ==========
 /**
  * 事件触发后执行的动作类型
+ * - InvokeScript: 调用当前对象（State/Node/Stage）绑定的生命周期脚本的 OnEventInvoke 入口
+ * - ModifyParameter: 直接修改指定变量的值
  */
-// 事件动作：调用当前对象的生命周期脚本或修改参数
 export type EventAction =
-  | {
-    type: 'InvokeScript';
-    // 生命周期脚本触发无需重新选择脚本，保留可选字段兼容旧数据
-    scriptId?: ScriptId;
-    parameters?: ParameterBinding[];
-  }
+  | { type: 'InvokeScript' }
   | { type: 'ModifyParameter'; modifiers: ParameterModifier[] };
 
 // ========== 事件监听器 ==========

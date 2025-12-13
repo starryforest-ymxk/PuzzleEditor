@@ -27,10 +27,8 @@ export interface State extends Entity {
   id: StateId;
   position: Vector2;        // 画布坐标
 
-  // 生命周期脚本
-  lifecycleScriptId?: ScriptId;        // 通用状态生命周期脚本（用于统一选择逻辑）
-  onEnterScriptId?: ScriptId;     // 进入状态时执行
-  onExitScriptId?: ScriptId;      // 退出状态时执行
+  // 生命周期脚本（统一入口，不再区分 OnEnter/OnExit）
+  lifecycleScriptId?: ScriptId;
 
   // 演出绑定（可选，进入状态时触发）
   presentation?: PresentationBinding;
