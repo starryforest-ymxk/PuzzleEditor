@@ -190,7 +190,7 @@ export const LeafConditionEditor: React.FC<LeafConditionEditorProps> = ({
     return (
         <div style={conditionRowStyle(style)}>
             {/* Header Row: Handle + Type + Inline Content + Delete */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: `${ROW_GAP}px`, width: '100%', flexWrap: 'nowrap', minWidth: 0, overflow: 'hidden' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: `${ROW_GAP}px`, width: '100%', flexWrap: 'nowrap', minWidth: 0, overflow: 'visible' }}>
                 {/* 拖拽手柄（仅非根级显示） */}
                 {showDragHandle && (
                     <span
@@ -207,7 +207,7 @@ export const LeafConditionEditor: React.FC<LeafConditionEditorProps> = ({
 
                 {/* 类型选择器 (合并了显示标记) */}
                 {/* 自绘箭头容器，避免浏览器默认箭头重复平铺导致的花纹 */}
-                <div style={{ position: 'relative', display: 'inline-block', minWidth: 0, flexShrink: 1, maxWidth: '100%' }}>
+                <div style={{ position: 'relative', display: 'inline-block', minWidth: 0, flexShrink: 1, maxWidth: '100%', verticalAlign: 'middle' }}>
                     <select
                         value={condition.type}
                         onChange={(e) => handleTypeChange(e.target.value)}

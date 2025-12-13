@@ -172,8 +172,8 @@ export const typeSelectStyle = (style: BlockStyle): React.CSSProperties => ({
     fontSize: '11px',
     fontWeight: 700,
     height: INPUT_HEIGHT,
-    padding: '0 24px 0 10px', // Adjusted for fixed height centering
-    lineHeight: `${INPUT_HEIGHT - 2}px`, // Adjusted line-height to center text vertically
+    padding: '0% 22px', // 对称留白，避免文字右偏
+    lineHeight: `${INPUT_HEIGHT}px`, // 垂直居中文本
     cursor: 'pointer',
     textAlign: 'center',
     textAlignLast: 'center',
