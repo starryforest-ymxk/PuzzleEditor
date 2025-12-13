@@ -296,7 +296,12 @@
 - 将已定义的全局变量，或者当前能访问的局部变量传递给脚本。
 
 #### 临时参数（Temporary Parameters）
-- 
+- 点击 `+ Temporary Parameter` 添加
+- 配置项：
+  - **Type**：String/Integer/Float/Boolean
+  - **Name**：显示名称
+  - **Comment**：可选注释
+  - **Value Source**：Constant（常量值）或 Variable（变量引用）
 
 ---
 

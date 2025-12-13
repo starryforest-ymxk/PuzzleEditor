@@ -167,7 +167,7 @@ export const VariableSelector: React.FC<Props> = ({
             </div>
           </>
         ) : (
-          <span style={{ color: COLORS.textDim, fontSize: 12, flex: 1 }}>{placeholder}</span>
+          <span style={{ color: COLORS.textDim, fontSize: 12, flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0 }}>{placeholder}</span>
         )}
         <ChevronDown size={16} color={COLORS.textDim} style={{ flexShrink: 0, marginLeft: 8 }} />
       </div>

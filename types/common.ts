@@ -137,6 +137,19 @@ export interface ParameterModifier {
 export interface ParameterBinding {
   paramName: string;     // 目标脚本的参数名
   source: ValueSource;   // 值来源
+  // 前端渲染辅助 ID，兼容旧数据可选填
+  id?: ID;
+  // 区分参数来源类型：已有变量或临时参数
+  kind?: 'Variable' | 'Temporary';
+  // 可选描述，便于补充参数意图
+  description?: string;
+  // 当 kind 为 Temporary 时，携带临时变量的元数据（仅存在于调用场景）
+  tempVariable?: {
+    id: ID;
+    name: string;
+    type: VariableType;
+    description?: string;
+  };
 }
 
 // ========== 演出绑定 ==========

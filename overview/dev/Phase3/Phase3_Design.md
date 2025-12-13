@@ -183,3 +183,24 @@
 - **技术实现**：LocalVariableEditor 支持 ownerType="node"|"stage"，Node 场景默认派发 ADD/UPDATE/DELETE_NODE_PARAM，Stage/其他场景可通过回调自定义；保留名称校验、类型切换重置默认值、引用确认、失焦校验等逻辑。旧文件保留为别名以兼容存量引用。
 - **集成点**：NodeInspector 改用 LocalVariableEditor；StageInspector 以只读模式复用同一组件以统一展示样式。
 - **手动验证**：在 FSM 画布空白选中 PuzzleNode 后，验证新增/重命名/切换类型/删除变量与引用提示行为，表现与拆分前一致；Stage Inspector 仅展示不可编辑列表。
+
+## 14. P3-T08 UI 微调：演出绑定临时参数双下拉并排
+- **目标**：遵循 UX_Flow 6.3「参数传递」中的并行控件排布，确保临时参数的 `Type` 与 `Value Source Type` 下拉在 Inspector 窄宽度下仍保持同一行、各占 50% 宽度且不强制最小宽度。
+- **实现**：在 `PresentationBindingEditor` 的临时参数卡片中，移除固定宽度与换行；改为 `flex: 1 1 50% + minWidth: 0` 的并列布局，并为下拉控件增加 `overflow: hidden + textOverflow: ellipsis + whiteSpace: nowrap` 以隐藏超长文案。
+- **验证**：在 Inspector 缩窄宽度场景下，两个下拉控件保持单行并排、随容器收缩；选项文字超出时被截断，不再出现折行或溢出遮挡。
+
+## 15. P3-T08 UI 微调补充：参数区域文案全局 nowrap
+- **目标**：参数传递区域的标题、提示、小标签与按钮文本全部禁用换行，溢出以隐藏/省略号处理，防止窄侧栏出现多行挤压。
+- **实现**：引入通用 `noWrapText` 样式（whiteSpace: nowrap + overflow hidden + textOverflow ellipsis），应用于参数区域的标题、提示文案、标签与按钮，确保控件内外文字统一单行呈现。
+- **验证**：缩窄 Inspector 后，Parameters 标题、提示文案、各字段标签与删除/新增按钮文本均保持单行显示，超长文本被截断不换行。
+
+## 16. P3-T08 UI 微调补充：参数行自适应与按钮等分
+- **目标**：
+  1) Target Param Name 输入框随 Inspector 变窄可收缩；
+  2) VariableSelector 占位文案不再换行；
+  3) Add Parameter / Temporary Parameter 按钮宽度自适应且等分父容器。
+- **实现**：
+  - 为 Target Param Name 输入所在行与输入框添加 `minWidth: 0`，释放收缩空间；
+  - VariableSelector 占位符添加 nowrap+ellipsis；
+  - 按钮容器改为 `flexWrap: nowrap`，按钮设定 `flex: 1 1 50%`、`minWidth: 0` 并居中对齐，保证等宽并随父容器收缩。
+- **验证**：在窄侧栏下，Target Param Name 行与按钮行不再溢出/换行，两个按钮等宽分布；Select variable 占位符单行截断。

@@ -109,7 +109,18 @@ interface ParameterModifier {
   source: ValueSource;
 }
 
-interface ParameterBinding { paramName: string; source: ValueSource; }
+interface ParameterBinding {
+  paramName: string;
+  source: ValueSource;
+  id?: string;                       // 前端渲染辅助 ID
+  kind?: 'Variable' | 'Temporary';   // 参数来源类型
+  tempVariable?: {                   // 临时参数元数据，仅当 kind === 'Temporary'
+    id: string;
+    name: string;
+    type: VariableType;
+    description?: string;
+  };
+}
 
 type PresentationBinding =
   | { type: 'Script'; scriptId: string; parameters: ParameterBinding[] }
