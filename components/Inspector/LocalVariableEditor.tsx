@@ -261,6 +261,12 @@ export const LocalVariableEditor: React.FC<LocalVariableEditorProps> = ({
 
     return (
         <div>
+            {vars.length === 0 && (
+                <div style={{ color: '#666', fontSize: '11px', padding: '8px', textAlign: 'center' }}>
+                    No local variables
+                </div>
+            )}
+
             {vars.map(v => (
                 <div key={v.id} className="blackboard-var-item">
                     {/* Header: Name and Type */}
@@ -384,13 +390,40 @@ export const LocalVariableEditor: React.FC<LocalVariableEditorProps> = ({
 
             {/* Add New Row */}
             {canMutate && (
-                <div className="blackboard-add-row">
+                <div className="blackboard-add-row" style={{ padding: 0, textAlign: 'center', marginTop: '8px' }}>
                     <button
                         onClick={handleAdd}
                         disabled={!canMutate}
-                        style={{ background: '#264f78', border: '1px solid #264f78', color: '#fff', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', boxSizing: 'border-box' }}
+                        style={{
+                            width: '100%',
+                            justifyContent: 'center',
+                            borderStyle: 'dashed',
+                            opacity: 0.7,
+                            padding: '6px 12px',
+                            fontSize: '11px',
+                            fontFamily: 'Inter, sans-serif',
+                            fontWeight: 500,
+                            background: 'transparent',
+                            borderWidth: '1px',
+                            borderColor: '#52525b',
+                            color: '#e4e4e7',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            boxSizing: 'border-box',
+                            transition: 'background 0.15s ease, border-color 0.15s ease, opacity 0.15s ease'
+                        }}
+                        onMouseEnter={(e) => {
+                            e.currentTarget.style.background = '#2d2d30';
+                            e.currentTarget.style.borderColor = '#6b7280';
+                            e.currentTarget.style.opacity = '1';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.currentTarget.style.background = 'transparent';
+                            e.currentTarget.style.borderColor = '#52525b';
+                            e.currentTarget.style.opacity = '0.7';
+                        }}
                     >
-                        Add Variable
+                        + Add Variable
                     </button>
                 </div>
             )}

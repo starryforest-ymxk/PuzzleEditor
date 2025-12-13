@@ -114,7 +114,7 @@ export const EventListenersEditor: React.FC<Props> = ({
   };
 
   return (
-    <div style={{ padding: '8px', width: '100%', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ padding: '0 0 8px 0', width: '100%', display: 'flex', flexDirection: 'column' }}>
       {listeners.length === 0 ? (
         <div style={{ color: '#666', fontSize: '11px', padding: '8px', textAlign: 'center' }}>
           No event listeners
@@ -228,15 +228,9 @@ export const EventListenersEditor: React.FC<Props> = ({
                 ))}
 
                 <button
-                  className="btn-ghost"
+                  className="btn-add-ghost"
                   onClick={() => handleAddModifier(index)}
-                  style={{
-                    width: '100%',
-                    justifyContent: 'center',
-                    marginTop: '4px',
-                    borderStyle: 'dashed',
-                    opacity: 0.7
-                  }}
+                  style={{ marginTop: '4px' }}
                 >
                   + Add Parameter Modifier
                 </button>
@@ -247,18 +241,11 @@ export const EventListenersEditor: React.FC<Props> = ({
       )}
 
       {/* Add button */}
-      <div style={{ textAlign: 'center', marginTop: '8px' }}>
+      <div style={{ textAlign: 'center', marginTop: '8px', padding: 0 }}>
         <button
-          className="btn-ghost"
+          className="btn-add-ghost"
           onClick={handleAdd}
-          style={{
-            width: '100%',
-            justifyContent: 'center',
-            borderStyle: 'dashed',
-            opacity: 0.7,
-            padding: '6px 12px',
-            fontSize: '11px'
-          }}
+          style={{ width: '100%' }}
         >
           + Add Listener
         </button>

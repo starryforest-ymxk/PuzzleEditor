@@ -53,7 +53,7 @@ export const AddDropdown: React.FC<AddDropdownProps> = ({
     };
 
     return (
-        <div ref={dropdownRef} style={{ position: 'relative' }}>
+        <div ref={dropdownRef} style={{ position: 'relative', minWidth: 0 }}>
             {/* 触发按钮 */}
             <button
                 onClick={() => !disabled && setIsOpen(!isOpen)}
@@ -71,7 +71,12 @@ export const AddDropdown: React.FC<AddDropdownProps> = ({
                     display: 'flex',
                     alignItems: 'center',
                     gap: '4px',
-                    opacity: disabled ? 0.6 : 1
+                    opacity: disabled ? 0.6 : 1,
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    minWidth: 0,
+                    maxWidth: '100%'
                 }}
             >
                 + Add

@@ -176,6 +176,12 @@ export const typeSelectStyle = (style: BlockStyle): React.CSSProperties => ({
     lineHeight: `${INPUT_HEIGHT - 2}px`, // Adjusted line-height to center text vertically
     cursor: 'pointer',
     textAlign: 'center',
+    textAlignLast: 'center',
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    minWidth: 0,
+    maxWidth: '100%',
     backgroundImage: 'none', // 去掉背景图，改为容器内自绘箭头，避免重复平铺
     letterSpacing: '0.5px', // Added match LogicModeButton
     boxSizing: 'border-box'

@@ -229,15 +229,9 @@ export const TransitionInspector = ({ fsmId, transitionId, readOnly = false }: P
                     )}
 
                     <button
-                        className="btn-ghost"
+                        className="btn-add-ghost"
                         onClick={() => updateModifiers([...modifiers, { targetVariableId: '', targetScope: 'NodeLocal', operation: 'Set', source: { type: 'Constant', value: '' } }])}
-                        style={{
-                            width: '100%',
-                            justifyContent: 'center',
-                            marginTop: '4px',
-                            borderStyle: 'dashed',
-                            opacity: 0.7
-                        }}
+                        style={{ marginTop: '4px' }}
                     >
                         + Add Parameter Modifier
                     </button>

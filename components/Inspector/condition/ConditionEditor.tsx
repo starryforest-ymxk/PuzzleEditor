@@ -438,7 +438,10 @@ const GroupHeader: React.FC<GroupHeaderProps> = ({
         display: 'flex',
         alignItems: 'center',
         gap: '8px',
-        borderBottom: !collapsed ? '1px solid rgba(255,255,255,0.06)' : 'none'
+        borderBottom: !collapsed ? '1px solid rgba(255,255,255,0.06)' : 'none',
+        flexWrap: 'nowrap',
+        minWidth: 0,
+        overflow: 'hidden'
     }}>
         {/* 折叠箭头 */}
         <button
@@ -450,7 +453,8 @@ const GroupHeader: React.FC<GroupHeaderProps> = ({
                 cursor: 'pointer',
                 fontSize: '10px',
                 padding: '2px',
-                transition: 'transform 0.15s'
+                transition: 'transform 0.15s',
+                flexShrink: 0
             }}
         >
             <span style={{
@@ -468,20 +472,21 @@ const GroupHeader: React.FC<GroupHeaderProps> = ({
                 onDragEnd={onDragEnd}
                 style={{
                     ...buttonStyles.dragHandle,
-                    cursor: onDragStart ? 'grab' : 'default'
+                    cursor: onDragStart ? 'grab' : 'default',
+                    flexShrink: 0
                 }}
             >⋮⋮</span>
         )}
 
         {/* 逻辑模式按钮组 */}
-        <div style={{ display: 'flex', gap: '4px' }}>
+        <div style={{ display: 'flex', gap: '4px', minWidth: 0, flexShrink: 1 }}>
             <LogicModeButton mode="AND" label="AND" isActive={groupType === 'AND'} onClick={() => onModeChange('AND')} disabled={!onChange} />
             <LogicModeButton mode="OR" label="OR" isActive={groupType === 'OR'} onClick={() => onModeChange('OR')} disabled={!onChange} />
             <LogicModeButton mode="NOT" label="NOT" isActive={groupType === 'NOT'} onClick={() => onModeChange('NOT')} disabled={!onChange} />
         </div>
 
         {/* 子项数量摘要 */}
-        <span style={{ fontSize: '11px', color: COLORS.textMuted, fontStyle: 'italic', flex: 1 }}>
+        <span style={{ fontSize: '11px', color: COLORS.textMuted, fontStyle: 'italic', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             ({childCount})
         </span>
 

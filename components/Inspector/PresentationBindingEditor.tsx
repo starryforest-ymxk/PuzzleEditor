@@ -137,7 +137,7 @@ export const PresentationBindingEditor: React.FC<Props> = ({
 
   const syncTempType = (param: ParameterBinding, nextType: VariableType): ParameterBinding => {
     const tempVar = param.tempVariable || { id: genId('tempvar'), name: 'Temporary', type: nextType };
-    const nextSource = param.source.type === 'Constant'
+    const nextSource: ValueSource = param.source.type === 'Constant'
       ? { type: 'Constant', value: getDefaultValueByType(nextType) }
       : param.source;
     return {
@@ -241,7 +241,7 @@ export const PresentationBindingEditor: React.FC<Props> = ({
                         const nextName = e.target.value;
                         const base = prev.tempVariable
                           ? { ...prev.tempVariable }
-                          : { id: genId('tempvar'), name: nextName, type: 'string', description: '' };
+                          : { id: genId('tempvar'), name: nextName, type: 'string' as VariableType, description: '' };
                         return {
                           ...prev,
                           paramName: nextName,
@@ -287,8 +287,9 @@ export const PresentationBindingEditor: React.FC<Props> = ({
                         value={param.source.type}
                         onChange={(e) => {
                           const nextType = e.target.value as ValueSource['type'];
-                          const nextSource = nextType === 'Constant'
-                            ? { type: 'Constant', value: getDefaultValueByType(tempVar?.type || 'string') }
+                          const currentType: VariableType = tempVar?.type || 'string';
+                          const nextSource: ValueSource = nextType === 'Constant'
+                            ? { type: 'Constant', value: getDefaultValueByType(currentType) }
                             : { type: 'VariableRef', variableId: '', scope: 'Global' };
                           upsertParam(key, (prev) => ({ ...prev, kind: 'Temporary', source: nextSource }));
                         }}
@@ -339,9 +340,10 @@ export const PresentationBindingEditor: React.FC<Props> = ({
 
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'nowrap' }}>
               <button
+                className="btn-add-ghost"
                 onClick={handleAddVariableParam}
                 disabled={readOnly}
-                style={{ background: '#2d2d30', color: '#fff', border: '1px solid #3e3e42', padding: '0 12px', borderRadius: '4px', fontSize: '12px', cursor: 'pointer', height: CONTROL_HEIGHT, boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'center', flex: '1 1 50%', minWidth: 0, overflow: 'hidden', ...noWrapText }}
+                style={{ flex: '1 1 50%', minWidth: 0, height: CONTROL_HEIGHT, ...noWrapText }}
               >
                 + Add Parameter
               </button>

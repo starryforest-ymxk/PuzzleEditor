@@ -418,6 +418,39 @@ html {
   background-color: rgba(255, 255, 255, 0.1);
 }
 
+/* 统一 Inspector 新增按钮的虚线样式 */
+.btn-add-ghost {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 6px 12px;
+  font-size: 11px;
+  font-weight: 500;
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+  background: transparent;
+  color: var(--text-primary);
+  border: 1px dashed var(--border-color);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  box-sizing: border-box;
+  opacity: 0.8;
+  transition: background 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+}
+
+.btn-add-ghost:hover {
+  background: #2d2d30;
+  border-color: #6b7280;
+  opacity: 1;
+}
+
+.btn-add-ghost:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: transparent;
+}
+
 /* Transition Handles */
 .transition-handle {
   transition: fill 0.1s, stroke 0.1s;

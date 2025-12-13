@@ -42,7 +42,12 @@ export const LogicModeButton: React.FC<LogicModeButtonProps> = ({
                 color: isActive ? style.labelColor : '#71717a',
                 cursor: disabled ? 'not-allowed' : 'pointer',
                 opacity: disabled ? 0.5 : 1,
-                transition: 'all 0.15s ease'
+                transition: 'all 0.15s ease',
+                minWidth: 0,
+                flexShrink: 1,
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis'
             }}
         >
             {label || mode}

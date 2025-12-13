@@ -204,3 +204,11 @@
   - VariableSelector 占位符添加 nowrap+ellipsis；
   - 按钮容器改为 `flexWrap: nowrap`，按钮设定 `flex: 1 1 50%`、`minWidth: 0` 并居中对齐，保证等宽并随父容器收缩。
 - **验证**：在窄侧栏下，Target Param Name 行与按钮行不再溢出/换行，两个按钮等宽分布；Select variable 占位符单行截断。
+
+## 17. P3 UI 微调：Add 类按钮样式统一
+- **问题**：`+ Add Parameter Modifier`、`+ Add Parameter`、`+ Add Listener`、`+ Add Trigger` 按钮存在边框/字体/hover 状态不一致，影响 Inspector 区域一致性。
+- **调整**：新增 `.btn-add-ghost` 虚线边框按钮样式（统一字体、padding、hover 反馈与禁用态），并将上述四个按钮替换为该样式，保留各自布局（宽度/间距/高度）以兼容现有栅格。
+- **验证**：
+  - Transition Inspector、Event Listeners、Trigger Editor、Presentation Binding 中的新增按钮均呈虚线边框、11px 字重 500 文本；
+  - Hover 时背景/边框高亮一致；
+  - ReadOnly/disabled 时透明度下降且不可点击。

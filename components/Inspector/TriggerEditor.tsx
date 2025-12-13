@@ -133,16 +133,10 @@ export const TriggerEditor: React.FC<Props> = ({
                 )}
 
                 <button
-                    className="btn-ghost"
+                    className="btn-add-ghost"
                     onClick={handleAddTrigger}
                     disabled={readOnly}
-                    style={{
-                        width: '100%',
-                        justifyContent: 'center',
-                        marginTop: '4px',
-                        borderStyle: 'dashed',
-                        opacity: 0.7
-                    }}
+                    style={{ marginTop: '4px' }}
                 >
                     + Add Trigger
                 </button>
