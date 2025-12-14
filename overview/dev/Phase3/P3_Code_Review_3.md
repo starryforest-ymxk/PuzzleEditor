@@ -171,13 +171,12 @@ P3_Code_Review_2.md 已用 UTF-8 重存，可正常读取。关键结论与当�
 - 匿名箭头函数组件应添加 `displayName` 属性以便 React DevTools 调试
 - 使用 `React.memo` 包裹的组件应确保有可读名称
 
-**建议**：
-```typescript
-export const TriggerEditor: React.FC<Props> = (props) => { ... };
-TriggerEditor.displayName = 'TriggerEditor';
-```
+**修复**：为 React.memo 组件补充 displayName：
+- `StateNode.displayName = 'StateNode'`
+- `ConnectionLine.displayName = 'ConnectionLine'`
+- `ConnectionControls.displayName = 'ConnectionControls'`
 
-**优先级**：🟢 低
+**优先级**：🟢 低（已完成）
 
 ---
 
@@ -201,9 +200,9 @@ TriggerEditor.displayName = 'TriggerEditor';
 - `utils/constants.ts` 第 41-46 行定义 `STATE_NODE.WIDTH/ESTIMATED_HEIGHT`
 - `utils/geometry.ts` 定义 `STATE_WIDTH/STATE_ESTIMATED_HEIGHT`
 
-**建议**：统一从 `constants.ts` 导入并在 `geometry.ts` 中复用
+**修复**：`geometry.ts` 引入 `STATE_NODE`，导出 `STATE_WIDTH/STATE_ESTIMATED_HEIGHT` 直接复用常量，消除重复定义。
 
-**优先级**：🟢 低
+**优先级**：🟢 低（已完成）
 
 ---
 

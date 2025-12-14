@@ -79,6 +79,8 @@ export const ConnectionLine = React.memo(({
     );
 });
 
+ConnectionLine.displayName = 'ConnectionLine';
+
 
 
 // Helper component for the HTML overlay part (Handles & Label)
@@ -140,4 +142,6 @@ export const ConnectionControls = React.memo(({
         </React.Fragment>
     )
 });
+
+ConnectionControls.displayName = 'ConnectionControls';
 

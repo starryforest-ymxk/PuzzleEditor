@@ -108,3 +108,5 @@ export const StateNode = React.memo(({
         </div>
     );
 });
+
+StateNode.displayName = 'StateNode';

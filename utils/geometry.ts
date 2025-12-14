@@ -4,12 +4,13 @@
  */
 
 import { Side } from '../types/common';
+import { STATE_NODE } from './constants';
 
 // ========== 常量定义 ==========
-/** 状态节点默认宽度 */
-export const STATE_WIDTH = 180;
-/** 状态节点预估高度 */
-export const STATE_ESTIMATED_HEIGHT = 80;
+/** 状态节点默认宽度（与 constants.STATE_NODE 保持一致） */
+export const STATE_WIDTH = STATE_NODE.WIDTH;
+/** 状态节点预估高度（与 constants.STATE_NODE 保持一致） */
+export const STATE_ESTIMATED_HEIGHT = STATE_NODE.ESTIMATED_HEIGHT;
 /** 演出节点宽度 */
 export const NODE_WIDTH = 160;
 /** 演出节点高度 */
