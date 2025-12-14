@@ -30,23 +30,21 @@ export type PresentationGraphId = string;
 export type PresentationNodeId = string;
 
 // Blackboard resources
-/** Recommend: var-* */
+/** Recommend: VAR_* */
 export type VariableId = string;
-export type VariableKey = string;
-/** Recommend: event-* or EVENT_* */
+/** Recommend: EVENT_* */
 export type EventId = string;
-export type EventKey = string;
 
 // Script/Trigger resources (global manifest)
-/** Recommend: script-* */
+/** Recommend: SCRIPT_* */
 export type ScriptId = string;
-/** Recommend: script-* */
-export type ScriptKey = string;
-/** Recommend: trigger-* or uppercase tokens */
+/** Recommend: TRIGGER_* */
 export type TriggerId = string;
 export type TriggerKey = string;
 
 // Reference helpers
 export type IdRef<TId extends string> = { id: TId };
+/** @deprecated Key 已移除，请使用 ID 引用 */
 export type KeyRef<TKey extends string> = { key: TKey };
+/** @deprecated Key 已移除，请使用 ID 引用 */
 export type StableRef<TId extends string, TKey extends string> = IdRef<TId> | KeyRef<TKey>;

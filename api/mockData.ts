@@ -20,6 +20,7 @@ export const MOCK_STAGES: StageTreeData = {
       parentId: null,
       childrenIds: ['stage-act1', 'stage-act2', 'stage-act3'],
       eventListeners: [],
+      localVariables: {},
       isExpanded: true
     },
     'stage-act1': {
@@ -29,6 +30,7 @@ export const MOCK_STAGES: StageTreeData = {
       childrenIds: ['stage-act1a', 'stage-act1b'],
       description: 'Reach the underground facility entrance and regain bearings.',
       eventListeners: [],
+      localVariables: {},
       isInitial: true,
       isExpanded: true
     },
@@ -39,6 +41,7 @@ export const MOCK_STAGES: StageTreeData = {
       childrenIds: [],
       description: 'Stabilize power and recover lab notes.',
       eventListeners: [],
+      localVariables: {},
       isInitial: true,
       isExpanded: false
     },
@@ -49,6 +52,7 @@ export const MOCK_STAGES: StageTreeData = {
       childrenIds: [],
       description: 'Disable security grid to access deeper halls.',
       eventListeners: [],
+      localVariables: {},
       isExpanded: false
     },
     'stage-act2': {
@@ -58,6 +62,7 @@ export const MOCK_STAGES: StageTreeData = {
       childrenIds: ['stage-act2a', 'stage-act2b', 'stage-act2c'],
       description: 'Piece together the conspiracy from fragmented evidence.',
       eventListeners: [],
+      localVariables: {},
       isExpanded: true
     },
     'stage-act2a': {
@@ -67,6 +72,7 @@ export const MOCK_STAGES: StageTreeData = {
       childrenIds: [],
       description: 'Unlock and parse stored case files.',
       eventListeners: [],
+      localVariables: {},
       isInitial: true,
       isExpanded: false
     },
@@ -77,6 +83,7 @@ export const MOCK_STAGES: StageTreeData = {
       childrenIds: [],
       description: 'Bypass digital defenses.',
       eventListeners: [],
+      localVariables: {},
       isExpanded: false
     },
     'stage-act2c': {
@@ -86,6 +93,7 @@ export const MOCK_STAGES: StageTreeData = {
       childrenIds: [],
       description: 'Extract intel under pressure.',
       eventListeners: [],
+      localVariables: {},
       isExpanded: false
     },
     'stage-act3': {
@@ -95,6 +103,7 @@ export const MOCK_STAGES: StageTreeData = {
       childrenIds: [],
       description: 'Sequence the final escape and seal the facility.',
       eventListeners: [],
+      localVariables: {},
       isExpanded: false
     }
   }
@@ -111,19 +120,17 @@ export const MOCK_NODES: Record<string, PuzzleNode> = {
     localVariables: {
       'node-act1-main1-progress': {
         id: 'node-act1-main1-progress',
-        key: 'node-act1-main1-progress',
         name: 'Progress',
         type: 'integer',
-        defaultValue: 0,
+        value: 0,
         state: 'Implemented',
         scope: 'NodeLocal'
       },
       'node-act1-main1-solved': {
         id: 'node-act1-main1-solved',
-        key: 'node-act1-main1-solved',
         name: 'Memory Stabilized',
         type: 'boolean',
-        defaultValue: false,
+        value: false,
         state: 'Draft',
         scope: 'NodeLocal'
       }
@@ -139,19 +146,17 @@ export const MOCK_NODES: Record<string, PuzzleNode> = {
     localVariables: {
       'node-act1-main2-progress': {
         id: 'node-act1-main2-progress',
-        key: 'node-act1-main2-progress',
         name: 'Progress',
         type: 'integer',
-        defaultValue: 0,
+        value: 0,
         state: 'Implemented',
         scope: 'NodeLocal'
       },
       'node-act1-main2-solved': {
         id: 'node-act1-main2-solved',
-        key: 'node-act1-main2-solved',
         name: 'Lift Online',
         type: 'boolean',
-        defaultValue: false,
+        value: false,
         state: 'Draft',
         scope: 'NodeLocal'
       }
@@ -167,19 +172,17 @@ export const MOCK_NODES: Record<string, PuzzleNode> = {
     localVariables: {
       'node-act1a-1-progress': {
         id: 'node-act1a-1-progress',
-        key: 'node-act1a-1-progress',
         name: 'Fuses Inserted',
         type: 'integer',
-        defaultValue: 0,
+        value: 0,
         state: 'Implemented',
         scope: 'NodeLocal'
       },
       'node-act1a-1-solved': {
         id: 'node-act1a-1-solved',
-        key: 'node-act1a-1-solved',
         name: 'Power Stable',
         type: 'boolean',
-        defaultValue: false,
+        value: false,
         state: 'Implemented',
         scope: 'NodeLocal'
       }
@@ -195,19 +198,17 @@ export const MOCK_NODES: Record<string, PuzzleNode> = {
     localVariables: {
       'node-act1a-2-progress': {
         id: 'node-act1a-2-progress',
-        key: 'node-act1a-2-progress',
         name: 'Fragments Restored',
         type: 'integer',
-        defaultValue: 0,
+        value: 0,
         state: 'Implemented',
         scope: 'NodeLocal'
       },
       'node-act1a-2-solved': {
         id: 'node-act1a-2-solved',
-        key: 'node-act1a-2-solved',
         name: 'Transcript Ready',
         type: 'boolean',
-        defaultValue: false,
+        value: false,
         state: 'Implemented',
         scope: 'NodeLocal'
       }
@@ -223,19 +224,17 @@ export const MOCK_NODES: Record<string, PuzzleNode> = {
     localVariables: {
       'node-act1a-3-progress': {
         id: 'node-act1a-3-progress',
-        key: 'node-act1a-3-progress',
         name: 'Valve Alignment',
         type: 'integer',
-        defaultValue: 0,
+        value: 0,
         state: 'Implemented',
         scope: 'NodeLocal'
       },
       'node-act1a-3-solved': {
         id: 'node-act1a-3-solved',
-        key: 'node-act1a-3-solved',
         name: 'Containment Released',
         type: 'boolean',
-        defaultValue: false,
+        value: false,
         state: 'Draft',
         scope: 'NodeLocal'
       }
@@ -251,19 +250,17 @@ export const MOCK_NODES: Record<string, PuzzleNode> = {
     localVariables: {
       'node-act1b-1-progress': {
         id: 'node-act1b-1-progress',
-        key: 'node-act1b-1-progress',
         name: 'Mirrors Set',
         type: 'integer',
-        defaultValue: 0,
+        value: 0,
         state: 'Implemented',
         scope: 'NodeLocal'
       },
       'node-act1b-1-solved': {
         id: 'node-act1b-1-solved',
-        key: 'node-act1b-1-solved',
         name: 'Grid Disabled',
         type: 'boolean',
-        defaultValue: false,
+        value: false,
         state: 'Implemented',
         scope: 'NodeLocal'
       }
@@ -279,19 +276,17 @@ export const MOCK_NODES: Record<string, PuzzleNode> = {
     localVariables: {
       'node-act1b-2-progress': {
         id: 'node-act1b-2-progress',
-        key: 'node-act1b-2-progress',
         name: 'Vents Mapped',
         type: 'integer',
-        defaultValue: 0,
+        value: 0,
         state: 'Implemented',
         scope: 'NodeLocal'
       },
       'node-act1b-2-solved': {
         id: 'node-act1b-2-solved',
-        key: 'node-act1b-2-solved',
         name: 'Route Clear',
         type: 'boolean',
-        defaultValue: false,
+        value: false,
         state: 'Draft',
         scope: 'NodeLocal'
       }
@@ -307,19 +302,17 @@ export const MOCK_NODES: Record<string, PuzzleNode> = {
     localVariables: {
       'node-act1b-3-progress': {
         id: 'node-act1b-3-progress',
-        key: 'node-act1b-3-progress',
         name: 'Formula Progress',
         type: 'integer',
-        defaultValue: 0,
+        value: 0,
         state: 'Implemented',
         scope: 'NodeLocal'
       },
       'node-act1b-3-solved': {
         id: 'node-act1b-3-solved',
-        key: 'node-act1b-3-solved',
         name: 'Solvent Ready',
         type: 'boolean',
-        defaultValue: false,
+        value: false,
         state: 'Implemented',
         scope: 'NodeLocal'
       }
@@ -335,19 +328,17 @@ export const MOCK_NODES: Record<string, PuzzleNode> = {
     localVariables: {
       'node-act2-main1-progress': {
         id: 'node-act2-main1-progress',
-        key: 'node-act2-main1-progress',
         name: 'Connections Made',
         type: 'integer',
-        defaultValue: 0,
+        value: 0,
         state: 'Implemented',
         scope: 'NodeLocal'
       },
       'node-act2-main1-solved': {
         id: 'node-act2-main1-solved',
-        key: 'node-act2-main1-solved',
         name: 'Board Solved',
         type: 'boolean',
-        defaultValue: false,
+        value: false,
         state: 'Implemented',
         scope: 'NodeLocal'
       }
@@ -363,19 +354,17 @@ export const MOCK_NODES: Record<string, PuzzleNode> = {
     localVariables: {
       'node-act2-main2-progress': {
         id: 'node-act2-main2-progress',
-        key: 'node-act2-main2-progress',
         name: 'Relays Synced',
         type: 'integer',
-        defaultValue: 0,
+        value: 0,
         state: 'Implemented',
         scope: 'NodeLocal'
       },
       'node-act2-main2-solved': {
         id: 'node-act2-main2-solved',
-        key: 'node-act2-main2-solved',
         name: 'Grid Balanced',
         type: 'boolean',
-        defaultValue: false,
+        value: false,
         state: 'Draft',
         scope: 'NodeLocal'
       }
@@ -391,19 +380,17 @@ export const MOCK_NODES: Record<string, PuzzleNode> = {
     localVariables: {
       'node-act2a-1-progress': {
         id: 'node-act2a-1-progress',
-        key: 'node-act2a-1-progress',
         name: 'Locks Opened',
         type: 'integer',
-        defaultValue: 0,
+        value: 0,
         state: 'Implemented',
         scope: 'NodeLocal'
       },
       'node-act2a-1-solved': {
         id: 'node-act2a-1-solved',
-        key: 'node-act2a-1-solved',
         name: 'Archives Ready',
         type: 'boolean',
-        defaultValue: false,
+        value: false,
         state: 'Implemented',
         scope: 'NodeLocal'
       }
@@ -419,19 +406,17 @@ export const MOCK_NODES: Record<string, PuzzleNode> = {
     localVariables: {
       'node-act2a-2-progress': {
         id: 'node-act2a-2-progress',
-        key: 'node-act2a-2-progress',
         name: 'Frames Parsed',
         type: 'integer',
-        defaultValue: 0,
+        value: 0,
         state: 'Implemented',
         scope: 'NodeLocal'
       },
       'node-act2a-2-solved': {
         id: 'node-act2a-2-solved',
-        key: 'node-act2a-2-solved',
         name: 'Film Decoded',
         type: 'boolean',
-        defaultValue: false,
+        value: false,
         state: 'Draft',
         scope: 'NodeLocal'
       }
@@ -447,19 +432,17 @@ export const MOCK_NODES: Record<string, PuzzleNode> = {
     localVariables: {
       'node-act2a-3-progress': {
         id: 'node-act2a-3-progress',
-        key: 'node-act2a-3-progress',
         name: 'Ciphers Solved',
         type: 'integer',
-        defaultValue: 0,
+        value: 0,
         state: 'Implemented',
         scope: 'NodeLocal'
       },
       'node-act2a-3-solved': {
         id: 'node-act2a-3-solved',
-        key: 'node-act2a-3-solved',
         name: 'Keyword Found',
         type: 'boolean',
-        defaultValue: false,
+        value: false,
         state: 'Implemented',
         scope: 'NodeLocal'
       }
@@ -475,19 +458,17 @@ export const MOCK_NODES: Record<string, PuzzleNode> = {
     localVariables: {
       'node-act2b-1-progress': {
         id: 'node-act2b-1-progress',
-        key: 'node-act2b-1-progress',
         name: 'Ports Mapped',
         type: 'integer',
-        defaultValue: 0,
+        value: 0,
         state: 'Implemented',
         scope: 'NodeLocal'
       },
       'node-act2b-1-solved': {
         id: 'node-act2b-1-solved',
-        key: 'node-act2b-1-solved',
         name: 'Firewall Breached',
         type: 'boolean',
-        defaultValue: false,
+        value: false,
         state: 'Implemented',
         scope: 'NodeLocal'
       }
@@ -503,19 +484,17 @@ export const MOCK_NODES: Record<string, PuzzleNode> = {
     localVariables: {
       'node-act2b-2-progress': {
         id: 'node-act2b-2-progress',
-        key: 'node-act2b-2-progress',
         name: 'Credentials Forged',
         type: 'integer',
-        defaultValue: 0,
+        value: 0,
         state: 'Implemented',
         scope: 'NodeLocal'
       },
       'node-act2b-2-solved': {
         id: 'node-act2b-2-solved',
-        key: 'node-act2b-2-solved',
         name: 'Override Granted',
         type: 'boolean',
-        defaultValue: false,
+        value: false,
         state: 'Draft',
         scope: 'NodeLocal'
       }
@@ -531,19 +510,17 @@ export const MOCK_NODES: Record<string, PuzzleNode> = {
     localVariables: {
       'node-act2b-3-progress': {
         id: 'node-act2b-3-progress',
-        key: 'node-act2b-3-progress',
         name: 'Fragments Saved',
         type: 'integer',
-        defaultValue: 0,
+        value: 0,
         state: 'Implemented',
         scope: 'NodeLocal'
       },
       'node-act2b-3-solved': {
         id: 'node-act2b-3-solved',
-        key: 'node-act2b-3-solved',
         name: 'Data Restored',
         type: 'boolean',
-        defaultValue: false,
+        value: false,
         state: 'Implemented',
         scope: 'NodeLocal'
       }
@@ -559,19 +536,17 @@ export const MOCK_NODES: Record<string, PuzzleNode> = {
     localVariables: {
       'node-act2c-1-progress': {
         id: 'node-act2c-1-progress',
-        key: 'node-act2c-1-progress',
         name: 'Beats Matched',
         type: 'integer',
-        defaultValue: 0,
+        value: 0,
         state: 'Implemented',
         scope: 'NodeLocal'
       },
       'node-act2c-1-solved': {
         id: 'node-act2c-1-solved',
-        key: 'node-act2c-1-solved',
         name: 'Timing Mastered',
         type: 'boolean',
-        defaultValue: false,
+        value: false,
         state: 'Implemented',
         scope: 'NodeLocal'
       }
@@ -587,19 +562,17 @@ export const MOCK_NODES: Record<string, PuzzleNode> = {
     localVariables: {
       'node-act2c-2-progress': {
         id: 'node-act2c-2-progress',
-        key: 'node-act2c-2-progress',
         name: 'Signals Synced',
         type: 'integer',
-        defaultValue: 0,
+        value: 0,
         state: 'Implemented',
         scope: 'NodeLocal'
       },
       'node-act2c-2-solved': {
         id: 'node-act2c-2-solved',
-        key: 'node-act2c-2-solved',
         name: 'Truth Locked',
         type: 'boolean',
-        defaultValue: false,
+        value: false,
         state: 'Draft',
         scope: 'NodeLocal'
       }
@@ -615,19 +588,17 @@ export const MOCK_NODES: Record<string, PuzzleNode> = {
     localVariables: {
       'node-act2c-3-progress': {
         id: 'node-act2c-3-progress',
-        key: 'node-act2c-3-progress',
         name: 'Noise Triggers',
         type: 'integer',
-        defaultValue: 0,
+        value: 0,
         state: 'Implemented',
         scope: 'NodeLocal'
       },
       'node-act2c-3-solved': {
         id: 'node-act2c-3-solved',
-        key: 'node-act2c-3-solved',
         name: 'Patrol Shifted',
         type: 'boolean',
-        defaultValue: false,
+        value: false,
         state: 'Implemented',
         scope: 'NodeLocal'
       }
@@ -643,19 +614,17 @@ export const MOCK_NODES: Record<string, PuzzleNode> = {
     localVariables: {
       'node-act3-main1-progress': {
         id: 'node-act3-main1-progress',
-        key: 'node-act3-main1-progress',
         name: 'Paths Evaluated',
         type: 'integer',
-        defaultValue: 0,
+        value: 0,
         state: 'Implemented',
         scope: 'NodeLocal'
       },
       'node-act3-main1-solved': {
         id: 'node-act3-main1-solved',
-        key: 'node-act3-main1-solved',
         name: 'Route Locked',
         type: 'boolean',
-        defaultValue: false,
+        value: false,
         state: 'Implemented',
         scope: 'NodeLocal'
       }
@@ -671,19 +640,17 @@ export const MOCK_NODES: Record<string, PuzzleNode> = {
     localVariables: {
       'node-act3-main2-progress': {
         id: 'node-act3-main2-progress',
-        key: 'node-act3-main2-progress',
         name: 'Locks Released',
         type: 'integer',
-        defaultValue: 0,
+        value: 0,
         state: 'Implemented',
         scope: 'NodeLocal'
       },
       'node-act3-main2-solved': {
         id: 'node-act3-main2-solved',
-        key: 'node-act3-main2-solved',
         name: 'Door Opened',
         type: 'boolean',
-        defaultValue: false,
+        value: false,
         state: 'Draft',
         scope: 'NodeLocal'
       }
@@ -824,7 +791,6 @@ export const MOCK_PRESENTATION_GRAPHS: Record<string, PresentationGraph> = {
 export const MOCK_SCRIPTS: ScriptDefinition[] = [
   {
     id: 'script-log',
-    key: 'script-log',
     name: 'Debug Log',
     category: 'Performance',
     description: 'Print a message to the console',
@@ -832,7 +798,6 @@ export const MOCK_SCRIPTS: ScriptDefinition[] = [
   },
   {
     id: 'script-play-anim',
-    key: 'script-play-anim',
     name: 'Play Animation',
     category: 'Performance',
     description: 'Play an animation on a target object',
@@ -840,7 +805,6 @@ export const MOCK_SCRIPTS: ScriptDefinition[] = [
   },
   {
     id: 'script-dialogue',
-    key: 'script-dialogue',
     name: 'Show Dialogue',
     category: 'Performance',
     description: 'Display a dialogue message',
@@ -848,7 +812,6 @@ export const MOCK_SCRIPTS: ScriptDefinition[] = [
   },
   {
     id: 'script-lifecycle-node',
-    key: 'script-lifecycle-node',
     name: 'Node Lifecycle',
     category: 'Lifecycle',
     description: 'Handles node enter/exit lifecycle events',
@@ -857,7 +820,6 @@ export const MOCK_SCRIPTS: ScriptDefinition[] = [
   },
   {
     id: 'script-lifecycle-node-audit',
-    key: 'script-lifecycle-node-audit',
     name: 'Node Audit Hook',
     category: 'Lifecycle',
     description: 'Logs node entry/exit for telemetry.',
@@ -866,7 +828,6 @@ export const MOCK_SCRIPTS: ScriptDefinition[] = [
   },
   {
     id: 'script-lifecycle-node-legacy',
-    key: 'script-lifecycle-node-legacy',
     name: 'Node Legacy Cleanup',
     category: 'Lifecycle',
     description: 'Deprecated node cleanup flow kept for migration.',
@@ -875,7 +836,6 @@ export const MOCK_SCRIPTS: ScriptDefinition[] = [
   },
   {
     id: 'script-lifecycle-state',
-    key: 'script-lifecycle-state',
     name: 'State Lifecycle',
     category: 'Lifecycle',
     description: 'Handles state enter/exit lifecycle events',
@@ -884,7 +844,6 @@ export const MOCK_SCRIPTS: ScriptDefinition[] = [
   },
   {
     id: 'script-lifecycle-state-audit',
-    key: 'script-lifecycle-state-audit',
     name: 'State Audit Hook',
     category: 'Lifecycle',
     description: 'Records state transitions for debugging.',
@@ -893,7 +852,6 @@ export const MOCK_SCRIPTS: ScriptDefinition[] = [
   },
   {
     id: 'script-lifecycle-state-legacy',
-    key: 'script-lifecycle-state-legacy',
     name: 'State Legacy Bridge',
     category: 'Lifecycle',
     description: 'Legacy state enter/exit behavior slated for removal.',
@@ -902,7 +860,6 @@ export const MOCK_SCRIPTS: ScriptDefinition[] = [
   },
   {
     id: 'script-lifecycle-stage',
-    key: 'script-lifecycle-stage',
     name: 'Stage Lifecycle',
     category: 'Lifecycle',
     description: 'Handles stage-level enter/exit hooks',
@@ -911,7 +868,6 @@ export const MOCK_SCRIPTS: ScriptDefinition[] = [
   },
   {
     id: 'script-lifecycle-stage-audit',
-    key: 'script-lifecycle-stage-audit',
     name: 'Stage Audit Hook',
     category: 'Lifecycle',
     description: 'Captures stage-level analytics on enter/exit.',
@@ -920,7 +876,6 @@ export const MOCK_SCRIPTS: ScriptDefinition[] = [
   },
   {
     id: 'script-lifecycle-stage-legacy',
-    key: 'script-lifecycle-stage-legacy',
     name: 'Stage Legacy Intro/Outro',
     category: 'Lifecycle',
     description: 'Deprecated stage intro/outro kept for compatibility.',
@@ -929,7 +884,6 @@ export const MOCK_SCRIPTS: ScriptDefinition[] = [
   },
   {
     id: 'script-condition-check',
-    key: 'script-condition-check',
     name: 'Custom Condition',
     category: 'Condition',
     description: 'Custom condition check script',
@@ -937,7 +891,6 @@ export const MOCK_SCRIPTS: ScriptDefinition[] = [
   },
   {
     id: 'script-trigger-custom',
-    key: 'script-trigger-custom',
     name: 'Custom Trigger',
     category: 'Trigger',
     description: 'Custom trigger script for transitions',
@@ -945,7 +898,6 @@ export const MOCK_SCRIPTS: ScriptDefinition[] = [
   },
   {
     id: 'script-old-broadcast',
-    key: 'script-old-broadcast',
     name: 'Legacy Broadcast',
     category: 'Performance',
     description: 'Deprecated broadcast effect kept for migration tests',
@@ -957,31 +909,21 @@ export const MOCK_SCRIPTS: ScriptDefinition[] = [
 export const MOCK_TRIGGERS: TriggerDefinition[] = [
   {
     id: 'ON_INTERACT',
-    key: 'ON_INTERACT',
     name: 'On Interact',
     description: 'Player interacts with the object',
-    state: 'Implemented',
-    parameters: []
+    state: 'Implemented'
   },
   {
     id: 'ON_ENTER_REGION',
-    key: 'ON_ENTER_REGION',
     name: 'On Enter Region',
     description: 'Player enters the trigger volume',
-    state: 'Implemented',
-    parameters: [
-      { name: 'tag', type: 'string', required: false, defaultValue: 'Player' }
-    ]
+    state: 'Implemented'
   },
   {
     id: 'ON_VARIABLE_CHANGE',
-    key: 'ON_VARIABLE_CHANGE',
     name: 'On Variable Change',
     description: 'A specific blackboard variable changed',
-    state: 'Implemented',
-    parameters: [
-      { name: 'variableName', type: 'string', required: true }
-    ]
+    state: 'Implemented'
   }
 ];
 
@@ -990,28 +932,25 @@ export const MOCK_BLACKBOARD: BlackboardData = {
   globalVariables: {
     'var-game-difficulty': {
       id: 'var-game-difficulty',
-      key: 'var-game-difficulty',
-      name: 'Game Difficulty',
+        name: 'Game Difficulty',
       type: 'string',
-      defaultValue: 'Normal',
+      value: 'Normal',
       state: 'Implemented',
       scope: 'Global'
     },
     'var-player-health': {
       id: 'var-player-health',
-      key: 'var-player-health',
-      name: 'Player Health',
+        name: 'Player Health',
       type: 'integer',
-      defaultValue: 100,
+      value: 100,
       state: 'Draft',
       scope: 'Global'
     },
     'var-retired-route': {
       id: 'var-retired-route',
-      key: 'var-retired-route',
-      name: 'Retired Route Flag',
+        name: 'Retired Route Flag',
       type: 'boolean',
-      defaultValue: false,
+      value: false,
       state: 'MarkedForDelete',
       scope: 'Global'
     }
@@ -1019,29 +958,25 @@ export const MOCK_BLACKBOARD: BlackboardData = {
   events: {
     'event-alarm-triggered': {
       id: 'event-alarm-triggered',
-      key: 'EVENT_ALARM_TRIGGERED',
-      name: 'Alarm Triggered',
+        name: 'Alarm Triggered',
       description: 'Guard alarm raised',
       state: 'Implemented'
     },
     'event-power-restored': {
       id: 'event-power-restored',
-      key: 'EVENT_POWER_RESTORED',
-      name: 'Power Restored',
+        name: 'Power Restored',
       description: 'Generator back online',
       state: 'Draft'
     },
     'event-case-start': {
       id: 'event-case-start',
-      key: 'EVENT_CASE_START',
-      name: 'Case Start',
+        name: 'Case Start',
       description: 'Signals the beginning of any puzzle interaction.',
       state: 'Implemented'
     },
     'event-retired-siren': {
       id: 'event-retired-siren',
-      key: 'EVENT_RETIRED_SIREN',
-      name: 'Retired Siren',
+        name: 'Retired Siren',
       description: 'Deprecated alert sound kept for compatibility testing.',
       state: 'MarkedForDelete'
     }
@@ -1057,3 +992,6 @@ export const MOCK_SCRIPTS_MANIFEST: ScriptsManifest = {
 export const MOCK_TRIGGERS_MANIFEST: TriggersManifest = {
   triggers: Object.fromEntries(MOCK_TRIGGERS.map((t) => [t.id, t]))
 };
+
+
+

@@ -31,7 +31,6 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({ nodeId, readOnly =
             id: s.id,
             name: s.name,
             state: s.state,
-            key: s.key,
             category: s.category,
             description: s.description
         }));
@@ -39,7 +38,6 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({ nodeId, readOnly =
         id: e.id,
         name: e.name,
         state: e.state,
-        key: e.key,
         description: e.description
     }));
 

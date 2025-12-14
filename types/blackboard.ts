@@ -9,22 +9,19 @@ import {
   VariableScope,
   ResourceState,
   VariableId,
-  VariableKey,
-  EventId,
-  EventKey
+  EventId
 } from './common';
 
 // ========== 变量定义 ==========
 /**
  * 黑板变量定义
  * 可存在于 Global Blackboard、Stage Local 或 Node Local
+ * 注意：ID 由系统生成，不可编辑
  */
 export interface VariableDefinition extends Entity {
   id: VariableId;
-  key: VariableKey;          // 系统生成的稳定 Key，不随重命名变化
   type: VariableType;
-  defaultValue: any;
-  enumOptions?: string[];    // 当 type 为 'enum' 时的选项列表
+  value: any;           // 变量的当前值
   state: ResourceState;
   scope: VariableScope;      // 定义时的作用域
 }
@@ -33,10 +30,10 @@ export interface VariableDefinition extends Entity {
 /**
  * 事件定义（纯字符串 ID 标识）
  * 用于触发状态转移或驱动监听器响应
+ * 注意：ID 由系统生成，不可编辑
  */
 export interface EventDefinition extends Entity {
   id: EventId;
-  key: EventKey;
   state: ResourceState;
 }
 

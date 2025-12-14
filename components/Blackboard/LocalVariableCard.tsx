@@ -81,9 +81,9 @@ export const LocalVariableCard: React.FC<LocalVariableCardProps> = ({
                     </span>
                 </div>
                 <div>
-                    <span className="label">Default: </span>
+                    <span className="label">Value: </span>
                     <span className="value">
-                        {variable.defaultValue !== undefined ? String(variable.defaultValue) : '-'}
+                        {variable.value !== undefined ? String(variable.value) : '-'}
                     </span>
                 </div>
             </div>

@@ -54,7 +54,6 @@ export const StateInspector = ({ fsmId, stateId, readOnly = false }: Props) => {
         id: e.id,
         name: e.name,
         state: e.state,
-        key: e.key,
         description: e.description
     })), [project.blackboard.events]);
 
@@ -72,7 +71,6 @@ export const StateInspector = ({ fsmId, stateId, readOnly = false }: Props) => {
             id: s.id,
             name: s.name,
             state: s.state,
-            key: s.key,
             category: s.category,
             description: s.description
         })), [scriptRecords]);

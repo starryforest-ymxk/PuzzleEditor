@@ -4,12 +4,12 @@
  */
 
 import { EditorState, Action } from '../types';
-import { StageTree } from '../../types/stage';
-import { PuzzleNode } from '../../types/node';
+import { StageTreeData } from '../../types/stage';
+import { PuzzleNode } from '../../types/puzzleNode';
 
 // ========== Project 相关 Actions 类型定义 ==========
 export type ProjectAction =
-    | { type: 'UPDATE_STAGE_TREE'; payload: StageTree }
+    | { type: 'UPDATE_STAGE_TREE'; payload: StageTreeData }
     | { type: 'UPDATE_NODE'; payload: { nodeId: string; data: Partial<PuzzleNode> } };
 
 // ========== 类型守卫：判断是否为 Project Action ==========

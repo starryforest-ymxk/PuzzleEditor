@@ -42,7 +42,6 @@ export const StageInspector: React.FC<StageInspectorProps> = ({ stageId, readOnl
             id: s.id,
             name: s.name,
             state: s.state,
-            key: s.key,
             category: s.category,
             description: s.description
         }));
@@ -51,7 +50,6 @@ export const StageInspector: React.FC<StageInspectorProps> = ({ stageId, readOnl
         id: e.id,
         name: e.name,
         state: e.state,
-        key: e.key,
         description: e.description
     }));
 

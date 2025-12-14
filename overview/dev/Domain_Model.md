@@ -92,7 +92,7 @@ graph TB
 ```ts
 // 通用基础
 type ResourceState = 'Draft' | 'Implemented' | 'MarkedForDelete';
-type VariableType = 'boolean' | 'integer' | 'float' | 'string' | 'enum';
+type VariableType = 'boolean' | 'integer' | 'float' | 'string';
 type VariableScope = 'Global' | 'StageLocal' | 'NodeLocal' | 'Temporary';
 type ScriptCategory = 'Performance' | 'Lifecycle' | 'Condition' | 'Trigger';
 
@@ -137,29 +137,19 @@ interface EventListener { eventId: string; action: EventAction; }
 ```ts
 interface VariableDefinition extends Entity {
   id: string;
-  key: string;
   type: VariableType;
-  defaultValue: any;
-  enumOptions?: string[];
+  value: any;            // 变量的当前值
   state: ResourceState;
   scope: VariableScope;
 }
 
-interface EventDefinition extends Entity { id: string; key: string; state: ResourceState; }
+interface EventDefinition extends Entity { id: string; state: ResourceState; }
 
-interface ScriptParameterDefinition {
-  name: string;
-  type: VariableType | 'asset' | 'nodeReference';
-  required: boolean;
-  defaultValue?: any;
-  options?: string[];
-}
-
+// 演出脚本的参数由用户在绑定时动态配置，不预定义在脚本中
 interface ScriptDefinition extends Entity {
   id: string;
-  key: string;
   category: ScriptCategory;
-  parameters: ScriptParameterDefinition[];
+  lifecycleType?: LifecycleScriptTarget;     // 仅 Lifecycle 类型有效
   state: ResourceState;
 }
 ```

@@ -1,9 +1,9 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { useEditorState, useEditorDispatch } from '../../store/context';
 import { PresentationGraph } from '../../types/presentation';
 import * as Geom from '../../utils/geometry';
 import { useCanvasNavigation } from '../../hooks/useCanvasNavigation';
+import { generateResourceId } from '../../utils/resourceIdGenerator';
 
 interface Props {
   graph: PresentationGraph;
@@ -104,7 +104,10 @@ export const PresentationCanvas = ({ graph, ownerNodeId, readOnly = false }: Pro
   const handleAddNode = (type: string) => {
       if (!contextMenu) return;
       if (readOnly) return;
-      dispatch({ type: 'ADD_PRESENTATION_NODE', payload: { graphId: graph.id, node: { id: `pnode-${Date.now()}`, name: `New ${type}`, type: type as any, position: { x: contextMenu.x, y: contextMenu.y }, nextIds: [] } } });
+      // 使用"资源类型_计数器"格式生成 ID
+      const existingIds = Object.keys(graph.nodes);
+      const nodeId = generateResourceId('PNODE', existingIds);
+      dispatch({ type: 'ADD_PRESENTATION_NODE', payload: { graphId: graph.id, node: { id: nodeId, name: `New ${type}`, type: type as any, position: { x: contextMenu.x, y: contextMenu.y }, nextIds: [] } } });
       setContextMenu(null);
   };
 

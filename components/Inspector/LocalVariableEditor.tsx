@@ -5,6 +5,7 @@ import type { MessageLevel } from '../../store/types';
 import { useEditorDispatch, useEditorState } from '../../store/context';
 import { withScope } from '../../utils/variableScope';
 import { findNodeVariableReferences } from '../../utils/variableReferences';
+import { generateResourceId } from '../../utils/resourceIdGenerator';
 import { ConfirmDialog } from './ConfirmDialog';
 import { LocalVariableCard } from './localVariable/LocalVariableCard';
 
@@ -85,12 +86,12 @@ export const LocalVariableEditor: React.FC<LocalVariableEditorProps> = ({
         return map;
     }, [project, ownerId, ownerType, resolveReferences, vars]);
 
-    // 同步已存在的默认值，用于数值失焦时回退
+    // 同步已存在的值，用于数值失焦时回退
     useEffect(() => {
         setPrevDefaults((prev) => {
             const next: Record<string, any> = {};
             vars.forEach(v => {
-                next[v.id] = prev[v.id] !== undefined ? prev[v.id] : v.defaultValue;
+                next[v.id] = prev[v.id] !== undefined ? prev[v.id] : v.value;
             });
             return next;
         });
@@ -126,14 +127,15 @@ export const LocalVariableEditor: React.FC<LocalVariableEditorProps> = ({
     const handleAdd = () => {
         if (!canMutate || !ownerId) return;
         const normalizedName = makeUniqueName('New Variable');
-        const id = `var-${Date.now()}`;
+        // 使用"资源类型_计数器"格式生成 ID（ID 由系统生成，不可编辑）
+        const existingIds = Object.keys(variables);
+        const id = generateResourceId('VAR', existingIds);
         // 按作用域写入 scope，保持 P1 规范
         const variable: VariableDefinition = withScope({
             id,
-            key: id,
             name: normalizedName,
             type: 'string',
-            defaultValue: normalizeValueByType('string', ''),
+            value: normalizeValueByType('string', ''),
             state: 'Draft',
             scope: scopeKey as any
         }, scopeKey as any);
@@ -167,8 +169,8 @@ export const LocalVariableEditor: React.FC<LocalVariableEditorProps> = ({
 
         const data: any = { [field]: value };
         if (field === 'type') {
-            // 切换类型时同步重置默认值，避免类型不匹配
-            data.defaultValue = getDefaultValueByType(value as VariableType);
+            // 切换类型时同步重置值，避免类型不匹配
+            data.value = getDefaultValueByType(value as VariableType);
         }
 
         if (onUpdateVariable) {
@@ -273,19 +275,19 @@ export const LocalVariableEditor: React.FC<LocalVariableEditorProps> = ({
         if (type !== 'integer' && type !== 'float') return;
 
         const parsed = type === 'integer' ? parseInt(raw, 10) : parseFloat(raw);
-        const prevValue = prevDefaults[varId] !== undefined ? prevDefaults[varId] : variable.defaultValue;
+        const prevValue = prevDefaults[varId] !== undefined ? prevDefaults[varId] : variable.value;
 
         if (Number.isNaN(parsed)) {
             if (onUpdateVariable) {
-                onUpdateVariable(varId, { defaultValue: prevValue });
+                onUpdateVariable(varId, { value: prevValue });
             } else if (supportsBuiltInActions) {
-                dispatch({ type: 'UPDATE_NODE_PARAM', payload: { nodeId: ownerId, varId, data: { defaultValue: prevValue } } });
+                dispatch({ type: 'UPDATE_NODE_PARAM', payload: { nodeId: ownerId, varId, data: { value: prevValue } } });
             }
         } else {
             if (onUpdateVariable) {
-                onUpdateVariable(varId, { defaultValue: parsed });
+                onUpdateVariable(varId, { value: parsed });
             } else if (supportsBuiltInActions) {
-                dispatch({ type: 'UPDATE_NODE_PARAM', payload: { nodeId: ownerId, varId, data: { defaultValue: parsed } } });
+                dispatch({ type: 'UPDATE_NODE_PARAM', payload: { nodeId: ownerId, varId, data: { value: parsed } } });
             }
             setPrevDefaults((old) => ({ ...old, [varId]: parsed }));
         }
@@ -298,10 +300,10 @@ export const LocalVariableEditor: React.FC<LocalVariableEditorProps> = ({
             : 'Delete';
 
     return (
-        <div>
+        <div className="inspector-list-container">
             {vars.length === 0 && (
-                <div style={{ color: '#666', fontSize: '11px', padding: '8px', textAlign: 'center' }}>
-                    No local variables
+                <div className="inspector-empty-hint">
+                    No local variables defined
                 </div>
             )}
 
@@ -321,11 +323,9 @@ export const LocalVariableEditor: React.FC<LocalVariableEditorProps> = ({
             ))}
 
             {canMutate && (
-                <div className="blackboard-add-row" style={{ padding: 0, textAlign: 'center', marginTop: '8px' }}>
-                    <button className="btn-add-ghost" onClick={handleAdd} disabled={!canMutate}>
-                        + Add Variable
-                    </button>
-                </div>
+                <button className="btn-add-ghost btn-add-ghost--with-margin" onClick={handleAdd} disabled={!canMutate}>
+                    + Add Variable
+                </button>
             )}
 
             {confirmDialog && canMutate && (

@@ -3,7 +3,7 @@
  * 处理所有与 UI 状态相关的操作：选择、面板尺寸、黑板视图、消息等
  */
 
-import { EditorState, Action, Selection, BlackboardViewState, UIMessage } from '../types';
+import { EditorState, Action, Selection, BlackboardViewState, UiMessage } from '../types';
 
 // ========== UI 相关 Actions 类型定义 ==========
 export type UiAction =
@@ -12,9 +12,9 @@ export type UiAction =
     | { type: 'TOGGLE_STAGE_EXPAND'; payload: { id: string } }
     | { type: 'SET_STAGE_EXPANDED'; payload: { id: string; expanded: boolean } }
     | { type: 'SET_BLACKBOARD_VIEW'; payload: Partial<BlackboardViewState> }
-    | { type: 'SET_PANEL_SIZES'; payload: { leftPanel?: number; rightPanel?: number } }
+    | { type: 'SET_PANEL_SIZES'; payload: Partial<{ explorerWidth: number; inspectorWidth: number; stagesHeight: number }> }
     | { type: 'SET_READ_ONLY'; payload: boolean }
-    | { type: 'ADD_MESSAGE'; payload: UIMessage }
+    | { type: 'ADD_MESSAGE'; payload: UiMessage }
     | { type: 'CLEAR_MESSAGES' };
 
 // ========== 类型守卫：判断是否为 UI Action ==========

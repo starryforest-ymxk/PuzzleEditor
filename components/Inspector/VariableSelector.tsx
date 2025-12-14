@@ -30,7 +30,6 @@ const getTypeColor = (type: VariableType): string => {
     case 'integer': return '#b5cea8';
     case 'float': return '#4ec9b0';
     case 'string': return '#ce9178';
-    case 'enum': return '#f59e0b';
     default: return '#ccc';
   }
 };
@@ -242,7 +241,6 @@ export const VariableSelector: React.FC<Props> = ({
                 {(!allowedTypes || allowedTypes.includes('integer')) && <option value="integer">Integer</option>}
                 {(!allowedTypes || allowedTypes.includes('float')) && <option value="float">Float</option>}
                 {(!allowedTypes || allowedTypes.includes('string')) && <option value="string">String</option>}
-                {(!allowedTypes || allowedTypes.includes('enum')) && <option value="enum">Enum</option>}
               </select>
 
               <select

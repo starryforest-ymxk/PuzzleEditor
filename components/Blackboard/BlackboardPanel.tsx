@@ -22,7 +22,8 @@ import type { PresentationGraph } from '../../types/presentation';
 import type { StateMachine } from '../../types/stateMachine';
 import type { StageNode } from '../../types/stage';
 import type { PuzzleNode } from '../../types/puzzleNode';
-import { Database, Code, Zap, Search, Layers } from 'lucide-react';
+import { Database, Code, Zap, Search, Layers, Plus } from 'lucide-react';
+import { generateVariableId, generateEventId, generateScriptId } from '../../utils/resourceIdGenerator';
 
 // ========== 子组件导入 ==========
 import { SectionHeader } from './SectionHeader';
@@ -58,7 +59,8 @@ export const BlackboardPanel: React.FC = () => {
     fsm: true, presentation: true
   });
   const [stateFilter, setStateFilter] = useState<'ALL' | 'Draft' | 'Implemented' | 'MarkedForDelete'>(ui.blackboardView.stateFilter || 'ALL');
-  const [varTypeFilter, setVarTypeFilter] = useState<'ALL' | 'boolean' | 'integer' | 'float' | 'string' | 'enum'>(ui.blackboardView.varTypeFilter || 'ALL');
+  const [varTypeFilter, setVarTypeFilter] = useState<'ALL' | 'boolean' | 'integer' | 'float' | 'string'>(ui.blackboardView.varTypeFilter || 'ALL');
+  const [showScriptMenu, setShowScriptMenu] = useState(false);
 
   // ========== Data Sources ==========
   const { globalVariables, events } = project.blackboard || { globalVariables: {}, events: {} };
@@ -93,10 +95,11 @@ export const BlackboardPanel: React.FC = () => {
   }, [project.stageTree.stages, project.nodes]);
 
   // ========== Filtering Logic ==========
-  const filterFn = <T extends { name: string; key: string; state?: ResourceState; type?: string }>(list: T[]): T[] => {
+  const filterFn = <T extends { name: string; id: string; state?: ResourceState; type?: string }>(list: T[]): T[] => {
     if (!filter.trim()) return list;
     const lowerFilter = filter.toLowerCase();
-    return list.filter(item => item.name.toLowerCase().includes(lowerFilter) || item.key.toLowerCase().includes(lowerFilter));
+    // 按名称或 ID 筛选
+    return list.filter(item => item.name.toLowerCase().includes(lowerFilter) || item.id.toLowerCase().includes(lowerFilter));
   };
   const matchState = (s?: ResourceState) => stateFilter === 'ALL' || s === stateFilter;
   const matchVarType = (type?: string) => varTypeFilter === 'ALL' || type === varTypeFilter;
@@ -109,7 +112,7 @@ export const BlackboardPanel: React.FC = () => {
     return localVariableList.filter(v => {
       const textMatch = !filter.trim()
         || v.name.toLowerCase().includes(lowerFilter)
-        || v.key.toLowerCase().includes(lowerFilter)
+        || v.id.toLowerCase().includes(lowerFilter)
         || v.scopeName.toLowerCase().includes(lowerFilter);
       return textMatch && matchState(v.state) && matchVarType(v.type);
     });
@@ -181,6 +184,51 @@ export const BlackboardPanel: React.FC = () => {
     if (ownerNode) {
       dispatch({ type: 'NAVIGATE_TO', payload: { nodeId: ownerNode.id, stageId: ownerNode.stageId, graphId: null } });
     }
+  };
+
+  // ========== Creation Handlers ==========
+  const handleAddVariable = () => {
+    // 使用"资源类型_计数器"格式生成 ID（ID 由系统生成，不可编辑）
+    const id = generateVariableId(project);
+    const newVar: VariableDefinition = {
+      id,
+      name: 'New Variable',
+      type: 'boolean',
+      value: false,
+      state: 'Draft',
+      description: '',
+      scope: 'Global'
+    };
+    dispatch({ type: 'ADD_GLOBAL_VARIABLE', payload: { variable: newVar } });
+    dispatch({ type: 'SELECT_OBJECT', payload: { type: 'VARIABLE', id } });
+  };
+
+  const handleAddEvent = () => {
+    // 使用"资源类型_计数器"格式生成 ID（ID 由系统生成，不可编辑）
+    const id = generateEventId(project);
+    const newEvent: EventDefinition = {
+      id,
+      name: 'New Event',
+      state: 'Draft',
+      description: ''
+    };
+    dispatch({ type: 'ADD_EVENT', payload: { event: newEvent } });
+    dispatch({ type: 'SELECT_OBJECT', payload: { type: 'EVENT', id } });
+  };
+
+  const handleAddScript = (category: ScriptCategory) => {
+    // 使用"资源类型_计数器"格式生成 ID（ID 由系统生成，不可编辑）
+    const id = generateScriptId(project);
+    const newScript: ScriptDefinition = {
+      id,
+      name: `New ${category} Script`,
+      category,
+      state: 'Draft',
+      description: ''
+    };
+    dispatch({ type: 'ADD_SCRIPT', payload: { script: newScript } });
+    dispatch({ type: 'SELECT_OBJECT', payload: { type: 'SCRIPT', id } });
+    setShowScriptMenu(false);
   };
 
   // ========== Tab Content Renderers ==========
@@ -339,6 +387,44 @@ export const BlackboardPanel: React.FC = () => {
 
         {/* State / Type Filters */}
         <div className="blackboard-filters">
+          {activeTab === 'Variables' && (
+            <button className="btn-primary btn-sm" onClick={handleAddVariable} style={{ marginRight: '8px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <Plus size={14} /> New Variable
+            </button>
+          )}
+          {activeTab === 'Events' && (
+            <button className="btn-primary btn-sm" onClick={handleAddEvent} style={{ marginRight: '8px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <Plus size={14} /> New Event
+            </button>
+          )}
+          {activeTab === 'Scripts' && (
+            <div style={{ position: 'relative', marginRight: '8px' }}>
+              <button 
+                className="btn-primary btn-sm" 
+                onClick={() => setShowScriptMenu(!showScriptMenu)} 
+                style={{ display: 'flex', alignItems: 'center', gap: '4px' }}
+              >
+                <Plus size={14} /> New Script
+              </button>
+              {showScriptMenu && (
+                <div className="dropdown-menu" style={{ position: 'absolute', top: '100%', left: 0, zIndex: 100, background: '#252526', border: '1px solid #3e3e42', borderRadius: '4px', padding: '4px', minWidth: '120px' }}>
+                  {(['Performance', 'Lifecycle', 'Condition', 'Trigger'] as ScriptCategory[]).map(cat => (
+                    <div 
+                      key={cat} 
+                      className="dropdown-item" 
+                      onClick={() => handleAddScript(cat)}
+                      style={{ padding: '4px 8px', cursor: 'pointer', fontSize: '12px', color: '#ccc' }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = '#37373d'}
+                      onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                    >
+                      {cat} Script
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           <select
             className="filter-select"
             value={stateFilter}
@@ -360,7 +446,6 @@ export const BlackboardPanel: React.FC = () => {
               <option value="integer">integer</option>
               <option value="float">float</option>
               <option value="string">string</option>
-              <option value="enum">enum</option>
             </select>
           )}
         </div>

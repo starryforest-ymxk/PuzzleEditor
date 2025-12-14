@@ -25,8 +25,6 @@ export const getTypeColor = (type: string): string => {
             return '#2dd4bf';
         case 'string':
             return '#fbbf24';
-        case 'enum':
-            return '#c084fc';
         default:
             return 'var(--text-secondary)';
     }
@@ -86,9 +84,9 @@ export const VariableCard: React.FC<VariableCardProps> = ({
                     </span>
                 </div>
                 <div>
-                    <span className="label">Default: </span>
+                    <span className="label">Value: </span>
                     <span className="value">
-                        {variable.defaultValue !== undefined ? String(variable.defaultValue) : '-'}
+                        {variable.value !== undefined ? String(variable.value) : '-'}
                     </span>
                 </div>
             </div>

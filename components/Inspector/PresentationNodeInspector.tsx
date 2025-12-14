@@ -1,8 +1,6 @@
 import React, { useMemo } from 'react';
 import { useEditorState, useEditorDispatch } from '../../store/context';
-import { ScriptParamEditor } from './ScriptParamEditor';
 import { PresentationBindingEditor } from './PresentationBindingEditor';
-import { ParameterBinding } from '../../types/common';
 import { VariableDefinition } from '../../types/blackboard';
 import { collectVisibleVariables } from '../../utils/variableScope';
 import type { StageNode } from '../../types/stage';
@@ -75,29 +73,20 @@ export const PresentationNodeInspector = ({ graphId, nodeId, readOnly = false }:
     const handleTypeChange = (nextType: string) => {
         if (nextType === 'Wait') {
             handleChange('type', 'Wait');
-            handleChange('scriptId', undefined);
-            handleChange('parameters', []);
             handleChange('duration', node.duration ?? 1);
+            handleChange('presentation', undefined);
         } else if (nextType === 'ScriptCall') {
             handleChange('type', 'ScriptCall');
             handleChange('duration', undefined);
-            handleChange('parameters', node.parameters || []);
         } else {
             handleChange('type', nextType);
-            handleChange('scriptId', undefined);
-            handleChange('parameters', []);
             handleChange('duration', undefined);
+            handleChange('presentation', undefined);
         }
-    };
-
-    const bindings: ParameterBinding[] = node.parameters || [];
-    const handleParamChange = (nextBindings: ParameterBinding[]) => {
-        handleChange('parameters', nextBindings);
     };
 
     const scriptList = Object.values<ScriptDefinition>(project.scripts.scripts || {});
     const performanceScriptList = scriptList.filter(s => s.category === 'Performance');
-    const selectedScriptDef = node.scriptId ? scriptList.find(s => s.id === node.scriptId) || null : null;
 
     // Presentation binding options
     const performanceScriptOptions = useMemo(() => performanceScriptList.map(s => ({ id: s.id, name: s.name, state: s.state, description: s.description })), [performanceScriptList]);
@@ -187,21 +176,6 @@ export const PresentationNodeInspector = ({ graphId, nodeId, readOnly = false }:
                             variables={visibleVars}
                             title="Script / Graph"
                             onNavigateToGraph={(gid) => dispatch({ type: 'NAVIGATE_TO', payload: { graphId: gid } })}
-                        />
-                    </div>
-                </div>
-            )}
-
-            {/* ScriptCall Node: Parameters (only if script is selected via old scriptId field) */}
-            {node.type === 'ScriptCall' && selectedScriptDef && (
-                <div style={{ padding: '12px 16px' }}>
-                    <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Parameters</div>
-                    <div style={{ pointerEvents: readOnly ? 'none' : 'auto', opacity: readOnly ? 0.6 : 1 }}>
-                        <ScriptParamEditor
-                            scriptDef={selectedScriptDef}
-                            bindings={bindings}
-                            onChange={handleParamChange}
-                            variables={visibleVars}
                         />
                     </div>
                 </div>

@@ -1,8 +1,24 @@
+/**
+ * components/Inspector/localVariable/LocalVariableCard.tsx
+ * 局部变量卡片组件
+ * 
+ * 职责：
+ * - 显示和编辑单个局部变量的属性
+ * - 支持名称、类型、默认值、描述的编辑
+ * - 处理删除/恢复操作
+ * 
+ * UI风格：
+ * - 使用统一的 CSS 类名，避免内联样式
+ * - 与 StateInspector 等组件风格保持一致
+ */
+
 import React from 'react';
 import { VariableDefinition } from '../../../types/blackboard';
 import type { VariableType } from '../../../types/common';
 import { VariableValueInput } from './VariableValueInput';
+import { X, RotateCcw, Trash2 } from 'lucide-react';
 
+// ========== Props 类型定义 ==========
 interface LocalVariableCardProps {
     variable: VariableDefinition;
     canMutate: boolean;
@@ -15,17 +31,29 @@ interface LocalVariableCardProps {
     onNumberBlur: (raw: any) => void;
 }
 
-const getTypeColor = (type: string) => {
-    switch (type) {
-        case 'boolean': return '#569cd6';
-        case 'integer': return '#b5cea8';
-        case 'float': return '#4ec9b0';
-        case 'string': return '#ce9178';
-        default: return '#ccc';
-    }
+// ========== 工具函数 ==========
+
+/**
+ * 获取变量类型对应的颜色类名
+ */
+const getTypeClassName = (type: string): string => {
+    return `var-type--${type}`;
 };
 
-// 渲染单个局部变量卡片，解耦 UI 以便主编辑器聚焦业务逻辑
+/**
+ * 获取变量类型对应的颜色值（用于 select 元素动态着色）
+ */
+const getTypeColor = (type: string): string => {
+    const colorMap: Record<string, string> = {
+        'boolean': '#60a5fa',
+        'integer': '#a3e635',
+        'float': '#2dd4bf',
+        'string': '#fbbf24'
+    };
+    return colorMap[type] || 'var(--text-primary)';
+};
+
+// ========== 主组件 ==========
 export const LocalVariableCard: React.FC<LocalVariableCardProps> = ({
     variable,
     canMutate,
@@ -38,109 +66,116 @@ export const LocalVariableCard: React.FC<LocalVariableCardProps> = ({
     onNumberBlur
 }) => {
     const isMarkedForDelete = variable.state === 'MarkedForDelete';
-    const mutedStyle = isMarkedForDelete ? { opacity: 0.55 } : undefined; // 仅弱化内容，操作按钮保持正常
+
     return (
-        <div className="blackboard-var-item">
-            <div className="blackboard-var-header">
-                <div className="blackboard-var-info" style={mutedStyle}>
-                    {canMutate ? (
+        <div className={`local-variable-card ${isMarkedForDelete ? 'local-variable-card--deleted' : ''}`}>
+            {/* Header: 名称 + 操作按钮 */}
+            <div className="local-variable-card__header">
+                <div style={{ flex: 1, minWidth: 0 }}>
+                    {canMutate && !isMarkedForDelete ? (
                         <input
-                            className="prop-value"
+                            className="local-variable-card__name-input"
                             value={variable.name}
                             onChange={(e) => onUpdate('name', e.target.value)}
                             disabled={readOnly || !canMutate || isMarkedForDelete}
-                            style={{ background: 'transparent', border: 'none', borderBottom: '1px dashed #444', color: '#ddd', width: '140px', minWidth: '100px' }}
+                            placeholder="Variable name"
                         />
                     ) : (
-                        <span style={{ color: '#ddd', fontSize: '12px', fontWeight: 600 }}>{variable.name}</span>
+                        <span className="local-variable-card__name-static">
+                            {variable.name}
+                        </span>
                     )}
-
-                    <div className="blackboard-var-meta">
-                        <span style={{ color: '#666', fontSize: '10px' }}>Status: {variable.state}</span>
-                        {referenceCount > 0 && (
-                            <span style={{ color: '#f9a825', fontSize: '10px' }}>
-                                {referenceCount} reference(s)
-                            </span>
-                        )}
-                    </div>
                 </div>
 
+                {/* 操作按钮 */}
                 {canMutate && (
-                    isMarkedForDelete ? (
-                        <div style={{ display: 'flex', gap: '4px', width: '45%', maxWidth: '140px', minWidth: 0 }}>
-                            <button
-                                onClick={onRestore}
-                                className="btn-xs-restore"
-                                title="Restore to Implemented state"
-                            >
-                                Restore
-                            </button>
+                    <div className="local-variable-card__actions">
+                        {isMarkedForDelete ? (
+                            <>
+                                <button
+                                    onClick={onRestore}
+                                    className="btn-xs-restore"
+                                    title="Restore to Implemented state"
+                                >
+                                    <RotateCcw size={10} style={{ marginRight: '2px' }} />
+                                    Restore
+                                </button>
+                                <button
+                                    onClick={onDelete}
+                                    className="btn-xs-delete"
+                                    title="Permanently delete this variable"
+                                >
+                                    <Trash2 size={10} style={{ marginRight: '2px' }} />
+                                    Delete
+                                </button>
+                            </>
+                        ) : (
                             <button
                                 onClick={onDelete}
-                                className="btn-xs-delete"
-                                title="Permanently delete this variable"
+                                className="btn-icon btn-icon--danger"
+                                title="Delete variable"
                             >
-                                Apply Delete
+                                <X size={14} />
                             </button>
-                        </div>
-                    ) : (
-                        <button
-                            onClick={onDelete}
-                            style={{ background: 'transparent', border: 'none', color: '#666', cursor: 'pointer', fontSize: '14px', alignSelf: 'flex-start', padding: '0 0 0 8px' }}
-                        >
-                            &times;
-                        </button>
-                    )
+                        )}
+                    </div>
                 )}
             </div>
 
-            <div className="inspector-row" style={{ gap: '8px', alignItems: 'center', ...mutedStyle }}>
+            {/* Meta: 状态 + 引用计数 */}
+            <div className="local-variable-card__meta">
+                <span>Status: {variable.state}</span>
+                {referenceCount > 0 && (
+                    <span className="local-variable-card__meta-warn">
+                        {referenceCount} reference(s)
+                    </span>
+                )}
+            </div>
+
+            {/* Controls: 类型选择 + 值输入 */}
+            <div className="local-variable-card__controls">
                 <select
+                    className="inspector-type-select"
                     value={variable.type}
                     onChange={(e) => onUpdate('type', e.target.value as VariableType)}
                     disabled={!canMutate || isMarkedForDelete}
-                    style={{
-                        fontSize: '9px', padding: '2px 4px', borderRadius: '3px',
-                        background: '#222', border: `1px solid ${getTypeColor(variable.type)}`,
-                        color: getTypeColor(variable.type), textTransform: 'uppercase'
-                    }}
+                    style={{ color: getTypeColor(variable.type) }}
                 >
-                    <option value="string">String</option>
-                    <option value="integer">Integer</option>
-                    <option value="float">Float</option>
-                    <option value="boolean">Boolean</option>
+                    <option value="boolean">boolean</option>
+                    <option value="integer">integer</option>
+                    <option value="float">float</option>
+                    <option value="string">string</option>
                 </select>
 
-                <div style={{ flex: 1 }}>
+                <div className="local-variable-card__value-input">
                     <VariableValueInput
                         type={variable.type}
-                        value={variable.defaultValue}
+                        value={variable.value}
                         disabled={!canMutate || isMarkedForDelete}
                         canMutate={canMutate}
-                        onChange={(val) => onUpdate('defaultValue', val)}
+                        onChange={(val) => onUpdate('value', val)}
                         onNumberBlur={onNumberBlur}
                     />
                 </div>
             </div>
+
+            {/* Error */}
             {error && (
-                <div style={{ color: '#f2777a', fontSize: '11px' }}>{error}</div>
+                <div className="local-variable-card__error">{error}</div>
             )}
 
-            <div style={{ marginTop: '6px', ...mutedStyle }}>
-                {canMutate ? (
+            {/* Description */}
+            <div className="local-variable-card__description">
+                {canMutate && !isMarkedForDelete ? (
                     <textarea
+                        className="local-variable-card__description-input"
                         value={variable.description || ''}
                         onChange={(e) => onUpdate('description', e.target.value)}
                         disabled={!canMutate || isMarkedForDelete}
-                        placeholder="Description"
-                        style={{
-                            width: '100%', minHeight: '32px', background: '#1e1e1e', border: '1px solid #333',
-                            color: '#e0e0e0', fontSize: '11px', padding: '6px 8px', resize: 'vertical',
-                            boxSizing: 'border-box', borderRadius: '4px'
-                        }}
+                        placeholder="Description (optional)"
                     />
                 ) : (
-                    <div style={{ color: '#9ca3af', fontSize: '11px', lineHeight: 1.5 }}>
+                    <div className="local-variable-card__description-static">
                         {variable.description || 'No description'}
                     </div>
                 )}

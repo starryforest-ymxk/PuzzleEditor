@@ -244,7 +244,6 @@ export const ScriptBindingSection: React.FC<ScriptBindingSectionProps> = ({
                                         <option value="integer">Integer</option>
                                         <option value="float">Float</option>
                                         <option value="boolean">Boolean</option>
-                                        <option value="enum">Enum</option>
                                     </select>
                                 </div>
 

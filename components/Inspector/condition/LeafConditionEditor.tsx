@@ -123,7 +123,7 @@ export const LeafConditionEditor: React.FC<LeafConditionEditorProps> = ({
     // 根据变量类型过滤可用的比较操作符
     const comparisonOperators = useMemo(() => {
         const varType = selectedLeftVar?.type;
-        if (varType === 'boolean' || varType === 'string' || varType === 'enum') {
+        if (varType === 'boolean' || varType === 'string') {
             return ['==', '!='];
         }
         return OPERATORS_ALL;
@@ -439,10 +439,10 @@ const ComparisonEditor: React.FC<ComparisonEditorProps> = ({
     const varType = selectedLeftVar?.type;
     const allowedRightTypes: VariableType[] = varType
         ? (varType === 'boolean' ? ['boolean']
-            : varType === 'string' ? ['string', 'integer', 'float', 'boolean', 'enum']
+            : varType === 'string' ? ['string', 'integer', 'float', 'boolean']
                 : varType === 'integer' || varType === 'float' ? ['integer', 'float']
                     : [varType])
-        : ['boolean', 'integer', 'float', 'string', 'enum'];
+        : ['boolean', 'integer', 'float', 'string'];
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: `${ROW_GAP}px`, width: '100%', marginTop: `${ROW_GAP}px` }}>

@@ -38,6 +38,21 @@ export interface UiMessage {
   timestamp: string;
 }
 
+// ========== UI 状态类型 ==========
+export interface BlackboardViewState {
+  activeTab: 'Variables' | 'Scripts' | 'Events' | 'Graphs';
+  filter: string;
+  expandedSections: Record<string, boolean>;
+  stateFilter?: 'ALL' | 'Draft' | 'Implemented' | 'MarkedForDelete';
+  varTypeFilter?: 'ALL' | 'boolean' | 'integer' | 'float' | 'string';
+}
+
+export interface Selection {
+  type: 'STAGE' | 'NODE' | 'STATE' | 'TRANSITION' | 'FSM' | 'PRESENTATION_GRAPH' | 'PRESENTATION_NODE' | 'VARIABLE' | 'SCRIPT' | 'EVENT' | 'NONE';
+  id: string | null;
+  contextId?: string | null;
+}
+
 // ========== Editor 全局状态 ==========
 export interface EditorState {
   project: {
@@ -80,18 +95,8 @@ export interface EditorState {
     // 全局消息堆栈
     messages: UiMessage[];
     // 黑板视图 UI 状态（用于跨视图记忆）
-    blackboardView: {
-      activeTab: 'Variables' | 'Scripts' | 'Events' | 'Graphs';
-      filter: string;
-      expandedSections: Record<string, boolean>;
-      stateFilter?: 'ALL' | 'Draft' | 'Implemented' | 'MarkedForDelete';
-      varTypeFilter?: 'ALL' | 'boolean' | 'integer' | 'float' | 'string' | 'enum';
-    };
-    selection: {
-      type: 'STAGE' | 'NODE' | 'STATE' | 'TRANSITION' | 'FSM' | 'PRESENTATION_GRAPH' | 'PRESENTATION_NODE' | 'VARIABLE' | 'SCRIPT' | 'EVENT' | 'NONE';
-      id: string | null;
-      contextId?: string | null;
-    };
+    blackboardView: BlackboardViewState;
+    selection: Selection;
     multiSelectStateIds: StateId[];  // 框选的状态节点ID列表
     // Panel sizes for resizable borders (in pixels)
     panelSizes: {
@@ -165,12 +170,18 @@ export type Action =
   | { type: 'TOGGLE_STAGE_EXPAND'; payload: { id: string } }
   | { type: 'UPDATE_NODE'; payload: { nodeId: string; data: Partial<PuzzleNode> } }
   // Blackboard & Script lifecycle
-  | { type: 'SOFT_DELETE_GLOBAL_VARIABLE'; payload: { varId: string } }
-  | { type: 'APPLY_DELETE_GLOBAL_VARIABLE'; payload: { varId: string } }
-  | { type: 'SOFT_DELETE_EVENT'; payload: { eventId: string } }
-  | { type: 'APPLY_DELETE_EVENT'; payload: { eventId: string } }
-  | { type: 'SOFT_DELETE_SCRIPT'; payload: { scriptId: string } }
-  | { type: 'APPLY_DELETE_SCRIPT'; payload: { scriptId: string } }
+  | { type: 'ADD_GLOBAL_VARIABLE'; payload: { variable: VariableDefinition } }
+  | { type: 'UPDATE_GLOBAL_VARIABLE'; payload: { id: string; data: Partial<VariableDefinition> } }
+  | { type: 'SOFT_DELETE_GLOBAL_VARIABLE'; payload: { id: string } }
+  | { type: 'APPLY_DELETE_GLOBAL_VARIABLE'; payload: { id: string } }
+  | { type: 'ADD_EVENT'; payload: { event: import('../types/blackboard').EventDefinition } }
+  | { type: 'UPDATE_EVENT'; payload: { id: string; data: Partial<import('../types/blackboard').EventDefinition> } }
+  | { type: 'SOFT_DELETE_EVENT'; payload: { id: string } }
+  | { type: 'APPLY_DELETE_EVENT'; payload: { id: string } }
+  | { type: 'ADD_SCRIPT'; payload: { script: ScriptDefinition } }
+  | { type: 'UPDATE_SCRIPT'; payload: { id: string; data: Partial<ScriptDefinition> } }
+  | { type: 'SOFT_DELETE_SCRIPT'; payload: { id: string } }
+  | { type: 'APPLY_DELETE_SCRIPT'; payload: { id: string } }
   | { type: 'SOFT_DELETE_STAGE_VARIABLE'; payload: { stageId: string; varId: string } }
   | { type: 'APPLY_DELETE_STAGE_VARIABLE'; payload: { stageId: string; varId: string } }
   // FSM CRUD
@@ -198,7 +209,7 @@ export type Action =
   | { type: 'NAVIGATE_TO'; payload: { stageId?: string | null; nodeId?: string | null; graphId?: string | null } }
   | { type: 'NAVIGATE_BACK' }
   | { type: 'SET_READ_ONLY'; payload: boolean }
-  | { type: 'SET_BLACKBOARD_VIEW'; payload: { activeTab?: 'Variables' | 'Scripts' | 'Events' | 'Graphs'; filter?: string; expandedSections?: Record<string, boolean>; stateFilter?: 'ALL' | 'Draft' | 'Implemented' | 'MarkedForDelete'; varTypeFilter?: 'ALL' | 'boolean' | 'integer' | 'float' | 'string' | 'enum' } }
+  | { type: 'SET_BLACKBOARD_VIEW'; payload: { activeTab?: 'Variables' | 'Scripts' | 'Events' | 'Graphs'; filter?: string; expandedSections?: Record<string, boolean>; stateFilter?: 'ALL' | 'Draft' | 'Implemented' | 'MarkedForDelete'; varTypeFilter?: 'ALL' | 'boolean' | 'integer' | 'float' | 'string' } }
   | { type: 'SET_STAGE_EXPANDED'; payload: { id: string; expanded: boolean } }
   | { type: 'ADD_MESSAGE'; payload: UiMessage }
   | { type: 'CLEAR_MESSAGES' }

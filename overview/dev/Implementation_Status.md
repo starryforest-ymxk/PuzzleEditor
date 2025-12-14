@@ -31,10 +31,11 @@
 
 ### 进行中阶段
 
-? **Phase 4: Stage 级别编辑与 Presentation 增强**（计划中）
-- Stage 局部变量编辑
-- PresentationGraph 编辑器完善
-- 跨资源引用校验
+? **Phase 4: Stage 级别编辑与 Presentation 增强**（进行中）
+- [x] 黑板资源全功能编辑（变量/脚本/事件）
+- [ ] Stage 局部变量编辑
+- [ ] PresentationGraph 编辑器完善
+- [ ] 跨资源引用校验
 
 ---
 

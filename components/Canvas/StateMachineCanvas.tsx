@@ -11,6 +11,7 @@ import { Side } from '../../types/common';
 import * as Geom from '../../utils/geometry';
 import { CANVAS, INTERACTION } from '../../utils/constants';
 import { devLog } from '../../utils/debug';
+import { generateStateId, generateTransitionId } from '../../utils/resourceIdGenerator';
 import { useCanvasNavigation } from '../../hooks/useCanvasNavigation';
 import { useGraphInteraction } from '../../hooks/useGraphInteraction';
 import { useCuttingLine } from '../../hooks/useCuttingLine';
@@ -118,12 +119,15 @@ export const StateMachineCanvas = ({ node, readOnly = false }: Props) => {
             const fromSide = options?.sourceSide || Geom.getClosestSide(sourcePos, Geom.STATE_WIDTH, Geom.STATE_ESTIMATED_HEIGHT, targetPos);
             const toSide = options?.targetSide || Geom.getClosestSide(targetPos, Geom.STATE_WIDTH, Geom.STATE_ESTIMATED_HEIGHT, sourcePos);
 
+            // 使用"资源类型_计数器"格式生成 ID
+            const transitionId = generateTransitionId(Object.keys(fsm.transitions));
+
             dispatch({
                 type: 'ADD_TRANSITION',
                 payload: {
                     fsmId: fsm.id,
                     transition: {
-                        id: `trans-${Date.now()}`,
+                        id: transitionId,
                         name: 'Transition',
                         fromStateId: sourceId,
                         toStateId: targetId,
@@ -409,15 +413,17 @@ export const StateMachineCanvas = ({ node, readOnly = false }: Props) => {
                     <CanvasContextMenu
                         menu={contextMenu}
                         onClose={() => setContextMenu(null)}
-                        onAddState={(x, y) =>
+                        onAddState={(x, y) => {
+                            // 使用"资源类型_计数器"格式生成 ID
+                            const stateId = generateStateId(Object.keys(fsm.states));
                             dispatch({
                                 type: 'ADD_STATE',
                                 payload: {
                                     fsmId: fsm.id,
-                                    state: { id: `state-${Date.now()}`, name: 'New State', position: { x, y }, eventListeners: [] }
+                                    state: { id: stateId, name: 'New State', position: { x, y }, eventListeners: [] }
                                 }
-                            })
-                        }
+                            });
+                        }}
                         onSetInitial={(stateId) =>
                             dispatch({
                                 type: 'UPDATE_FSM',

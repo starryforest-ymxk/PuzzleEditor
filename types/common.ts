@@ -12,13 +12,10 @@ import type {
   PresentationGraphId,
   PresentationNodeId,
   ScriptId,
-  ScriptKey,
   TriggerId,
   TriggerKey,
   VariableId,
-  VariableKey,
   EventId,
-  EventKey,
   IdRef,
   KeyRef,
   StableRef
@@ -34,13 +31,10 @@ export type {
   PresentationGraphId,
   PresentationNodeId,
   ScriptId,
-  ScriptKey,
   TriggerId,
   TriggerKey,
   VariableId,
-  VariableKey,
   EventId,
-  EventKey,
   IdRef,
   KeyRef,
   StableRef
@@ -75,7 +69,7 @@ export type ResourceState = 'Draft' | 'Implemented' | 'MarkedForDelete';
 /**
  * 变量数据类型
  */
-export type VariableType = 'boolean' | 'integer' | 'float' | 'string' | 'enum';
+export type VariableType = 'boolean' | 'integer' | 'float' | 'string';
 
 /**
  * 变量作用域
