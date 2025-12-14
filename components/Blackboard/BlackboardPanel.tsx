@@ -13,7 +13,7 @@
  * - 内联样式已替换为 CSS 类 (styles.css)
  */
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useRef, useEffect } from 'react';
 import { useEditorState, useEditorDispatch } from '../../store/context';
 import type { ResourceState, ScriptCategory } from '../../types/common';
 import type { VariableDefinition, EventDefinition, LocalVarWithScope } from '../../types/blackboard';
@@ -24,8 +24,13 @@ import type { StageNode } from '../../types/stage';
 import type { PuzzleNode } from '../../types/puzzleNode';
 import { Database, Code, Zap, Search, Layers, Plus } from 'lucide-react';
 import { generateVariableId, generateEventId, generateScriptId } from '../../utils/resourceIdGenerator';
+import { findGlobalVariableReferences } from '../../utils/validation/globalVariableReferences';
+import { findNodeVariableReferences } from '../../utils/validation/variableReferences';
+import { findScriptReferences } from '../../utils/validation/scriptReferences';
+import { findEventReferences } from '../../utils/validation/eventReferences';
+import { findPresentationGraphReferences } from '../../utils/validation/presentationGraphReferences';
 
-// ========== 子组件导入 ==========
+// ========== 子组件导入 ===========
 import { SectionHeader } from './SectionHeader';
 import { VariableCard } from './VariableCard';
 import { LocalVariableCard } from './LocalVariableCard';
@@ -61,6 +66,26 @@ export const BlackboardPanel: React.FC = () => {
   const [stateFilter, setStateFilter] = useState<'ALL' | 'Draft' | 'Implemented' | 'MarkedForDelete'>(ui.blackboardView.stateFilter || 'ALL');
   const [varTypeFilter, setVarTypeFilter] = useState<'ALL' | 'boolean' | 'integer' | 'float' | 'string'>(ui.blackboardView.varTypeFilter || 'ALL');
   const [showScriptMenu, setShowScriptMenu] = useState(false);
+  const [showLifecycleSubmenu, setShowLifecycleSubmenu] = useState(false);
+  const scriptMenuRef = useRef<HTMLDivElement>(null);
+
+  // 点击菜单外部时关闭菜单
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (scriptMenuRef.current && !scriptMenuRef.current.contains(event.target as Node)) {
+        setShowScriptMenu(false);
+        setShowLifecycleSubmenu(false);
+      }
+    };
+
+    if (showScriptMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showScriptMenu]);
 
   // ========== Data Sources ==========
   const { globalVariables, events } = project.blackboard || { globalVariables: {}, events: {} };
@@ -117,6 +142,58 @@ export const BlackboardPanel: React.FC = () => {
       return textMatch && matchState(v.state) && matchVarType(v.type);
     });
   }, [localVariableList, filter, stateFilter, varTypeFilter]);
+
+  // ========== 引用数量计算 ==========
+  // 全局变量引用数量
+  const globalVariableRefCounts = useMemo<Record<string, number>>(() => {
+    const counts: Record<string, number> = {};
+    variableList.forEach(v => {
+      counts[v.id] = findGlobalVariableReferences(project, v.id).length;
+    });
+    return counts;
+  }, [project, variableList]);
+
+  // 局部变量引用数量（仅 Node 级别支持）
+  const localVariableRefCounts = useMemo<Record<string, number>>(() => {
+    const counts: Record<string, number> = {};
+    localVariableList.forEach(v => {
+      if (v.scopeType === 'Node') {
+        // Node 局部变量使用 findNodeVariableReferences
+        counts[v.id] = findNodeVariableReferences(project, v.scopeId, v.id).length;
+      } else {
+        // Stage 局部变量暂不支持引用追踪
+        counts[v.id] = 0;
+      }
+    });
+    return counts;
+  }, [project, localVariableList]);
+
+  // 脚本引用数量
+  const scriptRefCounts = useMemo<Record<string, number>>(() => {
+    const counts: Record<string, number> = {};
+    scriptList.forEach(s => {
+      counts[s.id] = findScriptReferences(project, s.id).length;
+    });
+    return counts;
+  }, [project, scriptList]);
+
+  // 事件引用数量
+  const eventRefCounts = useMemo<Record<string, number>>(() => {
+    const counts: Record<string, number> = {};
+    eventList.forEach(e => {
+      counts[e.id] = findEventReferences(project, e.id).length;
+    });
+    return counts;
+  }, [project, eventList]);
+
+  // 演出图引用数量
+  const graphRefCounts = useMemo<Record<string, number>>(() => {
+    const counts: Record<string, number> = {};
+    graphList.forEach(g => {
+      counts[g.id] = findPresentationGraphReferences(project, g.id).length;
+    });
+    return counts;
+  }, [project, graphList]);
 
   // 按分类分组脚本（Lifecycle 细分作用范围）
   const scriptGroups = useMemo(() => {
@@ -186,6 +263,28 @@ export const BlackboardPanel: React.FC = () => {
     }
   };
 
+  /**
+   * 双击局部变量卡片：跳转到变量声明处并选中拥有者
+   * - Stage 局部变量：导航到对应 Stage 并选中
+   * - Node 局部变量：导航到对应 Node 所在的 Stage，然后选中该 Node
+   */
+  const handleDoubleClickLocalVariable = (localVar: LocalVarWithScope) => {
+    if (localVar.scopeType === 'Stage') {
+      // Stage 局部变量：导航到 Stage 并选中
+      dispatch({ type: 'NAVIGATE_TO', payload: { stageId: localVar.scopeId, nodeId: null, graphId: null } });
+      // 选中 Stage
+      dispatch({ type: 'SELECT_OBJECT', payload: { type: 'STAGE', id: localVar.scopeId } });
+    } else if (localVar.scopeType === 'Node') {
+      // Node 局部变量：查找 Node 所在的 Stage，导航并选中 Node
+      const ownerNode = project.nodes[localVar.scopeId];
+      if (ownerNode) {
+        dispatch({ type: 'NAVIGATE_TO', payload: { stageId: ownerNode.stageId, nodeId: null, graphId: null } });
+        // 选中 Node
+        dispatch({ type: 'SELECT_OBJECT', payload: { type: 'NODE', id: localVar.scopeId } });
+      }
+    }
+  };
+
   // ========== Creation Handlers ==========
   const handleAddVariable = () => {
     // 使用"资源类型_计数器"格式生成 ID（ID 由系统生成，不可编辑）
@@ -216,20 +315,37 @@ export const BlackboardPanel: React.FC = () => {
     dispatch({ type: 'SELECT_OBJECT', payload: { type: 'EVENT', id } });
   };
 
-  const handleAddScript = (category: ScriptCategory) => {
+  const handleAddScript = (category: ScriptCategory, lifecycleType?: 'Stage' | 'Node' | 'State') => {
     // 使用"资源类型_计数器"格式生成 ID（ID 由系统生成，不可编辑）
     const id = generateScriptId(project);
     const newScript: ScriptDefinition = {
       id,
-      name: `New ${category} Script`,
+      name: lifecycleType ? `New ${lifecycleType} Lifecycle Script` : `New ${category} Script`,
       category,
       state: 'Draft',
-      description: ''
+      description: '',
+      ...(lifecycleType ? { lifecycleType } : {})
     };
     dispatch({ type: 'ADD_SCRIPT', payload: { script: newScript } });
     dispatch({ type: 'SELECT_OBJECT', payload: { type: 'SCRIPT', id } });
     setShowScriptMenu(false);
+    setShowLifecycleSubmenu(false);
   };
+
+  const handleAddPresentationGraph = () => {
+    const id = `pg_${Date.now()}`;
+    const newGraph = {
+      id,
+      name: 'New Presentation Graph',
+      description: '',
+      startNodeId: null,
+      nodes: {}
+    };
+    dispatch({ type: 'ADD_PRESENTATION_GRAPH', payload: { graph: newGraph } });
+    dispatch({ type: 'SELECT_OBJECT', payload: { type: 'PRESENTATION_GRAPH', id } });
+  };
+
+
 
   // ========== Tab Content Renderers ==========
   const renderVariablesTab = () => (
@@ -240,7 +356,7 @@ export const BlackboardPanel: React.FC = () => {
           {filteredVariables.length === 0
             ? <div className="empty-state empty-state--inline">No global variables defined</div>
             : filteredVariables.map(v => (
-              <VariableCard key={v.id} variable={v} isSelected={ui.selection.type === 'VARIABLE' && ui.selection.id === v.id} onClick={() => handleSelectVariable(v.id)} />
+              <VariableCard key={v.id} variable={v} isSelected={ui.selection.type === 'VARIABLE' && ui.selection.id === v.id} onClick={() => handleSelectVariable(v.id)} referenceCount={globalVariableRefCounts[v.id]} />
             ))
           }
         </div>
@@ -251,7 +367,14 @@ export const BlackboardPanel: React.FC = () => {
           {filteredLocalVariables.length === 0
             ? <div className="empty-state empty-state--inline">No local variables in Stages or Nodes</div>
             : filteredLocalVariables.map(v => (
-              <LocalVariableCard key={v.id} variable={v} isSelected={ui.selection.type === 'VARIABLE' && ui.selection.id === v.id} onClick={() => handleSelectVariable(v.id)} />
+              <LocalVariableCard
+                key={v.id}
+                variable={v}
+                isSelected={ui.selection.type === 'VARIABLE' && ui.selection.id === v.id}
+                onClick={() => handleSelectVariable(v.id)}
+                onDoubleClick={() => handleDoubleClickLocalVariable(v)}
+                referenceCount={localVariableRefCounts[v.id]}
+              />
             ))
           }
         </div>
@@ -285,7 +408,7 @@ export const BlackboardPanel: React.FC = () => {
                     {lifecycleGroups[key as 'Stage' | 'Node' | 'State'].length === 0
                       ? <div className="empty-state empty-state--inline">No lifecycle scripts</div>
                       : lifecycleGroups[key as 'Stage' | 'Node' | 'State'].map(s => (
-                        <ScriptCard key={s.id} script={s} isSelected={ui.selection.type === 'SCRIPT' && ui.selection.id === s.id} onClick={() => handleSelectScript(s.id)} />
+                        <ScriptCard key={s.id} script={s} isSelected={ui.selection.type === 'SCRIPT' && ui.selection.id === s.id} onClick={() => handleSelectScript(s.id)} referenceCount={scriptRefCounts[s.id]} />
                       ))
                     }
                   </div>
@@ -304,7 +427,7 @@ export const BlackboardPanel: React.FC = () => {
               {scriptGroups[category].length === 0
                 ? <div className="empty-state empty-state--inline">No {category.toLowerCase()} scripts</div>
                 : scriptGroups[category].map(s => (
-                  <ScriptCard key={s.id} script={s} isSelected={ui.selection.type === 'SCRIPT' && ui.selection.id === s.id} onClick={() => handleSelectScript(s.id)} />
+                  <ScriptCard key={s.id} script={s} isSelected={ui.selection.type === 'SCRIPT' && ui.selection.id === s.id} onClick={() => handleSelectScript(s.id)} referenceCount={scriptRefCounts[s.id]} />
                 ))
               }
             </div>
@@ -319,7 +442,7 @@ export const BlackboardPanel: React.FC = () => {
       {filteredEvents.length === 0
         ? <div className="empty-state empty-state--inline" style={{ padding: '40px', fontSize: '13px' }}>No events defined</div>
         : filteredEvents.map(e => (
-          <EventCard key={e.id} event={e} isSelected={ui.selection.type === 'EVENT' && ui.selection.id === e.id} onClick={() => handleSelectEvent(e.id)} />
+          <EventCard key={e.id} event={e} isSelected={ui.selection.type === 'EVENT' && ui.selection.id === e.id} onClick={() => handleSelectEvent(e.id)} referenceCount={eventRefCounts[e.id] || 0} />
         ))
       }
     </div>
@@ -346,7 +469,7 @@ export const BlackboardPanel: React.FC = () => {
           {filteredGraphs.length === 0
             ? <div className="empty-state empty-state--inline">No presentation graphs defined</div>
             : filteredGraphs.map(g => (
-              <GraphCard key={g.id} graph={g} isSelected={ui.selection.type === 'PRESENTATION_GRAPH' && ui.selection.id === g.id} onClick={() => handleSelectGraph(g.id)} onDoubleClick={() => handleOpenGraph(g.id)} />
+              <GraphCard key={g.id} graph={g} isSelected={ui.selection.type === 'PRESENTATION_GRAPH' && ui.selection.id === g.id} onClick={() => handleSelectGraph(g.id)} onDoubleClick={() => handleOpenGraph(g.id)} referenceCount={graphRefCounts[g.id] || 0} />
             ))
           }
         </div>
@@ -398,31 +521,92 @@ export const BlackboardPanel: React.FC = () => {
             </button>
           )}
           {activeTab === 'Scripts' && (
-            <div style={{ position: 'relative', marginRight: '8px' }}>
-              <button 
-                className="btn-primary btn-sm" 
-                onClick={() => setShowScriptMenu(!showScriptMenu)} 
+            <div ref={scriptMenuRef} style={{ position: 'relative', marginRight: '8px' }}>
+              <button
+                className="btn-primary btn-sm"
+                onClick={() => setShowScriptMenu(!showScriptMenu)}
                 style={{ display: 'flex', alignItems: 'center', gap: '4px' }}
               >
                 <Plus size={14} /> New Script
               </button>
               {showScriptMenu && (
-                <div className="dropdown-menu" style={{ position: 'absolute', top: '100%', left: 0, zIndex: 100, background: '#252526', border: '1px solid #3e3e42', borderRadius: '4px', padding: '4px', minWidth: '120px' }}>
-                  {(['Performance', 'Lifecycle', 'Condition', 'Trigger'] as ScriptCategory[]).map(cat => (
-                    <div 
-                      key={cat} 
-                      className="dropdown-item" 
-                      onClick={() => handleAddScript(cat)}
-                      style={{ padding: '4px 8px', cursor: 'pointer', fontSize: '12px', color: '#ccc' }}
+                <div
+                  className="dropdown-menu"
+                  style={{ position: 'absolute', top: '100%', left: 0, zIndex: 100, background: '#252526', border: '1px solid #3e3e42', borderRadius: '4px', padding: '4px', minWidth: '140px' }}
+                  onMouseLeave={() => setShowLifecycleSubmenu(false)}
+                >
+                  {/* Performance */}
+                  <div
+                    className="dropdown-item"
+                    onClick={() => handleAddScript('Performance')}
+                    style={{ padding: '4px 8px', cursor: 'pointer', fontSize: '12px', color: '#c586c0' }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = '#37373d'; setShowLifecycleSubmenu(false); }}
+                    onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                  >
+                    Performance Script
+                  </div>
+                  {/* Lifecycle with submenu */}
+                  <div
+                    style={{ position: 'relative' }}
+                    onMouseEnter={() => setShowLifecycleSubmenu(true)}
+                  >
+                    <div
+                      className="dropdown-item"
+                      style={{ padding: '4px 8px', cursor: 'pointer', fontSize: '12px', color: '#4fc1ff', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
                       onMouseEnter={(e) => e.currentTarget.style.background = '#37373d'}
                       onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                     >
-                      {cat} Script
+                      <span>Lifecycle Script</span>
+                      <span style={{ fontSize: '10px' }}>▶</span>
                     </div>
-                  ))}
+                    {showLifecycleSubmenu && (
+                      <div
+                        className="dropdown-submenu"
+                        style={{ position: 'absolute', left: '100%', top: 0, background: '#252526', border: '1px solid #3e3e42', borderRadius: '4px', padding: '4px', minWidth: '100px', zIndex: 101 }}
+                      >
+                        {(['Stage', 'Node', 'State'] as const).map(type => (
+                          <div
+                            key={type}
+                            className="dropdown-item"
+                            onClick={() => handleAddScript('Lifecycle', type)}
+                            style={{ padding: '4px 8px', cursor: 'pointer', fontSize: '12px', color: '#4fc1ff' }}
+                            onMouseEnter={(e) => e.currentTarget.style.background = '#37373d'}
+                            onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                          >
+                            {type} Lifecycle
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  {/* Condition */}
+                  <div
+                    className="dropdown-item"
+                    onClick={() => handleAddScript('Condition')}
+                    style={{ padding: '4px 8px', cursor: 'pointer', fontSize: '12px', color: '#dcdcaa' }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = '#37373d'; setShowLifecycleSubmenu(false); }}
+                    onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                  >
+                    Condition Script
+                  </div>
+                  {/* Trigger */}
+                  <div
+                    className="dropdown-item"
+                    onClick={() => handleAddScript('Trigger')}
+                    style={{ padding: '4px 8px', cursor: 'pointer', fontSize: '12px', color: '#ce9178' }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = '#37373d'; setShowLifecycleSubmenu(false); }}
+                    onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                  >
+                    Trigger Script
+                  </div>
                 </div>
               )}
             </div>
+          )}
+          {activeTab === 'Graphs' && (
+            <button className="btn-primary btn-sm" onClick={handleAddPresentationGraph} style={{ marginRight: '8px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <Plus size={14} /> New Presentation
+            </button>
           )}
 
           <select

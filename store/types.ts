@@ -206,7 +206,7 @@ export type Action =
   | { type: 'SET_MULTI_SELECT_STATES'; payload: string[] }
   // Navigation (P2-T02)
   | { type: 'SWITCH_VIEW'; payload: 'EDITOR' | 'BLACKBOARD' }
-  | { type: 'NAVIGATE_TO'; payload: { stageId?: string | null; nodeId?: string | null; graphId?: string | null } }
+  | { type: 'NAVIGATE_TO'; payload: { stageId?: string | null; nodeId?: string | null; graphId?: string | null; selection?: Selection } }
   | { type: 'NAVIGATE_BACK' }
   | { type: 'SET_READ_ONLY'; payload: boolean }
   | { type: 'SET_BLACKBOARD_VIEW'; payload: { activeTab?: 'Variables' | 'Scripts' | 'Events' | 'Graphs'; filter?: string; expandedSections?: Record<string, boolean>; stateFilter?: 'ALL' | 'Draft' | 'Implemented' | 'MarkedForDelete'; varTypeFilter?: 'ALL' | 'boolean' | 'integer' | 'float' | 'string' } }

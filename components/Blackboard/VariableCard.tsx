@@ -39,6 +39,8 @@ interface VariableCardProps {
     isSelected: boolean;
     /** 点击卡片的回调 */
     onClick: () => void;
+    /** 引用数量（可选） */
+    referenceCount?: number;
 }
 
 // ========== 组件 ==========
@@ -50,7 +52,8 @@ interface VariableCardProps {
 export const VariableCard: React.FC<VariableCardProps> = ({
     variable,
     isSelected,
-    onClick
+    onClick,
+    referenceCount
 }) => {
     const isDeleted = variable.state === 'MarkedForDelete';
 
@@ -89,6 +92,15 @@ export const VariableCard: React.FC<VariableCardProps> = ({
                         {variable.value !== undefined ? String(variable.value) : '-'}
                     </span>
                 </div>
+                {/* 引用数量显示 */}
+                {referenceCount !== undefined && (
+                    <div>
+                        <span className="label">Refs: </span>
+                        <span className="value" style={{ color: referenceCount > 0 ? '#60a5fa' : 'var(--text-dim)' }}>
+                            {referenceCount}
+                        </span>
+                    </div>
+                )}
             </div>
 
             {/* 描述（可选） */}

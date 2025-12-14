@@ -89,6 +89,10 @@ export const Header = () => {
             type: 'NAVIGATE_TO',
             payload: { stageId: normalized.project.stageTree.rootId, nodeId: null, graphId: null }
           });
+          dispatch({
+            type: 'SELECT_OBJECT',
+            payload: { type: 'STAGE', id: normalized.project.stageTree.rootId }
+          });
         }
       } catch (err) {
         console.error('Failed to parse JSON:', err);

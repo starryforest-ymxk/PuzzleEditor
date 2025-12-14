@@ -18,6 +18,8 @@ interface GraphCardProps {
     onClick: () => void;
     /** 双击卡片的回调（打开编辑器） */
     onDoubleClick: () => void;
+    /** 引用数量（可选） */
+    referenceCount?: number;
 }
 
 // ========== 组件 ==========
@@ -30,7 +32,8 @@ export const GraphCard: React.FC<GraphCardProps> = ({
     graph,
     isSelected,
     onClick,
-    onDoubleClick
+    onDoubleClick,
+    referenceCount
 }) => {
     const nodeCount = Object.keys(graph.nodes || {}).length;
 
@@ -75,8 +78,8 @@ export const GraphCard: React.FC<GraphCardProps> = ({
                 {graph.id}
             </div>
 
-            {/* 节点数量和起始节点 */}
-            <div style={{ display: 'flex', gap: '16px', fontSize: '11px' }}>
+            {/* 节点数量、起始节点和引用数量 */}
+            <div style={{ display: 'flex', gap: '16px', fontSize: '11px', flexWrap: 'wrap' }}>
                 <div>
                     <span style={{ color: 'var(--text-secondary)' }}>Nodes: </span>
                     <span style={{ color: 'var(--accent-color)', fontFamily: 'monospace' }}>
@@ -88,6 +91,14 @@ export const GraphCard: React.FC<GraphCardProps> = ({
                         <span style={{ color: 'var(--text-secondary)' }}>Start: </span>
                         <span style={{ color: '#4fc1ff', fontFamily: 'monospace' }}>
                             {graph.nodes[graph.startNodeId]?.name || graph.startNodeId}
+                        </span>
+                    </div>
+                )}
+                {referenceCount !== undefined && (
+                    <div>
+                        <span style={{ color: 'var(--text-secondary)' }}>Refs: </span>
+                        <span style={{ color: referenceCount > 0 ? '#60a5fa' : 'var(--text-dim)' }}>
+                            {referenceCount}
                         </span>
                     </div>
                 )}
@@ -107,15 +118,6 @@ export const GraphCard: React.FC<GraphCardProps> = ({
                     {graph.description}
                 </div>
             )}
-
-            {/* 提示文字 */}
-            <div style={{
-                marginTop: '8px',
-                fontSize: '10px',
-                color: 'var(--text-dim)'
-            }}>
-                Double-click to open
-            </div>
         </div>
     );
 };

@@ -684,7 +684,8 @@ const buildTwoStepFsm = (fsmId: string, nodeId: string, idleName: string, solvin
       name: solvedName,
       description: 'Puzzle completed.',
       position: { x: 600, y: 140 },
-      lifecycleScriptId: 'script-dialogue',
+      // 生命周期脚本应使用 Lifecycle 类型，不是 Performance 类型
+      lifecycleScriptId: 'script-lifecycle-state',
       eventListeners: []
     }
   },
@@ -932,7 +933,7 @@ export const MOCK_BLACKBOARD: BlackboardData = {
   globalVariables: {
     'var-game-difficulty': {
       id: 'var-game-difficulty',
-        name: 'Game Difficulty',
+      name: 'Game Difficulty',
       type: 'string',
       value: 'Normal',
       state: 'Implemented',
@@ -940,7 +941,7 @@ export const MOCK_BLACKBOARD: BlackboardData = {
     },
     'var-player-health': {
       id: 'var-player-health',
-        name: 'Player Health',
+      name: 'Player Health',
       type: 'integer',
       value: 100,
       state: 'Draft',
@@ -948,7 +949,7 @@ export const MOCK_BLACKBOARD: BlackboardData = {
     },
     'var-retired-route': {
       id: 'var-retired-route',
-        name: 'Retired Route Flag',
+      name: 'Retired Route Flag',
       type: 'boolean',
       value: false,
       state: 'MarkedForDelete',
@@ -958,25 +959,25 @@ export const MOCK_BLACKBOARD: BlackboardData = {
   events: {
     'event-alarm-triggered': {
       id: 'event-alarm-triggered',
-        name: 'Alarm Triggered',
+      name: 'Alarm Triggered',
       description: 'Guard alarm raised',
       state: 'Implemented'
     },
     'event-power-restored': {
       id: 'event-power-restored',
-        name: 'Power Restored',
+      name: 'Power Restored',
       description: 'Generator back online',
       state: 'Draft'
     },
     'event-case-start': {
       id: 'event-case-start',
-        name: 'Case Start',
+      name: 'Case Start',
       description: 'Signals the beginning of any puzzle interaction.',
       state: 'Implemented'
     },
     'event-retired-siren': {
       id: 'event-retired-siren',
-        name: 'Retired Siren',
+      name: 'Retired Siren',
       description: 'Deprecated alert sound kept for compatibility testing.',
       state: 'MarkedForDelete'
     }

@@ -9,21 +9,22 @@ import { ProjectData } from '../../types/project';
 import { ConditionExpression, StateMachine, Transition } from '../../types/stateMachine';
 import { EventListener, ParameterBinding, ParameterModifier, PresentationBinding, ValueSource } from '../../types/common';
 import { PresentationGraph } from '../../types/presentation';
+// 从 globalVariableReferences 导入共享类型
+import type { VariableReferenceInfo, ReferenceNavigationContext } from './globalVariableReferences';
 
-export interface VariableReferenceInfo {
-  location: string;   // 引用发生的具体位置描述
-  detail?: string;    // 额外说明（如所属对象名称）
-}
+// 重新导出类型供外部使用
+export type { VariableReferenceInfo, ReferenceNavigationContext };
 
 const collectFromValueSource = (
   source: ValueSource | undefined,
   variableId: string,
   collector: (info: VariableReferenceInfo) => void,
-  origin: string
+  origin: string,
+  navContext?: ReferenceNavigationContext
 ) => {
   if (!source || source.type !== 'VariableRef') return;
   if (source.variableId === variableId && source.scope === 'NodeLocal') {
-    collector({ location: origin });
+    collector({ location: origin, navContext });
   }
 };
 
@@ -31,49 +32,52 @@ const collectFromBindings = (
   bindings: ParameterBinding[] | undefined,
   variableId: string,
   collector: (info: VariableReferenceInfo) => void,
-  origin: string
+  origin: string,
+  navContext?: ReferenceNavigationContext
 ) => {
-  bindings?.forEach(b => collectFromValueSource(b.source, variableId, collector, `${origin} · Param ${b.paramName}`));
+  bindings?.forEach(b => collectFromValueSource(b.source, variableId, collector, `${origin} > Param ${b.paramName}`, navContext));
 };
 
 const collectFromModifier = (
   modifier: ParameterModifier | undefined,
   variableId: string,
   collector: (info: VariableReferenceInfo) => void,
-  origin: string
+  origin: string,
+  navContext?: ReferenceNavigationContext
 ) => {
   if (!modifier) return;
   if (modifier.targetVariableId === variableId && modifier.targetScope === 'NodeLocal') {
-    collector({ location: `${origin} · Target` });
+    collector({ location: `${origin} > Target`, navContext });
   }
-  collectFromValueSource(modifier.source, variableId, collector, `${origin} · Source`);
+  collectFromValueSource(modifier.source, variableId, collector, `${origin} > Source`, navContext);
 };
 
 const collectFromCondition = (
   condition: ConditionExpression | undefined,
   variableId: string,
   collector: (info: VariableReferenceInfo) => void,
-  origin: string
+  origin: string,
+  navContext?: ReferenceNavigationContext
 ) => {
   if (!condition) return;
   if (condition.type === 'VARIABLE_REF') {
     if (condition.variableScope === 'NodeLocal' && condition.variableId === variableId) {
-      collector({ location: origin });
+      collector({ location: origin, navContext });
     }
     return;
   }
 
   if (condition.type === 'AND' || condition.type === 'OR') {
-    condition.children?.forEach((c, idx) => collectFromCondition(c, variableId, collector, `${origin} · Sub condition ${idx + 1}`));
+    condition.children?.forEach((c, idx) => collectFromCondition(c, variableId, collector, `${origin} > Sub condition ${idx + 1}`, navContext));
   }
 
   if (condition.type === 'NOT' && condition.operand) {
-    collectFromCondition(condition.operand, variableId, collector, `${origin} · Not`);
+    collectFromCondition(condition.operand, variableId, collector, `${origin} > Not`, navContext);
   }
 
   if (condition.type === 'COMPARISON') {
-    if (condition.left) collectFromCondition(condition.left, variableId, collector, `${origin} · Left`);
-    if (condition.right) collectFromCondition(condition.right, variableId, collector, `${origin} · Right`);
+    if (condition.left) collectFromCondition(condition.left, variableId, collector, `${origin} > Left`, navContext);
+    if (condition.right) collectFromCondition(condition.right, variableId, collector, `${origin} > Right`, navContext);
   }
 };
 
@@ -81,14 +85,15 @@ const collectFromEventListeners = (
   listeners: EventListener[] | undefined,
   variableId: string,
   collector: (info: VariableReferenceInfo) => void,
-  origin: string
+  origin: string,
+  navContext?: ReferenceNavigationContext
 ) => {
   listeners?.forEach((l, idx) => {
-    const base = `${origin} · Listener ${idx + 1}`;
+    const base = `${origin} > Listener ${idx + 1}`;
     // InvokeScript 类型现在不再携带 parameters，无需收集
     if (l.action.type === 'ModifyParameter') {
       l.action.modifiers.forEach((m, mIdx) => {
-        collectFromModifier(m, variableId, collector, `${base} · Param modifier ${mIdx + 1}`);
+        collectFromModifier(m, variableId, collector, `${base} > Param modifier ${mIdx + 1}`, navContext);
       });
     }
   });
@@ -99,16 +104,23 @@ const collectFromPresentationBinding = (
   graphs: Record<string, PresentationGraph>,
   variableId: string,
   collector: (info: VariableReferenceInfo) => void,
-  origin: string
+  origin: string,
+  baseNavContext?: ReferenceNavigationContext
 ) => {
   if (!binding) return;
   if (binding.type === 'Script') {
-    collectFromBindings(binding.parameters, variableId, collector, `${origin} · Presentation script params`);
+    collectFromBindings(binding.parameters, variableId, collector, `${origin} > Presentation script params`, baseNavContext);
   } else if (binding.type === 'Graph') {
     const graph = graphs[binding.graphId];
     if (!graph) return;
     Object.values(graph.nodes).forEach(node => {
-      collectFromBindings(node.parameters, variableId, collector, `${origin} · Subgraph node ${node.name || node.id}`);
+      // 演出图节点的导航上下文
+      const navContext: ReferenceNavigationContext = {
+        targetType: 'PRESENTATION_NODE',
+        graphId: binding.graphId,
+        presentationNodeId: node.id
+      };
+      collectFromBindings(node.parameters, variableId, collector, `${origin} > Subgraph node ${node.name || node.id}`, navContext);
     });
   }
 };
@@ -118,12 +130,19 @@ const collectFromTransition = (
   stateMachine: StateMachine,
   graphs: Record<string, PresentationGraph>,
   variableId: string,
-  collector: (info: VariableReferenceInfo) => void
+  collector: (info: VariableReferenceInfo) => void,
+  nodeId: string
 ) => {
-  collectFromCondition(trans.condition, variableId, collector, `Transition ${trans.name || trans.id} · Condition`);
-  collectFromPresentationBinding(trans.presentation, graphs, variableId, collector, `Transition ${trans.name || trans.id} · Presentation`);
+  // Transition 的导航上下文
+  const navContext: ReferenceNavigationContext = {
+    targetType: 'TRANSITION',
+    nodeId,
+    transitionId: trans.id
+  };
+  collectFromCondition(trans.condition, variableId, collector, `Transition ${trans.name || trans.id} > Condition`, navContext);
+  collectFromPresentationBinding(trans.presentation, graphs, variableId, collector, `Transition ${trans.name || trans.id} > Presentation`, navContext);
   (trans.parameterModifiers || []).forEach((m, idx) =>
-    collectFromModifier(m, variableId, collector, `Transition ${trans.name || trans.id} · Param modifier ${idx + 1}`)
+    collectFromModifier(m, variableId, collector, `Transition ${trans.name || trans.id} > Param modifier ${idx + 1}`, navContext)
   );
 };
 
@@ -144,22 +163,38 @@ export const findNodeVariableReferences = (
 
   const push = (info: VariableReferenceInfo) => refs.push(info);
 
-  // 1) PuzzleNode 自身的事件监听
-  collectFromEventListeners(node.eventListeners, variableId, push, `PuzzleNode ${node.name || node.id} event listeners`);
+  // 1) PuzzleNode 自身的事件监听 - 导航到 Node
+  const nodeNavContext: ReferenceNavigationContext = {
+    targetType: 'NODE',
+    nodeId
+  };
+  collectFromEventListeners(node.eventListeners, variableId, push, `PuzzleNode ${node.name || node.id} event listeners`, nodeNavContext);
 
   // 2) 状态机内部
   if (fsm) {
     Object.values(fsm.states || {}).forEach(state => {
-      collectFromEventListeners(state.eventListeners, variableId, push, `State ${state.name || state.id} event listeners`);
+      // State 的导航上下文
+      const stateNavContext: ReferenceNavigationContext = {
+        targetType: 'STATE',
+        nodeId,
+        stateId: state.id
+      };
+      collectFromEventListeners(state.eventListeners, variableId, push, `State ${state.name || state.id} event listeners`, stateNavContext);
     });
 
-    Object.values(fsm.transitions || {}).forEach(trans => collectFromTransition(trans, fsm, graphs, variableId, push));
+    Object.values(fsm.transitions || {}).forEach(trans => collectFromTransition(trans, fsm, graphs, variableId, push, nodeId));
   }
 
   // 3) 演出子图直接被此节点引用的情况（防御性遍历：若外部直接关联也能检测到）
   Object.values(project.presentationGraphs || {}).forEach(graph => {
     Object.values(graph.nodes).forEach(nodeItem => {
-      collectFromBindings(nodeItem.parameters, variableId, push, `Presentation graph ${graph.name || graph.id} · Node ${nodeItem.name || nodeItem.id}`);
+      // Presentation Node 的导航上下文
+      const navContext: ReferenceNavigationContext = {
+        targetType: 'PRESENTATION_NODE',
+        graphId: graph.id,
+        presentationNodeId: nodeItem.id
+      };
+      collectFromBindings(nodeItem.parameters, variableId, push, `Presentation graph ${graph.name || graph.id} > Node ${nodeItem.name || nodeItem.id}`, navContext);
     });
   });
 

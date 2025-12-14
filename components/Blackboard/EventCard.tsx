@@ -17,6 +17,8 @@ interface EventCardProps {
     isSelected: boolean;
     /** 点击卡片的回调 */
     onClick: () => void;
+    /** 引用数量（可选） */
+    referenceCount?: number;
 }
 
 // ========== 组件 ==========
@@ -28,7 +30,8 @@ interface EventCardProps {
 export const EventCard: React.FC<EventCardProps> = ({
     event,
     isSelected,
-    onClick
+    onClick,
+    referenceCount
 }) => {
     const isDeleted = event.state === 'MarkedForDelete';
 
@@ -64,13 +67,27 @@ export const EventCard: React.FC<EventCardProps> = ({
                 <StateBadge state={event.state} />
             </div>
 
-            {/* Key */}
+            {/* Key 和引用数量 */}
             <div style={{
                 fontSize: '10px',
                 color: 'var(--text-dim)',
-                fontFamily: 'monospace'
+                fontFamily: 'monospace',
+                display: 'flex',
+                gap: '12px',
+                alignItems: 'center'
             }}>
-                {event.key}
+                <span>{event.key}</span>
+                {referenceCount !== undefined && (
+                    <span style={{
+                        fontFamily: 'Inter, sans-serif',
+                        fontSize: '11px'
+                    }}>
+                        <span style={{ color: 'var(--text-secondary)' }}>Refs: </span>
+                        <span style={{ color: referenceCount > 0 ? '#60a5fa' : 'var(--text-dim)' }}>
+                            {referenceCount}
+                        </span>
+                    </span>
+                )}
             </div>
 
             {/* 描述（可选） */}

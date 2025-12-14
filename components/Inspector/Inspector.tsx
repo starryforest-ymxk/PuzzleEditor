@@ -13,7 +13,7 @@ import { NodeInspector } from './NodeInspector';
 import { StateInspector } from './StateInspector';
 import { TransitionInspector } from './TransitionInspector';
 import { PresentationNodeInspector } from './PresentationNodeInspector';
-import { GraphInspector } from './GraphInspector';
+import { PresentationGraphInspector } from './PresentationGraphInspector';
 import { FsmInspector } from './FsmInspector';
 import { VariableInspector } from './VariableInspector';
 import { ScriptInspector } from './ScriptInspector';
@@ -84,7 +84,7 @@ export const Inspector: React.FC<InspectorProps> = ({ readOnly = false }) => {
 
   // --- PRESENTATION_GRAPH 检查器 ---
   if (ui.selection.type === 'PRESENTATION_GRAPH') {
-    return <GraphInspector graphId={ui.selection.id!} readOnly={readOnly} />;
+    return <PresentationGraphInspector graphId={ui.selection.id!} readOnly={readOnly} />;
   }
 
   // --- FSM 检查器 ---

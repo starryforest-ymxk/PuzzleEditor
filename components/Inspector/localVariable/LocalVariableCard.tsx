@@ -6,17 +6,20 @@
  * - 显示和编辑单个局部变量的属性
  * - 支持名称、类型、默认值、描述的编辑
  * - 处理删除/恢复操作
+ * - 支持展开/收起引用详情
+ * - 支持点击引用跳转到对应编辑器位置
  * 
  * UI风格：
  * - 使用统一的 CSS 类名，避免内联样式
  * - 与 StateInspector 等组件风格保持一致
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import { VariableDefinition } from '../../../types/blackboard';
 import type { VariableType } from '../../../types/common';
 import { VariableValueInput } from './VariableValueInput';
-import { X, RotateCcw, Trash2 } from 'lucide-react';
+import { X, RotateCcw, Trash2, ChevronDown, ChevronRight, ExternalLink } from 'lucide-react';
+import type { VariableReferenceInfo, ReferenceNavigationContext } from '../../../utils/validation/globalVariableReferences';
 
 // ========== Props 类型定义 ==========
 interface LocalVariableCardProps {
@@ -24,11 +27,17 @@ interface LocalVariableCardProps {
     canMutate: boolean;
     readOnly: boolean;
     referenceCount: number;
+    /** 引用位置列表，用于展开详情 - 现在支持完整的引用信息 */
+    references?: VariableReferenceInfo[];
     error?: string;
     onUpdate: (field: keyof VariableDefinition, value: any) => void;
     onDelete: () => void;
     onRestore: () => void;
     onNumberBlur: (raw: any) => void;
+    /** 双击回调 */
+    onDoubleClick?: () => void;
+    /** 点击引用跳转的回调 */
+    onReferenceClick?: (navContext: ReferenceNavigationContext) => void;
 }
 
 // ========== 工具函数 ==========
@@ -59,16 +68,24 @@ export const LocalVariableCard: React.FC<LocalVariableCardProps> = ({
     canMutate,
     readOnly,
     referenceCount,
+    references = [],
     error,
     onUpdate,
     onDelete,
     onRestore,
-    onNumberBlur
+    onNumberBlur,
+    onDoubleClick,
+    onReferenceClick
 }) => {
     const isMarkedForDelete = variable.state === 'MarkedForDelete';
+    // 引用详情展开/收起状态
+    const [showReferences, setShowReferences] = useState(false);
 
     return (
-        <div className={`local-variable-card ${isMarkedForDelete ? 'local-variable-card--deleted' : ''}`}>
+        <div 
+            className={`local-variable-card ${isMarkedForDelete ? 'local-variable-card--deleted' : ''}`}
+            onDoubleClick={onDoubleClick}
+        >
             {/* Header: 名称 + 操作按钮 */}
             <div className="local-variable-card__header">
                 <div style={{ flex: 1, minWidth: 0 }}>
@@ -122,15 +139,48 @@ export const LocalVariableCard: React.FC<LocalVariableCardProps> = ({
                 )}
             </div>
 
-            {/* Meta: 状态 + 引用计数 */}
+            {/* Meta: 状态 + 引用计数（可点击展开） */}
             <div className="local-variable-card__meta">
                 <span>Status: {variable.state}</span>
                 {referenceCount > 0 && (
-                    <span className="local-variable-card__meta-warn">
-                        {referenceCount} reference(s)
-                    </span>
+                    <button
+                        className="local-variable-card__ref-toggle"
+                        onClick={() => setShowReferences(!showReferences)}
+                        title={showReferences ? 'Hide references' : 'Show references'}
+                    >
+                        {showReferences ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+                        <span>{referenceCount} reference(s)</span>
+                    </button>
                 )}
             </div>
+
+            {/* 引用详情展开区域 */}
+            {showReferences && referenceCount > 0 && (
+                <div className="local-variable-card__references">
+                    <div className="local-variable-card__references-title">Referenced in:</div>
+                    <div className="local-variable-card__references-list">
+                        {references.length > 0 ? (
+                            references.map((ref, idx) => (
+                                <div 
+                                    key={idx} 
+                                    className={`local-variable-card__references-item ${ref.navContext ? 'local-variable-card__references-item--clickable' : ''}`}
+                                    onClick={() => ref.navContext && onReferenceClick?.(ref.navContext)}
+                                    title={ref.navContext ? 'Click to navigate to this reference' : undefined}
+                                >
+                                    <span>{ref.location}</span>
+                                    {ref.navContext && (
+                                        <ExternalLink size={10} style={{ opacity: 0.6, marginLeft: '4px', flexShrink: 0 }} />
+                                    )}
+                                </div>
+                            ))
+                        ) : (
+                            <div className="local-variable-card__references-item">
+                                {referenceCount} reference(s) found
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
 
             {/* Controls: 类型选择 + 值输入 */}
             <div className="local-variable-card__controls">

@@ -199,7 +199,10 @@ export const TransitionInspector = ({ fsmId, transitionId, readOnly = false }: P
                         graphData={project.presentationGraphs}
                         variables={visibleVars}
                         title="On Transition"
-                        onNavigateToGraph={(graphId) => dispatch({ type: 'NAVIGATE_TO', payload: { graphId } })}
+                        onNavigateToGraph={(graphId) => {
+                            dispatch({ type: 'NAVIGATE_TO', payload: { graphId } });
+                            dispatch({ type: 'SELECT_OBJECT', payload: { type: 'PRESENTATION_GRAPH', id: graphId } });
+                        }}
                         readOnly={readOnly}
                     />
                 </div>

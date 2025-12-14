@@ -211,13 +211,21 @@ export const StateMachineCanvas = ({ node, readOnly = false }: Props) => {
 
     // ========== Effects ==========
 
-    // 进入状态机画布时，默认选中当前 PuzzleNode
+    // 进入状态机画布时，如果当前选中对象不在此 Node 的上下文中，则默认选中当前 PuzzleNode
+    // 避免覆盖从引用跳转时已设置的选中状态（如 STATE、TRANSITION）
     useEffect(() => {
         if (lastNodeIdRef.current !== node.id) {
             lastNodeIdRef.current = node.id;
-            dispatch({ type: 'SELECT_OBJECT', payload: { type: 'NODE', id: node.id } });
+            // 检查当前选中是否在此 Node 的上下文中
+            const isSelectionInCurrentContext =
+                ui.selection.contextId === node.id &&
+                (ui.selection.type === 'STATE' || ui.selection.type === 'TRANSITION');
+            // 只有当选中不在当前 Node 上下文中时，才默认选中 Node
+            if (!isSelectionInCurrentContext) {
+                dispatch({ type: 'SELECT_OBJECT', payload: { type: 'NODE', id: node.id } });
+            }
         }
-    }, [node.id, dispatch]);
+    }, [node.id, dispatch, ui.selection]);
 
     // 监听全局鼠标移动判断是否进入拖拽状态
     useEffect(() => {

@@ -153,7 +153,10 @@ export const StageInspector: React.FC<StageInspectorProps> = ({ stageId, readOnl
                             graphData={project.presentationGraphs}
                             variables={visibleVars}
                             title="On Enter"
-                            onNavigateToGraph={(graphId) => dispatch({ type: 'NAVIGATE_TO', payload: { graphId } })}
+                            onNavigateToGraph={(graphId) => {
+                                dispatch({ type: 'NAVIGATE_TO', payload: { graphId } });
+                                dispatch({ type: 'SELECT_OBJECT', payload: { type: 'PRESENTATION_GRAPH', id: graphId } });
+                            }}
                             readOnly={readOnly}
                         />
                     </div>
@@ -167,7 +170,10 @@ export const StageInspector: React.FC<StageInspectorProps> = ({ stageId, readOnl
                             graphData={project.presentationGraphs}
                             variables={visibleVars}
                             title="On Exit"
-                            onNavigateToGraph={(graphId) => dispatch({ type: 'NAVIGATE_TO', payload: { graphId } })}
+                            onNavigateToGraph={(graphId) => {
+                                dispatch({ type: 'NAVIGATE_TO', payload: { graphId } });
+                                dispatch({ type: 'SELECT_OBJECT', payload: { type: 'PRESENTATION_GRAPH', id: graphId } });
+                            }}
                             readOnly={readOnly}
                         />
                     </div>

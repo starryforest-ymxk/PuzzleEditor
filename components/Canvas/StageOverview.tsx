@@ -38,11 +38,13 @@ export const StageOverview: React.FC<StageOverviewProps> = ({ stageId }) => {
     const handleNodeDoubleClick = (e: React.MouseEvent, nodeId: string) => {
         e.stopPropagation();
         dispatch({ type: 'NAVIGATE_TO', payload: { nodeId } });
+        dispatch({ type: 'SELECT_OBJECT', payload: { type: 'NODE', id: nodeId } });
     };
 
     const handleStageDoubleClick = (e: React.MouseEvent, stageId: string) => {
         e.stopPropagation();
         dispatch({ type: 'NAVIGATE_TO', payload: { stageId, nodeId: null } });
+        dispatch({ type: 'SELECT_OBJECT', payload: { type: 'STAGE', id: stageId } });
     }
 
     const renderCard = (

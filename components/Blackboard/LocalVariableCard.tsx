@@ -24,6 +24,10 @@ interface LocalVariableCardProps {
     isSelected: boolean;
     /** 点击卡片的回调 */
     onClick: () => void;
+    /** 双击卡片的回调（用于跳转到变量声明处） */
+    onDoubleClick?: () => void;
+    /** 引用数量（可选） */
+    referenceCount?: number;
 }
 
 // ========== 组件 ==========
@@ -31,11 +35,14 @@ interface LocalVariableCardProps {
 /**
  * 局部变量卡片组件
  * 显示变量的名称、Key、作用域、类型、默认值和描述
+ * 支持双击跳转到变量声明处
  */
 export const LocalVariableCard: React.FC<LocalVariableCardProps> = ({
     variable,
     isSelected,
-    onClick
+    onClick,
+    onDoubleClick,
+    referenceCount
 }) => {
     const isDeleted = variable.state === 'MarkedForDelete';
     // Stage 使用蓝色，Node 使用橙色
@@ -44,6 +51,7 @@ export const LocalVariableCard: React.FC<LocalVariableCardProps> = ({
     return (
         <div
             onClick={onClick}
+            onDoubleClick={onDoubleClick}
             className={`overview-card ${isSelected ? 'selected' : ''}`}
             style={{
                 opacity: isDeleted ? 0.5 : 1,
@@ -86,6 +94,15 @@ export const LocalVariableCard: React.FC<LocalVariableCardProps> = ({
                         {variable.value !== undefined ? String(variable.value) : '-'}
                     </span>
                 </div>
+                {/* 引用数量显示 */}
+                {referenceCount !== undefined && (
+                    <div>
+                        <span className="label">Refs: </span>
+                        <span className="value" style={{ color: referenceCount > 0 ? '#60a5fa' : 'var(--text-dim)' }}>
+                            {referenceCount}
+                        </span>
+                    </div>
+                )}
             </div>
 
             {/* 描述（可选） */}

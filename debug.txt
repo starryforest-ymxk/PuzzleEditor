@@ -12,7 +12,7 @@ interface GraphBindingSectionProps {
     readOnly?: boolean;
 }
 
-// 演出图绑定部分：显示选中演出图的概要信息
+// �ݳ���ͼ��������ʾѡ��ͼ�ĸ�Ҫ��Ϣ
 export const GraphBindingSection: React.FC<GraphBindingSectionProps> = ({
     binding,
     onChange,
@@ -108,7 +108,7 @@ export const GraphBindingSection: React.FC<GraphBindingSectionProps> = ({
                                 style={{ fontSize: '11px', padding: '4px 12px' }}
                                 disabled={readOnly}
                             >
-                                Edit Graph &gt;
+                                Edit Graph ��
                             </button>
                         </div>
                     )}

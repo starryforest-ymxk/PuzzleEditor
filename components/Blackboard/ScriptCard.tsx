@@ -5,7 +5,16 @@
 
 import React from 'react';
 import { ScriptDefinition } from '../../types/manifest';
+import { ScriptCategory } from '../../types/common';
 import { StateBadge } from './StateBadge';
+
+// ========== 脚本类型颜色 ==========
+const categoryColors: Record<ScriptCategory, string> = {
+    Performance: '#c586c0',  // 紫色
+    Lifecycle: '#4fc1ff',    // 蓝色
+    Condition: '#dcdcaa',    // 黄色
+    Trigger: '#ce9178'       // 橙色
+};
 
 // ========== 组件 Props ==========
 
@@ -16,6 +25,8 @@ interface ScriptCardProps {
     isSelected: boolean;
     /** 点击卡片的回调 */
     onClick: () => void;
+    /** 引用数量（可选） */
+    referenceCount?: number;
 }
 
 // ========== 组件 ==========
@@ -27,10 +38,12 @@ interface ScriptCardProps {
 export const ScriptCard: React.FC<ScriptCardProps> = ({
     script,
     isSelected,
-    onClick
+    onClick,
+    referenceCount
 }) => {
     const isDeleted = script.state === 'MarkedForDelete';
-    const lifecycleSuffix = script.category === 'Lifecycle' && script.lifecycleType ? ` (${script.lifecycleType} lifecycle)` : '';
+    const lifecycleSuffix = script.category === 'Lifecycle' && script.lifecycleType ? ` (${script.lifecycleType})` : '';
+    const categoryColor = categoryColors[script.category] || '#c586c0';
 
     return (
         <div
@@ -71,10 +84,20 @@ export const ScriptCard: React.FC<ScriptCardProps> = ({
                 {script.key}
             </div>
 
-            {/* 分类 */}
-            <div style={{ fontSize: '11px' }}>
-                <span style={{ color: 'var(--text-secondary)' }}>Category: </span>
-                <span style={{ color: 'var(--accent-color)' }}>{script.category}{lifecycleSuffix}</span>
+            {/* 分类和引用数量 */}
+            <div style={{ fontSize: '11px', display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                <div>
+                    <span style={{ color: 'var(--text-secondary)' }}>Category: </span>
+                    <span style={{ color: categoryColor }}>{script.category}{lifecycleSuffix}</span>
+                </div>
+                {referenceCount !== undefined && (
+                    <div>
+                        <span style={{ color: 'var(--text-secondary)' }}>Refs: </span>
+                        <span style={{ color: referenceCount > 0 ? '#60a5fa' : 'var(--text-dim)' }}>
+                            {referenceCount}
+                        </span>
+                    </div>
+                )}
             </div>
 
             {/* 描述（可选） */}

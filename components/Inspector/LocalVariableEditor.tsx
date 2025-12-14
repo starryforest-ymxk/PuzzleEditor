@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+ï»¿import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { VariableDefinition } from '../../types/blackboard';
 import type { VariableType } from '../../types/common';
 import type { MessageLevel } from '../../store/types';
@@ -8,6 +8,7 @@ import { findNodeVariableReferences } from '../../utils/variableReferences';
 import { generateResourceId } from '../../utils/resourceIdGenerator';
 import { ConfirmDialog } from './ConfirmDialog';
 import { LocalVariableCard } from './localVariable/LocalVariableCard';
+import type { VariableReferenceInfo, ReferenceNavigationContext } from '../../utils/validation/globalVariableReferences';
 
 export type LocalVariableOwner = 'node' | 'stage';
 
@@ -16,9 +17,9 @@ export interface LocalVariableEditorProps {
     ownerType: LocalVariableOwner;
     ownerId?: string;
     readOnly?: boolean;
-    // ¿ÉÑ¡Íâ²¿ÒıÓÃ½âÎöÆ÷£¬±ãÓÚ Stage µÈ³¡¾°×Ô¶¨ÒåÒıÓÃ¼ì²é
+    // å¯é€‰å¤–éƒ¨å¼•ç”¨è§£æå™¨ï¼Œä¾¿äº Stage ç­‰åœºæ™¯è‡ªå®šä¹‰å¼•ç”¨æ£€æŸ¥
     resolveReferences?: (varId: string) => string[];
-    // ¿ÉÑ¡Íâ²¿´¦Àíº¯Êı£¬±ãÓÚ Stage/ÆäËû³¡¾°¸´ÓÃ±à¼­Âß¼­
+    // å¯é€‰å¤–éƒ¨å¤„ç†å‡½æ•°ï¼Œä¾¿äº Stage/å…¶ä»–åœºæ™¯å¤ç”¨ç¼–è¾‘é€»è¾‘
     onAddVariable?: (variable: VariableDefinition) => void;
     onUpdateVariable?: (varId: string, data: Partial<VariableDefinition>) => void;
     onDeleteVariable?: (varId: string) => void;
@@ -26,7 +27,7 @@ export interface LocalVariableEditorProps {
 
 type ConfirmMode = 'soft-delete' | 'hard-delete' | 'delete';
 
-// °´ÀàĞÍ·µ»ØÄ¬ÈÏÖµ£¬±ÜÃâÀàĞÍ²»Æ¥Åä
+// æŒ‰ç±»å‹è¿”å›é»˜è®¤å€¼ï¼Œé¿å…ç±»å‹ä¸åŒ¹é…
 const getDefaultValueByType = (type: VariableType) => {
     switch (type) {
         case 'boolean': return false;
@@ -37,7 +38,7 @@ const getDefaultValueByType = (type: VariableType) => {
     }
 };
 
-// ¸ù¾İÀàĞÍ¹æ·¶»¯ÊäÈëÖµ£¬±£ÕÏ´æÈë store µÄÖµºÏ·¨
+// æ ¹æ®ç±»å‹è§„èŒƒåŒ–è¾“å…¥å€¼ï¼Œä¿éšœå­˜å…¥ store çš„å€¼åˆæ³•
 const normalizeValueByType = (type: VariableType, raw: any) => {
     if (type === 'boolean') return raw === true || raw === 'true';
     if (type === 'integer') return Number.isNaN(parseInt(raw, 10)) ? 0 : parseInt(raw, 10);
@@ -45,7 +46,7 @@ const normalizeValueByType = (type: VariableType, raw: any) => {
     return raw ?? '';
 };
 
-// Í¨ÓÃ¾Ö²¿±äÁ¿±à¼­Æ÷£¬Ö§³Ö Node/Stage ¸´ÓÃ£»Node Ä¬ÈÏÖ±½ÓÅÉ·¢ store£¬Stage ¿É´«Èë×Ô¶¨Òå»Øµ÷
+// é€šç”¨å±€éƒ¨å˜é‡ç¼–è¾‘å™¨ï¼Œæ”¯æŒ Node/Stage å¤ç”¨ï¼›Node é»˜è®¤ç›´æ¥æ´¾å‘ storeï¼ŒStage å¯ä¼ å…¥è‡ªå®šä¹‰å›è°ƒ
 export const LocalVariableEditor: React.FC<LocalVariableEditorProps> = ({
     variables,
     ownerType,
@@ -69,16 +70,18 @@ export const LocalVariableEditor: React.FC<LocalVariableEditorProps> = ({
     } | null>(null);
     const [prevDefaults, setPrevDefaults] = useState<Record<string, any>>({});
 
-    // ½ö Node ³¡¾°Ä¬ÈÏÌá¹©ÄÚÖÃÒıÓÃ½âÎö£»ÆäËû³¡¾°¿ÉÓÉ resolveReferences ×Ô¶¨Òå
+    // ä»… Node åœºæ™¯é»˜è®¤æä¾›å†…ç½®å¼•ç”¨è§£æï¼›å…¶ä»–åœºæ™¯å¯ç”± resolveReferences è‡ªå®šä¹‰
+    // ç°åœ¨è¿”å›å®Œæ•´çš„ VariableReferenceInfoï¼ŒåŒ…å«å¯¼èˆªä¸Šä¸‹æ–‡
     const referenceMap = useMemo(() => {
-        const map: Record<string, string[]> = {};
+        const map: Record<string, VariableReferenceInfo[]> = {};
         const resolver = resolveReferences;
         vars.forEach(v => {
             if (resolver) {
-                map[v.id] = resolver(v.id) || [];
+                // å¤–éƒ¨è§£æå™¨è¿”å›çš„æ˜¯å­—ç¬¦ä¸²æ•°ç»„ï¼Œè½¬æ¢ä¸º VariableReferenceInfo
+                map[v.id] = (resolver(v.id) || []).map(loc => ({ location: loc }));
             } else if (ownerType === 'node' && ownerId) {
-                const refs = findNodeVariableReferences(project, ownerId, v.id);
-                map[v.id] = refs.map(r => r.location);
+                // å†…ç½®è§£æå™¨è¿”å›å®Œæ•´çš„å¼•ç”¨ä¿¡æ¯ï¼ŒåŒ…å«å¯¼èˆªä¸Šä¸‹æ–‡
+                map[v.id] = findNodeVariableReferences(project, ownerId, v.id);
             } else {
                 map[v.id] = [];
             }
@@ -86,7 +89,107 @@ export const LocalVariableEditor: React.FC<LocalVariableEditorProps> = ({
         return map;
     }, [project, ownerId, ownerType, resolveReferences, vars]);
 
-    // Í¬²½ÒÑ´æÔÚµÄÖµ£¬ÓÃÓÚÊıÖµÊ§½¹Ê±»ØÍË
+    /**
+     * ç‚¹å‡»å¼•ç”¨é¡¹æ—¶å¯¼èˆªåˆ°å¯¹åº”çš„ç¼–è¾‘å™¨ç•Œé¢å¹¶é€‰ä¸­ç›®æ ‡å¯¹è±¡
+     * æ ¹æ® navContext ä¸­çš„ç›®æ ‡ç±»å‹è¿›è¡Œä¸åŒçš„å¯¼èˆªæ“ä½œ
+     * å‚è€ƒ BlackboardPanel çš„ handleDoubleClickLocalVariable æ¨¡å¼ï¼š
+     * ä½¿ç”¨ä¸¤æ¬¡ dispatchï¼Œå…ˆå¯¼èˆªå†é€‰ä¸­ï¼Œç¡®ä¿è§†å›¾åˆ‡æ¢åé€‰ä¸­çŠ¶æ€æ­£ç¡®åº”ç”¨
+     */
+    const handleReferenceClick = useCallback((navContext: ReferenceNavigationContext) => {
+        const { targetType, nodeId, stateId, transitionId, graphId, presentationNodeId } = navContext;
+
+        switch (targetType) {
+            case 'NODE':
+                if (nodeId) {
+                    const node = project.nodes[nodeId];
+                    if (node) {
+                        // å…ˆå¯¼èˆªåˆ°ç›®æ ‡ä½ç½®
+                        dispatch({
+                            type: 'NAVIGATE_TO',
+                            payload: {
+                                stageId: node.stageId,
+                                nodeId,
+                                graphId: null
+                            }
+                        });
+                        // å†é€‰ä¸­ç›®æ ‡å¯¹è±¡
+                        dispatch({
+                            type: 'SELECT_OBJECT',
+                            payload: { type: 'NODE', id: nodeId, contextId: nodeId }
+                        });
+                    }
+                }
+                break;
+
+            case 'STATE':
+                if (nodeId && stateId) {
+                    const node = project.nodes[nodeId];
+                    if (node) {
+                        dispatch({
+                            type: 'NAVIGATE_TO',
+                            payload: {
+                                stageId: node.stageId,
+                                nodeId,
+                                graphId: null
+                            }
+                        });
+                        dispatch({
+                            type: 'SELECT_OBJECT',
+                            payload: { type: 'STATE', id: stateId, contextId: nodeId }
+                        });
+                    }
+                }
+                break;
+
+            case 'TRANSITION':
+                if (nodeId && transitionId) {
+                    const node = project.nodes[nodeId];
+                    if (node) {
+                        dispatch({
+                            type: 'NAVIGATE_TO',
+                            payload: {
+                                stageId: node.stageId,
+                                nodeId,
+                                graphId: null
+                            }
+                        });
+                        dispatch({
+                            type: 'SELECT_OBJECT',
+                            payload: { type: 'TRANSITION', id: transitionId, contextId: nodeId }
+                        });
+                    }
+                }
+                break;
+
+            case 'PRESENTATION_GRAPH':
+                if (graphId) {
+                    dispatch({
+                        type: 'NAVIGATE_TO',
+                        payload: { graphId }
+                    });
+                    dispatch({
+                        type: 'SELECT_OBJECT',
+                        payload: { type: 'PRESENTATION_GRAPH', id: graphId }
+                    });
+                }
+                break;
+
+            case 'PRESENTATION_NODE':
+                if (graphId && presentationNodeId) {
+                    dispatch({
+                        type: 'NAVIGATE_TO',
+                        payload: { graphId }
+                    });
+                    dispatch({
+                        type: 'SELECT_OBJECT',
+                        payload: { type: 'PRESENTATION_NODE', id: presentationNodeId, contextId: graphId }
+                    });
+                }
+                break;
+        }
+    }, [project.nodes, dispatch]);
+
+    // åŒæ­¥å·²å­˜åœ¨çš„å€¼ï¼Œç”¨äºæ•°å€¼å¤±ç„¦æ—¶å›é€€
     useEffect(() => {
         setPrevDefaults((prev) => {
             const next: Record<string, any> = {};
@@ -107,7 +210,7 @@ export const LocalVariableEditor: React.FC<LocalVariableEditorProps> = ({
     const hasNameConflict = (name: string, excludeId?: string) =>
         vars.some(v => v.id !== excludeId && v.name.trim().toLowerCase() === name.trim().toLowerCase());
 
-    // Éú³ÉÎ¨Ò»Ãû³Æ£¬±ÜÃâ×Ô¶¯´´½¨Ê±ÖØÃû
+    // ç”Ÿæˆå”¯ä¸€åç§°ï¼Œé¿å…è‡ªåŠ¨åˆ›å»ºæ—¶é‡å
     const makeUniqueName = (base: string) => {
         let candidate = base;
         let counter = 2;
@@ -127,10 +230,10 @@ export const LocalVariableEditor: React.FC<LocalVariableEditorProps> = ({
     const handleAdd = () => {
         if (!canMutate || !ownerId) return;
         const normalizedName = makeUniqueName('New Variable');
-        // Ê¹ÓÃ"×ÊÔ´ÀàĞÍ_¼ÆÊıÆ÷"¸ñÊ½Éú³É ID£¨ID ÓÉÏµÍ³Éú³É£¬²»¿É±à¼­£©
+        // ä½¿ç”¨"èµ„æºç±»å‹_è®¡æ•°å™¨"æ ¼å¼ç”Ÿæˆ IDï¼ˆID ç”±ç³»ç»Ÿç”Ÿæˆï¼Œä¸å¯ç¼–è¾‘ï¼‰
         const existingIds = Object.keys(variables);
         const id = generateResourceId('VAR', existingIds);
-        // °´×÷ÓÃÓòĞ´Èë scope£¬±£³Ö P1 ¹æ·¶
+        // æŒ‰ä½œç”¨åŸŸå†™å…¥ scopeï¼Œä¿æŒ P1 è§„èŒƒ
         const variable: VariableDefinition = withScope({
             id,
             name: normalizedName,
@@ -169,7 +272,7 @@ export const LocalVariableEditor: React.FC<LocalVariableEditorProps> = ({
 
         const data: any = { [field]: value };
         if (field === 'type') {
-            // ÇĞ»»ÀàĞÍÊ±Í¬²½ÖØÖÃÖµ£¬±ÜÃâÀàĞÍ²»Æ¥Åä
+            // åˆ‡æ¢ç±»å‹æ—¶åŒæ­¥é‡ç½®å€¼ï¼Œé¿å…ç±»å‹ä¸åŒ¹é…
             data.value = getDefaultValueByType(value as VariableType);
         }
 
@@ -181,7 +284,7 @@ export const LocalVariableEditor: React.FC<LocalVariableEditorProps> = ({
         setErrors(prev => ({ ...prev, [id]: '' }));
     };
 
-    // ÈíÉ¾/Ó²É¾Í³Ò»³ö¿Ú£¬±£³ÖÏûÏ¢ÓïÒåÒ»ÖÂ
+    // è½¯åˆ /ç¡¬åˆ ç»Ÿä¸€å‡ºå£ï¼Œä¿æŒæ¶ˆæ¯è¯­ä¹‰ä¸€è‡´
     const applyDeleteAction = (varId: string, mode: ConfirmMode, refs: string[]) => {
         const variable = variables[varId];
         if (!variable) {
@@ -224,7 +327,9 @@ export const LocalVariableEditor: React.FC<LocalVariableEditorProps> = ({
         const variable = variables[id];
         if (!variable) return;
         const refs = referenceMap[id] || [];
-        const preview = refs.slice(0, 5);
+        // æå–ä½ç½®å­—ç¬¦ä¸²ç”¨äº ConfirmDialog æ˜¾ç¤º
+        const refLocations = refs.map(r => r.location);
+        const preview = refLocations.slice(0, 5);
         const hasRefs = refs.length > 0;
 
         if (variable.state === 'MarkedForDelete') {
@@ -265,7 +370,7 @@ export const LocalVariableEditor: React.FC<LocalVariableEditorProps> = ({
         applyDeleteAction(varId, mode, actualRefs);
     };
 
-    // ÊıÖµÀàĞÍÊ§½¹Ğ£Ñé£ºÎŞĞ§Ôò»ØÍËµ½ÉÏÒ»´ÎºÏ·¨Öµ
+    // æ•°å€¼ç±»å‹å¤±ç„¦æ ¡éªŒï¼šæ— æ•ˆåˆ™å›é€€åˆ°ä¸Šä¸€æ¬¡åˆæ³•å€¼
     const handleNumberBlur = (varId: string, raw: any) => {
         if (!canMutate || !ownerId) return;
         const variable = variables[varId];
@@ -314,11 +419,13 @@ export const LocalVariableEditor: React.FC<LocalVariableEditorProps> = ({
                     canMutate={canMutate}
                     readOnly={readOnly}
                     referenceCount={referenceMap[v.id]?.length || 0}
+                    references={referenceMap[v.id] || []}
                     error={errors[v.id]}
                     onUpdate={(field, val) => handleUpdate(v.id, field as string, val)}
                     onDelete={() => handleDelete(v.id)}
                     onRestore={() => handleRestore(v.id)}
                     onNumberBlur={(raw) => handleNumberBlur(v.id, raw)}
+                    onReferenceClick={handleReferenceClick}
                 />
             ))}
 

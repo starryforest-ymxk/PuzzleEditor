@@ -175,7 +175,10 @@ export const PresentationNodeInspector = ({ graphId, nodeId, readOnly = false }:
                             graphData={project.presentationGraphs}
                             variables={visibleVars}
                             title="Script / Graph"
-                            onNavigateToGraph={(gid) => dispatch({ type: 'NAVIGATE_TO', payload: { graphId: gid } })}
+                            onNavigateToGraph={(gid) => {
+                                dispatch({ type: 'NAVIGATE_TO', payload: { graphId: gid } });
+                                dispatch({ type: 'SELECT_OBJECT', payload: { type: 'PRESENTATION_GRAPH', id: gid } });
+                            }}
                         />
                     </div>
                 </div>

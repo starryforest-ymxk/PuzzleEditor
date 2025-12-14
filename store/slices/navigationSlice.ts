@@ -3,12 +3,12 @@
  * 处理所有与导航相关的操作：视图切换、导航跳转、返回等
  */
 
-import { EditorState, Action } from '../types';
+import { EditorState, Action, Selection } from '../types';
 
 // ========== Navigation 相关 Actions 类型定义 ==========
 export type NavigationAction =
     | { type: 'SWITCH_VIEW'; payload: 'EDITOR' | 'BLACKBOARD' }
-    | { type: 'NAVIGATE_TO'; payload: { stageId?: string | null; nodeId?: string | null; graphId?: string | null } }
+    | { type: 'NAVIGATE_TO'; payload: { stageId?: string | null; nodeId?: string | null; graphId?: string | null; selection?: Selection } }
     | { type: 'NAVIGATE_BACK' };
 
 // ========== 类型守卫：判断是否为 Navigation Action ==========
@@ -67,8 +67,8 @@ export const navigationReducer = (state: EditorState, action: NavigationAction):
                     navStack: nextNavStack,
                     // 导航时自动切回编辑器视图
                     view: 'EDITOR',
-                    // 导航通常意味着选择变化，顺带清理旧选区
-                    selection: { type: 'NONE', id: null },
+                    // 如果 payload 中包含 selection，则同时设置选中状态（原子操作，避免组件卸载导致后续 dispatch 丢失）
+                    selection: action.payload.selection ?? state.ui.selection,
                     multiSelectStateIds: []
                 }
             };

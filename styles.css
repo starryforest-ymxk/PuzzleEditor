@@ -1720,3 +1720,85 @@ html {
   line-height: 1.5;
   font-style: italic;
 }
+
+/* 引用计数按钮 - 可点击展开/收起引用详情 */
+.local-variable-card__ref-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: transparent;
+  border: none;
+  color: var(--accent-warning);
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.local-variable-card__ref-toggle:hover {
+  background: rgba(249, 115, 22, 0.15);
+}
+
+/* 引用详情展开区域 */
+.local-variable-card__references {
+  background: #1a1a1c;
+  border: 1px solid #333;
+  border-radius: var(--radius-sm);
+  padding: 8px;
+  margin-bottom: 8px;
+  font-size: 11px;
+}
+
+.local-variable-card__references-title {
+  color: var(--text-dim);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+.local-variable-card__references-list {
+  max-height: 120px;
+  overflow-y: auto;
+}
+
+.local-variable-card__references-item {
+  color: var(--text-secondary);
+  padding: 3px 0;
+  border-bottom: 1px solid #2a2a2c;
+  line-height: 1.4;
+  word-break: break-word;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.local-variable-card__references-item:last-child {
+  border-bottom: none;
+}
+
+/* 可点击的引用项样式 */
+.local-variable-card__references-item--clickable {
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.local-variable-card__references-item--clickable:hover {
+  background-color: var(--hover-bg);
+  color: var(--accent);
+}
+
+/* Inspector 中的引用项样式 */
+.inspector-reference-item {
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.inspector-reference-item--clickable {
+  cursor: pointer;
+}
+
+.inspector-reference-item--clickable:hover {
+  background-color: var(--hover-bg);
+  color: var(--accent);
+}

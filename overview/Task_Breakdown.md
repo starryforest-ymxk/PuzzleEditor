@@ -238,34 +238,37 @@
 ### [P4-T02] 阶段树编辑（Stage Tree Editing）
 
 - 在 Stage 层级视图中支持：
-  - 新建 Stage（作为子节点或同级节点）；
+  - 新建 Stage（作为子节点或同级节点）、删除Stage；
+    - 如果Stage内有子Stage或者PuzzleNode，删除这个Stage需要弹窗提示（复用现有的弹窗确认脚本）
   - 重命名、调整描述；
   - 调整父子关系和顺序（拖拽改变层级）；
-  - 设置某 Stage 为其父节点下的初始子 Stage。
+  - 某 Stage 节点下的第一个子Stage为初始子 Stage，没有解锁条件。
 - 在 Stage Inspector 中开放以下编辑：
-  - 管理 Stage Local Variables；
+  - 管理 Stage Local Variables（与PuzzleNode逻辑一致）；
   - 通过条件构造器配置解锁条件；
   - 绑定 Stage 生命周期脚本；
   - 配置 Stage 级别演出和事件监听。
+- Stage的Inspector界面与目前已经实现的PuzzleNode/State/Transition的Inspector界面UI风格统一
 
 ### [P4-T03] 解谜节点实体级编辑（PuzzleNode 实体）
 
 - 在 Stage 内容概览视图中支持：
+  - 新建 子Stage (与阶段树中创建逻辑一致，只是在内容视图中也支持创建)
   - 新建 PuzzleNode 卡片（选择节点类型、填写名称和描述）；
-  - 复制/删除节点；
-  - 调整节点在 Stage 中的逻辑顺序或分组。
+  - 复制/删除节点/Stage；
+
 - 在 PuzzleNode Inspector 中开放：
   - 节点基本信息编辑；
-  - 节点生命周期脚本绑定（OnCreate/OnDestroy）；
-  - 节点级事件监听和参数修改配置。
+  - 节点生命周期脚本绑定（已开放）；
+  - 节点级事件监听和参数修改配置（已开放）。
 
 ### [P4-T04] 演出子图编辑器完善
 
 - 为 PresentationGraph 提供完整编辑能力：
-  - 新建/删除演出图；
   - 在图中新增节点、连线、调整顺序；
-  - 为节点绑定演出脚本并配置参数传递。
-- 支持从其他位置跳转到对应的演出图（例如在 Transition Inspector 中点击“编辑子图”）。
+  - 为脚本节点绑定演出脚本并配置参数传递（与FSM Transition配置演出脚本的逻辑一致）。
+  - 
+- 支持从其他位置跳转到对应的演出图。
 
 ### [P4-T05] 跨视图导航与工作流打通
 

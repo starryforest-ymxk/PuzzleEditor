@@ -259,11 +259,11 @@ export const VariableSelector: React.FC<Props> = ({
                   boxSizing: 'border-box'
                 }}
               >
+                {/* 临时参数只在演出脚本参数传递时定义，不会在其他地方被引用，因此不显示 Temporary 选项 */}
                 <option value="All">All Scopes</option>
                 <option value="Global">Global</option>
                 <option value="StageLocal">StageLocal</option>
                 <option value="NodeLocal">NodeLocal</option>
-                <option value="Temporary">Temporary</option>
               </select>
             </div>
           </div>

@@ -65,15 +65,19 @@ export const Breadcrumb = () => {
             // 回到项目根 Stage，确保直接显示根内容而非空画布
             if (rootStageId) {
                 dispatch({ type: 'NAVIGATE_TO', payload: { stageId: rootStageId, nodeId: null, graphId: null } });
+                dispatch({ type: 'SELECT_OBJECT', payload: { type: 'STAGE', id: rootStageId } });
             }
         } else if (item.type === 'STAGE') {
             dispatch({ type: 'NAVIGATE_TO', payload: { stageId: item.id, nodeId: null, graphId: null } });
+            dispatch({ type: 'SELECT_OBJECT', payload: { type: 'STAGE', id: item.id } });
         } else if (item.type === 'NODE') {
             const node = project.nodes[item.id];
             const stageId = node?.stageId ?? null;
             dispatch({ type: 'NAVIGATE_TO', payload: { stageId, nodeId: item.id, graphId: null } });
+            dispatch({ type: 'SELECT_OBJECT', payload: { type: 'NODE', id: item.id } });
         } else if (item.type === 'GRAPH') {
             dispatch({ type: 'NAVIGATE_TO', payload: { graphId: item.id } });
+            dispatch({ type: 'SELECT_OBJECT', payload: { type: 'PRESENTATION_GRAPH', id: item.id } });
         }
     };
 
