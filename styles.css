@@ -1356,3 +1356,58 @@ html {
   background: var(--accent-color);
   border-color: #fff;
 }
+
+/* Extra small action buttons for variable cards */
+.btn-xs-restore {
+  background: #4a5568;
+  border: 1px solid #718096;
+  color: #e2e8f0;
+  cursor: pointer;
+  font-size: 9px;
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-weight: 500;
+  /* min-width: 48px; Removed min-width */
+  transition: all 0.15s ease;
+  
+  /* Responsive text truncation */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1; /* Allow growing in flex container */
+  min-width: 0; /* Allow shrinking below content size */
+  text-align: center;
+}
+
+.btn-xs-restore:hover {
+  background: #718096;
+  border-color: #a0aec0;
+  color: #fff;
+}
+
+.btn-xs-delete {
+  background: #742a2a;
+  border: 1px solid #c53030;
+  color: #fed7d7;
+  cursor: pointer;
+  font-size: 9px;
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-weight: 500;
+  /* min-width: 48px; Removed min-width */
+  transition: all 0.15s ease;
+
+  /* Responsive text truncation */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1; /* Allow growing in flex container */
+  min-width: 0; /* Allow shrinking below content size */
+  text-align: center;
+}
+
+.btn-xs-delete:hover {
+  background: #9b2c2c;
+  border-color: #fc8181;
+  color: #fff;
+}

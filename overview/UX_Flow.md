@@ -12,7 +12,7 @@
   - **规则**：
     - `Draft`：可直接物理删除。
     - `Implemented`：点击删除仅置为 `MarkedForDelete`，UI 变灰、禁止新绑定，已有绑定警示。
-    - `MarkedForDelete`：需执行二次确认的 “Apply Delete” 才会从 JSON 中移除并通知后端删除代码。
+    - `MarkedForDelete`：需执行二次确认的 “Apply Delete” 才会从 JSON 中移除并通知后端删除代码；提供“复原”按钮可以将资源状态回退到`Implemented`。
 
 ### 1.2 脚本分类体系
 

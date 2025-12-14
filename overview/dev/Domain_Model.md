@@ -1,6 +1,6 @@
 # 领域模型（Domain Model）
 > 本文档描述项目的核心数据结构与类型定义，需与 `types/*` 代码保持同步。  
-> **版本**: 1.0.0 | **更新时间**: 2025-12-09 | **相关任务**: P1-T01, P1-T02
+> **版本**: 1.1.0 | **更新时间**: 2025-12-14 | **同步至**: Phase 3 完成状态
 
 ---
 
@@ -206,8 +206,8 @@ interface StateMachine {
 }
 
 interface State extends Entity {
-  id: string;                // state-*
-  position: { x: number; y: number };
+  id: StateId;               // state-*
+  position: Vector2;         // 画布坐标
   lifecycleScriptId?: ScriptId; // 统一的生命周期脚本（含进入/退出回调，由脚本内部处理）
   eventListeners: EventListener[];
 }
@@ -324,7 +324,70 @@ interface ExportManifest {
 
 ---
 
-## 7. 与现代表达的对齐要求
+## 7. Store 状态结构
+
+编辑器全局状态 `EditorState` 由以下部分组成（通过 7 个 Slice 管理）：
+
+```ts
+interface EditorState {
+  // 项目数据（projectSlice 管理）
+  project: {
+    isLoaded: boolean;
+    meta: ProjectMeta;
+    stageTree: StageTreeData;
+    nodes: Record<PuzzleNodeId, PuzzleNode>;
+    stateMachines: Record<StateMachineId, StateMachine>;
+    presentationGraphs: Record<PresentationGraphId, PresentationGraph>;
+    blackboard: BlackboardData;
+    scripts: ScriptsManifest;
+    triggers: TriggersManifest;
+  };
+  
+  // 历史记录（主 reducer 管理）
+  history: {
+    past: ProjectContent[];   // Undo 栈
+    future: ProjectContent[]; // Redo 栈
+  };
+  
+  // 全局可用脚本/触发器清单（blackboardSlice 管理）
+  manifest: {
+    scripts: ScriptDefinition[];
+    triggers: TriggerDefinition[];
+    isLoaded: boolean;
+  };
+  
+  // UI 状态（uiSlice, navigationSlice 管理）
+  ui: {
+    isLoading: boolean;
+    errorMessage?: string | null;
+    readOnly: boolean;
+    view: 'EDITOR' | 'BLACKBOARD';
+    currentStageId: string | null;
+    currentNodeId: string | null;
+    currentGraphId: string | null;
+    lastEditorContext: { stageId: string | null; nodeId: string | null };
+    navStack: { stageId: string | null; nodeId: string | null; graphId: string | null }[];
+    stageExpanded: Record<string, boolean>;
+    messages: UiMessage[];  // 全局消息堆栈
+    blackboardView: { /* 黑板视图状态 */ };
+    selection: { /* 选择状态 */ };
+    panels: { explorerWidth: number; inspectorWidth: number; stagesHeight: number };
+  };
+}
+```
+
+**Store Slices 职责划分**：
+- **fsmSlice**: 状态机、状态、转移的 CRUD
+- **presentationSlice**: 演出图、节点、连线的 CRUD
+- **nodeParamsSlice**: 节点局部变量管理
+- **blackboardSlice**: 全局变量、事件、脚本的 CRUD 与软删除
+- **navigationSlice**: 视图切换、面包屑导航
+- **projectSlice**: Stage 树、Node 更新
+- **uiSlice**: 选择状态、面板大小、消息堆栈
+
+---
+
+## 8. 与现代表达的对齐要求
 
 - 所有模型已在 `types/identity.ts` 定义模板字符型 ID/Key；文档中的 ID 前缀与代码一致。
 - `ProjectData` 使用 `nodes`（非 puzzleNodes）字段；黑板脚本清单为 `scripts`（`ScriptsManifest`）。

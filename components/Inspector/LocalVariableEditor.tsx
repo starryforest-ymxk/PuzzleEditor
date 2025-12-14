@@ -204,6 +204,19 @@ export const LocalVariableEditor: React.FC<LocalVariableEditorProps> = ({
         setConfirmDialog(null);
     };
 
+    const handleRestore = (id: string) => {
+        if (!canMutate || !ownerId) return;
+        const variable = variables[id];
+        if (!variable || variable.state !== 'MarkedForDelete') return;
+
+        if (onUpdateVariable) {
+            onUpdateVariable(id, { state: 'Implemented' });
+        } else if (supportsBuiltInActions) {
+            dispatch({ type: 'UPDATE_NODE_PARAM', payload: { nodeId: ownerId, varId: id, data: { state: 'Implemented' } } });
+        }
+        pushMessage('info', `Restored ${scopeLabel} variable "${variable.name}" to Implemented state.`);
+    };
+
     const handleDelete = (id: string) => {
         if (!canMutate || !ownerId) return;
         const variable = variables[id];
@@ -302,6 +315,7 @@ export const LocalVariableEditor: React.FC<LocalVariableEditorProps> = ({
                     error={errors[v.id]}
                     onUpdate={(field, val) => handleUpdate(v.id, field as string, val)}
                     onDelete={() => handleDelete(v.id)}
+                    onRestore={() => handleRestore(v.id)}
                     onNumberBlur={(raw) => handleNumberBlur(v.id, raw)}
                 />
             ))}

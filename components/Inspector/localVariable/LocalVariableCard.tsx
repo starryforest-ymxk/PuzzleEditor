@@ -11,6 +11,7 @@ interface LocalVariableCardProps {
     error?: string;
     onUpdate: (field: keyof VariableDefinition, value: any) => void;
     onDelete: () => void;
+    onRestore: () => void;
     onNumberBlur: (raw: any) => void;
 }
 
@@ -33,13 +34,15 @@ export const LocalVariableCard: React.FC<LocalVariableCardProps> = ({
     error,
     onUpdate,
     onDelete,
+    onRestore,
     onNumberBlur
 }) => {
     const isMarkedForDelete = variable.state === 'MarkedForDelete';
+    const mutedStyle = isMarkedForDelete ? { opacity: 0.55 } : undefined; // 仅弱化内容，操作按钮保持正常
     return (
-        <div className="blackboard-var-item" style={{ opacity: isMarkedForDelete ? 0.55 : 1 }}>
+        <div className="blackboard-var-item">
             <div className="blackboard-var-header">
-                <div className="blackboard-var-info">
+                <div className="blackboard-var-info" style={mutedStyle}>
                     {canMutate ? (
                         <input
                             className="prop-value"
@@ -63,16 +66,35 @@ export const LocalVariableCard: React.FC<LocalVariableCardProps> = ({
                 </div>
 
                 {canMutate && (
-                    <button
-                        onClick={onDelete}
-                        style={{ background: 'transparent', border: 'none', color: '#666', cursor: 'pointer', fontSize: '14px', alignSelf: 'flex-start', padding: '0 0 0 8px' }}
-                    >
-                        &times;
-                    </button>
+                    isMarkedForDelete ? (
+                        <div style={{ display: 'flex', gap: '4px', width: '45%', maxWidth: '140px', minWidth: 0 }}>
+                            <button
+                                onClick={onRestore}
+                                className="btn-xs-restore"
+                                title="Restore to Implemented state"
+                            >
+                                Restore
+                            </button>
+                            <button
+                                onClick={onDelete}
+                                className="btn-xs-delete"
+                                title="Permanently delete this variable"
+                            >
+                                Apply Delete
+                            </button>
+                        </div>
+                    ) : (
+                        <button
+                            onClick={onDelete}
+                            style={{ background: 'transparent', border: 'none', color: '#666', cursor: 'pointer', fontSize: '14px', alignSelf: 'flex-start', padding: '0 0 0 8px' }}
+                        >
+                            &times;
+                        </button>
+                    )
                 )}
             </div>
 
-            <div className="inspector-row" style={{ gap: '8px', alignItems: 'center' }}>
+            <div className="inspector-row" style={{ gap: '8px', alignItems: 'center', ...mutedStyle }}>
                 <select
                     value={variable.type}
                     onChange={(e) => onUpdate('type', e.target.value as VariableType)}
@@ -104,7 +126,7 @@ export const LocalVariableCard: React.FC<LocalVariableCardProps> = ({
                 <div style={{ color: '#f2777a', fontSize: '11px' }}>{error}</div>
             )}
 
-            <div style={{ marginTop: '6px' }}>
+            <div style={{ marginTop: '6px', ...mutedStyle }}>
                 {canMutate ? (
                     <textarea
                         value={variable.description || ''}

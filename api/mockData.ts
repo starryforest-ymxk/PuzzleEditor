@@ -1,4 +1,4 @@
-/**
+﻿/**
  * api/mockData.ts
  * 模拟数据 - 用于开发和测试
  */
@@ -19,7 +19,6 @@ export const MOCK_STAGES: StageTreeData = {
       name: 'Root',
       parentId: null,
       childrenIds: ['stage-act1', 'stage-act2', 'stage-act3'],
-      localVariables: {},
       eventListeners: [],
       isExpanded: true
     },
@@ -29,7 +28,6 @@ export const MOCK_STAGES: StageTreeData = {
       parentId: 'stage-root',
       childrenIds: ['stage-act1a', 'stage-act1b'],
       description: 'Reach the underground facility entrance and regain bearings.',
-      localVariables: {},
       eventListeners: [],
       isInitial: true,
       isExpanded: true
@@ -40,7 +38,6 @@ export const MOCK_STAGES: StageTreeData = {
       parentId: 'stage-act1',
       childrenIds: [],
       description: 'Stabilize power and recover lab notes.',
-      localVariables: {},
       eventListeners: [],
       isInitial: true,
       isExpanded: false
@@ -51,7 +48,6 @@ export const MOCK_STAGES: StageTreeData = {
       parentId: 'stage-act1',
       childrenIds: [],
       description: 'Disable security grid to access deeper halls.',
-      localVariables: {},
       eventListeners: [],
       isExpanded: false
     },
@@ -61,7 +57,6 @@ export const MOCK_STAGES: StageTreeData = {
       parentId: 'stage-root',
       childrenIds: ['stage-act2a', 'stage-act2b', 'stage-act2c'],
       description: 'Piece together the conspiracy from fragmented evidence.',
-      localVariables: {},
       eventListeners: [],
       isExpanded: true
     },
@@ -71,7 +66,6 @@ export const MOCK_STAGES: StageTreeData = {
       parentId: 'stage-act2',
       childrenIds: [],
       description: 'Unlock and parse stored case files.',
-      localVariables: {},
       eventListeners: [],
       isInitial: true,
       isExpanded: false
@@ -82,7 +76,6 @@ export const MOCK_STAGES: StageTreeData = {
       parentId: 'stage-act2',
       childrenIds: [],
       description: 'Bypass digital defenses.',
-      localVariables: {},
       eventListeners: [],
       isExpanded: false
     },
@@ -92,7 +85,6 @@ export const MOCK_STAGES: StageTreeData = {
       parentId: 'stage-act2',
       childrenIds: [],
       description: 'Extract intel under pressure.',
-      localVariables: {},
       eventListeners: [],
       isExpanded: false
     },
@@ -102,7 +94,6 @@ export const MOCK_STAGES: StageTreeData = {
       parentId: 'stage-root',
       childrenIds: [],
       description: 'Sequence the final escape and seal the facility.',
-      localVariables: {},
       eventListeners: [],
       isExpanded: false
     }

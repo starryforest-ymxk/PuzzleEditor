@@ -231,7 +231,6 @@
 
 - 在 Blackboard 视图中开放完整编辑能力：
   - 新建、重命名、修改描述；
-  - 设置/切换 State（Draft/Implemented/MarkedForDelete）；
   - 删除逻辑遵循软删除规则，并提供“应用删除”操作。
 - 实现“引用查询”：在黑板条目详情中列出所有引用位置（Stage / Node / Transition / 演出节点等），点击可跳转。
 

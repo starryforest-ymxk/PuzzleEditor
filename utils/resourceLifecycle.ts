@@ -11,7 +11,8 @@ import { ResourceState } from '../types/common';
 const ALLOWED_TRANSITIONS: Record<ResourceState, ResourceState[]> = {
   Draft: ['Draft', 'Implemented', 'MarkedForDelete'],
   Implemented: ['Implemented', 'MarkedForDelete'],
-  MarkedForDelete: ['MarkedForDelete']
+  // 允许从 MarkedForDelete 恢复到 Implemented，支持“Restore”操作
+  MarkedForDelete: ['MarkedForDelete', 'Implemented']
 };
 
 export type DeleteResolution = {
