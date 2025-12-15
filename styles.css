@@ -1409,15 +1409,34 @@ html {
 /* ========== Variable Inspector 统一样式 ========== */
 
 /* 变量类型颜色 */
-.var-type--boolean { color: #60a5fa; }
-.var-type--integer { color: #a3e635; }
-.var-type--float { color: #2dd4bf; }
-.var-type--string { color: #fbbf24; }
+.var-type--boolean {
+  color: #60a5fa;
+}
+
+.var-type--integer {
+  color: #a3e635;
+}
+
+.var-type--float {
+  color: #2dd4bf;
+}
+
+.var-type--string {
+  color: #fbbf24;
+}
 
 /* 变量作用域类型标签 */
-.inspector-type-label--variable-global { color: #4fc3f7; }
-.inspector-type-label--variable-stage { color: #4ec9b0; }
-.inspector-type-label--variable-node { color: #ce9178; }
+.inspector-type-label--variable-global {
+  color: #4fc3f7;
+}
+
+.inspector-type-label--variable-stage {
+  color: #4ec9b0;
+}
+
+.inspector-type-label--variable-node {
+  color: #ce9178;
+}
 
 /* Inspector 输入框统一样式 */
 .inspector-input {
@@ -1498,10 +1517,21 @@ html {
 }
 
 /* 类型选择器选项颜色 */
-.inspector-type-select option[value="boolean"] { color: #60a5fa; }
-.inspector-type-select option[value="integer"] { color: #a3e635; }
-.inspector-type-select option[value="float"] { color: #2dd4bf; }
-.inspector-type-select option[value="string"] { color: #fbbf24; }
+.inspector-type-select option[value="boolean"] {
+  color: #60a5fa;
+}
+
+.inspector-type-select option[value="integer"] {
+  color: #a3e635;
+}
+
+.inspector-type-select option[value="float"] {
+  color: #2dd4bf;
+}
+
+.inspector-type-select option[value="string"] {
+  color: #fbbf24;
+}
 
 /* 引用追踪占位区块 */
 .inspector-reference-placeholder {
@@ -1801,4 +1831,94 @@ html {
 .inspector-reference-item--clickable:hover {
   background-color: var(--hover-bg);
   color: var(--accent);
+}
+
+/* ========== Stage Tree Drag and Drop ========== */
+.tree-node.dragging {
+  opacity: 0.5;
+}
+
+.tree-node.drop-target-before::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--accent-color);
+  z-index: 10;
+}
+
+.tree-node.drop-target-after::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--accent-color);
+  z-index: 10;
+}
+
+.tree-node.drop-target-inside {
+  background: rgba(249, 115, 22, 0.15);
+  border-color: var(--accent-color);
+}
+
+/* Tree Node Inline Edit */
+.tree-node-name-edit {
+  background: var(--bg-color);
+  border: 1px solid var(--accent-color);
+  color: var(--text-primary);
+  padding: 2px 6px;
+  font-size: 13px;
+  border-radius: 3px;
+  outline: none;
+  flex: 1;
+  min-width: 80px;
+}
+
+.tree-node-name-edit:focus {
+  box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.3);
+}
+
+/* ========== Context Menu (Stage Tree, Canvas) ========== */
+.canvas-context-menu {
+  background: var(--panel-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-md);
+  min-width: 180px;
+  padding: 4px 0;
+  z-index: 1000;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  font-size: 12px;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.menu-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.menu-divider {
+  height: 1px;
+  background: var(--border-color);
+  margin: 4px 0;
+}
+
+/* Context Menu Danger Item - 必须在 .menu-item 之后以覆盖颜色 */
+.menu-item.menu-item-danger {
+  color: #ef4444;
+}
+
+.menu-item.menu-item-danger:hover {
+  background-color: rgba(239, 68, 68, 0.15);
+  color: #f87171;
 }

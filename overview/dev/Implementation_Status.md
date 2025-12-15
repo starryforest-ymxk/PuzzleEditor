@@ -1,253 +1,256 @@
-# ÏîÄ¿ÊµÏÖ×´Ì¬£¨Implementation Status£©
+# é¡¹ç›®å®žçŽ°çŠ¶æ€ï¼ˆImplementation Statusï¼‰
 
-> **°æ±¾**: 1.0.0 | **¸üÐÂÊ±¼ä**: 2025-12-14 | **¿ìÕÕÊ±¼ä**: Phase 3 Íê³Éºó
-
----
-
-## 1. ×ÜÌå½ø¶È
-
-### ÒÑÍê³É½×¶Î
-
-? **Phase 1: »ù´¡¿ò¼ÜÓëÊý¾Ýä¯ÀÀ**£¨Íê³É¶È: 100%£©
-- ÏîÄ¿Êý¾Ý¼ÓÔØÓëÕ¹Ê¾
-- Stage Ê÷ä¯ÀÀ
-- »ù´¡ Inspector Ãæ°å
-- ºÚ°åÈ«¾Ö×ÊÔ´ä¯ÀÀ
-
-? **Phase 2: µ¼º½ÓëÊÓÍ¼ÇÐ»»**£¨Íê³É¶È: 100%£©
-- Ãæ°üÐ¼µ¼º½ÏµÍ³
-- ÊÓÍ¼ÇÐ»»£¨Editor ? Blackboard£©
-- Undo/Redo ÀúÊ·¹ÜÀí
-- ¶à»­²¼µ¼º½£¨FSM/Presentation£©
-
-? **Phase 3: FSM ÍêÕû±à¼­¹¦ÄÜ**£¨Íê³É¶È: 100%£©
-- ×´Ì¬½Úµã CRUD
-- Á¬Ïß´´½¨Óë±à¼­
-- ´¥·¢Æ÷ÅäÖÃ
-- Ìõ¼þ±í´ïÊ½±à¼­Æ÷
-- ²ÎÊýÐÞ¸ÄÆ÷
-- ÑÝ³ö°ó¶¨Óë²ÎÊý´«µÝ
-- »­²¼½»»¥ÓÅ»¯£¨¿òÑ¡¡¢¼ôÏß¡¢ÍÏ×§£©
-
-### ½øÐÐÖÐ½×¶Î
-
-? **Phase 4: Stage ¼¶±ð±à¼­Óë Presentation ÔöÇ¿**£¨½øÐÐÖÐ£©
-- [x] ºÚ°å×ÊÔ´È«¹¦ÄÜ±à¼­£¨±äÁ¿/½Å±¾/ÊÂ¼þ£©
-- [ ] Stage ¾Ö²¿±äÁ¿±à¼­
-- [ ] PresentationGraph ±à¼­Æ÷ÍêÉÆ
-- [ ] ¿ç×ÊÔ´ÒýÓÃÐ£Ñé
+> **ç‰ˆæœ¬**: 1.0.0 | **æ›´æ–°æ—¶é—´**: 2025-12-14 | **å¿«ç…§æ—¶é—´**: Phase 3 å®ŒæˆåŽ
 
 ---
 
-## 2. ´úÂë¿âÍ³¼Æ
+## 1. æ€»ä½“è¿›åº¦
 
-### 2.1 Ä¿Â¼½á¹¹£¨ÎÄ¼þÊýÁ¿£©
+### å·²å®Œæˆé˜¶æ®µ
+
+? **Phase 1: åŸºç¡€æ¡†æž¶ä¸Žæ•°æ®æµè§ˆ**ï¼ˆå®Œæˆåº¦: 100%ï¼‰
+- é¡¹ç›®æ•°æ®åŠ è½½ä¸Žå±•ç¤º
+- Stage æ ‘æµè§ˆ
+- åŸºç¡€ Inspector é¢æ¿
+- é»‘æ¿å…¨å±€èµ„æºæµè§ˆ
+
+? **Phase 2: å¯¼èˆªä¸Žè§†å›¾åˆ‡æ¢**ï¼ˆå®Œæˆåº¦: 100%ï¼‰
+- é¢åŒ…å±‘å¯¼èˆªç³»ç»Ÿ
+- è§†å›¾åˆ‡æ¢ï¼ˆEditor ? Blackboardï¼‰
+- Undo/Redo åŽ†å²ç®¡ç†
+- å¤šç”»å¸ƒå¯¼èˆªï¼ˆFSM/Presentationï¼‰
+
+? **Phase 3: FSM å®Œæ•´ç¼–è¾‘åŠŸèƒ½**ï¼ˆå®Œæˆåº¦: 100%ï¼‰
+- çŠ¶æ€èŠ‚ç‚¹ CRUD
+- è¿žçº¿åˆ›å»ºä¸Žç¼–è¾‘
+- è§¦å‘å™¨é…ç½®
+- æ¡ä»¶è¡¨è¾¾å¼ç¼–è¾‘å™¨
+- å‚æ•°ä¿®æ”¹å™¨
+- æ¼”å‡ºç»‘å®šä¸Žå‚æ•°ä¼ é€’
+- ç”»å¸ƒäº¤äº’ä¼˜åŒ–ï¼ˆæ¡†é€‰ã€å‰ªçº¿ã€æ‹–æ‹½ï¼‰
+
+### è¿›è¡Œä¸­é˜¶æ®µ
+
+? **Phase 4: Stage çº§åˆ«ç¼–è¾‘ä¸Ž Presentation å¢žå¼º**ï¼ˆè¿›è¡Œä¸­ï¼‰
+- [x] é»‘æ¿èµ„æºå…¨åŠŸèƒ½ç¼–è¾‘ï¼ˆå˜é‡/è„šæœ¬/äº‹ä»¶ï¼‰
+- [x] Stage é˜¶æ®µæ ‘ç¼–è¾‘ï¼ˆåˆ›å»º/åˆ é™¤/é‡å‘½å/æ‹–æ‹½/å±€éƒ¨å˜é‡ï¼‰
+- [ ] PresentationGraph ç¼–è¾‘å™¨å®Œå–„
+- [ ] è·¨èµ„æºå¼•ç”¨æ ¡éªŒ
+
+---
+
+## 2. ä»£ç åº“ç»Ÿè®¡
+
+### 2.1 ç›®å½•ç»“æž„ï¼ˆæ–‡ä»¶æ•°é‡ï¼‰
 
 ```
-types/              9 ¸öÀàÐÍ¶¨ÒåÎÄ¼þ
+types/              9 ä¸ªç±»åž‹å®šä¹‰æ–‡ä»¶
 store/
-  ©À©¤ slices/        7 ¸ö Slice + 1 ¸öË÷ÒýÎÄ¼þ
-  ©¸©¤ ºËÐÄÎÄ¼þ        3 ¸ö£¨context, reducer, types£©
-api/                4 ¸öÎÄ¼þ
+  â”œâ”€ slices/        7 ä¸ª Slice + 1 ä¸ªç´¢å¼•æ–‡ä»¶
+  â””â”€ æ ¸å¿ƒæ–‡ä»¶        3 ä¸ªï¼ˆcontext, reducer, typesï¼‰
+api/                4 ä¸ªæ–‡ä»¶
 components/
-  ©À©¤ Layout/        5 ¸öÎÄ¼þ
-  ©À©¤ Explorer/      2 ¸öÎÄ¼þ
-  ©À©¤ Canvas/        ~8 ¸öÎÄ¼þ
-  ©¦  ©¸©¤ Elements/   7 ¸öÎÄ¼þ
-  ©À©¤ Inspector/     ~33 ¸öÎÄ¼þ
-  ©¦  ©À©¤ condition/  ¶à¸ö×Ó×é¼þ
-  ©¦  ©À©¤ localVariable/  2 ¸öÎÄ¼þ
-  ©¦  ©¸©¤ presentation/   2 ¸öÎÄ¼þ
-  ©¸©¤ Blackboard/    9 ¸öÎÄ¼þ
-hooks/              5 ¸ö×Ô¶¨Òå Hooks
-utils/              11+ ¸ö¹¤¾ßÎÄ¼þ
+  â”œâ”€ Layout/        5 ä¸ªæ–‡ä»¶
+  â”œâ”€ Explorer/      2 ä¸ªæ–‡ä»¶
+  â”œâ”€ Canvas/        ~8 ä¸ªæ–‡ä»¶
+  â”‚  â””â”€ Elements/   7 ä¸ªæ–‡ä»¶
+  â”œâ”€ Inspector/     ~33 ä¸ªæ–‡ä»¶
+  â”‚  â”œâ”€ condition/  å¤šä¸ªå­ç»„ä»¶
+  â”‚  â”œâ”€ localVariable/  2 ä¸ªæ–‡ä»¶
+  â”‚  â””â”€ presentation/   2 ä¸ªæ–‡ä»¶
+  â””â”€ Blackboard/    9 ä¸ªæ–‡ä»¶
+hooks/              5 ä¸ªè‡ªå®šä¹‰ Hooks
+utils/              11+ ä¸ªå·¥å…·æ–‡ä»¶
 ```
 
-### 2.2 ºËÐÄÄ£¿éÐÐÊý¹ÀËã
+### 2.2 æ ¸å¿ƒæ¨¡å—è¡Œæ•°ä¼°ç®—
 
-| Ä£¿é | Ö÷ÒªÎÄ¼þ | ÐÐÊý·¶Î§ |
+| æ¨¡å— | ä¸»è¦æ–‡ä»¶ | è¡Œæ•°èŒƒå›´ |
 |------|---------|---------|
-| StateMachineCanvas | StateMachineCanvas.tsx | ~520 ÐÐ |
-| LocalVariableEditor | Ö÷ÎÄ¼þ + 2 ¸ö×Ó×é¼þ | ~400 ÐÐ£¨ÒÑ²ð·Ö£© |
-| PresentationBindingEditor | Ö÷ÎÄ¼þ + 2 ¸ö×Ó×é¼þ | ~450 ÐÐ£¨ÒÑ²ð·Ö£© |
-| ConditionEditor | ¶à²ãÇ¶Ì××é¼þ | ~300 ÐÐ |
-| Inspector ×Ü¼Æ | 33 ¸öÎÄ¼þ | ~3000+ ÐÐ |
+| StateMachineCanvas | StateMachineCanvas.tsx | ~520 è¡Œ |
+| LocalVariableEditor | ä¸»æ–‡ä»¶ + 2 ä¸ªå­ç»„ä»¶ | ~400 è¡Œï¼ˆå·²æ‹†åˆ†ï¼‰ |
+| PresentationBindingEditor | ä¸»æ–‡ä»¶ + 2 ä¸ªå­ç»„ä»¶ | ~450 è¡Œï¼ˆå·²æ‹†åˆ†ï¼‰ |
+| ConditionEditor | å¤šå±‚åµŒå¥—ç»„ä»¶ | ~300 è¡Œ |
+| Inspector æ€»è®¡ | 33 ä¸ªæ–‡ä»¶ | ~3000+ è¡Œ |
 
 ---
 
-## 3. ¼¼ÊõÕ»Óë¹¤¾ß
+## 3. æŠ€æœ¯æ ˆä¸Žå·¥å…·
 
-### 3.1 ºËÐÄ¼¼Êõ
+### 3.1 æ ¸å¿ƒæŠ€æœ¯
 
-- **¿ò¼Ü**: React 18+ with TypeScript
-- **×´Ì¬¹ÜÀí**: Context API + Reducer£¨Àà Redux ¼Ü¹¹£©
-- **¹¹½¨¹¤¾ß**: Vite
-- **ÑùÊ½**: È«¾Ö CSS£¨styles.css£©
+- **æ¡†æž¶**: React 18+ with TypeScript
+- **çŠ¶æ€ç®¡ç†**: Context API + Reducerï¼ˆç±» Redux æž¶æž„ï¼‰
+- **æž„å»ºå·¥å…·**: Vite
+- **æ ·å¼**: å…¨å±€ CSSï¼ˆstyles.cssï¼‰
 
-### 3.2 ¿ª·¢¹¤¾ß
+### 3.2 å¼€å‘å·¥å…·
 
-- **µ÷ÊÔ**: `utils/debug.ts` Í³Ò»ÈÕÖ¾¹¤¾ß
-- **Ð£Ñé**: `utils/validation/` Ä¿Â¼¼¯ÖÐÐ£ÑéÂß¼­
-- **³£Á¿**: `utils/constants.ts` Í³Ò»³£Á¿¶¨Òå
+- **è°ƒè¯•**: `utils/debug.ts` ç»Ÿä¸€æ—¥å¿—å·¥å…·
+- **æ ¡éªŒ**: `utils/validation/` ç›®å½•é›†ä¸­æ ¡éªŒé€»è¾‘
+- **å¸¸é‡**: `utils/constants.ts` ç»Ÿä¸€å¸¸é‡å®šä¹‰
 
-### 3.3 ´úÂëÖÊÁ¿¹¤¾ß
+### 3.3 ä»£ç è´¨é‡å·¥å…·
 
-- TypeScript ÑÏ¸ñÄ£Ê½
-- ESLint£¨ÅäÖÃ´ýÍêÉÆ£©
-- µ¥Ôª²âÊÔ£¨´ýÌí¼Ó£©
+- TypeScript ä¸¥æ ¼æ¨¡å¼
+- ESLintï¼ˆé…ç½®å¾…å®Œå–„ï¼‰
+- å•å…ƒæµ‹è¯•ï¼ˆå¾…æ·»åŠ ï¼‰
 
 ---
 
-## 4. ÒÑÊµÏÖºËÐÄ¹¦ÄÜÇåµ¥
+## 4. å·²å®žçŽ°æ ¸å¿ƒåŠŸèƒ½æ¸…å•
 
-### 4.1 Êý¾ÝÄ£ÐÍ
+### 4.1 æ•°æ®æ¨¡åž‹
 
-? ÍêÕûµÄÀàÐÍ¶¨ÒåÏµÍ³£º
-- ID Ä£°å×Ö·û´®ÀàÐÍ£¨`stage-*`¡¢`node-*` µÈ£©
-- ÈíÉ¾³ý×´Ì¬»ú£¨Draft ¡ú Implemented ¡ú MarkedForDelete£©
-- ±äÁ¿×÷ÓÃÓòÏµÍ³£¨Global/StageLocal/NodeLocal/Temporary£©
-- Ìõ¼þ±í´ïÊ½ AST
-- ÑÝ³ö°ó¶¨»úÖÆ
+? å®Œæ•´çš„ç±»åž‹å®šä¹‰ç³»ç»Ÿï¼š
+- ID æ¨¡æ¿å­—ç¬¦ä¸²ç±»åž‹ï¼ˆ`stage-*`ã€`node-*` ç­‰ï¼‰
+- è½¯åˆ é™¤çŠ¶æ€æœºï¼ˆDraft â†’ Implemented â†’ MarkedForDeleteï¼‰
+- å˜é‡ä½œç”¨åŸŸç³»ç»Ÿï¼ˆGlobal/StageLocal/NodeLocal/Temporaryï¼‰
+- æ¡ä»¶è¡¨è¾¾å¼ AST
+- æ¼”å‡ºç»‘å®šæœºåˆ¶
 
-### 4.2 ×´Ì¬¹ÜÀí
+### 4.2 çŠ¶æ€ç®¡ç†
 
-? 7 ¸öÁìÓò Slice£º
-- **fsmSlice**: ×´Ì¬»ú CRUD
-- **presentationSlice**: ÑÝ³öÍ¼ CRUD
-- **nodeParamsSlice**: ½Úµã¾Ö²¿±äÁ¿
-- **blackboardSlice**: È«¾Ö×ÊÔ´¹ÜÀí
-- **navigationSlice**: µ¼º½ÓëÊÓÍ¼
-- **projectSlice**: Stage Ê÷Óë Node ¸üÐÂ
-- **uiSlice**: Ñ¡Ôñ¡¢ÏûÏ¢¡¢Ãæ°å
+? 7 ä¸ªé¢†åŸŸ Sliceï¼š
+- **fsmSlice**: çŠ¶æ€æœº CRUD
+- **presentationSlice**: æ¼”å‡ºå›¾ CRUD
+- **nodeParamsSlice**: èŠ‚ç‚¹å±€éƒ¨å˜é‡
+- **blackboardSlice**: å…¨å±€èµ„æºç®¡ç†
+- **navigationSlice**: å¯¼èˆªä¸Žè§†å›¾
+- **projectSlice**: Stage æ ‘ä¸Ž Node æ›´æ–°
+- **uiSlice**: é€‰æ‹©ã€æ¶ˆæ¯ã€é¢æ¿
 
-? Undo/Redo »úÖÆ£º
-- »ùÓÚ¿ìÕÕµÄÀúÊ·¹ÜÀí
-- Ö§³Ö¶à¼¶³·Ïú/ÖØ×ö
+? Undo/Redo æœºåˆ¶ï¼š
+- åŸºäºŽå¿«ç…§çš„åŽ†å²ç®¡ç†
+- æ”¯æŒå¤šçº§æ’¤é”€/é‡åš
 
-### 4.3 UI ×é¼þ
+### 4.3 UI ç»„ä»¶
 
-? ²¼¾ÖÏµÍ³£º
-- ÈýÀ¸²¼¾Ö£¨Explorer + Canvas + Inspector£©
-- ¿Éµ÷ÕûÃæ°å´óÐ¡
-- ÏìÓ¦Ê½Éè¼Æ
+? å¸ƒå±€ç³»ç»Ÿï¼š
+- ä¸‰æ å¸ƒå±€ï¼ˆExplorer + Canvas + Inspectorï¼‰
+- å¯è°ƒæ•´é¢æ¿å¤§å°
+- å“åº”å¼è®¾è®¡
 
-? »­²¼±à¼­Æ÷£º
-- FSM »­²¼£¨×´Ì¬½Úµã¡¢Á¬Ïß¡¢¿òÑ¡¡¢¼ôÏß£©
-- Presentation »­²¼£¨»ù´¡ÊµÏÖ£©
-- Æ½ÒÆ/Ëõ·Åµ¼º½
-- ÉÏÏÂÎÄ²Ëµ¥
+? ç”»å¸ƒç¼–è¾‘å™¨ï¼š
+- FSM ç”»å¸ƒï¼ˆçŠ¶æ€èŠ‚ç‚¹ã€è¿žçº¿ã€æ¡†é€‰ã€å‰ªçº¿ï¼‰
+- Presentation ç”»å¸ƒï¼ˆåŸºç¡€å®žçŽ°ï¼‰
+- å¹³ç§»/ç¼©æ”¾å¯¼èˆª
+- ä¸Šä¸‹æ–‡èœå•
 
-? Inspector Ãæ°å£º
-- 33 ¸ö×¨ÓÃ±à¼­Æ÷×é¼þ
-- Ìõ¼þ±í´ïÊ½¿ÉÊÓ»¯±à¼­
-- ²ÎÊý°ó¶¨ÓëÐÞ¸ÄÆ÷ÅäÖÃ
-- ´¥·¢Æ÷±à¼­
+? Inspector é¢æ¿ï¼š
+- 33 ä¸ªä¸“ç”¨ç¼–è¾‘å™¨ç»„ä»¶
+- æ¡ä»¶è¡¨è¾¾å¼å¯è§†åŒ–ç¼–è¾‘
+- å‚æ•°ç»‘å®šä¸Žä¿®æ”¹å™¨é…ç½®
+- è§¦å‘å™¨ç¼–è¾‘
 
-? Blackboard ¹ÜÀí£º
-- È«¾Ö±äÁ¿/ÊÂ¼þ/½Å±¾ä¯ÀÀ
-- °´×´Ì¬/ÀàÐÍÉ¸Ñ¡
-- ÈíÉ¾³ýÈ·ÈÏÁ÷³Ì
+? Blackboard ç®¡ç†ï¼š
+- å…¨å±€å˜é‡/äº‹ä»¶/è„šæœ¬æµè§ˆ
+- æŒ‰çŠ¶æ€/ç±»åž‹ç­›é€‰
+- è½¯åˆ é™¤ç¡®è®¤æµç¨‹
 
-### 4.4 ½»»¥¹¦ÄÜ
+### 4.4 äº¤äº’åŠŸèƒ½
 
-? ¿ì½Ý¼üÏµÍ³£º
+? å¿«æ·é”®ç³»ç»Ÿï¼š
 - Ctrl+Z / Ctrl+Y (Undo/Redo)
-- Delete (É¾³ýÑ¡ÖÐÔªËØ)
-- Ctrl+ÍÏ×§ (¼ôÏßÄ£Ê½)
-- Ë«»÷/Backspace (µ¼º½·µ»Ø)
+- Delete (åˆ é™¤é€‰ä¸­å…ƒç´ )
+- Ctrl+æ‹–æ‹½ (å‰ªçº¿æ¨¡å¼)
+- åŒå‡»/Backspace (å¯¼èˆªè¿”å›ž)
 
-? »­²¼½»»¥£º
-- µ¥»÷Ñ¡ÖÐ
-- ÍÏ×§ÒÆ¶¯
-- ¿òÑ¡¶àÑ¡
-- Á¬Ïß´´½¨£¨ÍÏ×§¶Ëµã£©
+? ç”»å¸ƒäº¤äº’ï¼š
+- å•å‡»é€‰ä¸­
+- æ‹–æ‹½ç§»åŠ¨
+- æ¡†é€‰å¤šé€‰
+- è¿žçº¿åˆ›å»ºï¼ˆæ‹–æ‹½ç«¯ç‚¹ï¼‰
 
-? Ð£ÑéÓëÌáÊ¾£º
-- FSM ÍØÆËÐ£Ñé£¨»·¼ì²â¡¢¹Âµº¼ì²â£©
-- ±äÁ¿ÒýÓÃ¼ì²é
-- È«¾ÖÏûÏ¢¶ÑÕ»£¨info/warning/error£©
-
----
-
-## 5. ÒÑÖªÏÞÖÆÓë´ýÍêÉÆÏî
-
-### 5.1 ´ýÍêÉÆ¹¦ÄÜ
-
-? **Stage ¾Ö²¿±äÁ¿**:
-- LocalVariableEditor ÐèÖ§³Ö Stage ¼¶±ð±äÁ¿
-- µ±Ç°½öÖ§³Ö Node ¼¶±ð
-
-? **PresentationGraph ±à¼­Æ÷**:
-- »ù´¡»­²¼ÒÑÊµÏÖ
-- ½ÚµãÀàÐÍ±à¼­Æ÷´ýÍêÉÆ£¨Branch¡¢Parallel µÈ£©
-
-? **µ¥Ôª²âÊÔ**:
-- µ±Ç°ÎÞµ¥Ôª²âÊÔ¸²¸Ç
-- ºËÐÄ¹¤¾ßº¯ÊýÐè²âÊÔ£¨geometry¡¢variableScope µÈ£©
-
-? **¸ß¼¶Ð£Ñé**:
-- ¿ç×ÊÔ´Ñ­»·ÒýÓÃ¼ì²â
-- ±äÁ¿ÀàÐÍ¼æÈÝÐÔ¼ì²é
-
-### 5.3 ÐÔÄÜÓÅ»¯´ý°ì
-
-? ´óÐÍ FSM äÖÈ¾ÓÅ»¯£¨ÐéÄâ»¯£©
-? ÀúÊ·¼ÇÂ¼´æ´¢ÏÞÖÆ£¨Ä¿Ç°ÎÞÉÏÏÞ£©
-? »­²¼Ëõ·ÅÐÔÄÜÓÅ»¯
+? æ ¡éªŒä¸Žæç¤ºï¼š
+- FSM æ‹“æ‰‘æ ¡éªŒï¼ˆçŽ¯æ£€æµ‹ã€å­¤å²›æ£€æµ‹ï¼‰
+- å˜é‡å¼•ç”¨æ£€æŸ¥
+- å…¨å±€æ¶ˆæ¯å †æ ˆï¼ˆinfo/warning/errorï¼‰
 
 ---
 
-## 6. ÎÄµµÍ¬²½×´Ì¬
+## 5. å·²çŸ¥é™åˆ¶ä¸Žå¾…å®Œå–„é¡¹
 
-? **ÒÑÍ¬²½ÎÄµµ**:
-- `Architecture_Guide.md` - ·´Ó³ 7 ¸ö Slice ºÍ×îÐÂ×é¼þ½á¹¹
-- `Domain_Model.md` - °üº¬ÍêÕûµÄ Store ×´Ì¬½á¹¹
-- `Implementation_Status.md` - ±¾ÎÄµµ
+### 5.1 å¾…å®Œå–„åŠŸèƒ½
 
-? **±£³Ö¸üÐÂµÄÎÄµµ**:
-- `Phase3/P3_Code_Review_3.md` - ×îÐÂ´úÂëÉó²é½á¹û
-- `UX_Flow.md` - ÓÃ»§½»»¥Á÷³Ì¹æ·¶
+? **Stage å±€éƒ¨å˜é‡**:
+- LocalVariableEditor éœ€æ”¯æŒ Stage çº§åˆ«å˜é‡
+- å½“å‰ä»…æ”¯æŒ Node çº§åˆ«
 
-?? **¿ÉÄÜ¹ýÊ±µÄÎÄµµ**:
-- `Phase2_Guide.md` - ²¿·ÖÄÚÈÝ¿ÉÄÜÓëµ±Ç°ÊµÏÖÓÐ²îÒì
+? **Stage Inspector æ»šåŠ¨è®°å¿†**:
+- å·²ä¿®å¤ Stage Inspector åˆ‡æ¢æ—¶ä¸ä¿ç•™æ»šåŠ¨ä½ç½®çš„é—®é¢˜ï¼ˆä¸Ž PuzzleNode Inspector è¡Œä¸ºä¸€è‡´ï¼‰
 
----
+? **PresentationGraph ç¼–è¾‘å™¨**:
+- åŸºç¡€ç”»å¸ƒå·²å®žçŽ°
+- èŠ‚ç‚¹ç±»åž‹ç¼–è¾‘å™¨å¾…å®Œå–„ï¼ˆBranchã€Parallel ç­‰ï¼‰
 
-## 7. ÏÂÒ»²½¼Æ»®
+? **å•å…ƒæµ‹è¯•**:
+- å½“å‰æ— å•å…ƒæµ‹è¯•è¦†ç›–
+- æ ¸å¿ƒå·¥å…·å‡½æ•°éœ€æµ‹è¯•ï¼ˆgeometryã€variableScope ç­‰ï¼‰
 
-### Phase 4 ÓÅÏÈ¼¶ÅÅÐò
+? **é«˜çº§æ ¡éªŒ**:
+- è·¨èµ„æºå¾ªçŽ¯å¼•ç”¨æ£€æµ‹
+- å˜é‡ç±»åž‹å…¼å®¹æ€§æ£€æŸ¥
 
-1. **Stage ¾Ö²¿±äÁ¿Ö§³Ö**: À©Õ¹ LocalVariableEditor
-2. **PresentationGraph ±à¼­Æ÷**: ÍêÉÆ½ÚµãÀàÐÍÖ§³Ö
-3. **µ¥Ôª²âÊÔ»ù´¡ÉèÊ©**: Ìí¼Ó Vitest + React Testing Library
-4. **¸ß¼¶Ð£Ñé**: ¿ç×ÊÔ´ÒýÓÃ¼ì²â
+### 5.3 æ€§èƒ½ä¼˜åŒ–å¾…åŠž
 
----
-
-## 8. ¹±Ï×Ö¸ÄÏ
-
-### Ìí¼ÓÐÂ¹¦ÄÜÇ°
-
-1. ÔÄ¶Á `Architecture_Guide.md` ÁË½â·Ö²ã¹æÔò
-2. ÔÄ¶Á `Domain_Model.md` ÁË½âÊý¾ÝÄ£ÐÍ
-3. ¼ì²é `UX_Flow.md` È·ÈÏ½»»¥¹æ·¶
-
-### ´úÂë¹æ·¶
-
-- ËùÓÐÖØÒª´úÂë±ØÐë°üº¬ÖÐÎÄ×¢ÊÍ
-- ×é¼þ³¬¹ý 400 ÐÐÐè¿¼ÂÇ²ð·Ö
-- ½ûÖ¹ÄÚÁªÑùÊ½£¬Ê¹ÓÃÈ«¾Ö CSS
-- React.memo ×é¼þ±ØÐëÌí¼Ó displayName
-- ÐÂÔö¹¤¾ßº¯Êý±ØÐë·ÅÔÚ `utils/` ÏÂ
-
-### Ìá½»Ç°¼ì²é
-
-- [ ] TypeScript ±àÒëÎÞ´íÎó
-- [ ] ºËÐÄÂß¼­°üº¬ÖÐÎÄ×¢ÊÍ
-- [ ] ¸üÐÂÏà¹ØÎÄµµ£¨ÈçÐÞ¸ÄÁËÀàÐÍ»ò¼Ü¹¹£©
-- [ ] ²âÊÔ Undo/Redo ¹¦ÄÜ
-- [ ] ¼ì²éä¯ÀÀÆ÷¿ØÖÆÌ¨ÎÞ´íÎó
+? å¤§åž‹ FSM æ¸²æŸ“ä¼˜åŒ–ï¼ˆè™šæ‹ŸåŒ–ï¼‰
+? åŽ†å²è®°å½•å­˜å‚¨é™åˆ¶ï¼ˆç›®å‰æ— ä¸Šé™ï¼‰
+? ç”»å¸ƒç¼©æ”¾æ€§èƒ½ä¼˜åŒ–
 
 ---
 
-**ÎÄµµÎ¬»¤**: ±¾ÎÄµµÓ¦ÔÚÃ¿¸ö Phase Íê³Éºó¸üÐÂ£¬È·±£·´Ó³×îÐÂµÄÏîÄ¿×´Ì¬¡£
+## 6. æ–‡æ¡£åŒæ­¥çŠ¶æ€
+
+? **å·²åŒæ­¥æ–‡æ¡£**:
+- `Architecture_Guide.md` - åæ˜  7 ä¸ª Slice å’Œæœ€æ–°ç»„ä»¶ç»“æž„
+- `Domain_Model.md` - åŒ…å«å®Œæ•´çš„ Store çŠ¶æ€ç»“æž„
+- `Implementation_Status.md` - æœ¬æ–‡æ¡£
+
+? **ä¿æŒæ›´æ–°çš„æ–‡æ¡£**:
+- `Phase3/P3_Code_Review_3.md` - æœ€æ–°ä»£ç å®¡æŸ¥ç»“æžœ
+- `UX_Flow.md` - ç”¨æˆ·äº¤äº’æµç¨‹è§„èŒƒ
+
+?? **å¯èƒ½è¿‡æ—¶çš„æ–‡æ¡£**:
+- `Phase2_Guide.md` - éƒ¨åˆ†å†…å®¹å¯èƒ½ä¸Žå½“å‰å®žçŽ°æœ‰å·®å¼‚
+
+---
+
+## 7. ä¸‹ä¸€æ­¥è®¡åˆ’
+
+### Phase 4 ä¼˜å…ˆçº§æŽ’åº
+
+1. **Stage å±€éƒ¨å˜é‡æ”¯æŒ**: æ‰©å±• LocalVariableEditor
+2. **PresentationGraph ç¼–è¾‘å™¨**: å®Œå–„èŠ‚ç‚¹ç±»åž‹æ”¯æŒ
+3. **å•å…ƒæµ‹è¯•åŸºç¡€è®¾æ–½**: æ·»åŠ  Vitest + React Testing Library
+4. **é«˜çº§æ ¡éªŒ**: è·¨èµ„æºå¼•ç”¨æ£€æµ‹
+
+---
+
+## 8. è´¡çŒ®æŒ‡å—
+
+### æ·»åŠ æ–°åŠŸèƒ½å‰
+
+1. é˜…è¯» `Architecture_Guide.md` äº†è§£åˆ†å±‚è§„åˆ™
+2. é˜…è¯» `Domain_Model.md` äº†è§£æ•°æ®æ¨¡åž‹
+3. æ£€æŸ¥ `UX_Flow.md` ç¡®è®¤äº¤äº’è§„èŒƒ
+
+### ä»£ç è§„èŒƒ
+
+- æ‰€æœ‰é‡è¦ä»£ç å¿…é¡»åŒ…å«ä¸­æ–‡æ³¨é‡Š
+- ç»„ä»¶è¶…è¿‡ 400 è¡Œéœ€è€ƒè™‘æ‹†åˆ†
+- ç¦æ­¢å†…è”æ ·å¼ï¼Œä½¿ç”¨å…¨å±€ CSS
+- React.memo ç»„ä»¶å¿…é¡»æ·»åŠ  displayName
+- æ–°å¢žå·¥å…·å‡½æ•°å¿…é¡»æ”¾åœ¨ `utils/` ä¸‹
+
+### æäº¤å‰æ£€æŸ¥
+
+- [ ] TypeScript ç¼–è¯‘æ— é”™è¯¯
+- [ ] æ ¸å¿ƒé€»è¾‘åŒ…å«ä¸­æ–‡æ³¨é‡Š
+- [ ] æ›´æ–°ç›¸å…³æ–‡æ¡£ï¼ˆå¦‚ä¿®æ”¹äº†ç±»åž‹æˆ–æž¶æž„ï¼‰
+- [ ] æµ‹è¯• Undo/Redo åŠŸèƒ½
+- [ ] æ£€æŸ¥æµè§ˆå™¨æŽ§åˆ¶å°æ— é”™è¯¯
+
+---
+
+**æ–‡æ¡£ç»´æŠ¤**: æœ¬æ–‡æ¡£åº”åœ¨æ¯ä¸ª Phase å®ŒæˆåŽæ›´æ–°ï¼Œç¡®ä¿åæ˜ æœ€æ–°çš„é¡¹ç›®çŠ¶æ€ã€‚

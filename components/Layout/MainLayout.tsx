@@ -49,6 +49,17 @@ export const MainLayout = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [dispatch]);
 
+  // 全局禁用浏览器默认右键菜单
+  useEffect(() => {
+    const handleContextMenu = (e: MouseEvent) => {
+      // 阻止浏览器默认右键菜单，让各组件自行处理右键事件
+      e.preventDefault();
+    };
+
+    document.addEventListener('contextmenu', handleContextMenu);
+    return () => document.removeEventListener('contextmenu', handleContextMenu);
+  }, []);
+
   // Resize handlers with constraints
   const handleExplorerResize = useCallback((delta: number) => {
     const newWidth = Math.max(MIN_SIDEBAR_WIDTH, Math.min(MAX_SIDEBAR_WIDTH, panelSizes.explorerWidth + delta));
@@ -73,8 +84,8 @@ export const MainLayout = () => {
       <Sidebar title="Explorer" position="left" width={panelSizes.explorerWidth}>
         {/* Split view: Stages / Nodes with resizable border */}
         <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-          <div style={{ flex: `0 0 ${panelSizes.stagesHeight}%`, minHeight: 0, overflowY: 'auto' }}>
-            <div style={{ padding: '8px 16px', fontSize: '10px', color: 'var(--text-secondary)', fontWeight: 600 }}>STAGES</div>
+          <div style={{ flex: `0 0 ${panelSizes.stagesHeight}%`, minHeight: 0, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ padding: '8px 16px', fontSize: '10px', color: 'var(--text-secondary)', fontWeight: 600, flexShrink: 0 }}>STAGES</div>
             <StageExplorer />
           </div>
           <Resizer

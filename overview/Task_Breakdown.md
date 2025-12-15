@@ -240,22 +240,28 @@
 - 在 Stage 层级视图中支持：
   - 新建 Stage（作为子节点或同级节点）、删除Stage；
     - 如果Stage内有子Stage或者PuzzleNode，删除这个Stage需要弹窗提示（复用现有的弹窗确认脚本）
-  - 重命名、调整描述；
   - 调整父子关系和顺序（拖拽改变层级）；
-  - 某 Stage 节点下的第一个子Stage为初始子 Stage，没有解锁条件。
+  - Stage 节点下的第一个子Stage为这个阶段的初始子 Stage，没有解锁条件。
 - 在 Stage Inspector 中开放以下编辑：
+  - 重命名、调整描述；
   - 管理 Stage Local Variables（与PuzzleNode逻辑一致）；
-  - 通过条件构造器配置解锁条件；
-  - 绑定 Stage 生命周期脚本；
-  - 配置 Stage 级别演出和事件监听。
+  - 通过条件构造器配置解锁条件（已实现）；
+  - 绑定 Stage 生命周期脚本（已实现）；
+  - 配置 Stage 级别演出和事件监听（已实现）。
+
 - Stage的Inspector界面与目前已经实现的PuzzleNode/State/Transition的Inspector界面UI风格统一
 
 ### [P4-T03] 解谜节点实体级编辑（PuzzleNode 实体）
 
+- 在 Explorer层级视图的Nodes视图下支持：
+  - 右键菜单【新建Node、删除Node、重命名Node】
+    - 逻辑和 Explorer 层级下的Stages视图一致
+  - 拖拽Node改变上下排列
+
 - 在 Stage 内容概览视图中支持：
   - 新建 子Stage (与阶段树中创建逻辑一致，只是在内容视图中也支持创建)
-  - 新建 PuzzleNode 卡片（选择节点类型、填写名称和描述）；
-  - 复制/删除节点/Stage；
+  - 新建 PuzzleNode 卡片（选择节点类型）；
+  - 删除节点/Stage；
 
 - 在 PuzzleNode Inspector 中开放：
   - 节点基本信息编辑；
@@ -267,7 +273,6 @@
 - 为 PresentationGraph 提供完整编辑能力：
   - 在图中新增节点、连线、调整顺序；
   - 为脚本节点绑定演出脚本并配置参数传递（与FSM Transition配置演出脚本的逻辑一致）。
-  - 
 - 支持从其他位置跳转到对应的演出图。
 
 ### [P4-T05] 跨视图导航与工作流打通
@@ -292,7 +297,6 @@
 
 - 汇总需要的校验规则，至少包括：
   - 引用的 Script/Variable/Event 是否存在且未处于 MarkedForDelete；
-  - Stage 是否有合法的初始子 Stage；
   - PuzzleNode 的 FSM 是否有初始状态；
   - 存在自指或死循环但没有任何退出路径时给出警告；
   - 条件中变量类型是否与比较操作兼容；

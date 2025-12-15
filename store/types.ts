@@ -184,7 +184,16 @@ export type Action =
   | { type: 'APPLY_DELETE_SCRIPT'; payload: { id: string } }
   | { type: 'SOFT_DELETE_STAGE_VARIABLE'; payload: { stageId: string; varId: string } }
   | { type: 'APPLY_DELETE_STAGE_VARIABLE'; payload: { stageId: string; varId: string } }
-  // FSM CRUD
+  // Stage CRUD (P4-T02)
+  | { type: 'ADD_STAGE'; payload: { parentId: string; afterStageId?: string; stage: import('../types/stage').StageNode } }
+  | { type: 'DELETE_STAGE'; payload: { stageId: string } }
+  | { type: 'UPDATE_STAGE'; payload: { stageId: string; data: Partial<import('../types/stage').StageNode> } }
+  | { type: 'REORDER_STAGE'; payload: { stageId: string; newIndex: number } }
+  | { type: 'MOVE_STAGE'; payload: { stageId: string; newParentId: string; insertIndex?: number } }
+  // Stage Local Variable CRUD (P4-T02)
+  | { type: 'ADD_STAGE_VARIABLE'; payload: { stageId: string; variable: VariableDefinition } }
+  | { type: 'UPDATE_STAGE_VARIABLE'; payload: { stageId: string; varId: string; data: Partial<VariableDefinition> } }
+  | { type: 'DELETE_STAGE_VARIABLE'; payload: { stageId: string; varId: string } }
   | { type: 'ADD_STATE'; payload: { fsmId: string; state: State } }
   | { type: 'DELETE_STATE'; payload: { fsmId: string; stateId: string } }
   | { type: 'UPDATE_STATE'; payload: { fsmId: string; stateId: string; data: Partial<State> } }
