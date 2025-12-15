@@ -226,6 +226,54 @@ html {
   font-weight: 600;
 }
 
+/* Tree Node - Drag & Drop States */
+.tree-node.dragging {
+  opacity: 0.5;
+  border-style: dashed;
+}
+
+.tree-node.drop-target-before {
+  position: relative;
+}
+
+.tree-node.drop-target-before::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: 8px;
+  right: 8px;
+  height: 2px;
+  background-color: var(--accent-color);
+  box-shadow: 0 0 4px var(--accent-color);
+  border-radius: 1px;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.tree-node.drop-target-after {
+  position: relative;
+}
+
+.tree-node.drop-target-after::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 8px;
+  right: 8px;
+  height: 2px;
+  background-color: var(--accent-color);
+  box-shadow: 0 0 4px var(--accent-color);
+  border-radius: 1px;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.tree-node.drop-target-inside {
+  background-color: rgba(249, 115, 22, 0.2);
+  border-color: var(--accent-color);
+  border-style: dashed;
+}
+
 /* Breadcrumb hover underline */
 .breadcrumb-link {
   text-decoration: none;
