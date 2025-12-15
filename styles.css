@@ -232,11 +232,15 @@ html {
   border-style: dashed;
 }
 
-.tree-node.drop-target-before {
+/* Tree Node - Drag & Drop (Two-State)
+   - between: insertion line (edge via data-drop-edge)
+   - inside: dashed highlight (reuse existing drop-target-inside)
+*/
+.tree-node.drop-target-between {
   position: relative;
 }
 
-.tree-node.drop-target-before::before {
+.tree-node.drop-target-between[data-drop-edge="top"]::before {
   content: '';
   position: absolute;
   top: -1px;
@@ -250,11 +254,7 @@ html {
   z-index: 10;
 }
 
-.tree-node.drop-target-after {
-  position: relative;
-}
-
-.tree-node.drop-target-after::after {
+.tree-node.drop-target-between[data-drop-edge="bottom"]::after {
   content: '';
   position: absolute;
   bottom: -1px;
@@ -1879,38 +1879,6 @@ html {
 .inspector-reference-item--clickable:hover {
   background-color: var(--hover-bg);
   color: var(--accent);
-}
-
-/* ========== Stage Tree Drag and Drop ========== */
-.tree-node.dragging {
-  opacity: 0.5;
-}
-
-.tree-node.drop-target-before::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: var(--accent-color);
-  z-index: 10;
-}
-
-.tree-node.drop-target-after::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: var(--accent-color);
-  z-index: 10;
-}
-
-.tree-node.drop-target-inside {
-  background: rgba(249, 115, 22, 0.15);
-  border-color: var(--accent-color);
 }
 
 /* Tree Node Inline Edit */

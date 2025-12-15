@@ -51,6 +51,33 @@ export const StageExplorer: React.FC = () => {
     const [deleteConfirm, setDeleteConfirm] = useState<DeleteConfirmState | null>(null);
     // 编辑输入框引用
     const editInputRef = useRef<HTMLInputElement>(null);
+    // Stage 树容器引用：用于限定拖拽空白区域“最后节点”计算范围（避免被 Nodes 列表等 .tree-node 干扰）
+    const stageTreeContainerRef = useRef<HTMLDivElement>(null);
+
+    /**
+     * 数据驱动计算“最后一个可见节点”（与 renderTreeNode 的 DFS 顺序保持一致）。
+     * 目的：让底部空白区域的档位计算不依赖 DOM 查询，更稳定也更易测试。
+     */
+    const lastVisibleStageId = React.useMemo<StageId | null>(() => {
+        const rootId = project.stageTree.rootId;
+        if (!rootId) return null;
+
+        let last: StageId | null = null;
+
+        const visit = (stageId: StageId) => {
+            const stage = project.stageTree.stages[stageId];
+            if (!stage) return;
+            last = stageId;
+            const hasChildren = stage.childrenIds.length > 0;
+            const isExpanded = ui.stageExpanded[stageId] ?? stage.isExpanded ?? false;
+            if (hasChildren && isExpanded) {
+                stage.childrenIds.forEach(childId => visit(childId as StageId));
+            }
+        };
+
+        visit(rootId as StageId);
+        return last;
+    }, [project.stageTree, ui.stageExpanded]);
 
     // 使用拖拽 Hook
     const {
@@ -58,8 +85,9 @@ export const StageExplorer: React.FC = () => {
         createNodeDragHandlers,
         emptyAreaHandlers,
         isDragging,
-        getDropClass
-    } = useStageDrag(project.stageTree, dispatch);
+        getDropClass,
+        getDropEdge
+    } = useStageDrag(project.stageTree, dispatch, stageTreeContainerRef, lastVisibleStageId);
 
     // ========== 副作用 ==========
 
@@ -251,6 +279,7 @@ export const StageExplorer: React.FC = () => {
         const isEditing = editingStageId === stage.id;
         const nodeIsDragging = isDragging(stage.id);
         const dropClass = getDropClass(stage.id);
+        const dropEdge = getDropEdge(stage.id);
 
         // 初始阶段判断：父节点的第一个子节点
         const parent = stage.parentId ? project.stageTree.stages[stage.parentId] : null;
@@ -265,6 +294,7 @@ export const StageExplorer: React.FC = () => {
                     className={`tree-node ${isSelected ? 'selected' : ''} ${nodeIsDragging ? 'dragging' : ''} ${dropClass}`}
                     style={{ paddingLeft: `${depth * 16 + 8}px`, position: 'relative' }}
                     data-stage-id={stage.id}
+                    data-drop-edge={dropEdge ?? undefined}
                     onClick={(e) => handleSelect(e, stage.id)}
                     onContextMenu={(e) => handleContextMenu(e, stage.id)}
                     onDoubleClick={() => !isEditing && handleDoubleClick(stage.id, stage.name)}
@@ -355,6 +385,7 @@ export const StageExplorer: React.FC = () => {
 
     return (
         <div
+            ref={stageTreeContainerRef}
             style={{
                 padding: '8px 0',
                 flex: 1,
@@ -378,14 +409,14 @@ export const StageExplorer: React.FC = () => {
                 title="Right-click to create a new stage"
                 {...emptyAreaHandlers}
             >
-                {/* Sticky Bottom 放置指示器 */}
-                {dragState.dropTargetId === 'EMPTY_AREA' && dragState.dropIndicatorType && (
+                {/* Sticky Bottom 放置指示器（离散档位：用缩进表现目标父层级） */}
+                {dragState.preview?.kind === 'empty' && (
                     <div
-                        className={`sticky-drop-indicator ${dragState.dropIndicatorType}`}
+                        className={`sticky-drop-indicator ${dragState.preview.mode}`}
                         style={{
                             position: 'absolute',
                             top: 0,
-                            left: dragState.dropIndicatorType === 'indented' ? '24px' : '0',
+                            left: `${dragState.preview.left}px`,
                             right: 0,
                             height: '2px',
                             backgroundColor: 'var(--accent-color)',
