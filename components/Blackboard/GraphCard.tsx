@@ -89,7 +89,7 @@ export const GraphCard: React.FC<GraphCardProps> = ({
                 {graph.startNodeId && (
                     <div>
                         <span style={{ color: 'var(--text-secondary)' }}>Start: </span>
-                        <span style={{ color: '#4fc1ff', fontFamily: 'monospace' }}>
+                        <span style={{ color: '#c586c0', fontFamily: 'monospace' }}>
                             {graph.nodes[graph.startNodeId]?.name || graph.startNodeId}
                         </span>
                     </div>

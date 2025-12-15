@@ -5,6 +5,7 @@
 
 import { EditorState, Action } from '../types';
 import { PresentationNode, PresentationGraph } from '../../types/presentation';
+import { Side } from '../../types/common';
 import { normalizePresentationNode } from '../../utils/presentation';
 
 // ========== Presentation 相关 Actions 类型定义 ==========
@@ -15,15 +16,16 @@ export type PresentationAction =
     | { type: 'ADD_PRESENTATION_NODE'; payload: { graphId: string; node: PresentationNode } }
     | { type: 'DELETE_PRESENTATION_NODE'; payload: { graphId: string; nodeId: string } }
     | { type: 'UPDATE_PRESENTATION_NODE'; payload: { graphId: string; nodeId: string; data: Partial<PresentationNode> } }
-    | { type: 'LINK_PRESENTATION_NODES'; payload: { graphId: string; fromNodeId: string; toNodeId: string } }
-    | { type: 'UNLINK_PRESENTATION_NODES'; payload: { graphId: string; fromNodeId: string; toNodeId: string } };
+    | { type: 'LINK_PRESENTATION_NODES'; payload: { graphId: string; fromNodeId: string; toNodeId: string; fromSide?: Side; toSide?: Side } }
+    | { type: 'UNLINK_PRESENTATION_NODES'; payload: { graphId: string; fromNodeId: string; toNodeId: string } }
+    | { type: 'UPDATE_EDGE_PROPERTIES'; payload: { graphId: string; fromNodeId: string; toNodeId: string; fromSide?: Side; toSide?: Side } };
 
 // ========== 类型守卫：判断是否为 Presentation Action ==========
 export const isPresentationAction = (action: { type: string }): action is PresentationAction => {
     const presentationActionTypes = [
         'ADD_PRESENTATION_GRAPH', 'UPDATE_PRESENTATION_GRAPH', 'DELETE_PRESENTATION_GRAPH',
         'ADD_PRESENTATION_NODE', 'DELETE_PRESENTATION_NODE', 'UPDATE_PRESENTATION_NODE',
-        'LINK_PRESENTATION_NODES', 'UNLINK_PRESENTATION_NODES'
+        'LINK_PRESENTATION_NODES', 'UNLINK_PRESENTATION_NODES', 'UPDATE_EDGE_PROPERTIES'
     ];
     return presentationActionTypes.includes(action.type);
 };
@@ -243,6 +245,39 @@ export const presentationReducer = (state: EditorState, action: PresentationActi
                                     nextIds: fromNode.nextIds.filter(id => id !== toNodeId)
                                 }
                             }
+                        }
+                    }
+                }
+            };
+        }
+
+        // ========== 更新边的视觉属性（端点方向） ==========
+        case 'UPDATE_EDGE_PROPERTIES': {
+            const { graphId, fromNodeId, toNodeId, fromSide, toSide } = action.payload;
+            const graph = state.project.presentationGraphs[graphId];
+            if (!graph) return state;
+
+            // 边属性 key 格式：fromNodeId->toNodeId
+            const edgeKey = `${fromNodeId}->${toNodeId}`;
+            const currentProps = graph.edgeProperties || {};
+            const newProps = {
+                ...currentProps,
+                [edgeKey]: {
+                    ...currentProps[edgeKey],
+                    ...(fromSide !== undefined ? { fromSide } : {}),
+                    ...(toSide !== undefined ? { toSide } : {})
+                }
+            };
+
+            return {
+                ...state,
+                project: {
+                    ...state.project,
+                    presentationGraphs: {
+                        ...state.project.presentationGraphs,
+                        [graphId]: {
+                            ...graph,
+                            edgeProperties: newProps
                         }
                     }
                 }

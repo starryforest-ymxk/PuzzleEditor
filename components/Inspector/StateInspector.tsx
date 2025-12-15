@@ -7,6 +7,7 @@ import { ResourceSelect } from './ResourceSelect';
 import type { PuzzleNode } from '../../types/puzzleNode';
 import type { EventDefinition } from '../../types/blackboard';
 import type { ScriptDefinition } from '../../types/manifest';
+import { Trash2 } from 'lucide-react';
 
 interface Props {
     fsmId: string;
@@ -86,11 +87,31 @@ export const StateInspector = ({ fsmId, stateId, readOnly = false }: Props) => {
         });
     };
 
+    // 删除状态
+    const handleDelete = () => {
+        if (readOnly) return;
+        dispatch({
+            type: 'DELETE_STATE',
+            payload: { fsmId, stateId: state.id }
+        });
+    };
+
     return (
         <div>
             {/* State Header */}
             <div className="inspector-header-panel">
-                <div className="inspector-type-label inspector-type-label--state">FSM STATE</div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                    <div className="inspector-type-label inspector-type-label--state">FSM STATE</div>
+                    {!readOnly && (
+                        <button
+                            className="btn-icon btn-icon--danger"
+                            onClick={handleDelete}
+                            title="Delete this state"
+                        >
+                            <Trash2 size={14} />
+                        </button>
+                    )}
+                </div>
                 <input
                     type="text"
                     value={state.name}

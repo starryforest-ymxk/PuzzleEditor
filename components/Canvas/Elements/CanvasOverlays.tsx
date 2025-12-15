@@ -14,6 +14,8 @@ interface InfoOverlayProps {
     isPanMode: boolean;
     /** 是否缺少初始状态 */
     hasNoInitialState?: boolean;
+    /** 顶部标签文案，默认 FSM Editor */
+    headerLabel?: string;
 }
 
 export const CanvasInfoOverlay: React.FC<InfoOverlayProps> = ({
@@ -22,7 +24,8 @@ export const CanvasInfoOverlay: React.FC<InfoOverlayProps> = ({
     isLineCuttingMode,
     isLinkMode,
     isPanMode,
-    hasNoInitialState = false
+    hasNoInitialState = false,
+    headerLabel = 'FSM Editor'
 }) => (
     <div style={{
         position: 'absolute',
@@ -40,7 +43,7 @@ export const CanvasInfoOverlay: React.FC<InfoOverlayProps> = ({
             border: '1px solid rgba(255,255,255,0.1)',
             display: 'inline-block'
         }}>
-            <div style={{ fontSize: '10px', color: '#888' }}>FSM Editor</div>
+            <div style={{ fontSize: '10px', color: '#888' }}>{headerLabel}</div>
             <div style={{ fontSize: '14px', color: '#eee', fontWeight: 600 }}>{nodeName}</div>
             {/* 无初始状态警告 */}
             {hasNoInitialState && (

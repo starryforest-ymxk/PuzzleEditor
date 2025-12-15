@@ -31,6 +31,8 @@ interface InteractionOptions {
     onBoxSelectEnd: (nodeIds: string[]) => void;
     getContentOffset: (clientX: number, clientY: number) => { x: number, y: number };
     getNodes: () => Record<string, any>;
+    /** 节点尺寸（可选，默认使用FSM状态节点尺寸） */
+    nodeDimensions?: { width: number; height: number };
 }
 
 const SNAP_THRESHOLD = 30;
@@ -43,8 +45,13 @@ export const useGraphInteraction = ({
     onLinkDelete,
     onBoxSelectEnd,
     getContentOffset,
-    getNodes
+    getNodes,
+    nodeDimensions
 }: InteractionOptions) => {
+    // 节点尺寸（使用传入值或默认FSM尺寸）
+    const nodeWidth = nodeDimensions?.width ?? Geom.STATE_WIDTH;
+    const nodeHeight = nodeDimensions?.height ?? Geom.STATE_ESTIMATED_HEIGHT;
+
     // === 节点拖拽状态 ===
     const [draggingNodeId, setDraggingNodeId] = useState<string | null>(null);
     const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
@@ -75,11 +82,12 @@ export const useGraphInteraction = ({
         const points: SnapPoint[] = [];
         Object.values(nodes).forEach((node: any) => {
             const pos = node.position;
+            // 使用传入的节点尺寸或默认值
             const anchors = [
-                { side: 'top', ...Geom.getNodeAnchor(pos, Geom.STATE_WIDTH, Geom.STATE_ESTIMATED_HEIGHT, 'top') },
-                { side: 'bottom', ...Geom.getNodeAnchor(pos, Geom.STATE_WIDTH, Geom.STATE_ESTIMATED_HEIGHT, 'bottom') },
-                { side: 'left', ...Geom.getNodeAnchor(pos, Geom.STATE_WIDTH, Geom.STATE_ESTIMATED_HEIGHT, 'left') },
-                { side: 'right', ...Geom.getNodeAnchor(pos, Geom.STATE_WIDTH, Geom.STATE_ESTIMATED_HEIGHT, 'right') },
+                { side: 'top', ...Geom.getNodeAnchor(pos, nodeWidth, nodeHeight, 'top') },
+                { side: 'bottom', ...Geom.getNodeAnchor(pos, nodeWidth, nodeHeight, 'bottom') },
+                { side: 'left', ...Geom.getNodeAnchor(pos, nodeWidth, nodeHeight, 'left') },
+                { side: 'right', ...Geom.getNodeAnchor(pos, nodeWidth, nodeHeight, 'right') },
             ];
             anchors.forEach(a => points.push({ nodeId: node.id, side: a.side as Side, x: a.x, y: a.y }));
         });
@@ -169,8 +177,9 @@ export const useGraphInteraction = ({
                     const nodeRect = {
                         left: node.position.x,
                         top: node.position.y,
-                        right: node.position.x + Geom.STATE_WIDTH,
-                        bottom: node.position.y + Geom.STATE_ESTIMATED_HEIGHT
+                        // 使用传入的节点尺寸，保证框选命中区域与实际节点一致
+                        right: node.position.x + nodeWidth,
+                        bottom: node.position.y + nodeHeight
                     };
 
                     if (rectsIntersect(rect, nodeRect)) {
@@ -261,7 +270,7 @@ export const useGraphInteraction = ({
             window.removeEventListener('mousemove', handleWindowMouseMove, { capture: true } as any);
             window.removeEventListener('mouseup', handleWindowMouseUp, { capture: true } as any);
         };
-    }, [draggingNodeId, linkingState, modifyingTransition, dragOffset, activeSnapPoint, boxSelectRect, isDraggingMultiple, onLinkDelete]);
+        }, [draggingNodeId, linkingState, modifyingTransition, dragOffset, activeSnapPoint, boxSelectRect, isDraggingMultiple, onLinkDelete, nodeWidth, nodeHeight]);
 
     // === 获取节点显示位置（拖拽时使用临时位置）===
     const getNodeDisplayPosition = (nodeId: string, actualPos: { x: number, y: number }) => {

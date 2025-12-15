@@ -1,6 +1,6 @@
 /**
  * components/Explorer/NodeExplorer.tsx
- * ½âÃÕ½ÚµãÁĞ±íä¯ÀÀÓë±à¼­×é¼ş£¬²¼¾ÖÓë StageExplorer ±£³ÖÒ»ÖÂµÄ½á¹¹»¯ÊµÏÖ
+ * è§£è°œèŠ‚ç‚¹åˆ—è¡¨æµè§ˆä¸ç¼–è¾‘ç»„ä»¶ï¼Œå¸ƒå±€ä¸ StageExplorer ä¿æŒä¸€è‡´çš„ç»“æ„åŒ–å®ç°
  */
 
 import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
@@ -11,14 +11,14 @@ import { ConfirmDialog } from '../Inspector/ConfirmDialog';
 import { createNodeWithStateMachine, getMaxDisplayOrder } from '../../utils/puzzleNodeUtils';
 import { StageId, PuzzleNodeId } from '../../types/common';
 
-/** ÉÏÏÂÎÄ²Ëµ¥×´Ì¬ */
+/** ä¸Šä¸‹æ–‡èœå•çŠ¶æ€ */
 interface ContextMenuState {
     x: number;
     y: number;
-    nodeId: string | null; // null ±íÊ¾¿Õ°×ÇøÓò²Ëµ¥
+    nodeId: string | null; // null è¡¨ç¤ºç©ºç™½åŒºåŸŸèœå•
 }
 
-/** É¾³ıÈ·ÈÏµ¯´°×´Ì¬ */
+/** åˆ é™¤ç¡®è®¤å¼¹çª—çŠ¶æ€ */
 interface DeleteConfirmState {
     nodeId: string;
     nodeName: string;
@@ -30,7 +30,7 @@ export const NodeExplorer: React.FC = () => {
     const { project, ui } = useEditorState();
     const dispatch = useEditorDispatch();
 
-    // ÓÒ¼ü²Ëµ¥¡¢±à¼­¡¢É¾³ı×´Ì¬
+    // å³é”®èœå•ã€ç¼–è¾‘ã€åˆ é™¤çŠ¶æ€
     const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
     const [editingNodeId, setEditingNodeId] = useState<string | null>(null);
     const [editingName, setEditingName] = useState<string>('');
@@ -42,14 +42,14 @@ export const NodeExplorer: React.FC = () => {
     const editInputRef = useRef<HTMLInputElement>(null);
     const currentStageId = ui.currentStageId;
 
-    // °´ displayOrder ÅÅĞòµ±Ç° Stage µÄ½Úµã
+    // æŒ‰ displayOrder æ’åºå½“å‰ Stage çš„èŠ‚ç‚¹
     const nodes: PuzzleNode[] = useMemo(() => {
         if (!currentStageId) return [];
-        const stageNodes = Object.values(project.nodes).filter(node => node.stageId === currentStageId) as PuzzleNode[];
+        const stageNodes = (Object.values(project.nodes) as PuzzleNode[]).filter(node => node.stageId === currentStageId);
         return stageNodes.sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0));
     }, [project.nodes, currentStageId]);
 
-    // ¹Ø±ÕÓÒ¼ü²Ëµ¥ - µã»÷Íâ²¿Ê±¹Ø±Õ
+    // å…³é—­å³é”®èœå• - ç‚¹å‡»å¤–éƒ¨æ—¶å…³é—­
     useEffect(() => {
         if (!contextMenu) return;
 
@@ -69,7 +69,7 @@ export const NodeExplorer: React.FC = () => {
         };
     }, [contextMenu]);
 
-    // ¾Û½¹±à¼­ÊäÈë¿ò
+    // èšç„¦ç¼–è¾‘è¾“å…¥æ¡†
     useEffect(() => {
         if (editingNodeId && editInputRef.current) {
             editInputRef.current.focus();
@@ -77,14 +77,14 @@ export const NodeExplorer: React.FC = () => {
         }
     }, [editingNodeId]);
 
-    // ========== ÊÂ¼ş£ºÑ¡Ôñ ==========
+    // ========== äº‹ä»¶ï¼šé€‰æ‹© ==========
     const handleSelectNode = useCallback((e: React.MouseEvent, nodeId: string) => {
         e.stopPropagation();
         dispatch({ type: 'NAVIGATE_TO', payload: { nodeId, graphId: null } });
         dispatch({ type: 'SELECT_OBJECT', payload: { type: 'NODE', id: nodeId } });
     }, [dispatch]);
 
-    // ========== ÊÂ¼ş£ºÓÒ¼ü²Ëµ¥ ==========
+    // ========== äº‹ä»¶ï¼šå³é”®èœå• ==========
     const handleContextMenu = useCallback((e: React.MouseEvent, nodeId: string) => {
         e.preventDefault();
         e.stopPropagation();
@@ -100,14 +100,14 @@ export const NodeExplorer: React.FC = () => {
         }
     }, [currentStageId]);
 
-    // ========== ÊÂ¼ş£º´´½¨ ==========
+    // ========== äº‹ä»¶ï¼šåˆ›å»º ==========
     const handleCreateNode = useCallback(() => {
         if (!contextMenu || !currentStageId) return;
         const maxOrder = getMaxDisplayOrder(project.nodes, currentStageId as StageId);
         const { node, stateMachine } = createNodeWithStateMachine(currentStageId as StageId, 'New Node', maxOrder + 1);
 
         dispatch({ type: 'ADD_PUZZLE_NODE', payload: { stageId: currentStageId as StageId, node, stateMachine } });
-        // ½öÑ¡ÖĞ½ÚµãÒÔ±ã Inspector Õ¹Ê¾£¬²»ÇĞ»»µ½×´Ì¬»ú»­²¼
+        // ä»…é€‰ä¸­èŠ‚ç‚¹ä»¥ä¾¿ Inspector å±•ç¤ºï¼Œä¸åˆ‡æ¢åˆ°çŠ¶æ€æœºç”»å¸ƒ
         dispatch({ type: 'SELECT_OBJECT', payload: { type: 'NODE', id: node.id } });
         setContextMenu(null);
 
@@ -117,7 +117,7 @@ export const NodeExplorer: React.FC = () => {
         }, 50);
     }, [contextMenu, currentStageId, project.nodes, dispatch]);
 
-    // ========== ÊÂ¼ş£ºÖØÃüÃû ==========
+    // ========== äº‹ä»¶ï¼šé‡å‘½å ==========
     const handleStartRename = useCallback(() => {
         if (!contextMenu?.nodeId) return;
         const node = project.nodes[contextMenu.nodeId];
@@ -148,7 +148,7 @@ export const NodeExplorer: React.FC = () => {
         setEditingName(nodeName);
     }, []);
 
-    // ========== ÊÂ¼ş£ºÉ¾³ı ==========
+    // ========== äº‹ä»¶ï¼šåˆ é™¤ ==========
     const handleRequestDelete = useCallback(() => {
         if (!contextMenu?.nodeId) return;
         const node = project.nodes[contextMenu.nodeId];
@@ -158,7 +158,7 @@ export const NodeExplorer: React.FC = () => {
         }
 
         const stage = project.stageTree.stages[node.stageId];
-        const siblingCount = Object.values(project.nodes).filter(n => n.stageId === node.stageId && n.id !== node.id).length;
+        const siblingCount = (Object.values(project.nodes) as PuzzleNode[]).filter(n => n.stageId === node.stageId && n.id !== node.id).length;
 
         setDeleteConfirm({
             nodeId: contextMenu.nodeId,
@@ -179,7 +179,7 @@ export const NodeExplorer: React.FC = () => {
         setDeleteConfirm(null);
     }, []);
 
-    // ========== ÊÂ¼ş£ºÍÏ×§ÅÅĞò ==========
+    // ========== äº‹ä»¶ï¼šæ‹–æ‹½æ’åº ==========
     const handleDragStart = useCallback((e: React.DragEvent, nodeId: string) => {
         setDragNodeId(nodeId);
         e.dataTransfer.effectAllowed = 'move';
@@ -233,7 +233,7 @@ export const NodeExplorer: React.FC = () => {
         handleDragEnd();
     }, [dragNodeId, dropTargetId, dropPosition, currentStageId, nodes, dispatch, handleDragEnd]);
 
-    // ========== äÖÈ¾ ==========
+    // ========== æ¸²æŸ“ ==========
 
     if (!currentStageId) {
         return (

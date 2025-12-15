@@ -35,8 +35,8 @@ export const FsmInspector: React.FC<FsmInspectorProps> = ({ fsmId, readOnly = fa
             </div>
 
             {/* Basic Info Section */}
-            <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-color)' }}>
-                <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Basic Info</div>
+            <div className="inspector-section inspector-basic-info">
+                <div className="inspector-section-title">Basic Info</div>
                 <div className="prop-row">
                     <div className="prop-label">ID</div>
                     <div className="prop-value" style={{ fontFamily: 'monospace', color: '#666' }}>{fsm.id}</div>
@@ -56,8 +56,8 @@ export const FsmInspector: React.FC<FsmInspectorProps> = ({ fsmId, readOnly = fa
             </div>
 
             {/* Owner Section */}
-            <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-color)' }}>
-                <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Owner Node</div>
+            <div className="inspector-section inspector-basic-info">
+                <div className="inspector-section-title">Owner Node</div>
                 {ownerNode ? (
                     <>
                         <div className="prop-row">
@@ -68,6 +68,14 @@ export const FsmInspector: React.FC<FsmInspectorProps> = ({ fsmId, readOnly = fa
                             <div className="prop-label">Node ID</div>
                             <div className="prop-value" style={{ fontFamily: 'monospace', color: '#666' }}>{ownerNode.id}</div>
                         </div>
+                        {ownerNode.description && (
+                            <div className="prop-row">
+                                <div className="prop-label">Description</div>
+                                <div className="prop-value" style={{ color: 'var(--text-secondary)', fontStyle: 'italic' }}>
+                                    {ownerNode.description}
+                                </div>
+                            </div>
+                        )}
                     </>
                 ) : (
                     <div style={{ fontSize: '11px', color: '#888', fontStyle: 'italic' }}>No owner node found</div>

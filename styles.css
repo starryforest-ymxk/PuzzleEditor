@@ -1244,6 +1244,12 @@ html {
   justify-content: center;
 }
 
+.inspector-initial-badge--pink {
+  color: #f472b6;
+  border: 1px solid #8b345c;
+  background: rgba(244, 114, 182, 0.12);
+}
+
 .inspector-initial-badge .icon {
   margin-right: 6px;
 }
@@ -1266,6 +1272,16 @@ html {
 
 .inspector-set-initial-btn:hover {
   background: #444;
+}
+
+.inspector-set-initial-btn--pink {
+  background: #2d1b24;
+  border: 1px solid #8b345c;
+  color: #f9d8e8;
+}
+
+.inspector-set-initial-btn--pink:hover {
+  background: #3a2430;
 }
 
 /* 描述区块 */

@@ -9,6 +9,7 @@ import { EditorState, Action, Selection, BlackboardViewState, UiMessage } from '
 export type UiAction =
     | { type: 'SELECT_OBJECT'; payload: Selection }
     | { type: 'SET_MULTI_SELECT_STATES'; payload: string[] }
+    | { type: 'SET_MULTI_SELECT_PRESENTATION_NODES'; payload: string[] }
     | { type: 'TOGGLE_STAGE_EXPAND'; payload: { id: string } }
     | { type: 'SET_STAGE_EXPANDED'; payload: { id: string; expanded: boolean } }
     | { type: 'SET_BLACKBOARD_VIEW'; payload: Partial<BlackboardViewState> }
@@ -20,7 +21,7 @@ export type UiAction =
 // ========== 类型守卫：判断是否为 UI Action ==========
 export const isUiAction = (action: Action): action is UiAction => {
     const uiActionTypes = [
-        'SELECT_OBJECT', 'SET_MULTI_SELECT_STATES',
+        'SELECT_OBJECT', 'SET_MULTI_SELECT_STATES', 'SET_MULTI_SELECT_PRESENTATION_NODES',
         'TOGGLE_STAGE_EXPAND', 'SET_STAGE_EXPANDED',
         'SET_BLACKBOARD_VIEW', 'SET_PANEL_SIZES',
         'ADD_MESSAGE', 'CLEAR_MESSAGES'
@@ -34,13 +35,20 @@ export const uiReducer = (state: EditorState, action: UiAction): EditorState => 
         case 'SELECT_OBJECT':
             return {
                 ...state,
-                ui: { ...state.ui, selection: action.payload, multiSelectStateIds: [] }
+                ui: { ...state.ui, selection: action.payload, multiSelectStateIds: [], multiSelectPresentationNodeIds: [] }
             };
 
         case 'SET_MULTI_SELECT_STATES': {
             return {
                 ...state,
                 ui: { ...state.ui, multiSelectStateIds: action.payload }
+            };
+        }
+
+        case 'SET_MULTI_SELECT_PRESENTATION_NODES': {
+            return {
+                ...state,
+                ui: { ...state.ui, multiSelectPresentationNodeIds: action.payload }
             };
         }
 

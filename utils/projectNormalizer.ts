@@ -11,6 +11,7 @@ import { StateMachine, State, Transition } from '../types/stateMachine';
 import { PresentationGraph, PresentationNode } from '../types/presentation';
 import { BlackboardData } from '../types/blackboard';
 import { ScriptsManifest, TriggersManifest } from '../types/manifest';
+import { normalizePresentationNode } from './presentation';
 
 export interface NormalizedProjectResult {
   project: ProjectData;
@@ -113,23 +114,10 @@ const normalizeStateMachines = (fsms?: Record<string, StateMachine>): Record<str
 const normalizePresentationNodes = (nodes?: Record<string, PresentationNode>): Record<string, PresentationNode> => {
   const result: Record<string, PresentationNode> = {};
   Object.values(nodes ?? {}).forEach(n => {
-    const base: PresentationNode = {
-      ...n,
-      nextIds: n.nextIds ?? []
-    };
-    if (base.type === 'ScriptCall') {
-      base.parameters = base.parameters ?? [];
-      base.duration = undefined;
-    } else if (base.type === 'Wait') {
-      base.duration = base.duration ?? 1;
-      base.parameters = undefined;
-      base.scriptId = undefined;
-    } else {
-      base.parameters = undefined;
-      base.scriptId = undefined;
-      base.duration = undefined;
-    }
-    result[base.id] = base;
+    // 复用统一归一化逻辑：
+    // 1) 保证 nextIds/parameters/duration
+    // 2) 旧字段 scriptId/parameters -> 新字段 presentation 的迁移
+    result[n.id] = normalizePresentationNode(n);
   });
   return result;
 };

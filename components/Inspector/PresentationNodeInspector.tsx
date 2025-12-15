@@ -8,6 +8,7 @@ import type { PuzzleNode } from '../../types/puzzleNode';
 import type { StateMachine } from '../../types/stateMachine';
 import type { ScriptDefinition } from '../../types/manifest';
 import type { PresentationGraph } from '../../types/presentation';
+import { Trash2 } from 'lucide-react';
 
 interface Props {
     graphId: string;
@@ -21,6 +22,7 @@ export const PresentationNodeInspector = ({ graphId, nodeId, readOnly = false }:
 
     const graph = project.presentationGraphs[graphId];
     const node = graph ? graph.nodes[nodeId] : null;
+    const isStartNode = graph && graph.startNodeId === nodeId;
 
     // 尝试推断图的作用域上下文：优先找到引用该 graph 的 Stage / Node
     const resolvedScope = useMemo(() => {
@@ -75,6 +77,8 @@ export const PresentationNodeInspector = ({ graphId, nodeId, readOnly = false }:
             handleChange('type', 'Wait');
             handleChange('duration', node.duration ?? 1);
             handleChange('presentation', undefined);
+            handleChange('scriptId', undefined);
+            handleChange('parameters', undefined);
         } else if (nextType === 'ScriptCall') {
             handleChange('type', 'ScriptCall');
             handleChange('duration', undefined);
@@ -82,6 +86,8 @@ export const PresentationNodeInspector = ({ graphId, nodeId, readOnly = false }:
             handleChange('type', nextType);
             handleChange('duration', undefined);
             handleChange('presentation', undefined);
+            handleChange('scriptId', undefined);
+            handleChange('parameters', undefined);
         }
     };
 
@@ -103,26 +109,68 @@ export const PresentationNodeInspector = ({ graphId, nodeId, readOnly = false }:
         return vars.all.filter(v => v.state !== 'MarkedForDelete');
     }, [project, resolvedScope]);
 
+    // 删除节点
+    const handleDelete = () => {
+        if (readOnly) return;
+        dispatch({
+            type: 'DELETE_PRESENTATION_NODE',
+            payload: { graphId, nodeId: node.id }
+        });
+    };
+
     // Node type display name
     const typeDisplayName = node.type === 'ScriptCall' ? 'SCRIPT CALL' : node.type.toUpperCase();
+
+    // 设置起始节点
+    const handleSetStartNode = () => {
+        if (readOnly || !graph) return;
+        dispatch({
+            type: 'UPDATE_PRESENTATION_GRAPH',
+            payload: { graphId, data: { startNodeId: node.id } }
+        });
+    };
 
     return (
         <div>
             {/* Node Header */}
-            <div style={{ padding: '16px', background: '#2d2d30', borderBottom: '1px solid #3e3e42' }}>
-                <div style={{ fontSize: '10px', color: '#c586c0', marginBottom: '4px', letterSpacing: '1px' }}>{typeDisplayName} NODE</div>
+            <div className="inspector-header-panel">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                    <div className="inspector-type-label" style={{ color: '#c586c0' }}>{typeDisplayName} NODE</div>
+                    {!readOnly && (
+                        <button
+                            className="btn-icon btn-icon--danger"
+                            onClick={handleDelete}
+                            title="Delete this node"
+                        >
+                            <Trash2 size={14} />
+                        </button>
+                    )}
+                </div>
                 <input
                     type="text"
+                    className="inspector-name-input inspector-name-input--with-margin"
                     value={node.name}
                     onChange={(e) => handleChange('name', e.target.value)}
                     disabled={readOnly}
-                    style={{ background: '#222', border: '1px solid #444', color: '#fff', fontSize: '14px', fontWeight: 600, width: '100%', padding: '4px', opacity: readOnly ? 0.7 : 1 }}
                 />
+
+                {/* 起始节点指示/按钮，使用粉色主题与演出图保持一致 */}
+                {isStartNode ? (
+                    <div className="inspector-initial-badge inspector-initial-badge--pink">
+                        <span className="icon">▶</span> Start Node
+                    </div>
+                ) : (
+                    !readOnly && (
+                        <button onClick={handleSetStartNode} className="inspector-set-initial-btn inspector-set-initial-btn--pink">
+                            Set as Start Node
+                        </button>
+                    )
+                )}
             </div>
 
             {/* Basic Info Section */}
-            <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-color)' }}>
-                <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Basic Info</div>
+            <div className="inspector-section inspector-basic-info">
+                <div className="inspector-section-title">Basic Info</div>
                 <div className="prop-row">
                     <div className="prop-label">ID</div>
                     <div className="prop-value" style={{ fontFamily: 'monospace', color: '#666' }}>{node.id}</div>
@@ -168,7 +216,17 @@ export const PresentationNodeInspector = ({ graphId, nodeId, readOnly = false }:
                     <div style={{ pointerEvents: readOnly ? 'none' : 'auto', opacity: readOnly ? 0.6 : 1 }}>
                         <PresentationBindingEditor
                             binding={node.presentation}
-                            onChange={(next) => handleChange('presentation', next)}
+                            onChange={(next) => {
+                                // 统一更新 presentation，并在脚本模式下同步旧字段，保证渲染与导出一致
+                                handleChange('presentation', next);
+                                if (next?.type === 'Script') {
+                                    handleChange('scriptId', next.scriptId);
+                                    handleChange('parameters', next.parameters || []);
+                                } else {
+                                    handleChange('scriptId', undefined);
+                                    handleChange('parameters', undefined);
+                                }
+                            }}
                             scriptDefs={scriptDefs}
                             scriptOptions={performanceScriptOptions}
                             graphOptions={graphOptions}

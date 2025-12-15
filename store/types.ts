@@ -98,6 +98,7 @@ export interface EditorState {
     blackboardView: BlackboardViewState;
     selection: Selection;
     multiSelectStateIds: StateId[];  // 框选的状态节点ID列表
+    multiSelectPresentationNodeIds: string[]; // 框选的演出节点ID列表
     // Panel sizes for resizable borders (in pixels)
     panelSizes: {
       explorerWidth: number;   // Left sidebar width
@@ -150,6 +151,7 @@ export const INITIAL_STATE: EditorState = {
     },
     selection: { type: 'NONE', id: null },
     multiSelectStateIds: [],
+    multiSelectPresentationNodeIds: [],
     panelSizes: {
       explorerWidth: 280,
       inspectorWidth: 320,
@@ -217,6 +219,7 @@ export type Action =
   | { type: 'DELETE_NODE_PARAM'; payload: { nodeId: string; varId: string } }
   // Multi-Select (框选)
   | { type: 'SET_MULTI_SELECT_STATES'; payload: string[] }
+  | { type: 'SET_MULTI_SELECT_PRESENTATION_NODES'; payload: string[] }
   // Navigation (P2-T02)
   | { type: 'SWITCH_VIEW'; payload: 'EDITOR' | 'BLACKBOARD' }
   | { type: 'NAVIGATE_TO'; payload: { stageId?: string | null; nodeId?: string | null; graphId?: string | null; selection?: Selection } }

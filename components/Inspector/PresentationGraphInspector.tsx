@@ -195,7 +195,7 @@ export const PresentationGraphInspector: React.FC<PresentationGraphInspectorProp
                         <div className="prop-label">Start Node</div>
                         <div className="prop-value">
                             {graph.startNodeId ? (
-                                <span style={{ color: '#4fc1ff', fontFamily: 'monospace' }}>
+                                <span style={{ color: '#c586c0', fontFamily: 'monospace' }}>
                                     {graph.nodes?.[graph.startNodeId]?.name || graph.startNodeId}
                                 </span>
                             ) : (
@@ -223,14 +223,33 @@ export const PresentationGraphInspector: React.FC<PresentationGraphInspectorProp
                 </div>
 
                 {/* Open Editor Button */}
-                <div className="inspector-section">
-                    <button
-                        className="btn-primary"
-                        onClick={handleOpenGraph}
-                        style={{ width: '100%' }}
-                    >
-                        Open in Editor
-                    </button>
+
+                {/* Nodes Section - 节点列表 */}
+                <div className="inspector-section" style={{ borderBottom: '1px solid var(--border-color)' }}>
+                    <div className="inspector-section-title">
+                        Nodes ({nodeCount})
+                    </div>
+                    <div style={{ maxHeight: '150px', overflowY: 'auto' }}>
+                        {nodeCount === 0 ? (
+                            <div style={{ fontSize: '11px', color: '#666', fontStyle: 'italic' }}>No nodes</div>
+                        ) : (
+                            (Object.values(graph.nodes) as any[]).map((node) => (
+                                <div
+                                    key={node.id}
+                                    style={{
+                                        padding: '6px 8px',
+                                        marginBottom: '4px',
+                                        background: '#1f1f1f',
+                                        borderRadius: '4px',
+                                        borderLeft: node.id === graph.startNodeId ? '3px solid #c586c0' : '3px solid #444'
+                                    }}
+                                >
+                                    <div style={{ fontSize: '12px', fontWeight: 500, color: 'var(--text-primary)' }}>{node.name}</div>
+                                    <div style={{ fontSize: '10px', color: 'var(--text-dim)' }}>{node.type}</div>
+                                </div>
+                            ))
+                        )}
+                    </div>
                 </div>
 
                 {/* References Section - 引用追踪区块 */}

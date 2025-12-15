@@ -129,6 +129,7 @@ const internalReducer = (state: EditorState, action: Action): EditorState => {
                     navStack: [],
                     selection: { type: 'NONE', id: null },
                     multiSelectStateIds: [],
+                    multiSelectPresentationNodeIds: [],
                     view: 'EDITOR'
                 }
             };

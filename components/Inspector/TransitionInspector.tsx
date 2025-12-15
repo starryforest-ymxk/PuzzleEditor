@@ -12,6 +12,7 @@ import type { PuzzleNode } from '../../types/puzzleNode';
 import type { EventDefinition } from '../../types/blackboard';
 import type { ScriptDefinition } from '../../types/manifest';
 import type { PresentationGraph } from '../../types/presentation';
+import { Trash2 } from 'lucide-react';
 
 interface Props {
     fsmId: string;
@@ -109,11 +110,31 @@ export const TransitionInspector = ({ fsmId, transitionId, readOnly = false }: P
         handleChange('parameterModifiers', nextModifiers);
     };
 
+    // 删除 Transition
+    const handleDelete = () => {
+        if (readOnly) return;
+        dispatch({
+            type: 'DELETE_TRANSITION',
+            payload: { fsmId: fsm.id, transitionId: trans.id }
+        });
+    };
+
     return (
         <div>
             {/* Transition Header */}
             <div className="inspector-header-panel">
-                <div className="inspector-type-label inspector-type-label--transition">TRANSITION</div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                    <div className="inspector-type-label inspector-type-label--transition">TRANSITION</div>
+                    {!readOnly && (
+                        <button
+                            className="btn-icon btn-icon--danger"
+                            onClick={handleDelete}
+                            title="Delete this transition"
+                        >
+                            <Trash2 size={14} />
+                        </button>
+                    )}
+                </div>
                 <input
                     type="text"
                     value={trans.name}
