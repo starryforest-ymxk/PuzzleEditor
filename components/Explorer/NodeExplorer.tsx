@@ -107,8 +107,8 @@ export const NodeExplorer: React.FC = () => {
         const { node, stateMachine } = createNodeWithStateMachine(currentStageId as StageId, 'New Node', maxOrder + 1);
 
         dispatch({ type: 'ADD_PUZZLE_NODE', payload: { stageId: currentStageId as StageId, node, stateMachine } });
+        // 仅选中节点以便 Inspector 展示，不切换到状态机画布
         dispatch({ type: 'SELECT_OBJECT', payload: { type: 'NODE', id: node.id } });
-        dispatch({ type: 'NAVIGATE_TO', payload: { nodeId: node.id, graphId: null } });
         setContextMenu(null);
 
         setTimeout(() => {
