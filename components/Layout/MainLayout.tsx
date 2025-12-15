@@ -3,7 +3,7 @@ import { Header } from './Header';
 import { Sidebar } from './Sidebar';
 import { Resizer } from './Resizer';
 import { StageExplorer } from '../Explorer/StageExplorer';
-import { NodeList } from '../Explorer/NodeList';
+import { NodeExplorer } from '../Explorer/NodeExplorer';
 import { Inspector } from '../Inspector/Inspector';
 import { Canvas } from '../Canvas/Canvas';
 import { Breadcrumb } from './Breadcrumb';
@@ -95,9 +95,9 @@ export const MainLayout = () => {
               if (container) handleStagesResize(delta, container.clientHeight);
             }}
           />
-          <div style={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
-            <div style={{ padding: '8px 16px', fontSize: '10px', color: 'var(--text-secondary)', fontWeight: 600 }}>NODES</div>
-            <NodeList />
+          <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', boxSizing: 'border-box' }}>
+            <div style={{ padding: '8px 16px', fontSize: '10px', color: 'var(--text-secondary)', fontWeight: 600, flexShrink: 0 }}>NODES</div>
+            <NodeExplorer />
           </div>
         </div>
       </Sidebar>

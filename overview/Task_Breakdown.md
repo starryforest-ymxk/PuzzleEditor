@@ -264,9 +264,11 @@
   - 删除节点/Stage；
 
 - 在 PuzzleNode Inspector 中开放：
-  - 节点基本信息编辑；
+  - 删除按钮（跟Stage Inspector一致），如果PuzzleNode有不止一个节点就会在删除前弹窗提示。
+  - 节点基本信息编辑（跟Stage Inspector一致），编辑Name和Description；
   - 节点生命周期脚本绑定（已开放）；
   - 节点级事件监听和参数修改配置（已开放）。
+  
 
 ### [P4-T04] 演出子图编辑器完善
 

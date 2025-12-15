@@ -1,7 +1,20 @@
-import React from 'react';
+/**
+ * components/Canvas/StageOverview.tsx
+ * Stage 内容概览视图
+ * 
+ * 功能：
+ * - 展示子 Stage 卡片和 PuzzleNode 卡片
+ * - 支持创建子 Stage 和 PuzzleNode
+ * - 单击选中，双击进入
+ */
+
+import React, { useCallback } from 'react';
 import { useEditorState, useEditorDispatch } from '../../store/context';
 import { PuzzleNode } from '../../types/puzzleNode';
-import { Folder, Box, FileCode } from 'lucide-react';
+import { StageId } from '../../types/common';
+import { Folder, Box, FileCode, Plus } from 'lucide-react';
+import { createDefaultStage } from '../../utils/stageTreeUtils';
+import { createNodeWithStateMachine, getMaxDisplayOrder } from '../../utils/puzzleNodeUtils';
 
 interface StageOverviewProps {
     stageId: string;
@@ -19,9 +32,12 @@ export const StageOverview: React.FC<StageOverviewProps> = ({ stageId }) => {
         .map(id => project.stageTree.stages[id])
         .filter(Boolean);
 
-    // 2. Get Puzzle Nodes
+    // 2. Get Puzzle Nodes (sorted by displayOrder)
     const nodes = (Object.values(project.nodes) as PuzzleNode[])
-        .filter(n => n.stageId === stageId);
+        .filter(n => n.stageId === stageId)
+        .sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0));
+
+    // ========== 事件处理：选择 ==========
 
     const handleStageClick = (e: React.MouseEvent) => {
         // Select Stage when clicking background
@@ -41,11 +57,45 @@ export const StageOverview: React.FC<StageOverviewProps> = ({ stageId }) => {
         dispatch({ type: 'SELECT_OBJECT', payload: { type: 'NODE', id: nodeId } });
     };
 
-    const handleStageDoubleClick = (e: React.MouseEvent, stageId: string) => {
+    const handleStageDoubleClick = (e: React.MouseEvent, targetStageId: string) => {
         e.stopPropagation();
-        dispatch({ type: 'NAVIGATE_TO', payload: { stageId, nodeId: null } });
-        dispatch({ type: 'SELECT_OBJECT', payload: { type: 'STAGE', id: stageId } });
-    }
+        dispatch({ type: 'NAVIGATE_TO', payload: { stageId: targetStageId, nodeId: null } });
+        dispatch({ type: 'SELECT_OBJECT', payload: { type: 'STAGE', id: targetStageId } });
+    };
+
+    // ========== 事件处理：创建 ==========
+
+    /** 创建子 Stage */
+    const handleCreateSubStage = useCallback((e: React.MouseEvent) => {
+        e.stopPropagation();
+        const newStage = createDefaultStage(stageId as StageId);
+        dispatch({ type: 'ADD_STAGE', payload: { parentId: stageId as StageId, stage: newStage } });
+        dispatch({ type: 'SET_STAGE_EXPANDED', payload: { id: stageId, expanded: true } });
+        dispatch({ type: 'SELECT_OBJECT', payload: { type: 'STAGE', id: newStage.id } });
+    }, [stageId, dispatch]);
+
+    /** 创建 PuzzleNode */
+    const handleCreateNode = useCallback((e: React.MouseEvent) => {
+        e.stopPropagation();
+
+        // 获取最大 displayOrder
+        const maxOrder = getMaxDisplayOrder(project.nodes, stageId as StageId);
+
+        // 创建新节点和状态机
+        const { node, stateMachine } = createNodeWithStateMachine(
+            stageId as StageId,
+            'New Node',
+            maxOrder + 1
+        );
+
+        dispatch({
+            type: 'ADD_PUZZLE_NODE',
+            payload: { stageId: stageId as StageId, node, stateMachine }
+        });
+        dispatch({ type: 'SELECT_OBJECT', payload: { type: 'NODE', id: node.id } });
+    }, [stageId, project.nodes, dispatch]);
+
+    // ========== 渲染：卡片 ==========
 
     const renderCard = (
         id: string,
@@ -103,6 +153,39 @@ export const StageOverview: React.FC<StageOverviewProps> = ({ stageId }) => {
         );
     };
 
+    // ========== 渲染：创建按钮 ==========
+
+    const renderCreateButton = (label: string, onClick: (e: React.MouseEvent) => void) => (
+        <button
+            onClick={onClick}
+            style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+                padding: '4px 10px',
+                fontSize: '11px',
+                fontWeight: 500,
+                color: 'var(--accent-color)',
+                background: 'transparent',
+                border: '1px solid var(--accent-color)',
+                borderRadius: 'var(--radius-sm)',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease'
+            }}
+            onMouseEnter={(e) => {
+                (e.target as HTMLButtonElement).style.background = 'var(--accent-color)';
+                (e.target as HTMLButtonElement).style.color = 'white';
+            }}
+            onMouseLeave={(e) => {
+                (e.target as HTMLButtonElement).style.background = 'transparent';
+                (e.target as HTMLButtonElement).style.color = 'var(--accent-color)';
+            }}
+        >
+            <Plus size={12} />
+            {label}
+        </button>
+    );
+
     return (
         <div
             className="canvas-grid"
@@ -113,7 +196,7 @@ export const StageOverview: React.FC<StageOverviewProps> = ({ stageId }) => {
                 height: '100%',
                 boxSizing: 'border-box',
                 overflowY: 'auto',
-                background: 'var(--bg-color)' // Ensure pattern visibility
+                background: 'var(--bg-color)'
             }}
             onClick={handleStageClick}
         >
@@ -132,11 +215,14 @@ export const StageOverview: React.FC<StageOverviewProps> = ({ stageId }) => {
             </div>
 
             {/* Section: Sub-Stages */}
-            {subStages.length > 0 && (
-                <div style={{ marginBottom: '32px' }}>
-                    <h3 style={{ fontSize: '12px', color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: '12px', letterSpacing: '0.5px' }}>
+            <div style={{ marginBottom: '32px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+                    <h3 style={{ fontSize: '12px', color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.5px', margin: 0 }}>
                         Sub-Stages ({subStages.length})
                     </h3>
+                    {renderCreateButton('Create Stage', handleCreateSubStage)}
+                </div>
+                {subStages.length > 0 ? (
                     <div style={{
                         display: 'grid',
                         gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
@@ -144,40 +230,50 @@ export const StageOverview: React.FC<StageOverviewProps> = ({ stageId }) => {
                     }}>
                         {subStages.map(s => renderCard(s.id, s.name, 'STAGE', s.description, (e) => handleStageDoubleClick(e, s.id)))}
                     </div>
-                </div>
-            )}
+                ) : (
+                    <div style={{
+                        border: '2px dashed var(--border-color)',
+                        borderRadius: 'var(--radius-md)',
+                        padding: '24px',
+                        textAlign: 'center',
+                        color: 'var(--text-dim)',
+                        backgroundColor: 'rgba(255,255,255,0.02)'
+                    }}>
+                        No sub-stages yet. Click "+ Create Stage" to add one.
+                    </div>
+                )}
+            </div>
 
             {/* Section: Puzzle Nodes */}
             <div style={{ marginBottom: '32px' }}>
-                <h3 style={{ fontSize: '12px', color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: '12px', letterSpacing: '0.5px' }}>
-                    Puzzle Nodes ({nodes.length})
-                </h3>
-                <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
-                    gap: '16px'
-                }}>
-                    {nodes.map(n => renderCard(n.id, n.name, 'NODE', n.description, (e) => handleNodeDoubleClick(e, n.id)))}
-
-                    {nodes.length === 0 && subStages.length === 0 && (
-                        <div style={{
-                            gridColumn: '1 / -1',
-                            border: '2px dashed var(--border-color)',
-                            borderRadius: 'var(--radius-md)',
-                            height: '160px',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            color: 'var(--text-dim)',
-                            backgroundColor: 'rgba(255,255,255,0.02)'
-                        }}>
-                            <div style={{ fontSize: '24px', marginBottom: '8px' }}>Empty</div>
-                            <div>This stage is empty</div>
-                        </div>
-                    )}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+                    <h3 style={{ fontSize: '12px', color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.5px', margin: 0 }}>
+                        Puzzle Nodes ({nodes.length})
+                    </h3>
+                    {renderCreateButton('Create Node', handleCreateNode)}
                 </div>
+                {nodes.length > 0 ? (
+                    <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
+                        gap: '16px'
+                    }}>
+                        {nodes.map(n => renderCard(n.id, n.name, 'NODE', n.description, (e) => handleNodeDoubleClick(e, n.id)))}
+                    </div>
+                ) : (
+                    <div style={{
+                        border: '2px dashed var(--border-color)',
+                        borderRadius: 'var(--radius-md)',
+                        padding: '24px',
+                        textAlign: 'center',
+                        color: 'var(--text-dim)',
+                        backgroundColor: 'rgba(255,255,255,0.02)'
+                    }}>
+                        No puzzle nodes yet. Click "+ Create Node" to add one.
+                    </div>
+                )}
             </div>
         </div>
     );
 };
+

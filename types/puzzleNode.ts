@@ -36,4 +36,7 @@ export interface PuzzleNode extends Entity {
 
   // 事件监听
   eventListeners: EventListener[];
+
+  // 显示顺序（用于在 Stage 内排序）
+  displayOrder?: number;
 }

@@ -194,6 +194,10 @@ export type Action =
   | { type: 'ADD_STAGE_VARIABLE'; payload: { stageId: string; variable: VariableDefinition } }
   | { type: 'UPDATE_STAGE_VARIABLE'; payload: { stageId: string; varId: string; data: Partial<VariableDefinition> } }
   | { type: 'DELETE_STAGE_VARIABLE'; payload: { stageId: string; varId: string } }
+  // PuzzleNode CRUD (P4-T03)
+  | { type: 'ADD_PUZZLE_NODE'; payload: { stageId: string; node: PuzzleNode; stateMachine: StateMachine } }
+  | { type: 'DELETE_PUZZLE_NODE'; payload: { nodeId: string } }
+  | { type: 'REORDER_PUZZLE_NODES'; payload: { stageId: string; nodeIds: string[] } }
   | { type: 'ADD_STATE'; payload: { fsmId: string; state: State } }
   | { type: 'DELETE_STATE'; payload: { fsmId: string; stateId: string } }
   | { type: 'UPDATE_STATE'; payload: { fsmId: string; stateId: string; data: Partial<State> } }

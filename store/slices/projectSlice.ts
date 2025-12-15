@@ -6,8 +6,9 @@
 import { EditorState, Action } from '../types';
 import { StageTreeData, StageNode } from '../../types/stage';
 import { PuzzleNode } from '../../types/puzzleNode';
+import { StateMachine } from '../../types/stateMachine';
 import { VariableDefinition } from '../../types/blackboard';
-import { StageId, VariableId } from '../../types/common';
+import { StageId, VariableId, PuzzleNodeId, StateMachineId } from '../../types/common';
 import { getDescendantStageIds, getStageNodeIds } from '../../utils/stageTreeUtils';
 
 // ========== Project 相关 Actions 类型定义 ==========
@@ -24,7 +25,11 @@ export type ProjectAction =
     // Stage Local Variable 操作
     | { type: 'ADD_STAGE_VARIABLE'; payload: { stageId: StageId; variable: VariableDefinition } }
     | { type: 'UPDATE_STAGE_VARIABLE'; payload: { stageId: StageId; varId: VariableId; data: Partial<VariableDefinition> } }
-    | { type: 'DELETE_STAGE_VARIABLE'; payload: { stageId: StageId; varId: VariableId } };
+    | { type: 'DELETE_STAGE_VARIABLE'; payload: { stageId: StageId; varId: VariableId } }
+    // PuzzleNode CRUD 操作 (P4-T03)
+    | { type: 'ADD_PUZZLE_NODE'; payload: { stageId: StageId; node: PuzzleNode; stateMachine: StateMachine } }
+    | { type: 'DELETE_PUZZLE_NODE'; payload: { nodeId: PuzzleNodeId } }
+    | { type: 'REORDER_PUZZLE_NODES'; payload: { stageId: StageId; nodeIds: PuzzleNodeId[] } };
 
 // ========== 类型守卫：判断是否为 Project Action ==========
 export const isProjectAction = (action: Action): action is ProjectAction => {
@@ -38,7 +43,11 @@ export const isProjectAction = (action: Action): action is ProjectAction => {
         'MOVE_STAGE',
         'ADD_STAGE_VARIABLE',
         'UPDATE_STAGE_VARIABLE',
-        'DELETE_STAGE_VARIABLE'
+        'DELETE_STAGE_VARIABLE',
+        // PuzzleNode CRUD (P4-T03)
+        'ADD_PUZZLE_NODE',
+        'DELETE_PUZZLE_NODE',
+        'REORDER_PUZZLE_NODES'
     ];
     return projectActionTypes.includes(action.type);
 };
@@ -362,6 +371,96 @@ export const projectReducer = (state: EditorState, action: ProjectAction): Edito
                             }
                         }
                     }
+                }
+            };
+        }
+
+        // ========== PuzzleNode CRUD (P4-T03) ==========
+
+        // 添加新 PuzzleNode（同时添加关联的 StateMachine）
+        case 'ADD_PUZZLE_NODE': {
+            const { stageId, node, stateMachine } = action.payload;
+            // 验证 Stage 存在
+            if (!state.project.stageTree.stages[stageId]) return state;
+
+            return {
+                ...state,
+                project: {
+                    ...state.project,
+                    nodes: {
+                        ...state.project.nodes,
+                        [node.id]: node
+                    },
+                    stateMachines: {
+                        ...state.project.stateMachines,
+                        [stateMachine.id]: stateMachine
+                    }
+                }
+            };
+        }
+
+        // 删除 PuzzleNode（同时删除关联的 StateMachine）
+        case 'DELETE_PUZZLE_NODE': {
+            const { nodeId } = action.payload;
+            const node = state.project.nodes[nodeId];
+            if (!node) return state;
+
+            // 获取关联的 StateMachine ID
+            const fsmId = node.stateMachineId;
+
+            // 创建新的 nodes 对象，移除目标节点
+            const { [nodeId]: removedNode, ...remainingNodes } = state.project.nodes;
+
+            // 创建新的 stateMachines 对象，移除关联的 FSM
+            const newStateMachines = { ...state.project.stateMachines };
+            if (fsmId && newStateMachines[fsmId]) {
+                delete newStateMachines[fsmId];
+            }
+
+            // 计算新的 UI 状态
+            const needsNodeClear = state.ui.currentNodeId === nodeId;
+            const needsSelectionClear =
+                state.ui.selection.type === 'NODE' && state.ui.selection.id === nodeId;
+
+            return {
+                ...state,
+                project: {
+                    ...state.project,
+                    nodes: remainingNodes,
+                    stateMachines: newStateMachines
+                },
+                ui: {
+                    ...state.ui,
+                    // 如果当前导航到该节点，回退到其所属 Stage
+                    currentNodeId: needsNodeClear ? null : state.ui.currentNodeId,
+                    // 如果当前选中该节点，切换到其所属 Stage
+                    selection: needsSelectionClear
+                        ? { type: 'STAGE' as const, id: node.stageId, contextId: null }
+                        : state.ui.selection
+                }
+            };
+        }
+
+        // 重新排序 PuzzleNodes（更新 displayOrder）
+        case 'REORDER_PUZZLE_NODES': {
+            const { stageId, nodeIds } = action.payload;
+            // 验证 Stage 存在
+            if (!state.project.stageTree.stages[stageId]) return state;
+
+            // 更新每个节点的 displayOrder
+            const updatedNodes = { ...state.project.nodes };
+            nodeIds.forEach((id, index) => {
+                const node = updatedNodes[id as PuzzleNodeId];
+                if (node && node.stageId === stageId) {
+                    updatedNodes[id as PuzzleNodeId] = { ...node, displayOrder: index };
+                }
+            });
+
+            return {
+                ...state,
+                project: {
+                    ...state.project,
+                    nodes: updatedNodes
                 }
             };
         }
