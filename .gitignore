@@ -22,3 +22,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# build / release outputs
+release/
+dist/
+out/
+win-unpacked/
+*.exe  
