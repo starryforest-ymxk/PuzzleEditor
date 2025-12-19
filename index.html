@@ -3,6 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- 
+      Content Security Policy (CSP) 配置
+      - 修复 Electron 安全警告: Insecure Content-Security-Policy
+      - 允许同源资源和开发服务器
+      - 禁止 unsafe-eval 以增强安全性
+    -->
+    <meta http-equiv="Content-Security-Policy" content="
+      default-src 'self';
+      script-src 'self' http://localhost:3000 https://aistudiocdn.com;
+      style-src 'self' 'unsafe-inline';
+      img-src 'self' data: blob:;
+      font-src 'self' data:;
+      connect-src 'self' http://localhost:3000 ws://localhost:3000;
+    ">
     <title>Puzzle Editor</title>
     <script type="importmap">
     {
