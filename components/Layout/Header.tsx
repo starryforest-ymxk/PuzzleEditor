@@ -225,9 +225,28 @@ export const Header = () => {
           style={{ position: 'relative', minWidth: '100px' }}
           data-messages-button
         >
-          Messages {ui.messages.length > 0 && (
-            <span style={{ marginLeft: 6, color: showMessages ? '#ffffff' : 'var(--accent-color)', fontWeight: 700 }}>
-              ({ui.messages.length})
+          Messages
+          {ui.messages.length > 0 && (
+            <span style={{
+              position: 'absolute',
+              top: '-6px',
+              right: '-8px',
+              background: 'var(--accent-color)',
+              color: '#ffffff',
+              fontSize: '10px',
+              height: '18px',
+              minWidth: '18px',
+              padding: '0 4px',
+              borderRadius: '9px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontWeight: 700,
+              boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
+              border: '2px solid var(--bg-color)', // Border to separate from button
+              zIndex: 10
+            }}>
+              {ui.messages.length}
             </span>
           )}
         </button>
