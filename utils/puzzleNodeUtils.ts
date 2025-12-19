@@ -185,6 +185,79 @@ export function createNodeWithStateMachine(
 }
 
 /**
+ * 创建一个带有 Trigger 逻辑的 PuzzleNode
+ * 包含 "Not triggered" (初始) 和 "Triggered" 两个状态，以及一条连接
+ */
+export function createTriggerNodeWithStateMachine(
+    stageId: StageId,
+    name?: string,
+    displayOrder?: number
+): { node: PuzzleNode; stateMachine: StateMachine } {
+    // 1. 生成 ID
+    const nodeId = generateNodeId();
+    const fsmId = generateFsmId();
+
+    // 2. 创建状态
+    // State 1: Not triggered (Initial)
+    const state1Id = generateStateId();
+    const state1: State = {
+        id: state1Id,
+        name: 'Not triggered',
+        description: 'Initial state: Waiting for trigger',
+        position: { x: 200, y: 150 },
+        eventListeners: []
+    };
+
+    // State 2: Triggered
+    const state2Id = generateStateId();
+    const state2: State = {
+        id: state2Id,
+        name: 'Triggered',
+        description: 'State after being triggered',
+        position: { x: 600, y: 150 },
+        eventListeners: []
+    };
+
+    // 3. 创建连线 (Transition from State 1 -> State 2)
+    const transitionId = `trans-${Date.now()}` as any; // Cast to TransitionId for now as we don't have a generator
+    const transition: Transition = {
+        id: transitionId,
+        fromStateId: state1Id,
+        toStateId: state2Id,
+        priority: 0,
+        name: 'Trigger', // Default name
+        triggers: [{ type: 'Always' }], // 默认为 Always 触发，方便用户看到效果
+        parameterModifiers: []
+    };
+
+    const stateMachine: StateMachine = {
+        id: fsmId,
+        initialStateId: state1Id,
+        states: {
+            [state1Id]: state1,
+            [state2Id]: state2
+        },
+        transitions: {
+            [transitionId]: transition
+        }
+    };
+
+    // 4. 创建 Node
+    const node: PuzzleNode = {
+        id: nodeId,
+        name: name || 'Triggger Node',
+        description: '',
+        stageId,
+        stateMachineId: fsmId,
+        localVariables: {},
+        eventListeners: [],
+        displayOrder: displayOrder ?? 0
+    };
+
+    return { node, stateMachine };
+}
+
+/**
  * 获取指定 Stage 下节点的最大 displayOrder
  * @param nodes 所有节点映射表
  * @param stageId 目标 Stage ID

@@ -137,7 +137,7 @@ export const TransitionInspector = ({ fsmId, transitionId, readOnly = false }: P
                 </div>
                 <input
                     type="text"
-                    value={trans.name}
+                    value={trans.name || ''}
                     onChange={(e) => handleChange('name', e.target.value)}
                     placeholder="Transition name"
                     disabled={readOnly}

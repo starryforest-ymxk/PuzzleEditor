@@ -9,16 +9,95 @@
  */
 
 import React, { useCallback } from 'react';
+import { createNodeWithStateMachine, createTriggerNodeWithStateMachine, getMaxDisplayOrder } from '../../utils/puzzleNodeUtils';
 import { useEditorState, useEditorDispatch } from '../../store/context';
 import { PuzzleNode } from '../../types/puzzleNode';
 import { StageId } from '../../types/common';
-import { Folder, Box, FileCode, Plus } from 'lucide-react';
+import { Folder, Box, FileCode, Plus, ChevronDown } from 'lucide-react';
 import { createDefaultStage } from '../../utils/stageTreeUtils';
-import { createNodeWithStateMachine, getMaxDisplayOrder } from '../../utils/puzzleNodeUtils';
 
 interface StageOverviewProps {
     stageId: string;
 }
+
+interface NodeCreationMenuProps {
+    onCreate: (type: 'EMPTY' | 'TRIGGER') => void;
+}
+
+const NodeCreationMenu: React.FC<NodeCreationMenuProps> = ({ onCreate }) => {
+    const [isOpen, setIsOpen] = React.useState(false);
+    const [isHovered, setIsHovered] = React.useState(false);
+    const menuRef = React.useRef<HTMLDivElement>(null);
+
+    React.useEffect(() => {
+        if (!isOpen) return;
+        const handleClickOutside = (e: MouseEvent) => {
+            if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+                setIsOpen(false);
+            }
+        };
+        const timeoutId = setTimeout(() => {
+            document.addEventListener('click', handleClickOutside);
+        }, 0);
+        return () => {
+            clearTimeout(timeoutId);
+            document.removeEventListener('click', handleClickOutside);
+        };
+    }, [isOpen]);
+
+    const active = isOpen || isHovered;
+
+    return (
+        <div style={{ position: 'relative' }} ref={menuRef}>
+            <button
+                onClick={(e) => { e.stopPropagation(); setIsOpen(!isOpen); }}
+                onMouseEnter={() => setIsHovered(true)}
+                onMouseLeave={() => setIsHovered(false)}
+                style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '4px',
+                    padding: '4px 10px',
+                    fontSize: '11px',
+                    minWidth: '120px',
+                    fontWeight: 500,
+                    color: active ? 'white' : 'var(--accent-color)',
+                    background: active ? 'var(--accent-color)' : 'transparent',
+                    border: '1px solid var(--accent-color)',
+                    borderRadius: 'var(--radius-sm)',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease'
+                }}
+            >
+                <Plus size={12} />
+                Create Node
+                <ChevronDown size={12} />
+            </button>
+
+            {isOpen && (
+                <div
+                    className="canvas-context-menu"
+                    style={{
+                        position: 'absolute',
+                        right: 0,
+                        top: '100%',
+                        marginTop: '4px',
+                        minWidth: '140px',
+                        zIndex: 100
+                    }}
+                >
+                    <div className="menu-item" onClick={(e) => { onCreate('EMPTY'); setIsOpen(false); }}>
+                        Empty Node
+                    </div>
+                    <div className="menu-item" onClick={(e) => { onCreate('TRIGGER'); setIsOpen(false); }}>
+                        Trigger Node
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
 
 export const StageOverview: React.FC<StageOverviewProps> = ({ stageId }) => {
     const { project, ui } = useEditorState();
@@ -75,18 +154,20 @@ export const StageOverview: React.FC<StageOverviewProps> = ({ stageId }) => {
     }, [stageId, dispatch]);
 
     /** 创建 PuzzleNode */
-    const handleCreateNode = useCallback((e: React.MouseEvent) => {
-        e.stopPropagation();
+    const handleCreateNode = useCallback((e: React.MouseEvent | null, type: 'EMPTY' | 'TRIGGER' = 'EMPTY') => {
+        e?.stopPropagation();
 
         // 获取最大 displayOrder
         const maxOrder = getMaxDisplayOrder(project.nodes, stageId as StageId);
 
-        // 创建新节点和状态机
-        const { node, stateMachine } = createNodeWithStateMachine(
-            stageId as StageId,
-            'New Node',
-            maxOrder + 1
-        );
+        let result;
+        if (type === 'TRIGGER') {
+            result = createTriggerNodeWithStateMachine(stageId as StageId, 'New Trigger Node', maxOrder + 1);
+        } else {
+            result = createNodeWithStateMachine(stageId as StageId, 'New Empty Node', maxOrder + 1);
+        }
+
+        const { node, stateMachine } = result;
 
         dispatch({
             type: 'ADD_PUZZLE_NODE',
@@ -161,9 +242,11 @@ export const StageOverview: React.FC<StageOverviewProps> = ({ stageId }) => {
             style={{
                 display: 'inline-flex',
                 alignItems: 'center',
+                justifyContent: 'center',
                 gap: '4px',
                 padding: '4px 10px',
                 fontSize: '11px',
+                minWidth: '120px',
                 fontWeight: 500,
                 color: 'var(--accent-color)',
                 background: 'transparent',
@@ -250,7 +333,7 @@ export const StageOverview: React.FC<StageOverviewProps> = ({ stageId }) => {
                     <h3 style={{ fontSize: '12px', color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.5px', margin: 0 }}>
                         Puzzle Nodes ({nodes.length})
                     </h3>
-                    {renderCreateButton('Create Node', handleCreateNode)}
+                    <NodeCreationMenu onCreate={(type) => handleCreateNode(null as any, type)} />
                 </div>
                 {nodes.length > 0 ? (
                     <div style={{

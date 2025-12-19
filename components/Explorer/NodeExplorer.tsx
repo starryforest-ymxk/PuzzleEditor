@@ -8,8 +8,9 @@ import { useEditorState, useEditorDispatch } from '../../store/context';
 import { PuzzleNode } from '../../types/puzzleNode';
 import { FileCode, FilePlus, Edit3, Trash2 } from 'lucide-react';
 import { ConfirmDialog } from '../Inspector/ConfirmDialog';
-import { createNodeWithStateMachine, getMaxDisplayOrder } from '../../utils/puzzleNodeUtils';
+import { createNodeWithStateMachine, createTriggerNodeWithStateMachine, getMaxDisplayOrder } from '../../utils/puzzleNodeUtils';
 import { StageId, PuzzleNodeId } from '../../types/common';
+import { ChevronRight } from 'lucide-react';
 
 /** 上下文菜单状态 */
 interface ContextMenuState {
@@ -38,6 +39,7 @@ export const NodeExplorer: React.FC = () => {
     const [dragNodeId, setDragNodeId] = useState<string | null>(null);
     const [dropTargetId, setDropTargetId] = useState<string | null>(null);
     const [dropPosition, setDropPosition] = useState<'before' | 'after' | null>(null);
+    const [showCreateSubmenu, setShowCreateSubmenu] = useState(false);
 
     const editInputRef = useRef<HTMLInputElement>(null);
     const currentStageId = ui.currentStageId;
@@ -101,10 +103,18 @@ export const NodeExplorer: React.FC = () => {
     }, [currentStageId]);
 
     // ========== 事件：创建 ==========
-    const handleCreateNode = useCallback(() => {
+    const handleCreateNode = useCallback((type: 'EMPTY' | 'TRIGGER' = 'EMPTY') => {
         if (!contextMenu || !currentStageId) return;
         const maxOrder = getMaxDisplayOrder(project.nodes, currentStageId as StageId);
-        const { node, stateMachine } = createNodeWithStateMachine(currentStageId as StageId, 'New Node', maxOrder + 1);
+
+        let result;
+        if (type === 'TRIGGER') {
+            result = createTriggerNodeWithStateMachine(currentStageId as StageId, 'New Trigger Node', maxOrder + 1);
+        } else {
+            result = createNodeWithStateMachine(currentStageId as StageId, 'New Empty Node', maxOrder + 1);
+        }
+
+        const { node, stateMachine } = result;
 
         dispatch({ type: 'ADD_PUZZLE_NODE', payload: { stageId: currentStageId as StageId, node, stateMachine } });
         // 仅选中节点以便 Inspector 展示，不切换到状态机画布
@@ -326,9 +336,36 @@ export const NodeExplorer: React.FC = () => {
                     onMouseDown={(e) => e.stopPropagation()}
                 >
                     {contextMenu.nodeId === null ? (
-                        <div className="menu-item" onClick={handleCreateNode}>
-                            <FilePlus size={14} style={{ marginRight: '8px' }} />
-                            Create Node
+                        <div
+                            className="menu-item"
+                            onMouseEnter={() => setShowCreateSubmenu(true)}
+                            onMouseLeave={() => setShowCreateSubmenu(false)}
+                            style={{ position: 'relative', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                        >
+                            <div style={{ display: 'flex', alignItems: 'center' }}>
+                                <FilePlus size={14} style={{ marginRight: '8px' }} />
+                                Create Node
+                            </div>
+                            <ChevronRight size={12} />
+
+                            {showCreateSubmenu && (
+                                <div
+                                    className="canvas-context-menu"
+                                    style={{
+                                        position: 'absolute',
+                                        left: '100%',
+                                        top: 0,
+                                        minWidth: '140px'
+                                    }}
+                                >
+                                    <div className="menu-item" onClick={(e) => { e.stopPropagation(); handleCreateNode('EMPTY'); }}>
+                                        Empty Node
+                                    </div>
+                                    <div className="menu-item" onClick={(e) => { e.stopPropagation(); handleCreateNode('TRIGGER'); }}>
+                                        Trigger Node
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     ) : (
                         <>
