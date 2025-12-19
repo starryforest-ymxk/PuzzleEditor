@@ -27,6 +27,8 @@ function createWindow(): void {
         height: 900,
         minWidth: 1024,
         minHeight: 768,
+        // 窗口图标（左上角）
+        icon: path.join(__dirname, '../public/icon.png'),
         webPreferences: {
             // 预加载脚本路径
             preload: path.join(__dirname, 'preload.js'),
