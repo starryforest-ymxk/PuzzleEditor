@@ -144,7 +144,7 @@ export const Header = () => {
         <span style={{ fontSize: '20px', marginRight: '10px' }}>⚙</span>
         <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1 }}>
           <span style={{ fontWeight: 700, letterSpacing: '0.5px', color: 'var(--text-primary)' }}>PUZZLE EDITOR</span>
-          <span style={{ fontSize: '9px', color: 'var(--text-secondary)', marginTop: '2px' }}>CORE SYSTEMS // P4</span>
+          <span style={{ fontSize: '9px', color: 'var(--text-secondary)', marginTop: '2px' }}>v1.0 alpha</span>
         </div>
       </div>
 
