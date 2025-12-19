@@ -2,7 +2,7 @@
  * Electron 主进程入口文件
  * 负责创建窗口、注册 IPC 处理器和应用生命周期管理
  */
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, BrowserWindow, ipcMain, Menu, nativeTheme } from 'electron';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
 import { registerIpcHandlers } from './ipc/handlers.js';
@@ -33,7 +33,7 @@ function createWindow() {
         // 窗口样式
         frame: true,
         titleBarStyle: 'default',
-        backgroundColor: '#1a1a2e',
+        backgroundColor: '#474747ff',
         // 显示设置
         show: false,
     });
@@ -61,6 +61,10 @@ function createWindow() {
  * 应用初始化
  */
 async function initialize() {
+    // 强制使用暗色主题，不受系统主题影响
+    nativeTheme.themeSource = 'dark';
+    // 隐藏默认菜单栏
+    Menu.setApplicationMenu(null);
     // 注册 IPC 处理器
     registerIpcHandlers(ipcMain);
     // 创建主窗口
