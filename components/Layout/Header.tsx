@@ -141,7 +141,7 @@ export const Header = () => {
 
       {/* 1. 品牌标识 */}
       <div style={{ display: 'flex', alignItems: 'center', color: 'var(--accent-color)', minWidth: '200px' }}>
-        <img src="/icon.png" alt="Puzzle Editor" style={{ width: '24px', height: '24px', marginRight: '10px' }} />
+        <img src="./icon.png" alt="Puzzle Editor" style={{ width: '24px', height: '24px', marginRight: '10px' }} />
         <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1 }}>
           <span style={{ fontWeight: 700, letterSpacing: '0.5px', color: 'var(--text-primary)' }}>PUZZLE EDITOR</span>
           <span style={{ fontSize: '9px', color: 'var(--text-secondary)', marginTop: '2px' }}>v1.0.0-alpha</span>
