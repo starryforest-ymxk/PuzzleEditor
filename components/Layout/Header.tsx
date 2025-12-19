@@ -27,7 +27,7 @@ export const Header = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // 使用项目操作 hook
-  const { saveProject, saveProjectSettings, exportProject, loadProjectFromString, pushMessage } = useProjectActions();
+  const { saveProject, saveProjectSettings, createAndSaveProject, exportProject, loadProjectFromString, pushMessage } = useProjectActions();
 
   // UI 状态
   const [showMessages, setShowMessages] = useState(false);
@@ -87,35 +87,9 @@ export const Header = () => {
 
   // ========== 弹窗回调 ==========
   const dialogCallbacks: HeaderDialogCallbacks = useMemo(() => ({
-    onCreateProject: (name: string, description: string, location: string) => {
-      const newProject = createEmptyProject(name, description);
-
-      dispatch({
-        type: 'INIT_SUCCESS',
-        payload: {
-          stageTree: newProject.stageTree,
-          nodes: newProject.nodes,
-          stateMachines: newProject.stateMachines,
-          presentationGraphs: newProject.presentationGraphs,
-          blackboard: newProject.blackboard,
-          meta: newProject.meta,
-          scripts: newProject.scripts,
-          triggers: newProject.triggers
-        }
-      });
-
-      if (newProject.stageTree.rootId) {
-        dispatch({
-          type: 'NAVIGATE_TO',
-          payload: { stageId: newProject.stageTree.rootId, nodeId: null, graphId: null }
-        });
-        dispatch({
-          type: 'SELECT_OBJECT',
-          payload: { type: 'STAGE', id: newProject.stageTree.rootId }
-        });
-      }
-
-      pushMessage('info', `New project "${name}" created`);
+    onCreateProject: async (name: string, description: string, location: string) => {
+      // 使用 saveProjectAndCreate 立即创建并保存文件
+      await createAndSaveProject(name, description, location);
       setDialog({ type: 'none' });
     },
 
@@ -155,7 +129,7 @@ export const Header = () => {
   }), [dispatch, pushMessage, exportProject, doLoadFile, dialog, saveProject]);
 
   return (
-    <div className="app-header" style={{ position: 'relative' }}>
+    <div className="app-header" style={{ position: 'relative', zIndex: 50 }}>
       {/* 隐藏的文件输入 */}
       <input
         ref={fileInputRef}

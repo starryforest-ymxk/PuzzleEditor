@@ -10,6 +10,7 @@ import { Breadcrumb } from './Breadcrumb';
 import { GlobalKeyboardShortcuts } from './GlobalKeyboardShortcuts';
 import { useEditorDispatch, useEditorState } from '../../store/context';
 import { BlackboardPanel } from '../Blackboard/BlackboardPanel';
+import { useAppStartup } from '../../hooks/useAppStartup';
 
 // Constraints for panel sizes
 const MIN_SIDEBAR_WIDTH = 180;
@@ -19,6 +20,10 @@ const MAX_STAGES_HEIGHT = 80;
 
 export const MainLayout = () => {
   const dispatch = useEditorDispatch();
+
+  // Handle application startup logic
+  useAppStartup();
+
   const { ui } = useEditorState();
   const { panelSizes } = ui;
   const READ_ONLY = ui.readOnly;

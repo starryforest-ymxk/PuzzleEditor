@@ -43,11 +43,17 @@ export const ProjectMenu: React.FC<ProjectMenuProps> = ({
     currentProjectPath,
     disabled = false
 }) => {
-    const [isOpen, setIsOpen] = useState(false);
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [recentProjects, setRecentProjects] = useState<RecentProject[]>([]);
     const [showRecentSubmenu, setShowRecentSubmenu] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // 错误弹窗状态
+    const [showErrorDialog, setShowErrorDialog] = useState(false);
+    const [errorProject, setErrorProject] = useState<RecentProject | null>(null);
+
+    // console.log('DEBUG: ProjectMenu render', { isOpen });
 
     // 加载最近项目列表
     useEffect(() => {
@@ -59,29 +65,29 @@ export const ProjectMenu: React.FC<ProjectMenuProps> = ({
             }
         };
 
-        if (isOpen) {
+        if (isMenuOpen) {
             loadRecent();
         }
-    }, [isOpen]);
+    }, [isMenuOpen]);
 
     // 点击外部关闭菜单
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
             if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-                setIsOpen(false);
+                setIsMenuOpen(false);
                 setShowRecentSubmenu(false);
             }
         };
 
-        if (isOpen) {
+        if (isMenuOpen) {
             document.addEventListener('mousedown', handleClickOutside);
         }
         return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, [isOpen]);
+    }, [isMenuOpen]);
 
     // 打开项目（Electron 或浏览器）
     const handleOpenProject = async () => {
-        setIsOpen(false);
+        setIsMenuOpen(false);
 
         if (isElectron()) {
             // Electron 环境：使用原生对话框
@@ -123,21 +129,35 @@ export const ProjectMenu: React.FC<ProjectMenuProps> = ({
 
     // 打开最近项目
     const handleOpenRecentProject = async (project: RecentProject) => {
-        setIsOpen(false);
-        setShowRecentSubmenu(false);
-
+        // 先尝试读取文件
         const readResult = await readProject(project.path);
+
         if (readResult.success && readResult.data) {
+            // 读取成功：正常打开
+            setIsMenuOpen(false);
+            setShowRecentSubmenu(false);
             await updateRecentProject(project.path, project.name);
             onLoadProject(project.path, readResult.data);
         } else {
-            // 文件不存在，从列表移除
-            await removeRecentProject(project.path);
-            setRecentProjects(prev => prev.filter(p => p.path !== project.path));
+            // 读取失败：显示错误弹窗，不自动移除
+            setIsMenuOpen(false);
+            setShowRecentSubmenu(false);
+            setErrorProject(project);
+            setShowErrorDialog(true);
         }
     };
 
-    // 从最近项目移除
+    // 确认移除项目（从错误弹窗调用）
+    const handleConfirmRemove = async () => {
+        if (errorProject) {
+            await removeRecentProject(errorProject.path);
+            setRecentProjects(prev => prev.filter(p => p.path !== errorProject.path));
+            setErrorProject(null);
+        }
+        setShowErrorDialog(false);
+    };
+
+    // 从最近项目移除（手动点垃圾桶）
     const handleRemoveRecent = async (e: React.MouseEvent, path: string) => {
         e.stopPropagation();
         await removeRecentProject(path);
@@ -202,7 +222,7 @@ export const ProjectMenu: React.FC<ProjectMenuProps> = ({
             {/* 菜单触发按钮 */}
             <button
                 className="btn-ghost"
-                onClick={() => setIsOpen(!isOpen)}
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
                 disabled={disabled}
                 style={{
                     display: 'flex',
@@ -212,11 +232,11 @@ export const ProjectMenu: React.FC<ProjectMenuProps> = ({
                 }}
             >
                 Project
-                <ChevronDown size={14} style={{ transform: isOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+                <ChevronDown size={14} style={{ transform: isMenuOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
             </button>
 
             {/* 下拉菜单 */}
-            {isOpen && (
+            {isMenuOpen && (
                 <div style={{
                     position: 'absolute',
                     top: '100%',
@@ -235,7 +255,7 @@ export const ProjectMenu: React.FC<ProjectMenuProps> = ({
                         style={menuItemStyle}
                         onMouseEnter={(e) => Object.assign(e.currentTarget.style, menuItemHoverStyle)}
                         onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-                        onClick={() => { setIsOpen(false); onNewProject(); }}
+                        onClick={() => { setIsMenuOpen(false); onNewProject(); }}
                     >
                         <Plus size={16} style={{ color: menuColors.accent }} />
                         New Project
@@ -376,7 +396,7 @@ export const ProjectMenu: React.FC<ProjectMenuProps> = ({
                         }}
                         onMouseEnter={(e) => isProjectLoaded && Object.assign(e.currentTarget.style, menuItemHoverStyle)}
                         onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-                        onClick={() => { if (isProjectLoaded) { setIsOpen(false); onSave(); } }}
+                        onClick={() => { if (isProjectLoaded) { setIsMenuOpen(false); onSave(); } }}
                         disabled={!isProjectLoaded}
                     >
                         <Save size={16} style={{ color: menuColors.accent }} />
@@ -394,7 +414,7 @@ export const ProjectMenu: React.FC<ProjectMenuProps> = ({
                             }}
                             onMouseEnter={(e) => currentProjectPath && Object.assign(e.currentTarget.style, menuItemHoverStyle)}
                             onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-                            onClick={() => { if (currentProjectPath) { setIsOpen(false); showInExplorer(currentProjectPath); } }}
+                            onClick={() => { if (currentProjectPath) { setIsMenuOpen(false); showInExplorer(currentProjectPath); } }}
                             disabled={!currentProjectPath}
                         >
                             <ExternalLink size={16} style={{ color: menuColors.muted }} />
@@ -411,7 +431,7 @@ export const ProjectMenu: React.FC<ProjectMenuProps> = ({
                         }}
                         onMouseEnter={(e) => isProjectLoaded && Object.assign(e.currentTarget.style, menuItemHoverStyle)}
                         onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-                        onClick={() => { if (isProjectLoaded) { setIsOpen(false); onEditMetadata(); } }}
+                        onClick={() => { if (isProjectLoaded) { setIsMenuOpen(false); onEditMetadata(); } }}
                         disabled={!isProjectLoaded}
                     >
                         <Settings size={16} style={{ color: menuColors.muted }} />
@@ -430,15 +450,81 @@ export const ProjectMenu: React.FC<ProjectMenuProps> = ({
                         }}
                         onMouseEnter={(e) => isProjectLoaded && Object.assign(e.currentTarget.style, menuItemHoverStyle)}
                         onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-                        onClick={() => { if (isProjectLoaded) { setIsOpen(false); onExport(); } }}
+                        onClick={() => { if (isProjectLoaded) { setIsMenuOpen(false); onExport(); } }}
                         disabled={!isProjectLoaded}
                     >
                         <FileOutput size={16} style={{ color: menuColors.accent }} />
                         Export
                     </button>
                 </div>
-            )
-            }
+            )}
+
+            {/* 错误提示弹窗 */}
+            {showErrorDialog && errorProject && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0, left: 0, right: 0, bottom: 0,
+                    background: 'rgba(0,0,0,0.5)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 2000
+                }}>
+                    <div style={{
+                        width: '400px',
+                        background: menuColors.background,
+                        border: `1px solid ${menuColors.border}`,
+                        borderRadius: '6px',
+                        padding: '20px',
+                        boxShadow: '0 12px 32px rgba(0,0,0,0.45)',
+                    }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+                            <div style={{ color: menuColors.danger }}>
+                                <Trash2 size={24} />
+                            </div>
+                            <div style={{ fontSize: '16px', fontWeight: 600, color: menuColors.text }}>
+                                Project Not Found
+                            </div>
+                        </div>
+
+                        <div style={{ fontSize: '14px', color: menuColors.muted, marginBottom: '20px', lineHeight: 1.5 }}>
+                            The project file at <b>{errorProject.path}</b> could not be found. It may have been moved, renamed, or deleted.
+                            <br /><br />
+                            Do you want to remove it from the recent projects list?
+                        </div>
+
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                            <button
+                                onClick={() => setShowErrorDialog(false)}
+                                style={{
+                                    padding: '8px 16px',
+                                    borderRadius: '4px',
+                                    border: `1px solid ${menuColors.borderSecondary}`,
+                                    background: 'transparent',
+                                    color: menuColors.text,
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleConfirmRemove}
+                                style={{
+                                    padding: '8px 16px',
+                                    borderRadius: '4px',
+                                    border: 'none',
+                                    background: menuColors.danger,
+                                    color: '#fff',
+                                    fontWeight: 600,
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                Remove Project
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div >
     );
 };

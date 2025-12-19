@@ -16,6 +16,7 @@
 import { useCallback } from 'react';
 import { useEditorState, useEditorDispatch } from '../store/context';
 import { normalizeProjectForStore } from '../utils/projectNormalizer';
+import { createEmptyProject } from '../utils/projectFactory';
 import { ExportBundle, ProjectFile } from '../types/project';
 import { UiMessage } from '../store/types';
 import { isElectron, saveFileDialog, exportProject as electronExportProject, writeProject, readProject } from '@/src/electron/api';
@@ -33,9 +34,10 @@ export function useProjectActions() {
 
     // ========== 消息推送工具 ==========
     const pushMessage = useCallback((level: UiMessage['level'], text: string) => {
+        const id = `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
         dispatch({
             type: 'ADD_MESSAGE',
-            payload: { id: `msg-${Date.now()}`, level, text, timestamp: new Date().toISOString() }
+            payload: { id, level, text, timestamp: new Date().toISOString() }
         });
     }, [dispatch]);
 
@@ -232,6 +234,103 @@ export function useProjectActions() {
         }
     }, [project, runtime.currentProjectPath, dispatch, pushMessage]);
 
+    // ========== 创建并保存新项目 ==========
+    /**
+     * 创建新项目并立即保存到磁盘
+     * @param name 项目名称
+     * @param description 项目描述
+     * @param location 项目存放目录
+     */
+    const createAndSaveProject = useCallback(async (name: string, description: string, location: string) => {
+        // 1. 创建内存中的项目对象
+        const newProject = createEmptyProject(name, description);
+
+        // 2. Electron 环境：立即写入文件
+        let projectPath = '';
+        if (isElectron() && location) {
+            // 注意：简单的路径拼接，实际环境可能需要处理路径分隔符
+            // 假设 location 是目录路径
+            const separator = location.includes('\\') ? '\\' : '/';
+            const fileName = `${name}.puzzle.json`;
+            projectPath = location.endsWith(separator) ? location + fileName : location + separator + fileName;
+
+            // 构建完整项目文件
+            const projectFile: ProjectFile = {
+                fileType: 'puzzle-project',
+                editorVersion: EDITOR_VERSION,
+                savedAt: new Date().toISOString(),
+                project: {
+                    meta: newProject.meta,
+                    blackboard: newProject.blackboard,
+                    scripts: newProject.scripts,
+                    triggers: newProject.triggers,
+                    stageTree: newProject.stageTree,
+                    nodes: newProject.nodes,
+                    stateMachines: newProject.stateMachines,
+                    presentationGraphs: newProject.presentationGraphs
+                },
+                editorState: {
+                    // 默认编辑器状态
+                    panelSizes: { explorerWidth: 280, inspectorWidth: 300, stagesHeight: 200 },
+                    stageExpanded: {},
+                    currentStageId: newProject.stageTree.rootId || null,
+                    currentNodeId: null,
+                    currentGraphId: null,
+                    view: 'EDITOR'
+                }
+            };
+
+            const jsonStr = JSON.stringify(projectFile, null, 2);
+
+            // 写入文件
+            const result = await writeProject(projectPath, jsonStr);
+            if (result.success) {
+                pushMessage('info', `Project created at ${projectPath}`);
+            } else {
+                pushMessage('error', `Failed to create project file: ${result.error}`);
+                // 如果写入失败，仍继续在内存中加载，但提示错误
+            }
+        }
+
+        // 3. 加载到 Store
+        dispatch({
+            type: 'INIT_SUCCESS',
+            payload: {
+                stageTree: newProject.stageTree,
+                nodes: newProject.nodes,
+                stateMachines: newProject.stateMachines,
+                presentationGraphs: newProject.presentationGraphs,
+                blackboard: newProject.blackboard,
+                meta: newProject.meta,
+                scripts: newProject.scripts,
+                triggers: newProject.triggers
+            }
+        });
+
+        // 4. 设置当前项目路径
+        if (projectPath) {
+            dispatch({ type: 'SET_PROJECT_PATH', payload: projectPath });
+        }
+
+        // 5. 初始导航
+        if (newProject.stageTree.rootId) {
+            dispatch({
+                type: 'NAVIGATE_TO',
+                payload: { stageId: newProject.stageTree.rootId, nodeId: null, graphId: null }
+            });
+            dispatch({
+                type: 'SELECT_OBJECT',
+                payload: { type: 'STAGE', id: newProject.stageTree.rootId }
+            });
+        }
+
+        // 6. 标记为 clean（因为刚保存）
+        if (projectPath) {
+            dispatch({ type: 'MARK_CLEAN' });
+        }
+
+    }, [dispatch, pushMessage]);
+
     // ========== 加载项目（从字符串解析）==========
     /**
      * 从 JSON 字符串解析并加载项目
@@ -281,7 +380,7 @@ export function useProjectActions() {
                         payload: { stageId: es.currentStageId, nodeId: es.currentNodeId, graphId: es.currentGraphId }
                     });
                 }
-                pushMessage('info', `Project "${normalized.project.meta.name}" restored with editor state`);
+                pushMessage('info', `Project "${normalized.project.meta.name}" restored.`);
             } else {
                 // 普通加载，跳转到根 Stage
                 pushMessage('info', `Project "${normalized.project.meta.name}" loaded successfully`);
@@ -307,6 +406,7 @@ export function useProjectActions() {
     return {
         saveProject,
         saveProjectSettings,
+        createAndSaveProject,
         exportProject: exportProjectData,
         loadProjectFromString,
         pushMessage
