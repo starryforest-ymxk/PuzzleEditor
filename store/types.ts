@@ -105,6 +105,8 @@ export interface EditorState {
       inspectorWidth: number;  // Right sidebar width
       stagesHeight: number;    // Stages section height percentage (0-100)
     };
+    // 脏状态：标记是否有未保存的更改
+    isDirty: boolean;
   };
 }
 
@@ -156,7 +158,8 @@ export const INITIAL_STATE: EditorState = {
       explorerWidth: 280,
       inspectorWidth: 320,
       stagesHeight: 55
-    }
+    },
+    isDirty: false
   }
 };
 
@@ -229,4 +232,8 @@ export type Action =
   | { type: 'SET_STAGE_EXPANDED'; payload: { id: string; expanded: boolean } }
   | { type: 'ADD_MESSAGE'; payload: UiMessage }
   | { type: 'CLEAR_MESSAGES' }
-  | { type: 'SET_PANEL_SIZES'; payload: Partial<{ explorerWidth: number; inspectorWidth: number; stagesHeight: number }> };
+  | { type: 'SET_PANEL_SIZES'; payload: Partial<{ explorerWidth: number; inspectorWidth: number; stagesHeight: number }> }
+  // Project Meta Actions (P4-T06)
+  | { type: 'UPDATE_PROJECT_META'; payload: Partial<ProjectMeta> }
+  | { type: 'RESET_PROJECT' }
+  | { type: 'MARK_CLEAN' };

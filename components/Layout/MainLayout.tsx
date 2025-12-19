@@ -7,6 +7,7 @@ import { NodeExplorer } from '../Explorer/NodeExplorer';
 import { Inspector } from '../Inspector/Inspector';
 import { Canvas } from '../Canvas/Canvas';
 import { Breadcrumb } from './Breadcrumb';
+import { GlobalKeyboardShortcuts } from './GlobalKeyboardShortcuts';
 import { useEditorDispatch, useEditorState } from '../../store/context';
 import { BlackboardPanel } from '../Blackboard/BlackboardPanel';
 
@@ -22,24 +23,10 @@ export const MainLayout = () => {
   const { panelSizes } = ui;
   const READ_ONLY = ui.readOnly;
 
-  // Global Keyboard Shortcuts
+  // 全局快捷键由 GlobalKeyboardShortcuts 组件统一管理
+  // ESC 清除多选状态
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Check for modifier key (Ctrl on Windows/Linux, Cmd on Mac)
-      const isModifier = e.ctrlKey || e.metaKey;
-
-      if (isModifier && e.key.toLowerCase() === 'z') {
-        e.preventDefault();
-        if (READ_ONLY) return;
-        if (e.shiftKey) dispatch({ type: 'REDO' });
-        else dispatch({ type: 'UNDO' });
-      } else if (isModifier && e.key.toLowerCase() === 'y') {
-        e.preventDefault();
-        if (READ_ONLY) return;
-        dispatch({ type: 'REDO' });
-      }
-
-      // ESC to clear multi-select
       if (e.key === 'Escape') {
         dispatch({ type: 'SET_MULTI_SELECT_STATES', payload: [] });
       }
@@ -140,6 +127,7 @@ export const MainLayout = () => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <GlobalKeyboardShortcuts />
       <Header />
 
       <div className="app-body">

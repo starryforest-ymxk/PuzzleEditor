@@ -23,3 +23,6 @@ export { uiReducer, isUiAction, type UiAction } from './uiSlice';
 
 // Project 切片 - Stage 树、Node 更新
 export { projectReducer, isProjectAction, type ProjectAction } from './projectSlice';
+
+// Project Meta 切片 - 项目元信息 (P4-T06)
+export { projectMetaReducer, isProjectMetaAction, type ProjectMetaAction } from './projectMetaSlice';

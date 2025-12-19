@@ -11,25 +11,41 @@ import {
     blackboardReducer, isBlackboardAction,
     navigationReducer, isNavigationAction,
     uiReducer, isUiAction,
-    projectReducer, isProjectAction
+    projectReducer, isProjectAction,
+    projectMetaReducer, isProjectMetaAction
 } from './slices';
 
 // ========== 常量配置 ==========
 const MAX_HISTORY_LENGTH = 50;
 
-// 触发历史快照的 Actions
+// 触发历史快照的 Actions（同时也会设置 isDirty = true）
 const HISTORY_ACTIONS = new Set([
     'UPDATE_STAGE_TREE',
     'UPDATE_NODE',
+    // Blackboard 资源管理
+    'ADD_GLOBAL_VARIABLE', 'UPDATE_GLOBAL_VARIABLE',
     'SOFT_DELETE_GLOBAL_VARIABLE', 'APPLY_DELETE_GLOBAL_VARIABLE',
+    'ADD_EVENT', 'UPDATE_EVENT',
     'SOFT_DELETE_EVENT', 'APPLY_DELETE_EVENT',
+    'ADD_SCRIPT', 'UPDATE_SCRIPT',
     'SOFT_DELETE_SCRIPT', 'APPLY_DELETE_SCRIPT',
+    // Stage 局部变量
+    'ADD_STAGE_VARIABLE', 'UPDATE_STAGE_VARIABLE', 'DELETE_STAGE_VARIABLE',
     'SOFT_DELETE_STAGE_VARIABLE', 'APPLY_DELETE_STAGE_VARIABLE',
+    // Stage CRUD (P4-T02)
+    'ADD_STAGE', 'DELETE_STAGE', 'UPDATE_STAGE', 'REORDER_STAGE', 'MOVE_STAGE',
+    // PuzzleNode CRUD (P4-T03)
+    'ADD_PUZZLE_NODE', 'DELETE_PUZZLE_NODE', 'REORDER_PUZZLE_NODES',
+    // FSM 状态与转移
     'ADD_STATE', 'DELETE_STATE', 'UPDATE_STATE', 'UPDATE_FSM',
     'ADD_TRANSITION', 'DELETE_TRANSITION', 'UPDATE_TRANSITION',
+    // Presentation 图
     'ADD_PRESENTATION_NODE', 'DELETE_PRESENTATION_NODE', 'UPDATE_PRESENTATION_NODE',
     'LINK_PRESENTATION_NODES', 'UNLINK_PRESENTATION_NODES',
-    'ADD_NODE_PARAM', 'UPDATE_NODE_PARAM', 'DELETE_NODE_PARAM'
+    // Node 局部变量
+    'ADD_NODE_PARAM', 'UPDATE_NODE_PARAM', 'DELETE_NODE_PARAM',
+    // 项目元信息
+    'UPDATE_PROJECT_META'
 ]);
 
 // 只读模式下阻断的数据修改 Actions
@@ -86,6 +102,10 @@ const internalReducer = (state: EditorState, action: Action): EditorState => {
 
     if (isProjectAction(action)) {
         return projectReducer(state, action);
+    }
+
+    if (isProjectMetaAction(action)) {
+        return projectMetaReducer(state, action);
     }
 
     // 处理初始化相关 Actions（不适合放入 Slice）
@@ -194,13 +214,18 @@ export const editorReducer = (state: EditorState, action: Action): EditorState =
         const snapshot = getProjectSnapshot(state);
         const newState = internalReducer(state, action);
 
-        // 只有状态真正改变时才记录历史
+        // 只有状态真正改变时才记录历史并标记为脏状态
         if (newState !== state) {
             return {
                 ...newState,
                 history: {
                     past: [...state.history.past, snapshot].slice(-MAX_HISTORY_LENGTH),
                     future: [] // 新操作清空重做栈
+                },
+                // P4-T06: 数据修改自动标记为未保存状态
+                ui: {
+                    ...newState.ui,
+                    isDirty: true
                 }
             };
         }

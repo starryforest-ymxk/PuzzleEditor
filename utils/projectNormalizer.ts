@@ -2,9 +2,14 @@
  * 项目数据归一化工具（P2-T01）
  * - 接收 API 返回的 ProjectData 或 ExportManifest，填充默认值并兼容旧字段
  * - 输出可直接写入 Store 的数据与脚本/触发器清单
+ * 
+ * 支持的文件格式：
+ * - ProjectFile (.puzzle.json): 完整项目文件，包含编辑器状态
+ * - ExportBundle (.json): 精简运行时数据
+ * - ExportManifest (旧版): 兼容旧版导出格式
  */
 import { ManifestData } from '../api/types';
-import { ExportManifest, ProjectData } from '../types/project';
+import { ExportManifest, ProjectData, ProjectFile, ExportBundle, EditorUIState } from '../types/project';
 import { StageNode, StageTreeData } from '../types/stage';
 import { PuzzleNode } from '../types/puzzleNode';
 import { StateMachine, State, Transition } from '../types/stateMachine';
@@ -17,14 +22,54 @@ export interface NormalizedProjectResult {
   project: ProjectData;
   scripts: ScriptsManifest['scripts'];
   triggers: TriggersManifest['triggers'] | undefined;
+  /** 编辑器 UI 状态（仅 ProjectFile 格式包含） */
+  editorState?: EditorUIState;
 }
 
 // ========= 顶层兼容解析 =========
-const extractProject = (payload: ProjectData | ExportManifest): ProjectData => {
-  if ((payload as ExportManifest).project) {
-    return (payload as ExportManifest).project;
+/**
+ * 从不同文件格式中提取 ProjectData
+ * 支持：ProjectFile, ExportBundle, ExportManifest（旧版）, 原始 ProjectData
+ */
+const extractProject = (payload: any): { project: ProjectData; editorState?: EditorUIState } => {
+  // ProjectFile 格式 (.puzzle.json)
+  if (payload.fileType === 'puzzle-project') {
+    const pf = payload as ProjectFile;
+    return {
+      project: pf.project,
+      editorState: pf.editorState
+    };
   }
-  return payload as ProjectData;
+
+  // ExportBundle 格式 (精简运行时数据)
+  if (payload.fileType === 'puzzle-export') {
+    const eb = payload as ExportBundle;
+    // 从 ExportBundle 重建 ProjectData（缺少 meta，需要构建）
+    return {
+      project: {
+        meta: {
+          id: `proj-imported-${Date.now()}`,
+          name: eb.projectName || 'Imported Project',
+          version: eb.projectVersion || '1.0.0',
+          createdAt: new Date().toISOString(),
+          updatedAt: eb.exportedAt
+        },
+        ...eb.data
+      }
+    };
+  }
+
+  // ExportManifest 旧版格式
+  if ((payload as ExportManifest).project) {
+    return {
+      project: (payload as ExportManifest).project
+    };
+  }
+
+  // 原始 ProjectData
+  return {
+    project: payload as ProjectData
+  };
 };
 
 // ========= 基础默认值 =========
@@ -136,10 +181,12 @@ const normalizePresentationGraphs = (graphs?: Record<string, PresentationGraph>)
 
 // ========= 主归一化入口 =========
 export const normalizeProjectForStore = (
-  raw: ProjectData | ExportManifest,
+  raw: any,  // 支持 ProjectFile, ExportBundle, ExportManifest, ProjectData
   manifest?: ManifestData
 ): NormalizedProjectResult => {
-  const project = extractProject(raw);
+  // 提取项目数据和可能的编辑器状态
+  const { project, editorState } = extractProject(raw);
+
   const normalized: ProjectData = {
     meta: normalizeMeta(project.meta),
     blackboard: normalizeBlackboard(project.blackboard),
@@ -167,6 +214,8 @@ export const normalizeProjectForStore = (
       triggers: { triggers: triggers ?? {} }
     },
     scripts,
-    triggers
+    triggers,
+    // 返回编辑器状态（仅 ProjectFile 格式包含）
+    editorState
   };
 };
