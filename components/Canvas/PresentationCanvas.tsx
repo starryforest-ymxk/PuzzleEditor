@@ -529,11 +529,6 @@ export const PresentationCanvas: React.FC<Props> = ({ graph, ownerNodeId, readOn
                         Graph: {binding.graphId}
                     </div>
                 )}
-                {!binding && presentationNode.scriptId && (
-                    <div style={{ marginTop: '2px', color: '#c586c0' }}>
-                        Script: {presentationNode.scriptId}
-                    </div>
-                )}
             </div>
         );
     };

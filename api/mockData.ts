@@ -755,10 +755,13 @@ export const MOCK_PRESENTATION_GRAPHS: Record<string, PresentationGraph> = {
         name: 'Alarm Wail',
         type: 'ScriptCall',
         position: { x: 80, y: 100 },
-        scriptId: 'script-log',
-        parameters: [
-          { paramName: 'message', source: { type: 'Constant', value: 'Evacuation protocol triggered.' } }
-        ],
+        presentation: {
+          type: 'Script',
+          scriptId: 'script-log',
+          parameters: [
+            { paramName: 'message', source: { type: 'Constant', value: 'Evacuation protocol triggered.' } }
+          ]
+        },
         nextIds: ['pnode-escape-02']
       },
       'pnode-escape-02': {
@@ -766,11 +769,14 @@ export const MOCK_PRESENTATION_GRAPHS: Record<string, PresentationGraph> = {
         name: 'Timer Overlay',
         type: 'ScriptCall',
         position: { x: 320, y: 100 },
-        scriptId: 'script-play-anim',
-        parameters: [
-          { paramName: 'target', source: { type: 'Constant', value: 'UI_Timer' } },
-          { paramName: 'animName', source: { type: 'Constant', value: 'Countdown' } }
-        ],
+        presentation: {
+          type: 'Script',
+          scriptId: 'script-play-anim',
+          parameters: [
+            { paramName: 'target', source: { type: 'Constant', value: 'UI_Timer' } },
+            { paramName: 'animName', source: { type: 'Constant', value: 'Countdown' } }
+          ]
+        },
         nextIds: ['pnode-escape-03']
       },
       'pnode-escape-03': {
@@ -778,10 +784,13 @@ export const MOCK_PRESENTATION_GRAPHS: Record<string, PresentationGraph> = {
         name: 'Roof Door Open',
         type: 'ScriptCall',
         position: { x: 560, y: 100 },
-        scriptId: 'script-dialogue',
-        parameters: [
-          { paramName: 'message', source: { type: 'Constant', value: 'Final door unlocked. Move!' } }
-        ],
+        presentation: {
+          type: 'Script',
+          scriptId: 'script-dialogue',
+          parameters: [
+            { paramName: 'message', source: { type: 'Constant', value: 'Final door unlocked. Move!' } }
+          ]
+        },
         nextIds: []
       }
     }

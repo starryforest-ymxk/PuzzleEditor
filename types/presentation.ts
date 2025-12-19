@@ -3,16 +3,7 @@
  * 演出子图类型定义 - PresentationGraph 结构
  */
 
-import {
-  Entity,
-  Vector2,
-  ParameterBinding,
-  PresentationGraphId,
-  PresentationNodeId,
-  ScriptId,
-  Side
-} from './common';
-import { PresentationBinding } from './common';
+import { Entity, Vector2, PresentationGraphId, PresentationNodeId, Side, PresentationBinding } from './common';
 
 // ========== 演出节点类型 ==========
 export type PresentationNodeType = 'ScriptCall' | 'Wait' | 'Branch' | 'Parallel';
@@ -26,11 +17,7 @@ export interface PresentationNode extends Entity {
   type: PresentationNodeType;
   position: Vector2;        // 画布坐标
 
-  // ScriptCall 类型：绑定脚本；兼容旧字段 scriptId/parameters
-  scriptId?: ScriptId;
-  parameters?: ParameterBinding[];
-
-  // 新的统一演出绑定结构（脚本或子图）
+  // 统一演出绑定结构（脚本或子图）
   presentation?: PresentationBinding;
 
   // Wait 类型：等待时间

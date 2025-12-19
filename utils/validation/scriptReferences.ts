@@ -210,13 +210,13 @@ export const findScriptReferences = (
         }
     });
 
-    // 4) 遍历所有演出图节点（scriptId 字段是演出脚本引用的主要位置）
+    // 4) 遍历所有演出图节点（严格模式：仅通过 node.presentation.type === 'Script' 引用脚本）
     Object.values(graphs).forEach(graph => {
         if (!graph) return;
         const graphName = graph.name || graph.id;
         Object.values(graph.nodes || {}).forEach(pNode => {
-            // 检查 ScriptCall 类型节点的 scriptId
-            if (pNode.scriptId === scriptId) {
+            // 检查 ScriptCall 类型节点的 Script 绑定
+            if (pNode.presentation?.type === 'Script' && pNode.presentation.scriptId === scriptId) {
                 const navContext: ReferenceNavigationContext = {
                     targetType: 'PRESENTATION_NODE',
                     graphId: graph.id,

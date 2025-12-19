@@ -77,8 +77,6 @@ export const PresentationNodeInspector = ({ graphId, nodeId, readOnly = false }:
             handleChange('type', 'Wait');
             handleChange('duration', node.duration ?? 1);
             handleChange('presentation', undefined);
-            handleChange('scriptId', undefined);
-            handleChange('parameters', undefined);
         } else if (nextType === 'ScriptCall') {
             handleChange('type', 'ScriptCall');
             handleChange('duration', undefined);
@@ -86,8 +84,6 @@ export const PresentationNodeInspector = ({ graphId, nodeId, readOnly = false }:
             handleChange('type', nextType);
             handleChange('duration', undefined);
             handleChange('presentation', undefined);
-            handleChange('scriptId', undefined);
-            handleChange('parameters', undefined);
         }
     };
 
@@ -217,15 +213,8 @@ export const PresentationNodeInspector = ({ graphId, nodeId, readOnly = false }:
                         <PresentationBindingEditor
                             binding={node.presentation}
                             onChange={(next) => {
-                                // 统一更新 presentation，并在脚本模式下同步旧字段，保证渲染与导出一致
+                                // 统一更新 presentation（单一数据源）
                                 handleChange('presentation', next);
-                                if (next?.type === 'Script') {
-                                    handleChange('scriptId', next.scriptId);
-                                    handleChange('parameters', next.parameters || []);
-                                } else {
-                                    handleChange('scriptId', undefined);
-                                    handleChange('parameters', undefined);
-                                }
                             }}
                             scriptDefs={scriptDefs}
                             scriptOptions={performanceScriptOptions}

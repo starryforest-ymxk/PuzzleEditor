@@ -120,7 +120,10 @@ const collectFromPresentationBinding = (
         graphId: binding.graphId,
         presentationNodeId: node.id
       };
-      collectFromBindings(node.parameters, variableId, collector, `${origin} > Subgraph node ${node.name || node.id}`, navContext);
+      const nodeBinding = node.presentation;
+      if (nodeBinding?.type === 'Script') {
+        collectFromBindings(nodeBinding.parameters, variableId, collector, `${origin} > Subgraph node ${node.name || node.id}`, navContext);
+      }
     });
   }
 };
@@ -194,7 +197,10 @@ export const findNodeVariableReferences = (
         graphId: graph.id,
         presentationNodeId: nodeItem.id
       };
-      collectFromBindings(nodeItem.parameters, variableId, push, `Presentation graph ${graph.name || graph.id} > Node ${nodeItem.name || nodeItem.id}`, navContext);
+      const nodeBinding = nodeItem.presentation;
+      if (nodeBinding?.type === 'Script') {
+        collectFromBindings(nodeBinding.parameters, variableId, push, `Presentation graph ${graph.name || graph.id} > Node ${nodeItem.name || nodeItem.id}`, navContext);
+      }
     });
   });
 

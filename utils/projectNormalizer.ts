@@ -115,8 +115,8 @@ const normalizePresentationNodes = (nodes?: Record<string, PresentationNode>): R
   const result: Record<string, PresentationNode> = {};
   Object.values(nodes ?? {}).forEach(n => {
     // 复用统一归一化逻辑：
-    // 1) 保证 nextIds/parameters/duration
-    // 2) 旧字段 scriptId/parameters -> 新字段 presentation 的迁移
+    // 1) 保证 nextIds/duration
+    // 2) 严格模式：仅保留 node.presentation（不再迁移/兼容旧字段）
     result[n.id] = normalizePresentationNode(n);
   });
   return result;

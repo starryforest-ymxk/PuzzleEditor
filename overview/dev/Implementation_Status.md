@@ -9,13 +9,6 @@
 ### 已完成阶段
 
 ? **Phase 1: 基础框架与数据浏览**（完成度: 100%）
-- 项目数据加载与展示
-- Stage 树浏览
-- 基础 Inspector 面板
-- 黑板全局资源浏览
-
-? **Phase 2: 导航与视图切换**（完成度: 100%）
-- 面包屑导航系统
 - 视图切换（Editor ? Blackboard）
 - Undo/Redo 历史管理
 - 多画布导航（FSM/Presentation）
