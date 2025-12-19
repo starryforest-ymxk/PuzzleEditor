@@ -5,123 +5,35 @@
  * 重构说明：
  * - 弹窗逻辑已抽离至 HeaderDialogManager
  * - 消息面板已抽离至 MessageStackPanel
- * - 保存 (Ctrl+S) → .puzzle.json（完整编辑状态）由 GlobalKeyboardShortcuts 处理
- * - 导出 (EXPORT) → .json（精简运行时数据）
+ * - 保存/导出/加载逻辑已抽离至 useProjectActions hook
+ * - Ctrl+S 保存由 GlobalKeyboardShortcuts 处理，复用相同的 hook
  */
 
 import React, { useRef, useState, useCallback, useMemo } from 'react';
-import { Settings } from 'lucide-react';
+import { Sliders } from 'lucide-react';
 import { useEditorState, useEditorDispatch } from '../../store/context';
-import { normalizeProjectForStore } from '../../utils/projectNormalizer';
 import { createEmptyProject } from '../../utils/projectFactory';
-import { ExportBundle, ProjectMeta, ProjectFile } from '../../types/project';
-import { UiMessage } from '../../store/types';
+import { ProjectMeta } from '../../types/project';
+import { useProjectActions } from '../../hooks/useProjectActions';
 
 // 抽离的子组件
 import { MessageStackPanel } from './MessageStackPanel';
 import { HeaderDialogManager, HeaderDialogState, HeaderDialogCallbacks } from './HeaderDialogManager';
-
-// 编辑器版本号
-const EDITOR_VERSION = '1.0.0';
+import { ProjectMenu } from './ProjectMenu';
 
 export const Header = () => {
-  const { project, ui } = useEditorState();
+  const { project, ui, runtime } = useEditorState();
   const dispatch = useEditorDispatch();
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // 使用项目操作 hook
+  const { saveProject, saveProjectSettings, exportProject, loadProjectFromString, pushMessage } = useProjectActions();
 
   // UI 状态
   const [showMessages, setShowMessages] = useState(false);
   const [dialog, setDialog] = useState<HeaderDialogState>({ type: 'none' });
 
-  // ========== 工具函数 ==========
-  const pushMessage = useCallback((level: UiMessage['level'], text: string) => {
-    dispatch({
-      type: 'ADD_MESSAGE',
-      payload: { id: `msg-${Date.now()}`, level, text, timestamp: new Date().toISOString() }
-    });
-  }, [dispatch]);
-
-  // ========== 保存功能（完整项目文件）==========
-  const handleSave = useCallback(() => {
-    if (!project.isLoaded) return;
-
-    const projectFile: ProjectFile = {
-      fileType: 'puzzle-project',
-      editorVersion: EDITOR_VERSION,
-      savedAt: new Date().toISOString(),
-      project: {
-        meta: project.meta,
-        blackboard: project.blackboard,
-        scripts: project.scripts,
-        triggers: project.triggers,
-        stageTree: project.stageTree,
-        nodes: project.nodes,
-        stateMachines: project.stateMachines,
-        presentationGraphs: project.presentationGraphs
-      },
-      editorState: {
-        panelSizes: ui.panelSizes,
-        stageExpanded: ui.stageExpanded,
-        currentStageId: ui.currentStageId,
-        currentNodeId: ui.currentNodeId,
-        currentGraphId: ui.currentGraphId,
-        view: ui.view
-      }
-    };
-
-    const jsonStr = JSON.stringify(projectFile, null, 2);
-    const blob = new Blob([jsonStr], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `${project.meta.name || 'project'}.puzzle.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-
-    dispatch({ type: 'MARK_CLEAN' });
-    pushMessage('info', 'Project saved successfully');
-  }, [project, ui, dispatch, pushMessage]);
-
-  // ========== 导出功能（精简运行时数据）==========
-  const handleExport = useCallback(() => {
-    if (!project.isLoaded) return;
-
-    // 精简导出：仅包含游戏引擎需要的运行时数据
-    const exportBundle: ExportBundle = {
-      fileType: 'puzzle-export',
-      manifestVersion: '1.0.0',
-      exportedAt: new Date().toISOString(),
-      projectName: project.meta.name,
-      projectVersion: project.meta.version,
-      data: {
-        blackboard: project.blackboard,
-        scripts: project.scripts,
-        triggers: project.triggers,
-        stageTree: project.stageTree,
-        nodes: project.nodes,
-        stateMachines: project.stateMachines,
-        presentationGraphs: project.presentationGraphs
-      }
-    };
-
-    const jsonStr = JSON.stringify(exportBundle, null, 2);
-    const blob = new Blob([jsonStr], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    // 导出文件使用 _export 后缀区分
-    link.download = `${project.meta.name || 'project'}_export.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-
-    pushMessage('info', 'Project exported for runtime');
-  }, [project, pushMessage]);
-
-  // ========== 加载功能 ==========
+  // ========== 文件加载触发 ==========
   const doLoadFile = useCallback(() => {
     fileInputRef.current?.click();
   }, []);
@@ -134,75 +46,24 @@ export const Header = () => {
     doLoadFile();
   }, [project.isLoaded, ui.isDirty, doLoadFile]);
 
+  // 浏览器文件选择处理
   const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    dispatch({ type: 'INIT_START' });
-
     const reader = new FileReader();
     reader.onload = (event) => {
-      try {
-        const content = event.target?.result as string;
-        const parsed = JSON.parse(content);
-        const normalized = normalizeProjectForStore(parsed as any);
-
-        dispatch({
-          type: 'INIT_SUCCESS',
-          payload: {
-            stageTree: normalized.project.stageTree,
-            nodes: normalized.project.nodes,
-            stateMachines: normalized.project.stateMachines,
-            presentationGraphs: normalized.project.presentationGraphs,
-            blackboard: normalized.project.blackboard,
-            meta: normalized.project.meta,
-            scripts: normalized.project.scripts,
-            triggers: normalized.project.triggers
-          }
-        });
-
-        // 如果是 ProjectFile 格式，恢复编辑器 UI 状态
-        if (normalized.editorState) {
-          const es = normalized.editorState;
-          dispatch({ type: 'SET_PANEL_SIZES', payload: es.panelSizes });
-          // 恢复阶段树展开状态
-          Object.entries(es.stageExpanded).forEach(([id, expanded]) => {
-            dispatch({ type: 'SET_STAGE_EXPANDED', payload: { id, expanded } });
-          });
-          // 恢复视图
-          dispatch({ type: 'SWITCH_VIEW', payload: es.view });
-          // 恢复导航位置
-          if (es.currentStageId) {
-            dispatch({
-              type: 'NAVIGATE_TO',
-              payload: { stageId: es.currentStageId, nodeId: es.currentNodeId, graphId: es.currentGraphId }
-            });
-          }
-          pushMessage('info', `Project "${normalized.project.meta.name}" restored with editor state`);
-        } else {
-          // 普通加载，跳转到根 Stage
-          pushMessage('info', `Project "${normalized.project.meta.name}" loaded successfully`);
-
-          if (normalized.project.stageTree.rootId) {
-            dispatch({
-              type: 'NAVIGATE_TO',
-              payload: { stageId: normalized.project.stageTree.rootId, nodeId: null, graphId: null }
-            });
-            dispatch({
-              type: 'SELECT_OBJECT',
-              payload: { type: 'STAGE', id: normalized.project.stageTree.rootId }
-            });
-          }
-        }
-      } catch (err) {
-        console.error('Failed to parse JSON:', err);
-        dispatch({ type: 'INIT_ERROR', payload: { message: 'JSON import failed' } });
-        pushMessage('error', 'Failed to load project: invalid JSON format');
-      }
+      const content = event.target?.result as string;
+      loadProjectFromString(content);
     };
     reader.readAsText(file);
     e.target.value = '';
-  }, [dispatch, pushMessage]);
+  }, [loadProjectFromString]);
+
+  // ========== Electron 项目加载回调 ==========
+  const handleElectronLoadProject = useCallback((filePath: string, content: string) => {
+    loadProjectFromString(content, filePath);
+  }, [loadProjectFromString]);
 
   // ========== 新建工程功能 ==========
   const handleNew = useCallback(() => {
@@ -219,9 +80,14 @@ export const Header = () => {
     setDialog({ type: 'settings' });
   }, [project.isLoaded]);
 
+  // ========== 偏好设置功能 ==========
+  const handlePreferences = useCallback(() => {
+    setDialog({ type: 'preferences' });
+  }, []);
+
   // ========== 弹窗回调 ==========
   const dialogCallbacks: HeaderDialogCallbacks = useMemo(() => ({
-    onCreateProject: (name: string, description: string) => {
+    onCreateProject: (name: string, description: string, location: string) => {
       const newProject = createEmptyProject(name, description);
 
       dispatch({
@@ -253,14 +119,14 @@ export const Header = () => {
       setDialog({ type: 'none' });
     },
 
-    onSaveSettings: (updates: Partial<ProjectMeta>) => {
-      dispatch({ type: 'UPDATE_PROJECT_META', payload: updates });
-      pushMessage('info', 'Project settings updated');
+    onSaveSettings: async (updates: Partial<ProjectMeta>) => {
+      // 使用专门的 saveProjectSettings 函数保存设置
+      await saveProjectSettings(updates);
       setDialog({ type: 'none' });
     },
 
     onConfirmSave: () => {
-      handleExport();
+      exportProject();
       const nextAction = (dialog as any).nextAction;
       setDialog({ type: 'none' });
 
@@ -286,7 +152,7 @@ export const Header = () => {
     },
 
     onClose: () => setDialog({ type: 'none' })
-  }), [dispatch, pushMessage, handleExport, doLoadFile, dialog]);
+  }), [dispatch, pushMessage, exportProject, doLoadFile, dialog, saveProject]);
 
   return (
     <div className="app-header" style={{ position: 'relative' }}>
@@ -313,7 +179,7 @@ export const Header = () => {
       {/* 2. 项目信息 */}
       {project.isLoaded && (
         <div style={{ display: 'flex', flexDirection: 'column', fontSize: '11px', minWidth: '150px' }}>
-          <div style={{ color: 'var(--text-secondary)', marginBottom: '2px' }}>PROJECT</div>
+          <div style={{ color: 'var(--text-secondary)', marginBottom: '2px' }}>Project</div>
           <div style={{ fontWeight: 600, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
             {project.meta.name}
             <span style={{ opacity: 0.5, fontWeight: 400 }}>v{project.meta.version}</span>
@@ -353,34 +219,32 @@ export const Header = () => {
 
       {/* 4. 全局操作按钮（右侧） */}
       <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-        <button className="btn-ghost" onClick={handleNew}>
-          NEW
-        </button>
-        <button className="btn-ghost" onClick={handleLoad}>
-          LOAD
-        </button>
+        {/* Project 下拉菜单 */}
+        <ProjectMenu
+          onNewProject={handleNew}
+          onLoadProject={handleElectronLoadProject}
+          onSave={saveProject}
+          onEditMetadata={handleSettings}
+          onExport={exportProject}
+          isProjectLoaded={project.isLoaded}
+          currentProjectPath={runtime.currentProjectPath}
+        />
+
+        {/* Preferences 按钮 */}
         <button
           className="btn-ghost"
-          onClick={handleSettings}
-          disabled={!project.isLoaded}
+          onClick={handlePreferences}
           style={{
             padding: '6px 8px',
             display: 'flex',
-            alignItems: 'center',
-            opacity: project.isLoaded ? 1 : 0.5
+            alignItems: 'center'
           }}
-          title="Project Settings"
+          title="Preferences"
         >
-          <Settings size={16} />
+          <Sliders size={16} />
         </button>
-        <button
-          className="btn-primary"
-          style={{ background: 'var(--accent-success)', boxShadow: '0 2px 0 #15803d' }}
-          onClick={handleExport}
-          disabled={!project.isLoaded}
-        >
-          EXPORT
-        </button>
+
+        {/* Messages 按钮 */}
         <button
           className={showMessages ? 'btn-primary' : 'btn-ghost'}
           onClick={() => setShowMessages(!showMessages)}

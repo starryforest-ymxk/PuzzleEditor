@@ -66,6 +66,12 @@ export interface EditorState {
     scripts: ScriptsManifest;
     triggers: TriggersManifest;
   };
+  // 运行时状态（Electron 相关）
+  runtime: {
+    currentProjectPath: string | null;  // 当前项目文件路径
+    isNewUnsavedProject: boolean;       // 是否为新建未保存项目
+    preferencesLoaded: boolean;         // 偏好设置是否已加载
+  };
   // 历史记录（Undo/Redo）
   history: {
     past: ProjectContent[];
@@ -122,6 +128,11 @@ export const INITIAL_STATE: EditorState = {
     blackboard: { globalVariables: {}, events: {} },
     scripts: { version: '', scripts: {} },
     triggers: { triggers: {} }
+  },
+  runtime: {
+    currentProjectPath: null,
+    isNewUnsavedProject: false,
+    preferencesLoaded: false
   },
   history: {
     past: [],
@@ -236,4 +247,8 @@ export type Action =
   // Project Meta Actions (P4-T06)
   | { type: 'UPDATE_PROJECT_META'; payload: Partial<ProjectMeta> }
   | { type: 'RESET_PROJECT' }
-  | { type: 'MARK_CLEAN' };
+  | { type: 'MARK_CLEAN' }
+  // Runtime Actions (P4-T06 Electron)
+  | { type: 'SET_PROJECT_PATH'; payload: string | null }
+  | { type: 'SET_NEW_UNSAVED_PROJECT'; payload: boolean }
+  | { type: 'SET_PREFERENCES_LOADED'; payload: boolean };

@@ -1,11 +1,13 @@
 /**
  * components/Layout/NewProjectDialog.tsx
- * 新建工程弹窗 - 输入项目名称和描述
+ * 新建工程弹窗 - 输入项目名称、描述和存放位置
  * 
  * P4-T06: 项目级操作与多工程支持
  */
 
 import React, { useState, useRef, useEffect } from 'react';
+import { FolderOpen } from 'lucide-react';
+import { isElectron, loadPreferences, openDirectoryDialog } from '@/src/electron/api';
 
 // 弹窗颜色配置（与 ConfirmDialog 保持一致）
 const dialogColors = {
@@ -21,7 +23,7 @@ const dialogColors = {
 };
 
 interface NewProjectDialogProps {
-    onConfirm: (name: string, description: string) => void;
+    onConfirm: (name: string, description: string, location: string) => void;
     onCancel: () => void;
 }
 
@@ -31,7 +33,22 @@ export const NewProjectDialog: React.FC<NewProjectDialogProps> = ({
 }) => {
     const [name, setName] = useState('New Project');
     const [description, setDescription] = useState('');
+    const [location, setLocation] = useState('');
+    const [defaultLocation, setDefaultLocation] = useState('');
     const nameInputRef = useRef<HTMLInputElement>(null);
+
+    // 加载默认项目目录
+    useEffect(() => {
+        const loadDefaultLocation = async () => {
+            if (isElectron()) {
+                const result = await loadPreferences();
+                if (result.success && result.data) {
+                    setDefaultLocation(result.data.projectsDirectory);
+                }
+            }
+        };
+        loadDefaultLocation();
+    }, []);
 
     // 自动聚焦并选中名称输入框
     useEffect(() => {
@@ -43,7 +60,9 @@ export const NewProjectDialog: React.FC<NewProjectDialogProps> = ({
 
     const handleSubmit = () => {
         if (!name.trim()) return;
-        onConfirm(name.trim(), description.trim());
+        // 如果 location 为空，使用默认位置
+        const finalLocation = location.trim() || defaultLocation;
+        onConfirm(name.trim(), description.trim(), finalLocation);
     };
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -51,6 +70,15 @@ export const NewProjectDialog: React.FC<NewProjectDialogProps> = ({
             handleSubmit();
         } else if (e.key === 'Escape') {
             onCancel();
+        }
+    };
+
+    const handleSelectLocation = async () => {
+        if (isElectron()) {
+            const result = await openDirectoryDialog();
+            if (result && !result.canceled && result.filePath) {
+                setLocation(result.filePath);
+            }
         }
     };
 
@@ -65,7 +93,7 @@ export const NewProjectDialog: React.FC<NewProjectDialogProps> = ({
             zIndex: 9999
         }}>
             <div style={{
-                width: '420px',
+                width: '480px',
                 background: dialogColors.background,
                 border: `1px solid ${dialogColors.border}`,
                 borderRadius: '6px',
@@ -119,7 +147,7 @@ export const NewProjectDialog: React.FC<NewProjectDialogProps> = ({
                 </div>
 
                 {/* 描述输入 */}
-                <div style={{ marginBottom: '20px' }}>
+                <div style={{ marginBottom: '12px' }}>
                     <label style={{
                         display: 'block',
                         fontSize: '11px',
@@ -152,6 +180,60 @@ export const NewProjectDialog: React.FC<NewProjectDialogProps> = ({
                         placeholder="Enter project description"
                     />
                 </div>
+
+                {/* 项目存放位置（仅 Electron 模式显示） */}
+                {isElectron() && (
+                    <div style={{ marginBottom: '20px' }}>
+                        <label style={{
+                            display: 'block',
+                            fontSize: '11px',
+                            color: dialogColors.muted,
+                            marginBottom: '6px',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.5px'
+                        }}>
+                            Project Location
+                        </label>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                            <input
+                                type="text"
+                                value={location}
+                                onChange={(e) => setLocation(e.target.value)}
+                                onKeyDown={handleKeyDown}
+                                style={{
+                                    flex: 1,
+                                    padding: '10px 12px',
+                                    borderRadius: '4px',
+                                    border: `1px solid ${dialogColors.borderSecondary}`,
+                                    background: dialogColors.inputBg,
+                                    color: dialogColors.text,
+                                    fontSize: '13px',
+                                    outline: 'none'
+                                }}
+                                placeholder={defaultLocation || 'Use default location'}
+                            />
+                            <button
+                                onClick={handleSelectLocation}
+                                style={{
+                                    padding: '10px 12px',
+                                    borderRadius: '4px',
+                                    border: `1px solid ${dialogColors.borderSecondary}`,
+                                    background: dialogColors.inputBg,
+                                    color: dialogColors.text,
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center'
+                                }}
+                                title="Browse"
+                            >
+                                <FolderOpen size={16} />
+                            </button>
+                        </div>
+                        <div style={{ fontSize: '11px', color: dialogColors.muted, marginTop: '4px' }}>
+                            Leave empty to use default: {defaultLocation || 'Not set'}
+                        </div>
+                    </div>
+                )}
 
                 {/* 按钮区域 */}
                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
@@ -190,3 +272,4 @@ export const NewProjectDialog: React.FC<NewProjectDialogProps> = ({
 };
 
 export default NewProjectDialog;
+

@@ -26,3 +26,7 @@ export { projectReducer, isProjectAction, type ProjectAction } from './projectSl
 
 // Project Meta 切片 - 项目元信息 (P4-T06)
 export { projectMetaReducer, isProjectMetaAction, type ProjectMetaAction } from './projectMetaSlice';
+
+// Runtime 切片 - Electron 运行时状态 (P4-T06)
+export { runtimeReducer, isRuntimeAction, type RuntimeAction } from './runtimeSlice';
+

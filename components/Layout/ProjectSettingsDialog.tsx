@@ -1,12 +1,14 @@
 /**
  * components/Layout/ProjectSettingsDialog.tsx
- * 工程设置弹窗 - 编辑项目元信息（名称、描述、版本）
+ * 项目设置弹窗 - 编辑项目元信息和导出配置
  * 
  * P4-T06: 项目级操作与多工程支持
  */
 
 import React, { useState, useRef, useEffect } from 'react';
+import { FolderOpen } from 'lucide-react';
 import { ProjectMeta } from '../../types/project';
+import { isElectron, openDirectoryDialog } from '@/src/electron/api';
 
 // 弹窗颜色配置（与 ConfirmDialog 保持一致）
 const dialogColors = {
@@ -35,7 +37,18 @@ export const ProjectSettingsDialog: React.FC<ProjectSettingsDialogProps> = ({
     const [name, setName] = useState(meta.name);
     const [description, setDescription] = useState(meta.description || '');
     const [version, setVersion] = useState(meta.version);
+    const [exportPath, setExportPath] = useState(meta.exportPath || '');
+    const [exportFileName, setExportFileName] = useState(meta.exportFileName || '');
     const nameInputRef = useRef<HTMLInputElement>(null);
+
+    // 当 meta 变化时同步更新表单状态
+    useEffect(() => {
+        setName(meta.name);
+        setDescription(meta.description || '');
+        setVersion(meta.version);
+        setExportPath(meta.exportPath || '');
+        setExportFileName(meta.exportFileName || '');
+    }, [meta]);
 
     // 自动聚焦名称输入框
     useEffect(() => {
@@ -50,7 +63,9 @@ export const ProjectSettingsDialog: React.FC<ProjectSettingsDialogProps> = ({
         onSave({
             name: name.trim(),
             description: description.trim(),
-            version: version.trim() || '1.0.0'
+            version: version.trim() || '1.0.0',
+            exportPath: exportPath.trim() || undefined,
+            exportFileName: exportFileName.trim() || undefined
         });
     };
 
@@ -59,6 +74,15 @@ export const ProjectSettingsDialog: React.FC<ProjectSettingsDialogProps> = ({
             handleSubmit();
         } else if (e.key === 'Escape') {
             onCancel();
+        }
+    };
+
+    const handleSelectExportPath = async () => {
+        if (isElectron()) {
+            const result = await openDirectoryDialog();
+            if (result && !result.canceled && result.filePath) {
+                setExportPath(result.filePath);
+            }
         }
     };
 
@@ -83,7 +107,7 @@ export const ProjectSettingsDialog: React.FC<ProjectSettingsDialogProps> = ({
             zIndex: 9999
         }}>
             <div style={{
-                width: '460px',
+                width: '500px',
                 background: dialogColors.background,
                 border: `1px solid ${dialogColors.border}`,
                 borderRadius: '6px',
@@ -194,7 +218,7 @@ export const ProjectSettingsDialog: React.FC<ProjectSettingsDialogProps> = ({
                 </div>
 
                 {/* 描述输入 */}
-                <div style={{ marginBottom: '20px' }}>
+                <div style={{ marginBottom: '12px' }}>
                     <label style={{
                         display: 'block',
                         fontSize: '11px',
@@ -226,6 +250,95 @@ export const ProjectSettingsDialog: React.FC<ProjectSettingsDialogProps> = ({
                         }}
                         placeholder="Enter project description"
                     />
+                </div>
+
+                {/* 导出路径配置（仅 Electron 模式） */}
+                {isElectron() && (
+                    <div style={{ marginBottom: '20px' }}>
+                        <label style={{
+                            display: 'block',
+                            fontSize: '11px',
+                            color: dialogColors.muted,
+                            marginBottom: '6px',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.5px'
+                        }}>
+                            Export Path
+                        </label>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                            <input
+                                type="text"
+                                value={exportPath}
+                                onChange={(e) => setExportPath(e.target.value)}
+                                onKeyDown={handleKeyDown}
+                                style={{
+                                    flex: 1,
+                                    padding: '10px 12px',
+                                    borderRadius: '4px',
+                                    border: `1px solid ${dialogColors.borderSecondary}`,
+                                    background: dialogColors.inputBg,
+                                    color: dialogColors.text,
+                                    fontSize: '13px',
+                                    outline: 'none'
+                                }}
+                                placeholder="Use default export directory"
+                            />
+                            <button
+                                onClick={handleSelectExportPath}
+                                style={{
+                                    padding: '10px 12px',
+                                    borderRadius: '4px',
+                                    border: `1px solid ${dialogColors.borderSecondary}`,
+                                    background: dialogColors.inputBg,
+                                    color: dialogColors.text,
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center'
+                                }}
+                                title="Browse"
+                            >
+                                <FolderOpen size={16} />
+                            </button>
+                        </div>
+                        <div style={{ fontSize: '11px', color: dialogColors.muted, marginTop: '4px' }}>
+                            Leave empty to use default export directory from Preferences
+                        </div>
+                    </div>
+                )}
+
+                {/* 导出文件名 */}
+                <div style={{ marginBottom: '20px' }}>
+                    <label style={{
+                        display: 'block',
+                        fontSize: '11px',
+                        color: dialogColors.muted,
+                        marginBottom: '6px',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px'
+                    }}>
+                        Export File Name
+                    </label>
+                    <input
+                        type="text"
+                        value={exportFileName}
+                        onChange={(e) => setExportFileName(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                        style={{
+                            width: '100%',
+                            boxSizing: 'border-box',
+                            padding: '10px 12px',
+                            borderRadius: '4px',
+                            border: `1px solid ${dialogColors.borderSecondary}`,
+                            background: dialogColors.inputBg,
+                            color: dialogColors.text,
+                            fontSize: '13px',
+                            outline: 'none'
+                        }}
+                        placeholder={`${name || 'project'}_export`}
+                    />
+                    <div style={{ fontSize: '11px', color: dialogColors.muted, marginTop: '4px' }}>
+                        Leave empty to use default: {`<project_name>_export.json`}
+                    </div>
                 </div>
 
                 {/* 按钮区域 */}
@@ -265,3 +378,4 @@ export const ProjectSettingsDialog: React.FC<ProjectSettingsDialogProps> = ({
 };
 
 export default ProjectSettingsDialog;
+

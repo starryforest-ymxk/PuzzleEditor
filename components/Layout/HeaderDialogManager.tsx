@@ -6,6 +6,7 @@
  * - NewProjectDialog: 新建工程
  * - ProjectSettingsDialog: 项目设置
  * - ConfirmSaveDialog: 保存确认
+ * - PreferencePanel: 用户偏好设置
  */
 
 import React from 'react';
@@ -13,17 +14,19 @@ import { ProjectMeta } from '../../types/project';
 import { NewProjectDialog } from './NewProjectDialog';
 import { ProjectSettingsDialog } from './ProjectSettingsDialog';
 import { ConfirmSaveDialog } from './ConfirmSaveDialog';
+import { PreferencePanel } from './PreferencePanel';
 
 // ========== 弹窗状态类型 ==========
 export type HeaderDialogState =
     | { type: 'none' }
     | { type: 'new-project' }
     | { type: 'settings' }
+    | { type: 'preferences' }
     | { type: 'confirm-save'; nextAction: 'new' | 'load' };
 
 // ========== 事件回调类型 ==========
 export interface HeaderDialogCallbacks {
-    onCreateProject: (name: string, description: string) => void;
+    onCreateProject: (name: string, description: string, location: string) => void;
     onSaveSettings: (updates: Partial<ProjectMeta>) => void;
     onConfirmSave: () => void;
     onConfirmDiscard: () => void;
@@ -59,6 +62,13 @@ export const HeaderDialogManager: React.FC<HeaderDialogManagerProps> = ({
                 />
             );
 
+        case 'preferences':
+            return (
+                <PreferencePanel
+                    onClose={callbacks.onClose}
+                />
+            );
+
         case 'confirm-save':
             return (
                 <ConfirmSaveDialog
@@ -75,3 +85,4 @@ export const HeaderDialogManager: React.FC<HeaderDialogManagerProps> = ({
 };
 
 export default HeaderDialogManager;
+

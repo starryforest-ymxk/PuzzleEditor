@@ -79,7 +79,9 @@ const normalizeMeta = (meta: ProjectData['meta']) => ({
   description: meta?.description ?? '',
   version: meta?.version ?? '0.0.1',
   createdAt: meta?.createdAt ?? new Date().toISOString(),
-  updatedAt: meta?.updatedAt ?? new Date().toISOString()
+  updatedAt: meta?.updatedAt ?? new Date().toISOString(),
+  exportPath: meta?.exportPath,
+  exportFileName: meta?.exportFileName
 });
 
 const normalizeBlackboard = (bb?: BlackboardData): BlackboardData => ({

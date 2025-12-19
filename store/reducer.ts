@@ -12,7 +12,8 @@ import {
     navigationReducer, isNavigationAction,
     uiReducer, isUiAction,
     projectReducer, isProjectAction,
-    projectMetaReducer, isProjectMetaAction
+    projectMetaReducer, isProjectMetaAction,
+    runtimeReducer, isRuntimeAction
 } from './slices';
 
 // ========== 常量配置 ==========
@@ -106,6 +107,10 @@ const internalReducer = (state: EditorState, action: Action): EditorState => {
 
     if (isProjectMetaAction(action)) {
         return projectMetaReducer(state, action);
+    }
+
+    if (isRuntimeAction(action)) {
+        return runtimeReducer(state, action);
     }
 
     // 处理初始化相关 Actions（不适合放入 Slice）

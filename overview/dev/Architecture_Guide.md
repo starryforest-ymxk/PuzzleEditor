@@ -1,7 +1,7 @@
 # 架构指南（Architecture Guide）
 
 > 本文档描述项目的整体架构设计、分层结构与开发规范，用于指导后续阶段的功能实现。  
-> **版本**: 1.1.0 | **更新时间**: 2025-12-14 | **同步至**: Phase 3 完成状态
+> **版本**: 1.2.0 | **更新时间**: 2025-12-19 | **同步至**: Phase 4 Electron 集成完成状态
 
 ---
 
@@ -43,13 +43,24 @@ puzzle-editor/
 │     ├─ blackboardSlice.ts
 │     ├─ navigationSlice.ts
 │     ├─ projectSlice.ts
-│     └─ uiSlice.ts
+│     ├─ uiSlice.ts
+│     └─ runtimeSlice.ts  # Electron 运行时状态
 │
 ├─ api/                # 服务层
 │  ├─ types.ts         # API 接口定义
-│  ├─ service.ts       # 服务实例导出
-│  ├─ mockService.ts   # Mock 实现
-│  └─ mockData.ts      # 模拟数据
+│  └─ service.ts       # 服务类型导出
+│
+├─ src/electron/       # 渲染进程 Electron API 封装
+│  └─ api.ts           # 统一的 Electron IPC 调用封装
+│
+├─ electron/           # Electron 主进程代码
+│  ├─ main.ts          # 主进程入口
+│  ├─ preload.ts       # 预加载脚本（暴露 API 到渲染进程）
+│  ├─ types.ts         # Electron 类型定义（IPC 通道、API 接口）
+│  └─ ipc/             # IPC 处理器
+│     ├─ handlers.ts    # 统一注册 IPC 处理器
+│     ├─ preferencesService.ts  # 用户偏好管理
+│     └─ fileService.ts # 文件操作服务
 │
 ├─ components/         # UI 组件
 │  ├─ Layout/          # 整体布局（Header, Breadcrumb, Sidebar 等）
@@ -165,7 +176,7 @@ puzzle-editor/
 
 ### 4.2 领域切片（Slices）
 
-复杂领域逻辑拆分到独立 Slice（共 7 个切片）：
+复杂领域逻辑拆分到独立 Slice（共 8 个切片）：
 
 - **fsmSlice**: 状态机、状态、转移的 CRUD
 - **presentationSlice**: 演出图、节点、连线的 CRUD
@@ -174,6 +185,7 @@ puzzle-editor/
 - **navigationSlice**: 视图切换、面包屑导航
 - **projectSlice**: Stage 树、Node 更新
 - **uiSlice**: 选择状态、面板大小、消息堆栈
+- **runtimeSlice**: Electron 运行时状态（当前项目路径、偏好加载状态）
 
 ```ts
 // store/slices/fsmSlice.ts
@@ -191,6 +203,7 @@ if (isBlackboardAction(action)) return blackboardReducer(state, action);
 if (isNavigationAction(action)) return navigationReducer(state, action);
 if (isProjectAction(action)) return projectReducer(state, action);
 if (isUiAction(action)) return uiReducer(state, action);
+if (isRuntimeAction(action)) return runtimeReducer(state, action);
 ```
 
 ### 4.3 软删除状态机

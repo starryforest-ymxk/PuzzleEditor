@@ -1,20 +1,20 @@
-# Project_Overview：解谜游戏 Web 可视化编辑器
+# Project_Overview：解谜游戏可视化编辑器
 
 ---
 
 ## 0. 角色定义（Role Definition）
 
-你是一位 **资深前端系统架构师与产品设计师**。任务是为一款侦探类 Roguelite 游戏设计并实现 **Web 端可视化编辑器**。
+你是一位 **资深前端系统架构师与产品设计师**。任务是为一款侦探类 Roguelite 游戏设计并实现 **桌面端可视化编辑器**。
 
 - **目标用户**：游戏策划与关卡设计师（非技术背景）。
 - **核心职责**：提供 IDE 风格界面以管理游戏逻辑数据，保障数据完整性与操作直觉。
-- **工作范围**：**仅限前端（Frontend Only）**。定义数据结构、交互逻辑与 UI 组件，假设后端存在标准接口处理文件 I/O 与代码生成。
+- **工作范围**：**Electron 桌面应用**。定义数据结构、交互逻辑与 UI 组件，通过 Node.js 主进程处理本地文件 I/O。
 
 ---
 
 ## 1. 项目背景与核心架构
 
-本系统是一款“节点式叙事解谜编辑器”。通过 **阶段树（Stage Tree）** 管理宏观流程，通过 **有限状态机（FSM）** 管理微观叙事逻辑。
+本系统是一款"节点式叙事解谜编辑器"。通过 **阶段树（Stage Tree）** 管理宏观流程，通过 **有限状态机（FSM）** 管理微观叙事逻辑。
 
 **核心架构约束：前端主导的资源管线（Frontend-First Pipeline）**
 
@@ -23,42 +23,138 @@
 - 前端导出 JSON 清单（Manifest），后端据此生成 C# 代码 Stub。
 - 前端 **不读取** 现有代码文件，仅管理这些定义的生命周期。
 
+**应用架构：Electron 双进程模型**
+
+```
+┌────────────────────────────────────────────────────────────┐
+│  Main Process (Node.js)                                    │
+│  • 读写用户偏好 (%APPDATA%/StarryTree/PuzzleEditor/)       │
+│  • 管理项目文件 (fs.readFile / fs.writeFile)               │
+│  • 记录最近打开的项目列表                                   │
+│  • 处理原生对话框 (文件选择/保存)                           │
+└────────────────────────────────────────────────────────────┘
+                          │ IPC 通信
+                          ▼
+┌────────────────────────────────────────────────────────────┐
+│  Renderer Process (React)                                  │
+│  • 全部 UI 组件与状态管理                                   │
+│  • 通过 IPC 请求主进程执行文件操作                          │
+└────────────────────────────────────────────────────────────┘
+```
+
 ---
 
 ## 2. 设计目标（Design Goals）
 
 1. **数据安全与软删除（Data Safety & Soft Deletes）**
    - `Implemented` 资源（脚本/变量/事件）不可物理删除，只能标记为 `MarkedForDelete`。
-   - “应用删除”需二次确认后才会将数据从 JSON 中移除。
+   - "应用删除"需二次确认后才会将数据从 JSON 中移除。
 2. **多层级可视化（Multi-Level Visualization）**
    - **宏观**：树形结构管理关卡阶段。
    - **中观**：卡片列表管理解谜节点实体。
    - **微观**：无限画布编辑状态机逻辑。
    - **线性**：时间轴/序列式编辑演出流程。
 3. **隐式持久化（Implicit Persistence）**
-   - 编辑器中定义的所有变量（全局/局部）与状态机状态，默认视为需要存档，无需手动配置“是否持久化”。
+   - 编辑器中定义的所有变量（全局/局部）与状态机状态，默认视为需要存档，无需手动配置"是否持久化"。
 4. **严格的作用域管理（Scoping）**
    - 变量分为 Global、Stage Local、Node Local、Temporary。
 5. **可追溯的消息堆栈（Message Stack）**
-   - 所有系统提示统一进入顶栏“消息”堆栈（info/warning/error），可随时展开查看并一键清空；加载/导入/校验/保存等错误必须写入堆栈。
+   - 所有系统提示统一进入顶栏"消息"堆栈（info/warning/error），可随时展开查看并一键清空；加载/导入/校验/保存等错误必须写入堆栈。
+6. **本地化项目管理（Local Project Management）**
+   - 项目文件 (`.puzzle.json`) 直接保存到本地磁盘，支持自动恢复上次编辑状态。
+   - 用户偏好持久化到 `%APPDATA%`，跨会话保留设置。
 
 ---
 
-## 3. 技术选型建议（High-Level Tech Choices）
+## 3. 技术选型（Tech Choices）
 
-- **框架**：现代 SPA 框架（React / Vue / Svelte）。
-- **语言**：TypeScript（严格类型描述 Schema）。
-- **状态管理**：需要健壮的全局 Store（如 Zustand/Redux Toolkit）处理黑板定义与复杂依赖。
+- **应用框架**：**Electron** + React（双进程架构）
+- **语言**：TypeScript（严格类型描述 Schema）
+- **状态管理**：Context + useReducer（全局 Store 管理编辑器状态）
 - **可视化库**：
-  - **画布**：React Flow / Vue Flow / X6（用于状态机）。
-  - **树**：高性能层级树组件（用于阶段树）。
-- **数据交换**：纯 JSON。具备“离线优先”逻辑，在内存中维护完整的 JSON 状态树。
+  - **画布**：自定义 Canvas 实现（用于 FSM 和演出图）
+  - **树**：自定义高性能层级树组件（用于阶段树）
+- **数据交换**：
+  - **项目文件** (`.puzzle.json`)：完整编辑状态 + UI 偏好
+  - **导出文件** (`_export.json`)：精简运行时数据供游戏引擎加载
+- **本地存储**：
+  - 用户偏好：`%APPDATA%/StarryTree/PuzzleEditor/preferences.json`
+  - 默认项目目录：`Documents/StarryTree/PuzzleEditor/Projects/`
+
+---
+
+## 3.1 用户偏好系统（User Preferences）
+
+### 数据结构
+
+```typescript
+interface UserPreferences {
+  // 新项目存储路径（默认: Documents/StarryTree/PuzzleEditor/Projects/）
+  projectsDirectory: string;
+  
+  // 启动时自动加载上次项目
+  restoreLastProject: boolean;
+  
+  // 上次打开的项目文件路径
+  lastProjectPath: string | null;
+  
+  // 最近打开的项目列表（最多保留 10 条）
+  recentProjects: Array<{
+    path: string;
+    name: string;
+    lastOpened: string;  // ISO8601
+  }>;
+}
+```
+
+### 存储位置
+
+- Windows: `%APPDATA%/StarryTree/PuzzleEditor/preferences.json`
+- macOS: `~/Library/Application Support/StarryTree/PuzzleEditor/preferences.json`
+- Linux: `~/.config/StarryTree/PuzzleEditor/preferences.json`
+
+---
+
+## 3.2 项目文件管理（Project File Management）
+
+### 文件格式
+
+| 格式 | 后缀 | 用途 | 内容 |
+|------|------|------|------|
+| 项目文件 | `.puzzle.json` | 保存/加载编辑状态 | 完整业务数据 + 编辑器 UI 状态 |
+| 导出文件 | `_export.json` | 供游戏引擎加载 | 精简运行时数据 |
+
+### 工作流程
+
+| 操作 | 行为 |
+|------|------|
+| **新建项目** | 弹窗输入名称/位置 → 创建项目文件到指定路径或 `projectsDirectory/<名称>.puzzle.json` |
+| **Ctrl+S 保存** | 直接覆盖写入当前项目文件到磁盘（无弹窗，仅文件写入，不触发导出） |
+| **加载项目** | 打开文件选择器 → 读取文件 → 更新当前项目路径 |
+| **加载上次项目** | 读取 `preferences.lastProjectPath` → 加载 |
+| **在资源管理器查看** | 调用 `shell.showItemInFolder(currentProjectPath)` |
+| **导出** | 打开保存对话框（默认路径为项目的 `exportPath`）→ 写入精简运行时数据 |
+| **关闭应用** | 保存当前项目路径到 `preferences.lastProjectPath` |
+
+### 项目元数据扩展
+
+```typescript
+interface ProjectMeta {
+  id: string;
+  name: string;
+  description?: string;
+  version: string;
+  createdAt: string;
+  updatedAt: string;
+  exportPath?: string;       // 项目特定的导出路径（可选，覆盖全局设置）
+  exportFileName?: string;   // 导出文件名（默认: <项目名>_export.json）
+}
+```
 
 ---
 
 ## 4. 核心领域模型（Core Domain Models）
 
-### 4.1 黑板（The Blackboard）
 
 所有抽象定义的注册表。
 

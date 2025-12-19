@@ -31,6 +31,8 @@ export interface ProjectMeta {
   version: string;          // 数据版本号
   createdAt: string;        // ISO8601 格式
   updatedAt: string;        // ISO8601 格式
+  exportFileName?: string;  // 自定义导出文件名 (默认: <项目名>_export.json)
+  exportPath?: string;      // 项目导出目录路径 (默认: 使用 Preference 中的目录)
 }
 
 // ========== 完整项目数据（业务数据） ==========
