@@ -8,7 +8,7 @@ import { useEditorState, useEditorDispatch } from '../../store/context';
 import { PuzzleNode } from '../../types/puzzleNode';
 import { FileCode, FilePlus, Edit3, Trash2 } from 'lucide-react';
 import { ConfirmDialog } from '../Inspector/ConfirmDialog';
-import { createNodeWithStateMachine, createTriggerNodeWithStateMachine, getMaxDisplayOrder } from '../../utils/puzzleNodeUtils';
+import { createNodeWithStateMachine, createTriggerNodeWithStateMachine, getMaxDisplayOrder, buildExistingIds } from '../../utils/puzzleNodeUtils';
 import { StageId, PuzzleNodeId } from '../../types/common';
 import { ChevronRight } from 'lucide-react';
 
@@ -107,11 +107,14 @@ export const NodeExplorer: React.FC = () => {
         if (!contextMenu || !currentStageId) return;
         const maxOrder = getMaxDisplayOrder(project.nodes, currentStageId as StageId);
 
+        // 构建现有 ID 集合
+        const existingIds = buildExistingIds(project.nodes, project.stateMachines);
+
         let result;
         if (type === 'TRIGGER') {
-            result = createTriggerNodeWithStateMachine(currentStageId as StageId, 'New Trigger Node', maxOrder + 1);
+            result = createTriggerNodeWithStateMachine(currentStageId as StageId, existingIds, 'New Trigger Node', maxOrder + 1);
         } else {
-            result = createNodeWithStateMachine(currentStageId as StageId, 'New Empty Node', maxOrder + 1);
+            result = createNodeWithStateMachine(currentStageId as StageId, existingIds, 'New Empty Node', maxOrder + 1, false);
         }
 
         const { node, stateMachine } = result;

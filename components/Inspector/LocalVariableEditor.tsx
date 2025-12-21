@@ -96,9 +96,17 @@ export const LocalVariableEditor: React.FC<LocalVariableEditorProps> = ({
      * 使用两次 dispatch，先导航再选中，确保视图切换后选中状态正确应用
      */
     const handleReferenceClick = useCallback((navContext: ReferenceNavigationContext) => {
-        const { targetType, nodeId, stateId, transitionId, graphId, presentationNodeId } = navContext;
+        const { targetType, stageId, nodeId, stateId, transitionId, graphId, presentationNodeId } = navContext;
 
         switch (targetType) {
+            case 'STAGE':
+                // 导航到 Stage 并选中
+                if (stageId) {
+                    dispatch({ type: 'NAVIGATE_TO', payload: { stageId, nodeId: null, graphId: null } });
+                    dispatch({ type: 'SELECT_OBJECT', payload: { type: 'STAGE', id: stageId } });
+                }
+                break;
+
             case 'NODE':
                 if (nodeId) {
                     const node = project.nodes[nodeId];
@@ -230,9 +238,20 @@ export const LocalVariableEditor: React.FC<LocalVariableEditorProps> = ({
     const handleAdd = () => {
         if (!canMutate || !ownerId) return;
         const normalizedName = makeUniqueName('New Variable');
-        // 使用"资源类型_计数器"格式生成 ID（ID 由系统生成，不可编辑）
+        // 生成带 owner 前缀的局部变量 ID，确保项目内唯一性
+        // 格式: {ownerId}_{STAGEVAR/NODEVAR}_{N}
+        // 例如: STAGE_1_STAGEVAR_1, NODE_5_NODEVAR_2
         const existingIds = Object.keys(variables);
-        const id = generateResourceId('VAR', existingIds);
+        const varTypePrefix = ownerType === 'stage' ? 'STAGEVAR' : 'NODEVAR';
+        const pattern = new RegExp(`^${ownerId}_${varTypePrefix}_(\\d+)$`);
+        let maxCount = 0;
+        for (const existingId of existingIds) {
+            const match = existingId.match(pattern);
+            if (match) {
+                maxCount = Math.max(maxCount, parseInt(match[1], 10));
+            }
+        }
+        const id = `${ownerId}_${varTypePrefix}_${maxCount + 1}`;
         // 按作用域写入 scope，保持 P1 规范
         const variable: VariableDefinition = withScope({
             id,

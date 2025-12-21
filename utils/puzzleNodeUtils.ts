@@ -2,88 +2,118 @@
  * utils/puzzleNodeUtils.ts
  * PuzzleNode 操作工具函数
  * 提供 Node 和 StateMachine 的创建、ID生成等核心功能
+ * 
+ * 更新：统一使用扫描式 {TYPE}_{COUNT} 格式生成 ID
+ * 所有 ID 生成基于扫描现有 ID，无需全局计数器
  */
 
 import { PuzzleNodeId, StateMachineId, StageId, StateId } from '../types/common';
 import { PuzzleNode } from '../types/puzzleNode';
-import { StateMachine, State } from '../types/stateMachine';
+import { StateMachine, State, Transition } from '../types/stateMachine';
+import { generateResourceId } from './resourceIdGenerator';
 
-// ========== ID 生成计数器 ==========
-let nodeCounter = 0;
-let fsmCounter = 0;
-let stateCounter = 0;
+// ========== 已有 ID 集合类型（用于工厂函数参数） ==========
+export interface ExistingIds {
+    nodeIds: string[];      // 现有 PuzzleNode ID
+    fsmIds: string[];       // 现有 StateMachine ID  
+    stateIds: string[];     // 现有 State ID（当前 FSM 内）
+    transitionIds: string[]; // 现有 Transition ID（当前 FSM 内）
+}
+
+// ========== ID 生成函数（扫描式） ==========
 
 /**
  * 生成唯一的 PuzzleNode ID
- * 格式: node-{计数器}
+ * 格式: NODE_{COUNT}
+ * @param existingNodeIds 现有 Node ID 列表
  */
-export function generateNodeId(): PuzzleNodeId {
-    nodeCounter += 1;
-    return `node-${nodeCounter}` as PuzzleNodeId;
+export function generateNodeId(existingNodeIds: string[]): PuzzleNodeId {
+    return generateResourceId('NODE', existingNodeIds) as PuzzleNodeId;
 }
 
 /**
  * 生成唯一的 StateMachine ID
- * 格式: fsm-{计数器}
+ * 格式: FSM_{COUNT}
+ * @param existingFsmIds 现有 FSM ID 列表
  */
-export function generateFsmId(): StateMachineId {
-    fsmCounter += 1;
-    return `fsm-${fsmCounter}` as StateMachineId;
+export function generateFsmId(existingFsmIds: string[]): StateMachineId {
+    return generateResourceId('FSM', existingFsmIds) as StateMachineId;
 }
 
 /**
  * 生成唯一的 State ID
- * 格式: state-{计数器}
+ * 格式: STATE_{COUNT}
+ * @param existingStateIds 现有 State ID 列表
  */
-export function generateStateId(): StateId {
-    stateCounter += 1;
-    return `state-${stateCounter}` as StateId;
+export function generateStateId(existingStateIds: string[]): StateId {
+    return generateResourceId('STATE', existingStateIds) as StateId;
 }
 
 /**
+ * 生成唯一的 Transition ID
+ * 格式: TRANS_{COUNT}
+ * @param existingTransitionIds 现有 Transition ID 列表
+ */
+export function generateTransitionId(existingTransitionIds: string[]): string {
+    return generateResourceId('TRANSITION', existingTransitionIds);
+}
+
+// ========== ID 提取函数（支持新旧格式） ==========
+
+/**
  * 从 Node ID 中提取数字部分
+ * 支持新格式 NODE_{NUM} 和旧格式 node-{NUM}
  */
 export function extractNodeIdNumber(nodeId: PuzzleNodeId): number {
-    const match = nodeId.match(/node-(\d+)/);
-    return match ? parseInt(match[1], 10) : 0;
+    const newMatch = nodeId.match(/NODE_(\d+)/);
+    if (newMatch) return parseInt(newMatch[1], 10);
+    const oldMatch = nodeId.match(/node-(\d+)/);
+    return oldMatch ? parseInt(oldMatch[1], 10) : 0;
 }
 
 /**
  * 从 FSM ID 中提取数字部分
+ * 支持新格式 FSM_{NUM} 和旧格式 fsm-{NUM}
  */
 export function extractFsmIdNumber(fsmId: StateMachineId): number {
-    const match = fsmId.match(/fsm-(\d+)/);
-    return match ? parseInt(match[1], 10) : 0;
+    const newMatch = fsmId.match(/FSM_(\d+)/);
+    if (newMatch) return parseInt(newMatch[1], 10);
+    const oldMatch = fsmId.match(/fsm-(\d+)/);
+    return oldMatch ? parseInt(oldMatch[1], 10) : 0;
+}
+
+// ========== 废弃的计数器重置函数（保留空实现兼容 API） ==========
+
+/**
+ * @deprecated 新版 ID 生成基于扫描现有 ID，无需重置计数器
+ */
+export function resetNodeCounter(_maxId: number): void {
+    // 保留空函数以保持 API 兼容性
 }
 
 /**
- * 重置 Node ID 计数器（用于项目加载时）
+ * @deprecated 新版 ID 生成基于扫描现有 ID，无需重置计数器
  */
-export function resetNodeCounter(maxId: number): void {
-    nodeCounter = maxId;
+export function resetFsmCounter(_maxId: number): void {
+    // 保留空函数以保持 API 兼容性
 }
 
 /**
- * 重置 FSM ID 计数器（用于项目加载时）
+ * @deprecated 新版 ID 生成基于扫描现有 ID，无需重置计数器
  */
-export function resetFsmCounter(maxId: number): void {
-    fsmCounter = maxId;
+export function resetStateCounter(_maxId: number): void {
+    // 保留空函数以保持 API 兼容性
 }
 
-/**
- * 重置 State ID 计数器（用于项目加载时）
- */
-export function resetStateCounter(maxId: number): void {
-    stateCounter = maxId;
-}
+// ========== 工厂函数 ==========
 
 /**
  * 创建默认的初始状态
- * @param fsmId 所属状态机 ID
+ * @param existingStateIds 现有的 State ID 列表
  * @returns 新的 State 对象
  */
-export function createDefaultInitialState(fsmId: StateMachineId): State {
-    const id = generateStateId();
+export function createDefaultInitialState(existingStateIds: string[]): State {
+    const id = generateStateId(existingStateIds);
     return {
         id,
         name: 'Initial State',
@@ -95,15 +125,17 @@ export function createDefaultInitialState(fsmId: StateMachineId): State {
 
 /**
  * 创建默认的空状态机
- * @param nodeId 所属 PuzzleNode ID
+ * @param existingIds 现有 ID 集合
  * @param initialState 可选的初始状态，如不提供则自动创建
  * @returns 新的 StateMachine 对象
  */
-export function createDefaultStateMachine(nodeId: PuzzleNodeId, initialState?: State): StateMachine {
-    const fsmId = generateFsmId();
-    const state = initialState || createDefaultInitialState(fsmId);
+export function createDefaultStateMachine(
+    existingIds: Pick<ExistingIds, 'fsmIds' | 'stateIds'>,
+    initialState?: State
+): StateMachine {
+    const fsmId = generateFsmId(existingIds.fsmIds);
+    const state = initialState || createDefaultInitialState(existingIds.stateIds);
 
-    // StateMachine 结构不包含 name/description/nodeId，这些信息在 PuzzleNode 中跟踪
     return {
         id: fsmId,
         initialStateId: state.id,
@@ -118,6 +150,7 @@ export function createDefaultStateMachine(nodeId: PuzzleNodeId, initialState?: S
  * 创建默认的 PuzzleNode
  * @param stageId 所属 Stage ID
  * @param stateMachineId 关联的状态机 ID
+ * @param existingNodeIds 现有 Node ID 列表
  * @param name 可选的名称，默认为 "New Node"
  * @param displayOrder 可选的显示顺序
  * @returns 新的 PuzzleNode 对象
@@ -125,10 +158,11 @@ export function createDefaultStateMachine(nodeId: PuzzleNodeId, initialState?: S
 export function createDefaultPuzzleNode(
     stageId: StageId,
     stateMachineId: StateMachineId,
+    existingNodeIds: string[],
     name?: string,
     displayOrder?: number
 ): PuzzleNode {
-    const id = generateNodeId();
+    const id = generateNodeId(existingNodeIds);
     return {
         id,
         name: name || 'New Node',
@@ -145,31 +179,36 @@ export function createDefaultPuzzleNode(
  * 创建一对 PuzzleNode 和 StateMachine
  * 便捷函数，同时创建关联的 Node 和 FSM
  * @param stageId 所属 Stage ID
+ * @param existingIds 现有 ID 集合
  * @param name 可选的名称
  * @param displayOrder 可选的显示顺序
  * @returns 包含 node 和 stateMachine 的对象
  */
 export function createNodeWithStateMachine(
     stageId: StageId,
+    existingIds: Pick<ExistingIds, 'nodeIds' | 'fsmIds' | 'stateIds'>,
     name?: string,
-    displayOrder?: number
+    displayOrder?: number,
+    createInitialState: boolean = true
 ): { node: PuzzleNode; stateMachine: StateMachine } {
-    // 先创建 Node ID 以便 FSM 引用
-    const nodeId = generateNodeId();
+    // 生成 Node ID
+    const nodeId = generateNodeId(existingIds.nodeIds);
 
-    // 创建 FSM（StateMachine 不包含 name/description/nodeId）
-    const fsmId = generateFsmId();
-    const initialState = createDefaultInitialState(fsmId);
+    // 生成 FSM ID 和初始状态
+    const fsmId = generateFsmId(existingIds.fsmIds);
+    let initialState: State | null = null;
+
+    if (createInitialState) {
+        initialState = createDefaultInitialState(existingIds.stateIds);
+    }
+
     const stateMachine: StateMachine = {
         id: fsmId,
-        initialStateId: initialState.id,
-        states: {
-            [initialState.id]: initialState
-        },
+        initialStateId: initialState ? initialState.id : null,
+        states: initialState ? { [initialState.id]: initialState } : {},
         transitions: {}
     };
 
-    // 创建 Node（不使用 generateNodeId，直接使用已生成的 ID）
     const node: PuzzleNode = {
         id: nodeId,
         name: name || 'New Node',
@@ -187,19 +226,23 @@ export function createNodeWithStateMachine(
 /**
  * 创建一个带有 Trigger 逻辑的 PuzzleNode
  * 包含 "Not triggered" (初始) 和 "Triggered" 两个状态，以及一条连接
+ * @param stageId 所属 Stage ID
+ * @param existingIds 现有 ID 集合
+ * @param name 可选的名称
+ * @param displayOrder 可选的显示顺序
  */
 export function createTriggerNodeWithStateMachine(
     stageId: StageId,
+    existingIds: ExistingIds,
     name?: string,
     displayOrder?: number
 ): { node: PuzzleNode; stateMachine: StateMachine } {
     // 1. 生成 ID
-    const nodeId = generateNodeId();
-    const fsmId = generateFsmId();
+    const nodeId = generateNodeId(existingIds.nodeIds);
+    const fsmId = generateFsmId(existingIds.fsmIds);
 
-    // 2. 创建状态
-    // State 1: Not triggered (Initial)
-    const state1Id = generateStateId();
+    // 2. 创建状态 - 需要累加 existingStateIds
+    const state1Id = generateStateId(existingIds.stateIds);
     const state1: State = {
         id: state1Id,
         name: 'Not triggered',
@@ -208,8 +251,8 @@ export function createTriggerNodeWithStateMachine(
         eventListeners: []
     };
 
-    // State 2: Triggered
-    const state2Id = generateStateId();
+    // 第二个状态需要包含第一个状态的 ID
+    const state2Id = generateStateId([...existingIds.stateIds, state1Id]);
     const state2: State = {
         id: state2Id,
         name: 'Triggered',
@@ -218,15 +261,15 @@ export function createTriggerNodeWithStateMachine(
         eventListeners: []
     };
 
-    // 3. 创建连线 (Transition from State 1 -> State 2)
-    const transitionId = `trans-${Date.now()}` as any; // Cast to TransitionId for now as we don't have a generator
+    // 3. 创建连线
+    const transitionId = generateTransitionId(existingIds.transitionIds);
     const transition: Transition = {
         id: transitionId,
         fromStateId: state1Id,
         toStateId: state2Id,
         priority: 0,
-        name: 'Trigger', // Default name
-        triggers: [{ type: 'Always' }], // 默认为 Always 触发，方便用户看到效果
+        name: 'Trigger',
+        triggers: [{ type: 'Always' }],
         parameterModifiers: []
     };
 
@@ -242,10 +285,9 @@ export function createTriggerNodeWithStateMachine(
         }
     };
 
-    // 4. 创建 Node
     const node: PuzzleNode = {
         id: nodeId,
-        name: name || 'Triggger Node',
+        name: name || 'Trigger Node',
         description: '',
         stageId,
         stateMachineId: fsmId,
@@ -256,6 +298,8 @@ export function createTriggerNodeWithStateMachine(
 
     return { node, stateMachine };
 }
+
+// ========== 查询工具函数 ==========
 
 /**
  * 获取指定 Stage 下节点的最大 displayOrder
@@ -304,10 +348,36 @@ export function hasPuzzleNodeContent(
     const stateCount = Object.keys(fsm.states || {}).length;
     const transitionCount = Object.keys(fsm.transitions || {}).length;
 
-    // 当状态数超过1个（初始状态默认存在）或有任何转移时，认为有内容
     return {
         hasContent: stateCount > 1 || transitionCount > 0,
         stateCount,
         transitionCount
+    };
+}
+
+// ========== 便捷函数：从 project 构建 ExistingIds ==========
+
+/**
+ * 从项目数据构建 ExistingIds 对象
+ * 方便调用方快速获取所有现有 ID
+ */
+export function buildExistingIds(
+    nodes: Record<string, PuzzleNode>,
+    stateMachines: Record<string, StateMachine>
+): ExistingIds {
+    // 收集所有 State 和 Transition ID
+    let stateIds: string[] = [];
+    let transitionIds: string[] = [];
+
+    Object.values(stateMachines).forEach(fsm => {
+        stateIds = stateIds.concat(Object.keys(fsm.states || {}));
+        transitionIds = transitionIds.concat(Object.keys(fsm.transitions || {}));
+    });
+
+    return {
+        nodeIds: Object.keys(nodes),
+        fsmIds: Object.keys(stateMachines),
+        stateIds,
+        transitionIds
     };
 }

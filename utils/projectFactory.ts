@@ -3,24 +3,31 @@
  * 项目工厂函数 - 创建新的空白项目
  * 
  * P4-T06: 项目级操作与多工程支持
+ * 
+ * 更新：统一使用 resourceIdGenerator 生成 ID，格式为 {TYPE}_{COUNT}
  */
 
 import { ProjectData, ProjectMeta } from '../types/project';
 import { StageTreeData, StageNode } from '../types/stage';
 import { StageId } from '../types/common';
+import { generateProjectId, generateResourceId } from './resourceIdGenerator';
 
 /**
  * 生成项目唯一 ID
+ * 格式: PROJECT_{COUNT}
  */
-const generateProjectId = (): string => {
-    return `project-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
+const createProjectId = (): string => {
+    // 新项目创建时无其他项目参考，传空数组
+    return generateProjectId([]);
 };
 
 /**
  * 生成 Stage 唯一 ID
+ * 格式: STAGE_{COUNT}
  */
-const generateStageId = (): StageId => {
-    return `stage-${Date.now()}-${Math.random().toString(36).substring(2, 8)}` as StageId;
+const createStageId = (): StageId => {
+    // 根 Stage 创建时无其他 Stage 参考，传空数组
+    return generateResourceId('STAGE', []) as StageId;
 };
 
 /**
@@ -45,8 +52,8 @@ const createRootStage = (id: StageId): StageNode => ({
  */
 export function createEmptyProject(name: string, description?: string): ProjectData {
     const now = new Date().toISOString();
-    const projectId = generateProjectId();
-    const rootStageId = generateStageId();
+    const projectId = createProjectId();
+    const rootStageId = createStageId();
 
     const meta: ProjectMeta = {
         id: projectId,

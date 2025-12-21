@@ -6,7 +6,7 @@
 import { Entity, Vector2, PresentationGraphId, PresentationNodeId, Side, PresentationBinding } from './common';
 
 // ========== 演出节点类型 ==========
-export type PresentationNodeType = 'ScriptCall' | 'Wait' | 'Branch' | 'Parallel';
+export type PresentationNodeType = 'PresentationNode' | 'Wait' | 'Branch' | 'Parallel';
 
 // ========== 演出节点 ==========
 /**

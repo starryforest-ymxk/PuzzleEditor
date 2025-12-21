@@ -3,7 +3,7 @@
  * 演出图引用追踪工具，用于显示演出图被引用的位置
  */
 
-import { StateMachine, Transition, State } from '../../types/stateMachine';
+import { StateMachine, Transition } from '../../types/stateMachine';
 import { PuzzleNode } from '../../types/puzzleNode';
 import { StageNode } from '../../types/stage';
 import { PresentationBinding } from '../../types/common';
@@ -37,46 +37,26 @@ const collectGraphFromStage = (
     collector: (info: VariableReferenceInfo) => void
 ) => {
     const stageName = stage.name || stage.id;
+    const navContext: ReferenceNavigationContext = {
+        targetType: 'STAGE',
+        stageId: stage.id
+    };
 
     if (checkPresentationBinding(stage.onEnterPresentation, graphId)) {
         collector({
             location: `Stage ${stageName} > OnEnter Presentation`,
-            navContext: undefined // Stage 目前不支持导航
+            navContext
         });
     }
 
     if (checkPresentationBinding(stage.onExitPresentation, graphId)) {
         collector({
             location: `Stage ${stageName} > OnExit Presentation`,
-            navContext: undefined
-        });
-    }
-};
-
-/**
- * 收集 State 中对演出图的引用
- */
-const collectGraphFromState = (
-    state: State,
-    graphId: string,
-    collector: (info: VariableReferenceInfo) => void,
-    fsmName: string,
-    nodeId: string
-) => {
-    const stateName = state.name || state.id;
-    const navContext: ReferenceNavigationContext = {
-        targetType: 'STATE',
-        nodeId,
-        stateId: state.id
-    };
-
-    if (checkPresentationBinding(state.presentation, graphId)) {
-        collector({
-            location: `FSM ${fsmName} > State ${stateName} > Presentation`,
             navContext
         });
     }
 };
+
 
 /**
  * 收集 Transition 中对演出图的引用
@@ -108,8 +88,8 @@ const collectGraphFromTransition = (
  * 
  * 检查范围：
  * 1. 所有 Stage 的 onEnter/onExit Presentation
- * 2. 所有状态机的状态 presentation
- * 3. 所有转移的 presentation
+ * 2. 所有转移的 presentation
+ * 3. 所有演出图节点中 type: 'Graph' 的绑定
  */
 export const findPresentationGraphReferences = (
     project: ProjectLike,
@@ -129,16 +109,32 @@ export const findPresentationGraphReferences = (
         if (fsm) {
             const fsmName = node.name || node.id;
 
-            // 状态的 presentation
-            Object.values(fsm.states || {}).forEach(state => {
-                collectGraphFromState(state, graphId, push, fsmName, node.id);
-            });
-
             // 转移的 presentation
             Object.values(fsm.transitions || {}).forEach(trans =>
                 collectGraphFromTransition(trans, graphId, push, fsmName, node.id)
             );
         }
+    });
+
+    // 3) 遍历所有演出图节点中 type: 'Graph' 的绑定
+    const graphs = (project as any).presentationGraphs || {};
+    Object.values(graphs).forEach((graph: any) => {
+        if (!graph) return;
+        const graphName = graph.name || graph.id;
+        Object.values(graph.nodes || {}).forEach((pNode: any) => {
+            // 检查演出节点的 Graph 绑定
+            if (pNode.presentation?.type === 'Graph' && pNode.presentation.graphId === graphId) {
+                const navContext: ReferenceNavigationContext = {
+                    targetType: 'PRESENTATION_NODE',
+                    graphId: graph.id,
+                    presentationNodeId: pNode.id
+                };
+                push({
+                    location: `Presentation ${graphName} > Node ${pNode.name || pNode.id}`,
+                    navContext
+                });
+            }
+        });
     });
 
     return refs;

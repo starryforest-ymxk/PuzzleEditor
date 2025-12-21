@@ -451,7 +451,7 @@ export const PresentationCanvas: React.FC<Props> = ({ graph, ownerNodeId, readOn
     const getMenuItems = useCallback((type: 'CANVAS' | 'NODE' | 'EDGE', targetId?: string): GraphMenuElement[] => {
         if (type === 'CANVAS') {
             return [
-                { id: 'add-script', label: '+ Add Script Node', onClick: () => handleAddNode('ScriptCall') },
+                { id: 'add-presentation', label: '+ Add Presentation Node', onClick: () => handleAddNode('PresentationNode') },
                 { id: 'add-wait', label: '+ Add Wait Node', onClick: () => handleAddNode('Wait') },
                 { id: 'add-branch', label: '+ Add Branch Node', onClick: () => handleAddNode('Branch') },
                 { id: 'add-parallel', label: '+ Add Parallel Node', onClick: () => handleAddNode('Parallel') }

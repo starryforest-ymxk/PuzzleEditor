@@ -77,8 +77,8 @@ export const PresentationNodeInspector = ({ graphId, nodeId, readOnly = false }:
             handleChange('type', 'Wait');
             handleChange('duration', node.duration ?? 1);
             handleChange('presentation', undefined);
-        } else if (nextType === 'ScriptCall') {
-            handleChange('type', 'ScriptCall');
+        } else if (nextType === 'PresentationNode') {
+            handleChange('type', 'PresentationNode');
             handleChange('duration', undefined);
         } else {
             handleChange('type', nextType);
@@ -115,7 +115,7 @@ export const PresentationNodeInspector = ({ graphId, nodeId, readOnly = false }:
     };
 
     // Node type display name
-    const typeDisplayName = node.type === 'ScriptCall' ? 'SCRIPT CALL' : node.type.toUpperCase();
+    const typeDisplayName = node.type === 'PresentationNode' ? 'PRESENTATION NODE' : node.type.toUpperCase();
 
     // 设置起始节点
     const handleSetStartNode = () => {
@@ -179,7 +179,7 @@ export const PresentationNodeInspector = ({ graphId, nodeId, readOnly = false }:
                         disabled={readOnly}
                         style={{ background: '#222', color: '#ccc', border: '1px solid #444', padding: '4px 8px', borderRadius: '3px', fontSize: '12px', opacity: readOnly ? 0.7 : 1 }}
                     >
-                        <option value="ScriptCall">Script Call</option>
+                        <option value="PresentationNode">Presentation Node</option>
                         <option value="Wait">Wait</option>
                         <option value="Branch">Branch</option>
                         <option value="Parallel">Parallel</option>
@@ -205,8 +205,8 @@ export const PresentationNodeInspector = ({ graphId, nodeId, readOnly = false }:
                 </div>
             )}
 
-            {/* ScriptCall Node: Presentation Binding */}
-            {node.type === 'ScriptCall' && (
+            {/* PresentationNode: Presentation Binding */}
+            {node.type === 'PresentationNode' && (
                 <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-color)' }}>
                     <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Presentation Binding</div>
                     <div style={{ pointerEvents: readOnly ? 'none' : 'auto', opacity: readOnly ? 0.6 : 1 }}>

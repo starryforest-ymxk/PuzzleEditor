@@ -2,39 +2,44 @@
  * utils/stageTreeUtils.ts
  * Stage 树操作工具函数
  * 提供 Stage 的创建、查询和关系计算等核心功能
+ * 
+ * 更新：统一使用 resourceIdGenerator 生成 ID，格式为 {TYPE}_{COUNT}
  */
 
 import { StageId, PuzzleNodeId, VariableId } from '../types/common';
 import { StageNode, StageTreeData } from '../types/stage';
 import { PuzzleNode } from '../types/puzzleNode';
 import { VariableDefinition } from '../types/blackboard';
-
-// 用于生成 Stage ID 的计数器
-let stageCounter = 0;
+import { generateResourceId, generateStageVariableId as genStageVarId } from './resourceIdGenerator';
 
 /**
  * 生成唯一的 Stage ID
- * 格式: stage-{计数器}
+ * 格式: STAGE_{COUNT}
+ * @param existingStageIds 已存在的 Stage ID 列表
  */
-export function generateStageId(): StageId {
-    stageCounter += 1;
-    return `stage-${stageCounter}` as StageId;
+export function generateStageId(existingStageIds: string[]): StageId {
+    return generateResourceId('STAGE', existingStageIds) as StageId;
 }
 
 /**
- * 重置 Stage ID 计数器（用于测试或项目加载时）
- * @param maxId 当前项目中最大的 Stage ID 数字部分
+ * 重置 Stage ID 计数器（兼容性函数，新版不再需要）
+ * @deprecated 新版 ID 生成基于扫描现有 ID，无需手动重置计数器
  */
-export function resetStageCounter(maxId: number): void {
-    stageCounter = maxId;
+export function resetStageCounter(_maxId: number): void {
+    // 保留空函数以保持 API 兼容性，新版无需此操作
 }
 
 /**
  * 从 Stage ID 中提取数字部分
+ * 支持新格式 STAGE_{NUM} 和旧格式 stage-{NUM}
  */
 export function extractStageIdNumber(stageId: StageId): number {
-    const match = stageId.match(/stage-(\d+)/);
-    return match ? parseInt(match[1], 10) : 0;
+    // 新格式: STAGE_1, STAGE_2, ...
+    const newMatch = stageId.match(/STAGE_(\d+)/);
+    if (newMatch) return parseInt(newMatch[1], 10);
+    // 旧格式: stage-1, stage-2, ...
+    const oldMatch = stageId.match(/stage-(\d+)/);
+    return oldMatch ? parseInt(oldMatch[1], 10) : 0;
 }
 
 /**
@@ -134,11 +139,16 @@ export function hasStageContent(
 /**
  * 创建默认的新 Stage
  * @param parentId 父 Stage ID
+ * @param existingStageIds 已存在的 Stage ID 列表
  * @param name 可选的名称，默认为 "New Stage"
  * @returns 新创建的 StageNode 对象
  */
-export function createDefaultStage(parentId: StageId | null, name?: string): StageNode {
-    const id = generateStageId();
+export function createDefaultStage(
+    parentId: StageId | null,
+    existingStageIds: string[],
+    name?: string
+): StageNode {
+    const id = generateStageId(existingStageIds);
     return {
         id,
         name: name || 'New Stage',
@@ -154,19 +164,12 @@ export function createDefaultStage(parentId: StageId | null, name?: string): Sta
 
 /**
  * 生成唯一的 Stage 局部变量 ID
+ * 格式: STAGEVAR_{COUNT}
  * @param existingVarIds 已存在的变量 ID 列表
  * @returns 新的唯一变量 ID
  */
 export function generateStageVariableId(existingVarIds: VariableId[]): VariableId {
-    // 找出最大的变量编号
-    let maxNum = 0;
-    existingVarIds.forEach(id => {
-        const match = id.match(/stagevar-(\d+)/);
-        if (match) {
-            maxNum = Math.max(maxNum, parseInt(match[1], 10));
-        }
-    });
-    return `stagevar-${maxNum + 1}` as VariableId;
+    return genStageVarId(existingVarIds as string[]) as VariableId;
 }
 
 /**

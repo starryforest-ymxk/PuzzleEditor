@@ -164,7 +164,8 @@ export const StageExplorer: React.FC = () => {
     const handleCreateChildStage = useCallback(() => {
         if (!contextMenu) return;
         const parentId = (contextMenu.stageId || project.stageTree.rootId) as StageId;
-        const newStage = createDefaultStage(parentId);
+        const existingStageIds = Object.keys(project.stageTree.stages);
+        const newStage = createDefaultStage(parentId, existingStageIds);
 
         dispatch({ type: 'ADD_STAGE', payload: { parentId, stage: newStage } });
         dispatch({ type: 'SET_STAGE_EXPANDED', payload: { id: parentId, expanded: true } });
@@ -180,7 +181,8 @@ export const StageExplorer: React.FC = () => {
         if (!stage?.parentId) return;
 
         const parentId = stage.parentId as StageId;
-        const newStage = createDefaultStage(parentId);
+        const existingStageIds = Object.keys(project.stageTree.stages);
+        const newStage = createDefaultStage(parentId, existingStageIds);
 
         dispatch({
             type: 'ADD_STAGE',
@@ -380,7 +382,9 @@ export const StageExplorer: React.FC = () => {
     // ========== 渲染：主组件 ==========
 
     if (!project.isLoaded) {
-        return <div className="empty-state">Loading...</div>;
+        return <div className="empty-state" style={{ padding: '12px 16px', fontSize: '12px', height: 'auto' }}>
+            Open a project to view stages
+        </div>;
     }
 
     return (

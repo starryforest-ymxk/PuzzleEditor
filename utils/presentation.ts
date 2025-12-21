@@ -1,7 +1,7 @@
 /**
  * 演出节点规范化工具
  * - 保证必需字段存在（nextIds / duration）
- * - 按类型裁剪无关字段（仅 ScriptCall 允许携带 presentation；Wait 才保留 duration）
+ * - 按类型裁剪无关字段（仅 PresentationNode 允许携带 presentation；Wait 才保留 duration）
  */
 import { PresentationNode } from '../types/presentation';
 import { PresentationBinding } from '../types/common';
@@ -13,7 +13,7 @@ export const normalizePresentationNode = (node: PresentationNode): PresentationN
   };
 
   // 严格模式：不再迁移/兼容旧字段（scriptId/parameters）。
-  // 仅在 ScriptCall 节点上保留 presentation，并确保 Script 绑定的 parameters 始终为数组。
+  // 仅在 PresentationNode 节点上保留 presentation，并确保 Script 绑定的 parameters 始终为数组。
   const normalizedPresentation: PresentationBinding | undefined = (() => {
     const binding = base.presentation;
     if (!binding) return undefined;
@@ -27,7 +27,7 @@ export const normalizePresentationNode = (node: PresentationNode): PresentationN
   })();
 
   switch (base.type) {
-    case 'ScriptCall':
+    case 'PresentationNode':
       return {
         ...base,
         presentation: normalizedPresentation,

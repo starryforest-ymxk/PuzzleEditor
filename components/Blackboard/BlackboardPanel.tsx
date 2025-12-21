@@ -23,9 +23,10 @@ import type { StateMachine } from '../../types/stateMachine';
 import type { StageNode } from '../../types/stage';
 import type { PuzzleNode } from '../../types/puzzleNode';
 import { Database, Code, Zap, Search, Layers, Plus } from 'lucide-react';
-import { generateVariableId, generateEventId, generateScriptId } from '../../utils/resourceIdGenerator';
+import { generateVariableId, generateEventId, generateScriptId, generateGraphId } from '../../utils/resourceIdGenerator';
 import { findGlobalVariableReferences } from '../../utils/validation/globalVariableReferences';
 import { findNodeVariableReferences } from '../../utils/validation/variableReferences';
+import { findStageVariableReferences } from '../../utils/validation/stageVariableReferences';
 import { findScriptReferences } from '../../utils/validation/scriptReferences';
 import { findEventReferences } from '../../utils/validation/eventReferences';
 import { findPresentationGraphReferences } from '../../utils/validation/presentationGraphReferences';
@@ -153,15 +154,17 @@ export const BlackboardPanel: React.FC = () => {
     return counts;
   }, [project, variableList]);
 
-  // 局部变量引用数量（仅 Node 级别支持）
+  // 局部变量引用数量（支持 Node 和 Stage 级别）
   const localVariableRefCounts = useMemo<Record<string, number>>(() => {
     const counts: Record<string, number> = {};
     localVariableList.forEach(v => {
       if (v.scopeType === 'Node') {
         // Node 局部变量使用 findNodeVariableReferences
         counts[v.id] = findNodeVariableReferences(project, v.scopeId, v.id).length;
+      } else if (v.scopeType === 'Stage') {
+        // Stage 局部变量使用 findStageVariableReferences
+        counts[v.id] = findStageVariableReferences(project, v.scopeId, v.id).length;
       } else {
-        // Stage 局部变量暂不支持引用追踪
         counts[v.id] = 0;
       }
     });
@@ -240,12 +243,11 @@ export const BlackboardPanel: React.FC = () => {
   };
 
   const toggleSection = (key: string) => {
-    setExpandedSections(prev => {
-      const current = prev[key] ?? true; // 未初始化时视为展开
-      const next = { ...prev, [key]: !current };
-      persistState({ expandedSections: next });
-      return next;
-    });
+    const current = expandedSections[key] ?? true; // 未初始化时视为展开
+    const next = { ...expandedSections, [key]: !current };
+    setExpandedSections(next);
+    // 在 setState 外部调用 dispatch，避免在渲染期间触发状态更新
+    persistState({ expandedSections: next });
   };
 
   // ========== Selection Handlers ==========
@@ -316,8 +318,8 @@ export const BlackboardPanel: React.FC = () => {
   };
 
   const handleAddScript = (category: ScriptCategory, lifecycleType?: 'Stage' | 'Node' | 'State') => {
-    // 使用"资源类型_计数器"格式生成 ID（ID 由系统生成，不可编辑）
-    const id = generateScriptId(project);
+    // 使用按类型区分的 ID 格式（如 SCRIPT_PERF_1, SCRIPT_LIFE_1 等）
+    const id = generateScriptId(project, category);
     const newScript: ScriptDefinition = {
       id,
       name: lifecycleType ? `New ${lifecycleType} Lifecycle Script` : `New ${category} Script`,
@@ -333,7 +335,8 @@ export const BlackboardPanel: React.FC = () => {
   };
 
   const handleAddPresentationGraph = () => {
-    const id = `pg_${Date.now()}`;
+    // 使用统一 ID 格式：GRAPH_{N}
+    const id = generateGraphId(project);
     const newGraph = {
       id,
       name: 'New Presentation Graph',
@@ -368,7 +371,7 @@ export const BlackboardPanel: React.FC = () => {
             ? <div className="empty-state empty-state--inline">No local variables in Stages or Nodes</div>
             : filteredLocalVariables.map(v => (
               <LocalVariableCard
-                key={v.id}
+                key={`${v.scopeType}-${v.scopeId}-${v.id}`}
                 variable={v}
                 isSelected={ui.selection.type === 'VARIABLE' && ui.selection.id === v.id}
                 onClick={() => handleSelectVariable(v.id)}

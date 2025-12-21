@@ -33,6 +33,7 @@ import { Trash2, RotateCcw, ExternalLink } from 'lucide-react';
 import { ConfirmDialog } from './ConfirmDialog';
 import { findGlobalVariableReferences, VariableReferenceInfo, ReferenceNavigationContext } from '../../utils/validation/globalVariableReferences';
 import { findNodeVariableReferences } from '../../utils/variableReferences';
+import { findStageVariableReferences } from '../../utils/validation/stageVariableReferences';
 
 // ========== Props 类型定义 ==========
 interface VariableInspectorProps {
@@ -155,8 +156,10 @@ export const VariableInspector: React.FC<VariableInspectorProps> = ({ variableId
         } else if (variableScope === 'Node' && scopeOwnerId) {
             // Node 局部变量引用检查
             return findNodeVariableReferences(project, scopeOwnerId, variableId);
+        } else if (variableScope === 'Stage' && scopeOwnerId) {
+            // Stage 局部变量引用检查
+            return findStageVariableReferences(project, scopeOwnerId, variableId);
         }
-        // Stage 局部变量暂不支持引用检查（可扩展）
         return [];
     }, [project, variableId, isGlobal, variableScope, scopeOwnerId]);
 
@@ -171,9 +174,27 @@ export const VariableInspector: React.FC<VariableInspectorProps> = ({ variableId
     const handleReferenceClick = useCallback((navContext?: ReferenceNavigationContext) => {
         if (!navContext) return;
 
-        const { targetType, nodeId, stateId, transitionId, graphId, presentationNodeId } = navContext;
+        const { targetType, stageId, nodeId, stateId, transitionId, graphId, presentationNodeId } = navContext;
 
         switch (targetType) {
+            case 'STAGE':
+                // 导航到 Stage 并选中
+                if (stageId) {
+                    dispatch({
+                        type: 'NAVIGATE_TO',
+                        payload: {
+                            stageId,
+                            nodeId: null,
+                            graphId: null
+                        }
+                    });
+                    dispatch({
+                        type: 'SELECT_OBJECT',
+                        payload: { type: 'STAGE', id: stageId }
+                    });
+                }
+                break;
+
             case 'NODE':
                 // 导航到 Node 的 FSM Canvas 并选中 Node
                 if (nodeId) {

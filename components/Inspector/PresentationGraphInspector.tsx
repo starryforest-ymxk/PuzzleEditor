@@ -107,9 +107,23 @@ export const PresentationGraphInspector: React.FC<PresentationGraphInspectorProp
     const handleReferenceClick = useCallback((navContext?: ReferenceNavigationContext) => {
         if (!navContext) return;
 
-        const { targetType, nodeId, stateId, transitionId } = navContext;
+        const { targetType, stageId, nodeId, stateId, transitionId, graphId: targetGraphId, presentationNodeId } = navContext;
 
         switch (targetType) {
+            case 'STAGE':
+                // 导航到 Stage 并选中
+                if (stageId) {
+                    dispatch({
+                        type: 'NAVIGATE_TO',
+                        payload: { stageId, nodeId: null, graphId: null }
+                    });
+                    dispatch({
+                        type: 'SELECT_OBJECT',
+                        payload: { type: 'STAGE', id: stageId }
+                    });
+                }
+                break;
+
             case 'STATE':
                 if (nodeId && stateId) {
                     const node = project.nodes[nodeId];
@@ -127,6 +141,20 @@ export const PresentationGraphInspector: React.FC<PresentationGraphInspectorProp
                         dispatch({ type: 'NAVIGATE_TO', payload: { stageId: node.stageId, nodeId, graphId: null } });
                         dispatch({ type: 'SELECT_OBJECT', payload: { type: 'TRANSITION', id: transitionId, contextId: nodeId } });
                     }
+                }
+                break;
+
+            case 'PRESENTATION_NODE':
+                // 导航到演出图并选中演出节点
+                if (targetGraphId && presentationNodeId) {
+                    dispatch({
+                        type: 'NAVIGATE_TO',
+                        payload: { graphId: targetGraphId }
+                    });
+                    dispatch({
+                        type: 'SELECT_OBJECT',
+                        payload: { type: 'PRESENTATION_NODE', id: presentationNodeId, contextId: targetGraphId }
+                    });
                 }
                 break;
         }

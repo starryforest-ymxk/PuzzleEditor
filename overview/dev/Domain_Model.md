@@ -180,8 +180,7 @@ interface PuzzleNode extends Entity {
   stageId: string;         // stage-*
   stateMachineId: string;  // fsm-*
   localVariables: Record<string, VariableDefinition>;
-  onCreateScriptId?: string;
-  onDestroyScriptId?: string;
+  lifecycleScriptId?: string;  // script-* 生命周期脚本
   eventListeners: EventListener[];
 }
 ```

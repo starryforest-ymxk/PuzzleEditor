@@ -35,3 +35,4 @@ export { type ValidationIssue as FsmIssue } from './fsmValidation';
 
 // ========== 变量引用追踪 ==========
 export * from './variableReferences';
+export * from './stageVariableReferences';

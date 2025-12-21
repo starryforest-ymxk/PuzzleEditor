@@ -120,6 +120,8 @@ export const presentationReducer = (state: EditorState, action: PresentationActi
 
             const normalized = normalizePresentationNode(node);
 
+            const isFirstNode = Object.keys(graph.nodes).length === 0;
+
             return {
                 ...state,
                 project: {
@@ -128,7 +130,8 @@ export const presentationReducer = (state: EditorState, action: PresentationActi
                         ...state.project.presentationGraphs,
                         [graphId]: {
                             ...graph,
-                            nodes: { ...graph.nodes, [normalized.id]: normalized }
+                            nodes: { ...graph.nodes, [normalized.id]: normalized },
+                            startNodeId: isFirstNode ? normalized.id : graph.startNodeId
                         }
                     }
                 }

@@ -7,6 +7,7 @@ import { ConditionExpression, StateMachine, Transition, State } from '../../type
 import { PresentationGraph } from '../../types/presentation';
 import { PuzzleNode } from '../../types/puzzleNode';
 import { StageNode } from '../../types/stage';
+import { PresentationBinding } from '../../types/common';
 import { ReferenceNavigationContext, VariableReferenceInfo } from './globalVariableReferences';
 
 // 定义函数所需的最小项目数据结构
@@ -70,6 +71,26 @@ const collectScriptFromTriggers = (
 };
 
 /**
+ * 检查演出绑定是否引用了指定的脚本
+ * 注意：仅检查 type: 'Script' 类型的直接脚本绑定
+ * type: 'Graph' 的情况不在此处理，演出图内部的脚本引用由主函数最后统一遍历
+ */
+const collectScriptFromPresentationBinding = (
+    binding: PresentationBinding | undefined,
+    scriptId: string,
+    collector: (info: VariableReferenceInfo) => void,
+    origin: string,
+    navContext?: ReferenceNavigationContext
+) => {
+    if (!binding) return;
+    // 仅处理直接脚本绑定
+    if (binding.type === 'Script' && binding.scriptId === scriptId) {
+        collector({ location: `${origin} > Script Binding`, navContext });
+    }
+    // type: 'Graph' 不在此处理，避免重复遍历
+};
+
+/**
  * 检查状态的生命周期脚本是否引用了指定的脚本
  */
 const collectScriptFromState = (
@@ -94,7 +115,6 @@ const collectScriptFromState = (
 
 /**
  * 检查转移是否引用了指定的脚本
- * 注意：不检查转移关联演出图中的脚本引用，因为演出图会在后续统一遍历
  */
 const collectScriptFromTransition = (
     trans: Transition,
@@ -114,9 +134,8 @@ const collectScriptFromTransition = (
     collectScriptFromCondition(trans.condition, scriptId, collector, `${transName} > Condition`, navContext);
     // 检查触发器
     collectScriptFromTriggers(trans.triggers, scriptId, collector, transName, navContext);
-    
-    // 注意：转移关联的演出图中的脚本引用在后续遍历所有演出图时统一处理
-    // 避免重复计数（演出图A -> 脚本，节点 -> 演出图A -> 脚本）
+    // 检查演出绑定（仅 type: 'Script' 类型）
+    collectScriptFromPresentationBinding(trans.presentation, scriptId, collector, `${transName} > Presentation`, navContext);
 };
 
 /**
@@ -133,21 +152,20 @@ const collectScriptFromNode = (
     };
     const nodeName = node.name || node.id;
 
-    // 检查节点的统一生命周期脚本字段
+    // 检查节点的生命周期脚本
     if (node.lifecycleScriptId === scriptId) {
         collector({ location: `Node ${nodeName} > Lifecycle Script`, navContext });
-    }
-    // 兼容旧字段
-    if (node.onCreateScriptId === scriptId) {
-        collector({ location: `Node ${nodeName} > OnCreate Script`, navContext });
-    }
-    if (node.onDestroyScriptId === scriptId) {
-        collector({ location: `Node ${nodeName} > OnDestroy Script`, navContext });
     }
 };
 
 /**
  * 检查 Stage 是否引用了指定的脚本
+ * 
+ * 扫描范围：
+ * - 生命周期脚本 (lifecycleScriptId)
+ * - 解锁条件中的脚本引用 (unlockCondition)
+ * - OnEnter 演出绑定 (onEnterPresentation)
+ * - OnExit 演出绑定 (onExitPresentation)
  */
 const collectScriptFromStage = (
     stage: StageNode,
@@ -155,11 +173,24 @@ const collectScriptFromStage = (
     collector: (info: VariableReferenceInfo) => void
 ) => {
     const stageName = stage.name || stage.id;
+    const navContext: ReferenceNavigationContext = {
+        targetType: 'STAGE',
+        stageId: stage.id
+    };
 
-    // 检查 Stage 的统一生命周期脚本字段
+    // 检查 Stage 的生命周期脚本
     if (stage.lifecycleScriptId === scriptId) {
-        collector({ location: `Stage ${stageName} > Lifecycle Script` });
+        collector({ location: `Stage ${stageName} > Lifecycle Script`, navContext });
     }
+
+    // 检查解锁条件中的脚本引用
+    collectScriptFromCondition(stage.unlockCondition, scriptId, collector, `Stage ${stageName} > Unlock Condition`, navContext);
+
+    // 检查 OnEnter 演出绑定
+    collectScriptFromPresentationBinding(stage.onEnterPresentation, scriptId, collector, `Stage ${stageName} > OnEnter Presentation`, navContext);
+
+    // 检查 OnExit 演出绑定
+    collectScriptFromPresentationBinding(stage.onExitPresentation, scriptId, collector, `Stage ${stageName} > OnExit Presentation`, navContext);
 };
 
 /**
@@ -215,7 +246,7 @@ export const findScriptReferences = (
         if (!graph) return;
         const graphName = graph.name || graph.id;
         Object.values(graph.nodes || {}).forEach(pNode => {
-            // 检查 ScriptCall 类型节点的 Script 绑定
+            // 检查 PresentationNode 类型节点的 Script 绑定
             if (pNode.presentation?.type === 'Script' && pNode.presentation.scriptId === scriptId) {
                 const navContext: ReferenceNavigationContext = {
                     targetType: 'PRESENTATION_NODE',

@@ -1,48 +1,54 @@
 /**
  * utils/validation/globalVariableReferences.ts
- * È«¾Ö±äÁ¿ÒıÓÃ×·×Ù¹¤¾ß£¬ÓÃÓÚÉ¾³ıÇ°ÌáÊ¾ÒıÓÃÎ»ÖÃ
+ * å…¨å±€å˜é‡å¼•ç”¨è¿½è¸ªå·¥å…·ï¼Œç”¨äºåˆ é™¤å‰æç¤ºå¼•ç”¨ä½ç½®
  * 
- * Óë variableReferences.ts ÀàËÆ£¬µ«×¨ÃÅ´¦Àí Global ×÷ÓÃÓòµÄ±äÁ¿
+ * ä¸ variableReferences.ts ç±»ä¼¼ï¼Œä½†ä¸“é—¨å¤„ç† Global ä½œç”¨åŸŸçš„å˜é‡
  */
 import { ConditionExpression, StateMachine, Transition } from '../../types/stateMachine';
-import { EventListener, ParameterModifier, ValueSource, ParameterBinding } from '../../types/common';
+import { EventListener, ParameterModifier, ValueSource, ParameterBinding, PresentationBinding } from '../../types/common';
 import { PresentationGraph } from '../../types/presentation';
 import { PuzzleNode } from '../../types/puzzleNode';
+import { StageNode } from '../../types/stage';
 
-// ¶¨Òåº¯ÊıËùĞèµÄ×îĞ¡ÏîÄ¿Êı¾İ½á¹¹£¨¼æÈİ store.project ºÍ ProjectData£©
+// å®šä¹‰å‡½æ•°æ‰€éœ€çš„æœ€å°é¡¹ç›®æ•°æ®ç»“æ„ï¼ˆå…¼å®¹ store.project å’Œ ProjectDataï¼‰
 interface ProjectLike {
   nodes: Record<string, PuzzleNode>;
   stateMachines?: Record<string, StateMachine>;
   presentationGraphs?: Record<string, PresentationGraph>;
+  stageTree: {
+    stages: Record<string, StageNode>;
+  };
 }
 
 /**
- * µ¼º½ÉÏÏÂÎÄÀàĞÍ£¬¶¨ÒåÒıÓÃÌø×ªÊ±µÄÄ¿±ê
+ * å¯¼èˆªä¸Šä¸‹æ–‡ç±»å‹ï¼Œå®šä¹‰å¼•ç”¨è·³è½¬æ—¶çš„ç›®æ ‡
  */
 export interface ReferenceNavigationContext {
-  /** Ä¿±êÀàĞÍ£ºNode/State/Transition/PresentationGraph/PresentationNode */
-  targetType: 'NODE' | 'STATE' | 'TRANSITION' | 'PRESENTATION_GRAPH' | 'PRESENTATION_NODE';
-  /** Node ID - ´ó¶àÊıÇé¿öĞèÒªÏÈµ¼º½µ½ Node */
+  /** ç›®æ ‡ç±»å‹ï¼šStage/Node/State/Transition/PresentationGraph/PresentationNode */
+  targetType: 'STAGE' | 'NODE' | 'STATE' | 'TRANSITION' | 'PRESENTATION_GRAPH' | 'PRESENTATION_NODE';
+  /** Stage ID - Stage ç›¸å…³å¯¼èˆª */
+  stageId?: string;
+  /** Node ID - å¤§å¤šæ•°æƒ…å†µéœ€è¦å…ˆå¯¼èˆªåˆ° Node */
   nodeId?: string;
-  /** State ID - ×´Ì¬½ÚµãÑ¡Ôñ */
+  /** State ID - çŠ¶æ€èŠ‚ç‚¹é€‰æ‹© */
   stateId?: string;
-  /** Transition ID - ×ªÒÆÑ¡Ôñ */
+  /** Transition ID - è½¬ç§»é€‰æ‹© */
   transitionId?: string;
-  /** Presentation Graph ID - Ñİ³öÍ¼ */
+  /** Presentation Graph ID - æ¼”å‡ºå›¾ */
   graphId?: string;
-  /** Presentation Node ID - Ñİ³öÍ¼½Úµã */
+  /** Presentation Node ID - æ¼”å‡ºå›¾èŠ‚ç‚¹ */
   presentationNodeId?: string;
 }
 
 export interface VariableReferenceInfo {
-  location: string;   // ÒıÓÃ·¢ÉúµÄ¾ßÌåÎ»ÖÃÃèÊö
-  detail?: string;    // ¶îÍâËµÃ÷£¨ÈçËùÊô¶ÔÏóÃû³Æ£©
-  /** µ¼º½ÉÏÏÂÎÄ£¬ÓÃÓÚµã»÷Ìø×ª */
+  location: string;   // å¼•ç”¨å‘ç”Ÿçš„å…·ä½“ä½ç½®æè¿°
+  detail?: string;    // é¢å¤–è¯´æ˜ï¼ˆå¦‚æ‰€å±å¯¹è±¡åç§°ï¼‰
+  /** å¯¼èˆªä¸Šä¸‹æ–‡ï¼Œç”¨äºç‚¹å‡»è·³è½¬ */
   navContext?: ReferenceNavigationContext;
 }
 
 /**
- * ¼ì²é ValueSource ÊÇ·ñÒıÓÃÁËÖ¸¶¨µÄÈ«¾Ö±äÁ¿
+ * æ£€æŸ¥ ValueSource æ˜¯å¦å¼•ç”¨äº†æŒ‡å®šçš„å…¨å±€å˜é‡
  */
 const collectFromValueSource = (
   source: ValueSource | undefined,
@@ -58,7 +64,7 @@ const collectFromValueSource = (
 };
 
 /**
- * ¼ì²é²ÎÊı°ó¶¨ÁĞ±íÊÇ·ñÒıÓÃÁËÖ¸¶¨µÄÈ«¾Ö±äÁ¿
+ * æ£€æŸ¥å‚æ•°ç»‘å®šåˆ—è¡¨æ˜¯å¦å¼•ç”¨äº†æŒ‡å®šçš„å…¨å±€å˜é‡
  */
 const collectFromBindings = (
   bindings: ParameterBinding[] | undefined,
@@ -71,7 +77,7 @@ const collectFromBindings = (
 };
 
 /**
- * ¼ì²é²ÎÊıĞŞ¸ÄÆ÷ÊÇ·ñÒıÓÃÁËÖ¸¶¨µÄÈ«¾Ö±äÁ¿
+ * æ£€æŸ¥å‚æ•°ä¿®æ”¹å™¨æ˜¯å¦å¼•ç”¨äº†æŒ‡å®šçš„å…¨å±€å˜é‡
  */
 const collectFromModifier = (
   modifier: ParameterModifier | undefined,
@@ -81,16 +87,16 @@ const collectFromModifier = (
   navContext?: ReferenceNavigationContext
 ) => {
   if (!modifier) return;
-  // ¼ì²éÄ¿±ê±äÁ¿
+  // æ£€æŸ¥ç›®æ ‡å˜é‡
   if (modifier.targetVariableId === variableId && modifier.targetScope === 'Global') {
     collector({ location: `${origin} > Target`, navContext });
   }
-  // ¼ì²éÔ´Öµ
+  // æ£€æŸ¥æºå€¼
   collectFromValueSource(modifier.source, variableId, collector, `${origin} > Source`, navContext);
 };
 
 /**
- * µİ¹é¼ì²éÌõ¼ş±í´ïÊ½ÊÇ·ñÒıÓÃÁËÖ¸¶¨µÄÈ«¾Ö±äÁ¿
+ * é€’å½’æ£€æŸ¥æ¡ä»¶è¡¨è¾¾å¼æ˜¯å¦å¼•ç”¨äº†æŒ‡å®šçš„å…¨å±€å˜é‡
  */
 const collectFromCondition = (
   condition: ConditionExpression | undefined,
@@ -100,7 +106,7 @@ const collectFromCondition = (
   navContext?: ReferenceNavigationContext
 ) => {
   if (!condition) return;
-  
+
   if (condition.type === 'VARIABLE_REF') {
     if (condition.variableScope === 'Global' && condition.variableId === variableId) {
       collector({ location: origin, navContext });
@@ -109,7 +115,7 @@ const collectFromCondition = (
   }
 
   if (condition.type === 'AND' || condition.type === 'OR') {
-    condition.children?.forEach((c, idx) => 
+    condition.children?.forEach((c, idx) =>
       collectFromCondition(c, variableId, collector, `${origin} > Sub condition ${idx + 1}`, navContext)
     );
   }
@@ -125,7 +131,7 @@ const collectFromCondition = (
 };
 
 /**
- * ¼ì²éÊÂ¼ş¼àÌıÆ÷ÁĞ±íÊÇ·ñÒıÓÃÁËÖ¸¶¨µÄÈ«¾Ö±äÁ¿
+ * æ£€æŸ¥äº‹ä»¶ç›‘å¬å™¨åˆ—è¡¨æ˜¯å¦å¼•ç”¨äº†æŒ‡å®šçš„å…¨å±€å˜é‡
  */
 const collectFromEventListeners = (
   listeners: EventListener[] | undefined,
@@ -145,69 +151,115 @@ const collectFromEventListeners = (
 };
 
 /**
- * ¼ì²éÑİ³ö°ó¶¨ÊÇ·ñÒıÓÃÁËÖ¸¶¨µÄÈ«¾Ö±äÁ¿
+ * æ£€æŸ¥æ¼”å‡ºç»‘å®šæ˜¯å¦å¼•ç”¨äº†æŒ‡å®šçš„å…¨å±€å˜é‡
+ * æ³¨æ„ï¼šä»…æ£€æŸ¥ type: 'Script' ç±»å‹çš„ç›´æ¥è„šæœ¬ç»‘å®š
+ * type: 'Graph' çš„æƒ…å†µä¸åœ¨æ­¤å¤„ç†ï¼Œæ¼”å‡ºå›¾å†…éƒ¨çš„å‚æ•°å¼•ç”¨ç”±ä¸»å‡½æ•°æœ€åç»Ÿä¸€éå†
  */
 const collectFromPresentationBinding = (
   binding: any,
-  graphs: Record<string, PresentationGraph>,
   variableId: string,
   collector: (info: VariableReferenceInfo) => void,
   origin: string,
   baseNavContext?: ReferenceNavigationContext
 ) => {
   if (!binding) return;
+  // ä»…å¤„ç†ç›´æ¥è„šæœ¬ç»‘å®šï¼Œæ¼”å‡ºå›¾å¼•ç”¨ç”±æœ€åç»Ÿä¸€éå†å¤„ç†
   if (binding.type === 'Script') {
     collectFromBindings(binding.parameters, variableId, collector, `${origin} > Presentation script params`, baseNavContext);
-  } else if (binding.type === 'Graph') {
-    const graph = graphs[binding.graphId];
-    if (!graph) return;
-    Object.values(graph.nodes).forEach(node => {
-      // Ñİ³öÍ¼½ÚµãµÄµ¼º½ÉÏÏÂÎÄ
-      const navContext: ReferenceNavigationContext = {
-        targetType: 'PRESENTATION_NODE',
-        graphId: binding.graphId,
-        presentationNodeId: node.id
-      };
-      const nodeBinding = node.presentation;
-      if (nodeBinding?.type === 'Script') {
-        collectFromBindings(nodeBinding.parameters, variableId, collector, `${origin} > Subgraph node ${node.name || node.id}`, navContext);
-      }
-    });
   }
+  // type: 'Graph' ä¸åœ¨æ­¤å¤„ç†ï¼Œé¿å…é‡å¤éå†
 };
 
 /**
- * ¼ì²é×´Ì¬×ªÒÆÊÇ·ñÒıÓÃÁËÖ¸¶¨µÄÈ«¾Ö±äÁ¿
+ * æ£€æŸ¥çŠ¶æ€è½¬ç§»æ˜¯å¦å¼•ç”¨äº†æŒ‡å®šçš„å…¨å±€å˜é‡
  */
 const collectFromTransition = (
   trans: Transition,
-  graphs: Record<string, PresentationGraph>,
   variableId: string,
   collector: (info: VariableReferenceInfo) => void,
   fsmName: string,
   nodeId: string
 ) => {
   const transName = `FSM ${fsmName} > Transition ${trans.name || trans.id}`;
-  // Transition µÄµ¼º½ÉÏÏÂÎÄ
+  // Transition çš„å¯¼èˆªä¸Šä¸‹æ–‡
   const navContext: ReferenceNavigationContext = {
     targetType: 'TRANSITION',
     nodeId,
     transitionId: trans.id
   };
   collectFromCondition(trans.condition, variableId, collector, `${transName} > Condition`, navContext);
-  collectFromPresentationBinding(trans.presentation, graphs, variableId, collector, `${transName} > Presentation`, navContext);
+  collectFromPresentationBinding(trans.presentation, variableId, collector, `${transName} > Presentation`, navContext);
   (trans.parameterModifiers || []).forEach((m, idx) =>
     collectFromModifier(m, variableId, collector, `${transName} > Param modifier ${idx + 1}`, navContext)
   );
 };
 
 /**
- * ÊÕ¼¯Ö¸¶¨È«¾Ö±äÁ¿ÔÚÕû¸öÏîÄ¿ÖĞ±»ÒıÓÃµÄÎ»ÖÃ
+ * æ£€æŸ¥ Stage æ˜¯å¦å¼•ç”¨äº†æŒ‡å®šçš„å…¨å±€å˜é‡
  * 
- * ¼ì²é·¶Î§£º
- * 1. ËùÓĞ PuzzleNode µÄÊÂ¼ş¼àÌıÆ÷
- * 2. ËùÓĞ×´Ì¬»úµÄ×´Ì¬ºÍ×ªÒÆ
- * 3. ËùÓĞÑİ³öÍ¼µÄ½Úµã²ÎÊı
+ * æ‰«æèŒƒå›´ï¼š
+ * - è§£é”æ¡ä»¶ (unlockCondition)
+ * - OnEnter æ¼”å‡ºç»‘å®š (onEnterPresentation)
+ * - OnExit æ¼”å‡ºç»‘å®š (onExitPresentation)
+ * - äº‹ä»¶ç›‘å¬å™¨ (eventListeners)
+ */
+const collectFromStage = (
+  stage: StageNode,
+  variableId: string,
+  collector: (info: VariableReferenceInfo) => void
+) => {
+  const stageName = stage.name || stage.id;
+  // Stage çš„å¯¼èˆªä¸Šä¸‹æ–‡
+  const navContext: ReferenceNavigationContext = {
+    targetType: 'STAGE',
+    stageId: stage.id
+  };
+
+  // 1) è§£é”æ¡ä»¶
+  collectFromCondition(
+    stage.unlockCondition,
+    variableId,
+    collector,
+    `Stage ${stageName} > Unlock Condition`,
+    navContext
+  );
+
+  // 2) OnEnter æ¼”å‡ºç»‘å®š
+  collectFromPresentationBinding(
+    stage.onEnterPresentation,
+    variableId,
+    collector,
+    `Stage ${stageName} > OnEnter Presentation`,
+    navContext
+  );
+
+  // 3) OnExit æ¼”å‡ºç»‘å®š
+  collectFromPresentationBinding(
+    stage.onExitPresentation,
+    variableId,
+    collector,
+    `Stage ${stageName} > OnExit Presentation`,
+    navContext
+  );
+
+  // 4) äº‹ä»¶ç›‘å¬å™¨
+  collectFromEventListeners(
+    stage.eventListeners,
+    variableId,
+    collector,
+    `Stage ${stageName} event listeners`,
+    navContext
+  );
+};
+
+/**
+ * æ”¶é›†æŒ‡å®šå…¨å±€å˜é‡åœ¨æ•´ä¸ªé¡¹ç›®ä¸­è¢«å¼•ç”¨çš„ä½ç½®
+ * 
+ * æ£€æŸ¥èŒƒå›´ï¼š
+ * 1. æ‰€æœ‰ Stage çš„è§£é”æ¡ä»¶ã€æ¼”å‡ºç»‘å®šå’Œäº‹ä»¶ç›‘å¬å™¨
+ * 2. æ‰€æœ‰ PuzzleNode çš„äº‹ä»¶ç›‘å¬å™¨
+ * 3. æ‰€æœ‰çŠ¶æ€æœºçš„çŠ¶æ€å’Œè½¬ç§»
+ * 4. æ‰€æœ‰æ¼”å‡ºå›¾çš„èŠ‚ç‚¹å‚æ•°
  */
 export const findGlobalVariableReferences = (
   project: ProjectLike,
@@ -217,26 +269,31 @@ export const findGlobalVariableReferences = (
   const push = (info: VariableReferenceInfo) => refs.push(info);
   const graphs = project.presentationGraphs || {};
 
-  // 1) ±éÀúËùÓĞ PuzzleNode
+  // 1) éå†æ‰€æœ‰ Stage
+  Object.values<StageNode>(project.stageTree.stages || {}).forEach(stage => {
+    collectFromStage(stage, variableId, push);
+  });
+
+  // 2) éå†æ‰€æœ‰ PuzzleNode
   Object.values<PuzzleNode>(project.nodes || {}).forEach(node => {
     const nodeName = node.name || node.id;
-    
-    // ½ÚµãÊÂ¼ş¼àÌıÆ÷ - µ¼º½µ½ Node
+
+    // èŠ‚ç‚¹äº‹ä»¶ç›‘å¬å™¨ - å¯¼èˆªåˆ° Node
     const nodeNavContext: ReferenceNavigationContext = {
       targetType: 'NODE',
       nodeId: node.id
     };
     collectFromEventListeners(node.eventListeners, variableId, push, `Node ${nodeName} event listeners`, nodeNavContext);
-    
-    // ½Úµã¹ØÁªµÄ×´Ì¬»ú
+
+    // èŠ‚ç‚¹å…³è”çš„çŠ¶æ€æœº
     const fsm = project.stateMachines?.[node.stateMachineId];
     if (fsm) {
-      // Ê¹ÓÃ½ÚµãÃû³Æ×÷Îª FSM µÄ±êÊ¶£¨FSM ±¾ÉíÃ»ÓĞ name ÊôĞÔ£©
+      // ä½¿ç”¨èŠ‚ç‚¹åç§°ä½œä¸º FSM çš„æ ‡è¯†ï¼ˆFSM æœ¬èº«æ²¡æœ‰ name å±æ€§ï¼‰
       const fsmName = `${nodeName}'s FSM`;
-      
-      // ×´Ì¬»úÖĞµÄ×´Ì¬
+
+      // çŠ¶æ€æœºä¸­çš„çŠ¶æ€
       Object.values(fsm.states || {}).forEach(state => {
-        // State µÄµ¼º½ÉÏÏÂÎÄ
+        // State çš„å¯¼èˆªä¸Šä¸‹æ–‡
         const stateNavContext: ReferenceNavigationContext = {
           targetType: 'STATE',
           nodeId: node.id,
@@ -251,18 +308,18 @@ export const findGlobalVariableReferences = (
         );
       });
 
-      // ×´Ì¬»úÖĞµÄ×ªÒÆ
-      Object.values(fsm.transitions || {}).forEach(trans => 
-        collectFromTransition(trans, graphs, variableId, push, fsmName, node.id)
+      // çŠ¶æ€æœºä¸­çš„è½¬ç§»
+      Object.values(fsm.transitions || {}).forEach(trans =>
+        collectFromTransition(trans, variableId, push, fsmName, node.id)
       );
     }
   });
 
-  // 2) ±éÀúËùÓĞÑİ³öÍ¼£¨¿ÉÄÜ±»¶à´¦ÒıÓÃ£©
+  // 3) éå†æ‰€æœ‰æ¼”å‡ºå›¾ï¼ˆå¯èƒ½è¢«å¤šå¤„å¼•ç”¨ï¼‰
   Object.values<PresentationGraph>(graphs).forEach(graph => {
     const graphName = graph.name || graph.id;
     Object.values(graph.nodes).forEach(graphNode => {
-      // Presentation Node µÄµ¼º½ÉÏÏÂÎÄ
+      // Presentation Node çš„å¯¼èˆªä¸Šä¸‹æ–‡
       const navContext: ReferenceNavigationContext = {
         targetType: 'PRESENTATION_NODE',
         graphId: graph.id,

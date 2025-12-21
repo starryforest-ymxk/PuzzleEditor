@@ -9,7 +9,7 @@
  */
 
 import React, { useCallback } from 'react';
-import { createNodeWithStateMachine, createTriggerNodeWithStateMachine, getMaxDisplayOrder } from '../../utils/puzzleNodeUtils';
+import { createNodeWithStateMachine, createTriggerNodeWithStateMachine, getMaxDisplayOrder, buildExistingIds } from '../../utils/puzzleNodeUtils';
 import { useEditorState, useEditorDispatch } from '../../store/context';
 import { PuzzleNode } from '../../types/puzzleNode';
 import { StageId } from '../../types/common';
@@ -147,7 +147,8 @@ export const StageOverview: React.FC<StageOverviewProps> = ({ stageId }) => {
     /** 创建子 Stage */
     const handleCreateSubStage = useCallback((e: React.MouseEvent) => {
         e.stopPropagation();
-        const newStage = createDefaultStage(stageId as StageId);
+        const existingStageIds = Object.keys(project.stageTree.stages);
+        const newStage = createDefaultStage(stageId as StageId, existingStageIds);
         dispatch({ type: 'ADD_STAGE', payload: { parentId: stageId as StageId, stage: newStage } });
         dispatch({ type: 'SET_STAGE_EXPANDED', payload: { id: stageId, expanded: true } });
         dispatch({ type: 'SELECT_OBJECT', payload: { type: 'STAGE', id: newStage.id } });
@@ -160,11 +161,14 @@ export const StageOverview: React.FC<StageOverviewProps> = ({ stageId }) => {
         // 获取最大 displayOrder
         const maxOrder = getMaxDisplayOrder(project.nodes, stageId as StageId);
 
+        // 构建现有 ID 集合
+        const existingIds = buildExistingIds(project.nodes, project.stateMachines);
+
         let result;
         if (type === 'TRIGGER') {
-            result = createTriggerNodeWithStateMachine(stageId as StageId, 'New Trigger Node', maxOrder + 1);
+            result = createTriggerNodeWithStateMachine(stageId as StageId, existingIds, 'New Trigger Node', maxOrder + 1);
         } else {
-            result = createNodeWithStateMachine(stageId as StageId, 'New Empty Node', maxOrder + 1);
+            result = createNodeWithStateMachine(stageId as StageId, existingIds, 'New Empty Node', maxOrder + 1, false);
         }
 
         const { node, stateMachine } = result;

@@ -125,14 +125,17 @@ const collectEventFromStage = (
     collector: (info: VariableReferenceInfo) => void
 ) => {
     const stageName = stage.name || stage.id;
+    const navContext: ReferenceNavigationContext = {
+        targetType: 'STAGE',
+        stageId: stage.id
+    };
 
-    // Stage 目前不支持导航，暂不传递 navContext
     collectEventFromListeners(
         stage.eventListeners,
         eventId,
         collector,
         `Stage ${stageName}`,
-        undefined
+        navContext
     );
 };
 

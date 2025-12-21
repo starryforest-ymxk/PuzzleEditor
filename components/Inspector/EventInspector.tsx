@@ -183,9 +183,17 @@ export const EventInspector: React.FC<EventInspectorProps> = ({ eventId, readOnl
     const handleReferenceClick = useCallback((navContext?: ReferenceNavigationContext) => {
         if (!navContext) return;
 
-        const { targetType, nodeId, stateId, transitionId } = navContext;
+        const { targetType, stageId, nodeId, stateId, transitionId } = navContext;
 
         switch (targetType) {
+            case 'STAGE':
+                // 导航到 Stage 并选中
+                if (stageId) {
+                    dispatch({ type: 'NAVIGATE_TO', payload: { stageId, nodeId: null, graphId: null } });
+                    dispatch({ type: 'SELECT_OBJECT', payload: { type: 'STAGE', id: stageId } });
+                }
+                break;
+
             case 'NODE':
                 if (nodeId) {
                     const node = project.nodes[nodeId];

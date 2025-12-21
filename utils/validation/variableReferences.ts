@@ -6,7 +6,7 @@
  * 原位置保留兼容性重导出
  */
 import { ProjectData } from '../../types/project';
-import { ConditionExpression, StateMachine, Transition } from '../../types/stateMachine';
+import { ConditionExpression, Transition } from '../../types/stateMachine';
 import { EventListener, ParameterBinding, ParameterModifier, PresentationBinding, ValueSource } from '../../types/common';
 import { PresentationGraph } from '../../types/presentation';
 // 从 globalVariableReferences 导入共享类型
@@ -99,39 +99,31 @@ const collectFromEventListeners = (
   });
 };
 
+/**
+ * 检查演出绑定是否引用了指定的节点局部变量
+ * 注意：仅检查 type: 'Script' 类型的直接脚本绑定
+ * type: 'Graph' 的情况不在此处理，演出图内部的参数引用由主函数最后统一遍历
+ */
 const collectFromPresentationBinding = (
   binding: PresentationBinding | undefined,
-  graphs: Record<string, PresentationGraph>,
   variableId: string,
   collector: (info: VariableReferenceInfo) => void,
   origin: string,
   baseNavContext?: ReferenceNavigationContext
 ) => {
   if (!binding) return;
+  // 仅处理直接脚本绑定，演出图引用由最后统一遍历处理
   if (binding.type === 'Script') {
     collectFromBindings(binding.parameters, variableId, collector, `${origin} > Presentation script params`, baseNavContext);
-  } else if (binding.type === 'Graph') {
-    const graph = graphs[binding.graphId];
-    if (!graph) return;
-    Object.values(graph.nodes).forEach(node => {
-      // 演出图节点的导航上下文
-      const navContext: ReferenceNavigationContext = {
-        targetType: 'PRESENTATION_NODE',
-        graphId: binding.graphId,
-        presentationNodeId: node.id
-      };
-      const nodeBinding = node.presentation;
-      if (nodeBinding?.type === 'Script') {
-        collectFromBindings(nodeBinding.parameters, variableId, collector, `${origin} > Subgraph node ${node.name || node.id}`, navContext);
-      }
-    });
   }
+  // type: 'Graph' 不在此处理，避免重复遍历
 };
 
+/**
+ * 检查状态转移是否引用了指定的节点局部变量
+ */
 const collectFromTransition = (
   trans: Transition,
-  stateMachine: StateMachine,
-  graphs: Record<string, PresentationGraph>,
   variableId: string,
   collector: (info: VariableReferenceInfo) => void,
   nodeId: string
@@ -143,7 +135,7 @@ const collectFromTransition = (
     transitionId: trans.id
   };
   collectFromCondition(trans.condition, variableId, collector, `Transition ${trans.name || trans.id} > Condition`, navContext);
-  collectFromPresentationBinding(trans.presentation, graphs, variableId, collector, `Transition ${trans.name || trans.id} > Presentation`, navContext);
+  collectFromPresentationBinding(trans.presentation, variableId, collector, `Transition ${trans.name || trans.id} > Presentation`, navContext);
   (trans.parameterModifiers || []).forEach((m, idx) =>
     collectFromModifier(m, variableId, collector, `Transition ${trans.name || trans.id} > Param modifier ${idx + 1}`, navContext)
   );
@@ -162,7 +154,6 @@ export const findNodeVariableReferences = (
   if (!node) return refs;
 
   const fsm = project.stateMachines[node.stateMachineId];
-  const graphs = project.presentationGraphs || {};
 
   const push = (info: VariableReferenceInfo) => refs.push(info);
 
@@ -185,7 +176,7 @@ export const findNodeVariableReferences = (
       collectFromEventListeners(state.eventListeners, variableId, push, `State ${state.name || state.id} event listeners`, stateNavContext);
     });
 
-    Object.values(fsm.transitions || {}).forEach(trans => collectFromTransition(trans, fsm, graphs, variableId, push, nodeId));
+    Object.values(fsm.transitions || {}).forEach(trans => collectFromTransition(trans, variableId, push, nodeId));
   }
 
   // 3) 演出子图直接被此节点引用的情况（防御性遍历：若外部直接关联也能检测到）
