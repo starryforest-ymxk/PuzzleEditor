@@ -6,6 +6,7 @@
  * - Ctrl+S / Cmd+S: 保存项目 (.puzzle.json) - 复用 useProjectActions
  * - Ctrl+Z: 撤销
  * - Ctrl+Y / Ctrl+Shift+Z: 重做
+ * - Enter: 完成输入框编辑（textarea 需要 Ctrl+Enter）
  */
 
 import React, { useEffect } from 'react';
@@ -36,6 +37,17 @@ export const GlobalKeyboardShortcuts: React.FC = () => {
                 e.preventDefault();  // 阻止浏览器默认保存行为
                 saveProject();
                 return;
+            }
+
+            // Enter 键完成编辑：在输入框中按下 Enter 时 blur 该元素
+            // textarea 需要 Ctrl+Enter 或 Shift+Enter 才触发（保留换行功能）
+            if (e.key === 'Enter' && isInInput) {
+                const isTextarea = target.tagName === 'TEXTAREA';
+                if (!isTextarea || e.ctrlKey || e.shiftKey) {
+                    (target as HTMLInputElement | HTMLTextAreaElement).blur();
+                    e.preventDefault();
+                    return;
+                }
             }
 
             // 以下快捷键在输入框中不生效
