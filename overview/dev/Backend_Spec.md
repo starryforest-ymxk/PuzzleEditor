@@ -1,7 +1,7 @@
 # 后端运行时与管线协同规范 (Backend Runtime & Pipeline Specification)
 
 > 本文档指导后端开发人员实现数据导入管线与核心运行时引擎，确保游戏能够正确解析并执行编辑器产生的数据。  
-> **版本**: 1.0.0 (Draft) | **对应前端版本**: 1.2.0
+> **版本**: 1.1.0 | **对应前端版本**: 1.2.0 | **更新时间**: 2025-12-22
 
 ---
 
@@ -26,9 +26,10 @@ graph LR
 
 ### 1.2 核心目标
 
-1.  **类型安全 (Type Safety)**：通过生成的 C#常量/枚举，确保代码中引用变量 ID、事件 ID 时不会出现拼写错误。
+1.  **类型安全 (Type Safety)**：通过生成的 C# 常量/枚举，确保代码中引用资源时不会出现拼写错误。
 2.  **动态构建 (Dynamic Construction)**：游戏启动时，根据 JSON/Asset 数据在内存中重建 Stage 树、FSM 和演出图。
 3.  **前端主导 (Frontend Authority)**：任何逻辑结构的变更（如新增状态、修改条件）必须在前端完成，后端不得手动修改导出的数据文件。
+4.  **资产名引用 (AssetName Reference)**：代码生成和脚本绑定使用 `assetName` 字段作为标识符，而非内部 `id`。`assetName` 遵循标准变量命名规则（字母/下划线开头，只含字母数字下划线），适合作为 C# 标识符。
 
 ---
 
@@ -98,14 +99,14 @@ public class RuntimeFSM {
 
 ### 3.2 脚本绑定与反射 (Script Binding)
 
-前端仅通过 `ScriptId` (如 `script-playsound`) 引用逻辑，后端需提供具体实现。
+前端通过 `ScriptId` 引用逻辑，但后端代码绑定应使用 `assetName` 作为标识符。
 
 **建议方案：特性标记 (Attribute) + 注册表**
 
 后端代码：
 ```csharp
-// 定义脚本逻辑
-[PuzzleScript("script-playsound", Category.Performance)]
+// 定义脚本逻辑 - 使用 assetName 作为标识符
+[PuzzleScript("PlaySound", Category.Performance)]  // "PlaySound" 对应前端 assetName
 public class PlaySoundScript : IPuzzleScript {
     public async Task Execute(ScriptContext context) {
         string audioFile = context.GetParam<string>("AudioFile");
@@ -116,8 +117,10 @@ public class PlaySoundScript : IPuzzleScript {
 
 **运行时绑定**：
 1.  游戏启动时扫描所有带 `[PuzzleScript]` 特性的类。
-2.  建立字典 `Dictionary<string, Type> ScriptRegistry`。
-3.  解析 JSON 时，遇到 `script-playsound`，则实例化对应的 C# 类。
+2.  建立字典 `Dictionary<string, Type> ScriptRegistry`，键为 `assetName`。
+3.  解析 JSON 时，通过资源的 `assetName` 字段查找并实例化对应的 C# 类。
+
+> **注意**：导入管线需要将前端 JSON 中的 `id` 引用解析为 `assetName`，以便后端代码使用一致的标识符。
 
 ### 3.3 条件系统 (Condition System)
 
@@ -151,31 +154,56 @@ public class ComparisonCondition : RuntimeCondition {
 
 当检测到 `_export.json` 更新时，Importer 应自动执行：
 
-### 4.1 生成 ID 常量表 (Generated/IDs.cs)
+### 4.1 生成资产名常量表 (Generated/PuzzleAssets.cs)
 
-**目的**：避免硬编码字符串，防止拼写错误。
+**目的**：使用 `assetName` 生成 C# 常量，避免硬编码字符串，防止拼写错误。
+
+> **重要**：常量名和值均使用 `assetName` 字段，而非内部 `id`。`assetName` 遵循标准变量命名规则，可直接作为有效的 C# 标识符。
 
 ```csharp
 // 自动生成的代码 - 请勿修改
-public static class PuzzleIDs {
+// 基于前端导出的 assetName 字段生成
+public static class PuzzleAssets {
     public static class GlobalVars {
-        public const string Sanity = "var-sanity";
-        public const string HasKey = "var-haskey";
+        public const string Sanity = "Sanity";       // assetName
+        public const string HasKey = "HasKey";       // assetName
     }
     public static class Events {
-        public const string ThunderStrike = "event-thunder";
+        public const string ThunderStrike = "ThunderStrike";  // assetName
     }
-    public static class Stages {
-        public const string EntranceHall = "stage-entrance";
+    public static class Scripts {
+        public const string PlaySound = "PlaySound";  // assetName
+        public const string ShowDialog = "ShowDialog";  // assetName
     }
 }
 ```
 
-### 4.2 数据完整性校验
+### 4.2 ID 到 AssetName 映射表
+
+导入管线需要生成一个运行时映射表，用于将 JSON 中的 `id` 转换为 `assetName`：
+
+```csharp
+// 运行时使用的 ID -> AssetName 映射
+public static class PuzzleIdMap {
+    public static readonly Dictionary<string, string> Scripts = new() {
+        ["script-abc123"] = "PlaySound",
+        ["script-def456"] = "ShowDialog",
+    };
+    
+    public static readonly Dictionary<string, string> Variables = new() {
+        ["var-ghi789"] = "Sanity",
+        ["var-jkl012"] = "HasKey",
+    };
+    // ... Events, Stages 等
+}
+```
+
+### 4.3 数据完整性校验
 
 在导入阶段执行最后一道防线检查：
-1.  **引用检查**：确保所有 `scriptId` 在后端都有对应的 `[PuzzleScript]` 实现类。
-2.  **甚至检查**：确保所有 `jumpToStateId` 指向的状态真实存在。
+1.  **引用检查**：确保所有脚本的 `assetName` 在后端都有对应的 `[PuzzleScript]` 实现类。
+2.  **AssetName 有效性**：检查所有 `assetName` 是否符合 C# 标识符命名规则。
+3.  **跳转检查**：确保所有 `jumpToStateId` 指向的状态真实存在。
 
 ---
 

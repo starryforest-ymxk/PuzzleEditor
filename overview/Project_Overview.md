@@ -159,13 +159,13 @@ interface ProjectMeta {
 所有抽象定义的注册表。
 
 - **参数（Variables）**
-  - 字段：`Key`（系统生成）、`Name`、`Type`、`InitialValue`、`Description`、`State`
+  - 字段：`Key`（系统生成）、`Name`、`AssetName`（资产名，可选）、`Type`、`InitialValue`、`Description`、`State`
   - 作用域：Global、Stage Local（只读视图）、Node Local（只读视图）
 - **脚本（Scripts）**
   - 分类：`Performance`、`Lifecycle`、`Condition`、`Trigger`
-  - 字段：`Key`、`Name`、`Description`、`State`
+  - 字段：`Key`、`Name`、`AssetName`（资产名，可选）、`Description`、`State`
 - **事件（Events）**
-  - 字段：`Key`、`Name`、`Description`、`State`
+  - 字段：`Key`、`Name`、`AssetName`（资产名，可选）、`Description`、`State`
 - **状态流转**：Draft -> Implemented -> MarkedForDelete
 
 ### 4.2 阶段树（The Stage Tree）

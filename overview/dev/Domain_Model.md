@@ -1,6 +1,6 @@
 # 领域模型（Domain Model）
 > 本文档描述项目的核心数据结构与类型定义，需与 `types/*` 代码保持同步。  
-> **版本**: 1.1.0 | **更新时间**: 2025-12-14 | **同步至**: Phase 3 完成状态
+> **版本**: 1.2.0 | **更新时间**: 2025-12-22 | **同步至**: Phase 4 完成状态
 
 ---
 
@@ -135,19 +135,26 @@ interface EventListener { eventId: string; action: EventAction; }
 
 ### 4.1 基础资源
 ```ts
+// 资产名（assetName）用于生成代码标识符，遵循变量命名规则：字母/下划线开头，只含字母数字下划线
 interface VariableDefinition extends Entity {
   id: string;
+  assetName?: string;    // 资产名（可选）
   type: VariableType;
   value: any;            // 变量的当前值
   state: ResourceState;
   scope: VariableScope;
 }
 
-interface EventDefinition extends Entity { id: string; state: ResourceState; }
+interface EventDefinition extends Entity {
+  id: string;
+  assetName?: string;    // 资产名（可选）
+  state: ResourceState;
+}
 
 // 演出脚本的参数由用户在绑定时动态配置，不预定义在脚本中
 interface ScriptDefinition extends Entity {
   id: string;
+  assetName?: string;    // 资产名（可选）
   category: ScriptCategory;
   lifecycleType?: LifecycleScriptTarget;     // 仅 Lifecycle 类型有效
   state: ResourceState;
