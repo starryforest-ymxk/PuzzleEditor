@@ -169,6 +169,7 @@ interface StageNode extends Entity {
   childrenIds: string[];    // stage-*
   isInitial?: boolean;      // 每个父级的首个子节点应标记为 true
   localVariables: Record<string, VariableDefinition>;
+  unlockTriggers?: TriggerConfig[]; // 解锁触发器
   unlockCondition?: ConditionExpression;
   lifecycleScriptId?: string;  // script-*
   onEnterPresentation?: PresentationBinding;

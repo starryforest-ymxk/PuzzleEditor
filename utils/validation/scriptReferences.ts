@@ -186,6 +186,9 @@ const collectScriptFromStage = (
     // 检查解锁条件中的脚本引用
     collectScriptFromCondition(stage.unlockCondition, scriptId, collector, `Stage ${stageName} > Unlock Condition`, navContext);
 
+    // 检查解锁触发器 (Unlock Triggers)
+    collectScriptFromTriggers(stage.unlockTriggers, scriptId, collector, `Stage ${stageName}`, navContext);
+
     // 检查 OnEnter 演出绑定
     collectScriptFromPresentationBinding(stage.onEnterPresentation, scriptId, collector, `Stage ${stageName} > OnEnter Presentation`, navContext);
 

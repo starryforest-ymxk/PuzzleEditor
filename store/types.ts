@@ -38,6 +38,16 @@ export interface UiMessage {
   timestamp: string;
 }
 
+export interface ValidationResult {
+  id: string;
+  level: 'error' | 'warning' | 'hint';
+  message: string;
+  objectType: 'STAGE' | 'NODE' | 'STATE' | 'TRANSITION' | 'PRESENTATION_GRAPH' | 'PRESENTATION_NODE' | 'SCRIPT' | 'VARIABLE' | 'EVENT';
+  objectId: string;
+  contextId?: string; // e.g. NodeId for State/Transition
+  location: string;   // Human readable location string
+}
+
 // ========== UI 状态类型 ==========
 export interface BlackboardViewState {
   activeTab: 'Variables' | 'Scripts' | 'Events' | 'Graphs';
@@ -113,6 +123,8 @@ export interface EditorState {
     };
     // 脏状态：标记是否有未保存的更改
     isDirty: boolean;
+    validationResults: ValidationResult[];
+    showValidationPanel: boolean;
   };
 }
 
@@ -170,7 +182,9 @@ export const INITIAL_STATE: EditorState = {
       inspectorWidth: 320,
       stagesHeight: 55
     },
-    isDirty: false
+    isDirty: false,
+    validationResults: [],
+    showValidationPanel: false
   }
 };
 
@@ -248,6 +262,8 @@ export type Action =
   | { type: 'UPDATE_PROJECT_META'; payload: Partial<ProjectMeta> }
   | { type: 'RESET_PROJECT' }
   | { type: 'MARK_CLEAN' }
+  | { type: 'SET_VALIDATION_RESULTS'; payload: ValidationResult[] }
+  | { type: 'SET_SHOW_VALIDATION_PANEL'; payload: boolean }
   // Runtime Actions (P4-T06 Electron)
   | { type: 'SET_PROJECT_PATH'; payload: string | null }
   | { type: 'SET_NEW_UNSAVED_PROJECT'; payload: boolean }

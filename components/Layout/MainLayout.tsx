@@ -11,6 +11,8 @@ import { GlobalKeyboardShortcuts } from './GlobalKeyboardShortcuts';
 import { useEditorDispatch, useEditorState } from '../../store/context';
 import { BlackboardPanel } from '../Blackboard/BlackboardPanel';
 import { useAppStartup } from '../../hooks/useAppStartup';
+import { ValidationPanel } from './ValidationPanel';
+import { Footer } from './Footer';
 
 // Constraints for panel sizes
 const MIN_SIDEBAR_WIDTH = 180;
@@ -135,8 +137,12 @@ export const MainLayout = () => {
       <GlobalKeyboardShortcuts />
       <Header />
 
-      <div className="app-body">
+      <div className="app-body" style={{ position: 'relative' }}>
         {ui.view === 'EDITOR' ? renderEditorView() : renderBlackboardView()}
+        <ValidationPanel
+          isOpen={ui.showValidationPanel}
+          onClose={() => dispatch({ type: 'SET_SHOW_VALIDATION_PANEL', payload: false })}
+        />
       </div>
     </div>
   );

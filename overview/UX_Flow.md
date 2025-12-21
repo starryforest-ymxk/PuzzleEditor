@@ -176,6 +176,7 @@
 
 - **Header**："STAGE" 标签 + Stage 名称
 - **BASIC INFO**：ID、Description
+- **UNLOCK TRIGGER**：触发器配置（多选：每帧/事件/自定义脚本）
 - **UNLOCK CONDITION**：条件构造器（初始阶段不可编辑）
 - **LIFECYCLE SCRIPT**：绑定 Stage Lifecycle Script 的下拉选择器
 - **PRESENTATION**： 

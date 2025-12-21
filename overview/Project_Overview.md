@@ -173,6 +173,7 @@ interface ProjectMeta {
 - **结构**：递归树节点；Root 下首个子节点及每个 Stage 的首个子节点为“初始阶段”。
 - **绑定**：
   - 生命周期：`StageLifecycleScript`
+  - 解锁逻辑：`UnlockTriggers` (Multiple) + `UnlockCondition`
   - 演出：`PresentationGraph` 或 `PerformanceScript`
   - 数据：Stage Local Variables
 

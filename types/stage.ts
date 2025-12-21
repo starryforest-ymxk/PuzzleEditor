@@ -12,7 +12,7 @@ import {
   ScriptId
 } from './common';
 import { VariableDefinition } from './blackboard';
-import { ConditionExpression } from './stateMachine';
+import { ConditionExpression, TriggerConfig } from './stateMachine';
 
 // ========== 阶段节点 ==========
 /**
@@ -26,6 +26,9 @@ export interface StageNode extends Entity {
 
   // 局部变量 (Stage Local)
   localVariables: Record<VariableId, VariableDefinition>;
+
+  // 解锁触发器（可选，支持多个）
+  unlockTriggers?: TriggerConfig[];
 
   // 解锁条件（可选）
   unlockCondition?: ConditionExpression;

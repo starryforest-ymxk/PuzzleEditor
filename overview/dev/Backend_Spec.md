@@ -58,6 +58,7 @@ public class RuntimeStage {
     public RuntimeStage Parent;
     public List<RuntimeStage> Children;
     public Dictionary<string, RuntimeVariable> LocalVariables;
+    public List<RuntimeTrigger> UnlockTriggers;
     public RuntimeCondition UnlockCondition;
     
     // 逻辑组件

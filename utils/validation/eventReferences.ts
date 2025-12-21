@@ -137,6 +137,19 @@ const collectEventFromStage = (
         `Stage ${stageName}`,
         navContext
     );
+
+    // 检查解锁触发器 (Unlock Triggers) 中的事件引用
+    stage.unlockTriggers?.forEach((trigger, idx) => {
+        if (trigger.type === 'OnEvent' && trigger.eventId === eventId) {
+            collector({
+                location: `Stage ${stageName} > Trigger ${idx + 1}`,
+                navContext: {
+                    targetType: 'STAGE',
+                    stageId: stage.id
+                }
+            });
+        }
+    });
 };
 
 /**

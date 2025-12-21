@@ -19,6 +19,7 @@ import { EventDefinition, VariableDefinition } from '../../types/blackboard';
 import { EventListenersEditor } from './EventListenersEditor';
 import { PresentationBindingEditor } from './PresentationBindingEditor';
 import { ConditionEditor } from './ConditionEditor';
+import { TriggerEditor } from './TriggerEditor';
 import { ResourceSelect } from './ResourceSelect';
 import { LocalVariableEditor } from './LocalVariableEditor';
 import { ConfirmDialog } from './ConfirmDialog';
@@ -58,6 +59,9 @@ export const StageInspector: React.FC<StageInspectorProps> = ({ stageId, readOnl
             category: s.category,
             description: s.description
         }));
+    const triggerScriptOptions = scriptList
+        .filter((s) => s.category === 'Trigger')
+        .map((s) => ({ id: s.id, name: s.name, state: s.state, description: s.description }));
     const graphOptions = Object.values<PresentationGraph>(project.presentationGraphs).map((g) => ({ id: g.id, name: g.name, state: 'Draft' as any, description: g.description }));
     const eventOptions = Object.values<EventDefinition>(project.blackboard.events).map((e) => ({
         id: e.id,
@@ -206,6 +210,26 @@ export const StageInspector: React.FC<StageInspectorProps> = ({ stageId, readOnl
                         />
                     )}
                 </div>
+            </div>
+
+            {/* Unlock Trigger Section */}
+            <div className="inspector-section">
+                <div className="section-title">Unlock Trigger</div>
+                {isInitialStage ? (
+                    <div style={{ color: '#9ca3af', fontSize: '12px' }}>
+                        Initial stage unlocks automatically
+                    </div>
+                ) : (
+                    <div className={readOnly ? 'inspector-readonly-wrapper' : ''}>
+                        <TriggerEditor
+                            triggers={stage.unlockTriggers || []}
+                            onChange={(next) => updateStage({ unlockTriggers: next })}
+                            eventOptions={eventOptions}
+                            scriptOptions={triggerScriptOptions}
+                            readOnly={readOnly}
+                        />
+                    </div>
+                )}
             </div>
 
             {/* Unlock Condition Section */}
