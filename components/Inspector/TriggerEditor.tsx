@@ -1,7 +1,7 @@
 import React from 'react';
 import { TriggerConfig } from '../../types/stateMachine';
 import { ResourceSelect, ResourceOption } from './ResourceSelect';
-import { InspectorWarning } from './InspectorInfo';
+import { InspectorError } from './InspectorInfo';
 
 interface Props {
     triggers: TriggerConfig[];
@@ -97,7 +97,7 @@ export const TriggerEditor: React.FC<Props> = ({
                 ))}
 
                 {triggers.length === 0 && (
-                    <InspectorWarning message="At least one trigger is required." />
+                    <InspectorError message="At least one trigger is required." />
                 )}
 
                 <button

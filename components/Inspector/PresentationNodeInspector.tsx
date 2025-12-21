@@ -40,15 +40,15 @@ export const PresentationNodeInspector = ({ graphId, nodeId, readOnly = false }:
             return false;
         });
 
-        // 2) FSM states / transitions (通过所属 node 推断 stage)
+        // 2) FSM transitions (通过所属 node 推断 stage)
+        // 注：State 类型不包含 presentation 属性，只检查 Transition
         if (!stageId) {
             const nodeEntries = Object.values<PuzzleNode>(project.nodes);
             for (const n of nodeEntries) {
                 const fsm = project.stateMachines[n.stateMachineId] as StateMachine | undefined;
                 if (!fsm) continue;
-                const hasState = Object.values(fsm.states).some(st => st.presentation?.type === 'Graph' && st.presentation.graphId === graphId);
                 const hasTrans = Object.values(fsm.transitions).some(tr => tr.presentation?.type === 'Graph' && tr.presentation.graphId === graphId);
-                if (hasState || hasTrans) {
+                if (hasTrans) {
                     nodeIdCtx = n.id;
                     stageId = n.stageId;
                     break;

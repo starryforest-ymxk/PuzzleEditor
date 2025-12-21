@@ -20,6 +20,7 @@ import {
  */
 export interface VariableDefinition extends Entity {
   id: VariableId;
+  assetName?: string;        // 资产名（符合变量命名规则：字母/下划线开头，只含字母数字下划线）
   type: VariableType;
   value: any;           // 变量的当前值
   state: ResourceState;
@@ -34,6 +35,7 @@ export interface VariableDefinition extends Entity {
  */
 export interface EventDefinition extends Entity {
   id: EventId;
+  assetName?: string;        // 资产名（符合变量命名规则：字母/下划线开头，只含字母数字下划线）
   state: ResourceState;
 }
 
@@ -46,13 +48,6 @@ export interface BlackboardData {
   events: Record<EventId, EventDefinition>;
   // 注意：脚本定义在 manifest.ts 中，因为它们还包含参数元数据
 }
-
-// 兼容旧版类型名（已废弃，建议使用 VariableDefinition）
-/** @deprecated 使用 VariableDefinition 代替 */
-export type BlackboardVariable = VariableDefinition;
-
-/** @deprecated 使用 BlackboardData 代替 */
-export type BlackboardDefinition = Record<VariableId, VariableDefinition>;
 
 // ========== 带作用域的局部变量 ==========
 /**

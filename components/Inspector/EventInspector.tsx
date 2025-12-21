@@ -20,6 +20,8 @@ import { Trash2, RotateCcw, ExternalLink } from 'lucide-react';
 import { findEventReferences } from '../../utils/validation/eventReferences';
 import type { ReferenceNavigationContext } from '../../utils/validation/globalVariableReferences';
 import { ConfirmDialog } from './ConfirmDialog';
+import { InspectorWarning } from './InspectorInfo';
+import { isValidAssetName } from '../../utils/assetNameValidation';
 
 // ========== Props 类型定义 ==========
 interface EventInspectorProps {
@@ -47,6 +49,43 @@ export const EventInspector: React.FC<EventInspectorProps> = ({ eventId, readOnl
         refs: string[];
         mode: ConfirmMode;
     } | null>(null);
+
+    // ========== 本地编辑状态（用于失焦校验） ==========
+    const [localName, setLocalName] = useState(event.name);
+    const [localAssetName, setLocalAssetName] = useState(event.assetName || '');
+    const [localDescription, setLocalDescription] = useState(event.description || '');
+
+    // ========== 同步本地状态 ==========
+    React.useEffect(() => {
+        setLocalName(event.name);
+        setLocalAssetName(event.assetName || '');
+        setLocalDescription(event.description || '');
+    }, [event.name, event.assetName, event.description]);
+
+    // ========== 失焦校验处理函数 ==========
+    const handleNameBlur = () => {
+        const trimmed = localName.trim();
+        if (!trimmed) {
+            setLocalName(event.name);
+        } else if (trimmed !== event.name) {
+            handleUpdate({ name: trimmed });
+        }
+    };
+
+    const handleAssetNameBlur = () => {
+        const trimmed = localAssetName.trim();
+        if (!isValidAssetName(trimmed)) {
+            setLocalAssetName(event.assetName || '');
+        } else if (trimmed !== (event.assetName || '')) {
+            handleUpdate({ assetName: trimmed || undefined });
+        }
+    };
+
+    const handleDescriptionBlur = () => {
+        if (localDescription !== (event.description || '')) {
+            handleUpdate({ description: localDescription });
+        }
+    };
 
     // ========== 引用计算 ==========
     const references = useMemo(() => {
@@ -272,8 +311,9 @@ export const EventInspector: React.FC<EventInspectorProps> = ({ eventId, readOnl
                         <input
                             type="text"
                             className="inspector-name-input"
-                            value={event.name}
-                            onChange={(e) => handleUpdate({ name: e.target.value })}
+                            value={localName}
+                            onChange={(e) => setLocalName(e.target.value)}
+                            onBlur={handleNameBlur}
                         />
                     ) : (
                         <div className="inspector-name-input" style={{ background: 'transparent', border: 'none' }}>
@@ -291,6 +331,30 @@ export const EventInspector: React.FC<EventInspectorProps> = ({ eventId, readOnl
                         <div className="prop-label">ID</div>
                         <div className="prop-value monospace" style={{ color: '#666' }}>{event.id}</div>
                     </div>
+
+                    {/* Asset Name */}
+                    <div className="prop-row">
+                        <div className="prop-label">Asset Name</div>
+                        {canEdit ? (
+                            <input
+                                type="text"
+                                className="inspector-input monospace"
+                                value={localAssetName}
+                                onChange={(e) => setLocalAssetName(e.target.value)}
+                                onBlur={handleAssetNameBlur}
+                                placeholder={event.id}
+                            />
+                        ) : (
+                            <div className="prop-value monospace" style={{ color: localAssetName ? 'var(--text-primary)' : '#666' }}>
+                                {localAssetName || event.id}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Asset Name Warning */}
+                    {!event.assetName && (
+                        <InspectorWarning message="Asset Name not set. Using ID as default." />
+                    )}
 
                     {/* State */}
                     <div className="prop-row">
@@ -311,8 +375,9 @@ export const EventInspector: React.FC<EventInspectorProps> = ({ eventId, readOnl
                         {canEdit ? (
                             <textarea
                                 className="inspector-textarea"
-                                value={event.description || ''}
-                                onChange={(e) => handleUpdate({ description: e.target.value })}
+                                value={localDescription}
+                                onChange={(e) => setLocalDescription(e.target.value)}
+                                onBlur={handleDescriptionBlur}
                                 placeholder="No description."
                             />
                         ) : (

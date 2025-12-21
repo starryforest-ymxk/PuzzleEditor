@@ -182,6 +182,7 @@ interface PuzzleNode extends Entity {
   localVariables: Record<string, VariableDefinition>;
   lifecycleScriptId?: string;  // script-* 生命周期脚本
   eventListeners: EventListener[];
+  displayOrder?: number;       // 显示顺序
 }
 ```
 
@@ -239,7 +240,7 @@ interface ConditionExpression {
 
 ### 4.6 演出子图
 ```ts
-type PresentationNodeType = 'ScriptCall' | 'Wait' | 'Branch' | 'Parallel';
+type PresentationNodeType = 'PresentationNode' | 'Wait' | 'Branch' | 'Parallel';
 
 interface PresentationNode extends Entity {
   id: string;                  // pnode-*
@@ -255,6 +256,7 @@ interface PresentationGraph extends Entity {
   id: string;                        // pres-*
   startNodeId: string | null;        // pnode-*
   nodes: Record<string, PresentationNode>;
+  edgeProperties?: Record<string, PresentationEdgeProperties>; // 连线视觉属性
 }
 ```
 

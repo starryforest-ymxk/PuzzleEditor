@@ -44,7 +44,3 @@ export type TriggerKey = string;
 
 // Reference helpers
 export type IdRef<TId extends string> = { id: TId };
-/** @deprecated Key 已移除，请使用 ID 引用 */
-export type KeyRef<TKey extends string> = { key: TKey };
-/** @deprecated Key 已移除，请使用 ID 引用 */
-export type StableRef<TId extends string, TKey extends string> = IdRef<TId> | KeyRef<TKey>;

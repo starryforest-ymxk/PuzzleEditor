@@ -1,10 +1,10 @@
 /**
  * components/Inspector/localVariable/VariableValueInput.tsx
- * ¾Ö²¿±äÁ¿ÖµÊäÈë×é¼ş
+ * å±€éƒ¨å˜é‡å€¼è¾“å…¥ç»„ä»¶
  * 
- * Ö°Ôğ£º
- * - ¸ù¾İ±äÁ¿ÀàĞÍäÖÈ¾¶ÔÓ¦µÄÊäÈë¿Ø¼ş£¨boolean ÓÃ select£¬ÆäËûÓÃ input£©
- * - Ê¹ÓÃÍ³Ò»µÄ CSS Àà±£Ö¤ÓëÀàĞÍÑ¡ÔñÆ÷¸ß¶ÈÒ»ÖÂ
+ * èŒè´£ï¼š
+ * - æ ¹æ®å˜é‡ç±»å‹æ¸²æŸ“å¯¹åº”çš„è¾“å…¥æ§ä»¶ï¼ˆboolean ç”¨ selectï¼Œå…¶ä»–ç”¨ inputï¼‰
+ * - ä½¿ç”¨ç»Ÿä¸€çš„ CSS ç±»ä¿è¯ä¸ç±»å‹é€‰æ‹©å™¨é«˜åº¦ä¸€è‡´
  */
 
 import React from 'react';
@@ -19,7 +19,7 @@ interface VariableValueInputProps {
     onNumberBlur: (raw: any) => void;
 }
 
-// ¾Ö²¿±äÁ¿Ä¬ÈÏÖµÊäÈë£¬³éÀëÊäÈë¿Ø¼şÒÔ½µµÍÖ÷×é¼ş¸´ÔÓ¶È
+// å±€éƒ¨å˜é‡é»˜è®¤å€¼è¾“å…¥ï¼ŒæŠ½ç¦»è¾“å…¥æ§ä»¶ä»¥é™ä½ä¸»ç»„ä»¶å¤æ‚åº¦
 export const VariableValueInput: React.FC<VariableValueInputProps> = ({
     type,
     value,
@@ -28,7 +28,7 @@ export const VariableValueInput: React.FC<VariableValueInputProps> = ({
     onChange,
     onNumberBlur
 }) => {
-    // Ö»¶ÁÄ£Ê½£ºÏÔÊ¾¾²Ì¬ÎÄ±¾
+    // åªè¯»æ¨¡å¼ï¼šæ˜¾ç¤ºé™æ€æ–‡æœ¬
     if (!canMutate) {
         return (
             <span className="local-variable-card__value-static">
@@ -37,7 +37,7 @@ export const VariableValueInput: React.FC<VariableValueInputProps> = ({
         );
     }
 
-    // ²¼¶ûÀàĞÍ£ºÏÂÀ­Ñ¡Ôñ¿ò
+    // å¸ƒå°”ç±»å‹ï¼šä¸‹æ‹‰é€‰æ‹©æ¡†
     if (type === 'boolean') {
         return (
             <select
@@ -52,7 +52,7 @@ export const VariableValueInput: React.FC<VariableValueInputProps> = ({
         );
     }
 
-    // ÆäËûÀàĞÍ£ºÎÄ±¾ÊäÈë¿ò
+    // å…¶ä»–ç±»å‹ï¼šæ–‡æœ¬è¾“å…¥æ¡†
     return (
         <input
             type="text"

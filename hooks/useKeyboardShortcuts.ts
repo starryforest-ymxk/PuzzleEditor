@@ -56,8 +56,22 @@ export function useKeyboardShortcuts({
     // 处理删除和取消选择
     const handleKeyDown = useCallback((e: KeyboardEvent) => {
         const target = e.target as HTMLElement;
-        // 忽略输入框内的按键
-        if (['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName) || target.isContentEditable) return;
+        const isInputElement = ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName) || target.isContentEditable;
+
+        // Enter 键完成编辑：在输入框中按下 Enter 时 blur 该元素
+        // 注：textarea 需要 Ctrl+Enter 或 Shift+Enter 才触发（保留换行功能）
+        if (e.key === 'Enter' && isInputElement) {
+            const isTextarea = target.tagName === 'TEXTAREA';
+            // textarea 需要修饰键才完成编辑，普通 input 直接完成
+            if (!isTextarea || e.ctrlKey || e.shiftKey) {
+                (target as HTMLInputElement | HTMLTextAreaElement).blur();
+                e.preventDefault();
+                return;
+            }
+        }
+
+        // 忽略输入框内的其他按键
+        if (isInputElement) return;
 
         if (e.key === 'Delete' || e.key === 'Backspace') {
             if (readOnly) return;

@@ -22,14 +22,6 @@ export function generateStageId(existingStageIds: string[]): StageId {
 }
 
 /**
- * 重置 Stage ID 计数器（兼容性函数，新版不再需要）
- * @deprecated 新版 ID 生成基于扫描现有 ID，无需手动重置计数器
- */
-export function resetStageCounter(_maxId: number): void {
-    // 保留空函数以保持 API 兼容性，新版无需此操作
-}
-
-/**
  * 从 Stage ID 中提取数字部分
  * 支持新格式 STAGE_{NUM} 和旧格式 stage-{NUM}
  */

@@ -1,52 +1,17 @@
 /**
  * components/Canvas/Elements/TempConnectionLine.tsx
- * 临时连线组件
- * 显示创建新连线或修改连线时的预览线
+ * 连线箭头标记定义组件
+ * 
+ * 注：TempConnectionLine 临时连线组件已迁移至 TransitionsLayer.tsx
+ * 本文件仅保留 SVG 箭头标记定义
  */
 
 import React from 'react';
-import { Side } from '../../../types/common';
-import * as Geom from '../../../utils/geometry';
-
-interface TempConnectionLineProps {
-    /** 连线起点坐标 */
-    startPoint: { x: number; y: number };
-    /** 连线终点坐标 */
-    endPoint: { x: number; y: number };
-    /** 起点方向 */
-    startSide: Side;
-    /** 终点方向 */
-    endSide: Side;
-}
-
-/**
- * 临时连线组件
- * 用于创建新连线或修改现有连线时的预览显示
- */
-export const TempConnectionLine: React.FC<TempConnectionLineProps> = ({
-    startPoint,
-    endPoint,
-    startSide,
-    endSide
-}) => {
-    const pathData = Geom.getBezierPathData(startPoint, endPoint, startSide, endSide);
-
-    return (
-        <path
-            d={pathData}
-            fill="none"
-            stroke="#888"
-            strokeWidth="2"
-            strokeDasharray="5,5"
-            markerEnd="url(#arrow-temp)"
-        />
-    );
-};
 
 // ========== SVG Arrow Markers ==========
 /**
  * 连线箭头标记定义
- * 包含：普通、选中、右键目标、临时 四种状态的箭头
+ * 包含：普通、选中、右键目标、错误、临时 五种状态的箭头
  */
 export const ConnectionArrowMarkers: React.FC = () => (
     <defs>

@@ -82,28 +82,6 @@ export function extractFsmIdNumber(fsmId: StateMachineId): number {
     return oldMatch ? parseInt(oldMatch[1], 10) : 0;
 }
 
-// ========== 废弃的计数器重置函数（保留空实现兼容 API） ==========
-
-/**
- * @deprecated 新版 ID 生成基于扫描现有 ID，无需重置计数器
- */
-export function resetNodeCounter(_maxId: number): void {
-    // 保留空函数以保持 API 兼容性
-}
-
-/**
- * @deprecated 新版 ID 生成基于扫描现有 ID，无需重置计数器
- */
-export function resetFsmCounter(_maxId: number): void {
-    // 保留空函数以保持 API 兼容性
-}
-
-/**
- * @deprecated 新版 ID 生成基于扫描现有 ID，无需重置计数器
- */
-export function resetStateCounter(_maxId: number): void {
-    // 保留空函数以保持 API 兼容性
-}
 
 // ========== 工厂函数 ==========
 

@@ -31,9 +31,11 @@ import type { StageNode } from '../../types/stage';
 import type { PuzzleNode } from '../../types/puzzleNode';
 import { Trash2, RotateCcw, ExternalLink } from 'lucide-react';
 import { ConfirmDialog } from './ConfirmDialog';
+import { InspectorWarning } from './InspectorInfo';
 import { findGlobalVariableReferences, VariableReferenceInfo, ReferenceNavigationContext } from '../../utils/validation/globalVariableReferences';
 import { findNodeVariableReferences } from '../../utils/variableReferences';
 import { findStageVariableReferences } from '../../utils/validation/stageVariableReferences';
+import { isValidAssetName } from '../../utils/assetNameValidation';
 
 // ========== Props 类型定义 ==========
 interface VariableInspectorProps {
@@ -136,6 +138,7 @@ export const VariableInspector: React.FC<VariableInspectorProps> = ({ variableId
 
     // ========== 本地编辑状态（用于失焦校验） ==========
     const [localName, setLocalName] = useState(variable.name);
+    const [localAssetName, setLocalAssetName] = useState(variable.assetName || '');
     const [localValue, setLocalValue] = useState<any>(variable.value);
     const [localDescription, setLocalDescription] = useState(variable.description || '');
 
@@ -293,9 +296,10 @@ export const VariableInspector: React.FC<VariableInspectorProps> = ({ variableId
     // 当 variable 变化时同步本地状态
     useEffect(() => {
         setLocalName(variable.name);
+        setLocalAssetName(variable.assetName || '');
         setLocalValue(variable.value);
         setLocalDescription(variable.description || '');
-    }, [variable.name, variable.value, variable.description]);
+    }, [variable.name, variable.assetName, variable.value, variable.description]);
 
     // 推送消息到全局消息堆栈
     const pushMessage = (level: MessageLevel, text: string) => {
@@ -423,6 +427,17 @@ export const VariableInspector: React.FC<VariableInspectorProps> = ({ variableId
             setLocalName(variable.name);
         } else if (trimmed !== variable.name) {
             handleUpdate({ name: trimmed });
+        }
+    };
+
+    // 资产名失焦：校验变量名命名规则
+    const handleAssetNameBlur = () => {
+        const trimmed = localAssetName.trim();
+        if (!isValidAssetName(trimmed)) {
+            // 校验失败，回退到原值
+            setLocalAssetName(variable.assetName || '');
+        } else if (trimmed !== (variable.assetName || '')) {
+            handleUpdate({ assetName: trimmed || undefined });
         }
     };
 
@@ -595,6 +610,30 @@ export const VariableInspector: React.FC<VariableInspectorProps> = ({ variableId
                         <div className="prop-label">ID</div>
                         <div className="prop-value monospace" style={{ color: '#666' }}>{variable.id}</div>
                     </div>
+
+                    {/* Asset Name */}
+                    <div className="prop-row">
+                        <div className="prop-label">Asset Name</div>
+                        {canEdit ? (
+                            <input
+                                type="text"
+                                className="inspector-input monospace"
+                                value={localAssetName}
+                                onChange={(e) => setLocalAssetName(e.target.value)}
+                                onBlur={handleAssetNameBlur}
+                                placeholder={variable.id}
+                            />
+                        ) : (
+                            <div className="prop-value monospace" style={{ color: localAssetName ? 'var(--text-primary)' : '#666' }}>
+                                {localAssetName || variable.id}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Asset Name Warning */}
+                    {isGlobal && !variable.assetName && (
+                        <InspectorWarning message="Asset Name not set. Using ID as default." />
+                    )}
 
                     {/* Type */}
                     <div className="prop-row">

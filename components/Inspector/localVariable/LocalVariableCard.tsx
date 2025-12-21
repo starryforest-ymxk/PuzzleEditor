@@ -1,56 +1,58 @@
 /**
  * components/Inspector/localVariable/LocalVariableCard.tsx
- * ¾Ö²¿±äÁ¿¿¨Æ¬×é¼ş
+ * å±€éƒ¨å˜é‡å¡ç‰‡ç»„ä»¶
  * 
- * Ö°Ôğ£º
- * - ÏÔÊ¾ºÍ±à¼­µ¥¸ö¾Ö²¿±äÁ¿µÄÊôĞÔ
- * - Ö§³ÖÃû³Æ¡¢ÀàĞÍ¡¢Ä¬ÈÏÖµ¡¢ÃèÊöµÄ±à¼­
- * - ´¦ÀíÉ¾³ı/»Ö¸´²Ù×÷
- * - Ö§³ÖÕ¹¿ª/ÊÕÆğÒıÓÃÏêÇé
- * - Ö§³Öµã»÷ÒıÓÃÌø×ªµ½¶ÔÓ¦±à¼­Æ÷Î»ÖÃ
+ * èŒè´£ï¼š
+ * - æ˜¾ç¤ºå’Œç¼–è¾‘å•ä¸ªå±€éƒ¨å˜é‡çš„å±æ€§
+ * - æ”¯æŒåç§°ã€ç±»å‹ã€é»˜è®¤å€¼ã€æè¿°çš„ç¼–è¾‘
+ * - å¤„ç†åˆ é™¤/æ¢å¤æ“ä½œ
+ * - æ”¯æŒå±•å¼€/æ”¶èµ·å¼•ç”¨è¯¦æƒ…
+ * - æ”¯æŒç‚¹å‡»å¼•ç”¨è·³è½¬åˆ°å¯¹åº”ç¼–è¾‘å™¨ä½ç½®
  * 
- * UI·ç¸ñ£º
- * - Ê¹ÓÃÍ³Ò»µÄ CSS ÀàÃû£¬±ÜÃâÄÚÁªÑùÊ½
- * - Óë StateInspector µÈ×é¼ş·ç¸ñ±£³ÖÒ»ÖÂ
+ * UIé£æ ¼ï¼š
+ * - ä½¿ç”¨ç»Ÿä¸€çš„ CSS ç±»åï¼Œé¿å…å†…è”æ ·å¼
+ * - ä¸ StateInspector ç­‰ç»„ä»¶é£æ ¼ä¿æŒä¸€è‡´
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { VariableDefinition } from '../../../types/blackboard';
 import type { VariableType } from '../../../types/common';
 import { VariableValueInput } from './VariableValueInput';
 import { X, RotateCcw, Trash2, ChevronDown, ChevronRight, ExternalLink } from 'lucide-react';
 import type { VariableReferenceInfo, ReferenceNavigationContext } from '../../../utils/validation/globalVariableReferences';
+import { isValidAssetName } from '../../../utils/assetNameValidation';
+import { InspectorWarning } from '../InspectorInfo';
 
-// ========== Props ÀàĞÍ¶¨Òå ==========
+// ========== Props ç±»å‹å®šä¹‰ ==========
 interface LocalVariableCardProps {
     variable: VariableDefinition;
     canMutate: boolean;
     readOnly: boolean;
     referenceCount: number;
-    /** ÒıÓÃÎ»ÖÃÁĞ±í£¬ÓÃÓÚÕ¹¿ªÏêÇé - ÏÖÔÚÖ§³ÖÍêÕûµÄÒıÓÃĞÅÏ¢ */
+    /** å¼•ç”¨ä½ç½®åˆ—è¡¨ï¼Œç”¨äºå±•å¼€è¯¦æƒ… - ç°åœ¨æ”¯æŒå®Œæ•´çš„å¼•ç”¨ä¿¡æ¯ */
     references?: VariableReferenceInfo[];
     error?: string;
     onUpdate: (field: keyof VariableDefinition, value: any) => void;
     onDelete: () => void;
     onRestore: () => void;
     onNumberBlur: (raw: any) => void;
-    /** Ë«»÷»Øµ÷ */
+    /** åŒå‡»å›è°ƒ */
     onDoubleClick?: () => void;
-    /** µã»÷ÒıÓÃÌø×ªµÄ»Øµ÷ */
+    /** ç‚¹å‡»å¼•ç”¨è·³è½¬çš„å›è°ƒ */
     onReferenceClick?: (navContext: ReferenceNavigationContext) => void;
 }
 
-// ========== ¹¤¾ßº¯Êı ==========
+// ========== å·¥å…·å‡½æ•° ==========
 
 /**
- * »ñÈ¡±äÁ¿ÀàĞÍ¶ÔÓ¦µÄÑÕÉ«ÀàÃû
+ * è·å–å˜é‡ç±»å‹å¯¹åº”çš„é¢œè‰²ç±»å
  */
 const getTypeClassName = (type: string): string => {
     return `var-type--${type}`;
 };
 
 /**
- * »ñÈ¡±äÁ¿ÀàĞÍ¶ÔÓ¦µÄÑÕÉ«Öµ£¨ÓÃÓÚ select ÔªËØ¶¯Ì¬×ÅÉ«£©
+ * è·å–å˜é‡ç±»å‹å¯¹åº”çš„é¢œè‰²å€¼ï¼ˆç”¨äº select å…ƒç´ åŠ¨æ€ç€è‰²ï¼‰
  */
 const getTypeColor = (type: string): string => {
     const colorMap: Record<string, string> = {
@@ -62,7 +64,7 @@ const getTypeColor = (type: string): string => {
     return colorMap[type] || 'var(--text-primary)';
 };
 
-// ========== Ö÷×é¼ş ==========
+// ========== ä¸»ç»„ä»¶ ==========
 export const LocalVariableCard: React.FC<LocalVariableCardProps> = ({
     variable,
     canMutate,
@@ -78,22 +80,53 @@ export const LocalVariableCard: React.FC<LocalVariableCardProps> = ({
     onReferenceClick
 }) => {
     const isMarkedForDelete = variable.state === 'MarkedForDelete';
-    // ÒıÓÃÏêÇéÕ¹¿ª/ÊÕÆğ×´Ì¬
+    // å¼•ç”¨è¯¦æƒ…å±•å¼€/æ”¶èµ·çŠ¶æ€
     const [showReferences, setShowReferences] = useState(false);
 
+    // ========== æœ¬åœ°ç¼–è¾‘çŠ¶æ€ï¼ˆç”¨äºå¤±ç„¦æ ¡éªŒï¼‰ ==========
+    const [localName, setLocalName] = useState(variable.name);
+    const [localAssetName, setLocalAssetName] = useState(variable.assetName || '');
+
+    // åŒæ­¥å¤–éƒ¨çŠ¶æ€å˜åŒ–
+    useEffect(() => {
+        setLocalName(variable.name);
+        setLocalAssetName(variable.assetName || '');
+    }, [variable.name, variable.assetName]);
+
+    // åç§°å¤±ç„¦æ ¡éªŒ
+    const handleNameBlur = () => {
+        const trimmed = localName.trim();
+        if (!trimmed) {
+            setLocalName(variable.name);
+        } else if (trimmed !== variable.name) {
+            onUpdate('name', trimmed);
+        }
+    };
+
+    // èµ„äº§åå¤±ç„¦æ ¡éªŒ
+    const handleAssetNameBlur = () => {
+        const trimmed = localAssetName.trim();
+        if (!isValidAssetName(trimmed)) {
+            setLocalAssetName(variable.assetName || '');
+        } else if (trimmed !== (variable.assetName || '')) {
+            onUpdate('assetName', trimmed || undefined);
+        }
+    };
+
     return (
-        <div 
+        <div
             className={`local-variable-card ${isMarkedForDelete ? 'local-variable-card--deleted' : ''}`}
             onDoubleClick={onDoubleClick}
         >
-            {/* Header: Ãû³Æ + ²Ù×÷°´Å¥ */}
+            {/* Header: åç§° + æ“ä½œæŒ‰é’® */}
             <div className="local-variable-card__header">
                 <div style={{ flex: 1, minWidth: 0 }}>
                     {canMutate && !isMarkedForDelete ? (
                         <input
                             className="local-variable-card__name-input"
-                            value={variable.name}
-                            onChange={(e) => onUpdate('name', e.target.value)}
+                            value={localName}
+                            onChange={(e) => setLocalName(e.target.value)}
+                            onBlur={handleNameBlur}
                             disabled={readOnly || !canMutate || isMarkedForDelete}
                             placeholder="Variable name"
                         />
@@ -104,7 +137,7 @@ export const LocalVariableCard: React.FC<LocalVariableCardProps> = ({
                     )}
                 </div>
 
-                {/* ²Ù×÷°´Å¥ */}
+                {/* æ“ä½œæŒ‰é’® */}
                 {canMutate && (
                     <div className="local-variable-card__actions">
                         {isMarkedForDelete ? (
@@ -139,7 +172,9 @@ export const LocalVariableCard: React.FC<LocalVariableCardProps> = ({
                 )}
             </div>
 
-            {/* Meta: ×´Ì¬ + ÒıÓÃ¼ÆÊı£¨¿Éµã»÷Õ¹¿ª£© */}
+
+
+            {/* Meta: çŠ¶æ€ + å¼•ç”¨è®¡æ•°ï¼ˆå¯ç‚¹å‡»å±•å¼€ï¼‰ */}
             <div className="local-variable-card__meta">
                 <span>Status: {variable.state}</span>
                 {referenceCount > 0 && (
@@ -154,15 +189,15 @@ export const LocalVariableCard: React.FC<LocalVariableCardProps> = ({
                 )}
             </div>
 
-            {/* ÒıÓÃÏêÇéÕ¹¿ªÇøÓò */}
+            {/* å¼•ç”¨è¯¦æƒ…å±•å¼€åŒºåŸŸ */}
             {showReferences && referenceCount > 0 && (
                 <div className="local-variable-card__references">
                     <div className="local-variable-card__references-title">Referenced in:</div>
                     <div className="local-variable-card__references-list">
                         {references.length > 0 ? (
                             references.map((ref, idx) => (
-                                <div 
-                                    key={idx} 
+                                <div
+                                    key={idx}
                                     className={`local-variable-card__references-item ${ref.navContext ? 'local-variable-card__references-item--clickable' : ''}`}
                                     onClick={() => ref.navContext && onReferenceClick?.(ref.navContext)}
                                     title={ref.navContext ? 'Click to navigate to this reference' : undefined}
@@ -182,30 +217,96 @@ export const LocalVariableCard: React.FC<LocalVariableCardProps> = ({
                 </div>
             )}
 
-            {/* Controls: ÀàĞÍÑ¡Ôñ + ÖµÊäÈë */}
-            <div className="local-variable-card__controls">
-                <select
-                    className="inspector-type-select"
-                    value={variable.type}
-                    onChange={(e) => onUpdate('type', e.target.value as VariableType)}
-                    disabled={!canMutate || isMarkedForDelete}
-                    style={{ color: getTypeColor(variable.type) }}
-                >
-                    <option value="boolean">boolean</option>
-                    <option value="integer">integer</option>
-                    <option value="float">float</option>
-                    <option value="string">string</option>
-                </select>
+            {/* Controls Area: Asset Name & Value Editing 
+                Layout: 
+                [ Asset Name Label ] [ Asset Name Input ]
+                [ Type Select      ] [ Value Input      ]
+            */}
+            <div className="local-variable-card__controls-area">
 
-                <div className="local-variable-card__value-input">
-                    <VariableValueInput
-                        type={variable.type}
-                        value={variable.value}
+                {/* Row 1: Asset Name */}
+                <div className="local-variable-card__control-row">
+                    {/* Label aligned with Select */}
+                    <div className="local-variable-card__label">
+                        Asset Name
+                    </div>
+                    {/* Input aligned with Value Input */}
+                    <div className="local-variable-card__input-wrapper">
+                        {canMutate && !isMarkedForDelete ? (
+                            <input
+                                type="text"
+                                className="local-variable-card__asset-input"
+                                value={localAssetName}
+                                onChange={(e) => setLocalAssetName(e.target.value)}
+                                onBlur={handleAssetNameBlur}
+                                placeholder={variable.id}
+                            />
+                        ) : (
+                            <span
+                                className="local-variable-card__asset-input"
+                                style={{
+                                    border: 'none',
+                                    background: 'transparent',
+                                    color: localAssetName ? 'var(--text-primary)' : '#666',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    padding: '0'
+                                }}
+                            >
+                                {localAssetName || variable.id}
+                            </span>
+                        )}
+                    </div>
+                </div>
+
+                {/* Warning Row (Full Width) */}
+                {!variable.assetName && (
+                    <div className="local-variable-card__warning-row">
+                        <InspectorWarning
+                            message="Asset Name not set. Using ID as default."
+                            style={{
+                                margin: 0,
+                                padding: '6px 8px',
+                                width: '100%',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'flex-start',
+                                borderRadius: '3px'
+                            }}
+                        />
+                    </div>
+                )}
+
+                {/* Row 2: Type & Value */}
+                <div className="local-variable-card__control-row">
+                    <select
+                        className="inspector-type-select"
+                        value={variable.type}
+                        onChange={(e) => onUpdate('type', e.target.value as VariableType)}
                         disabled={!canMutate || isMarkedForDelete}
-                        canMutate={canMutate}
-                        onChange={(val) => onUpdate('value', val)}
-                        onNumberBlur={onNumberBlur}
-                    />
+                        style={{
+                            width: '85px',
+                            flexShrink: 0,
+                            color: getTypeColor(variable.type),
+                            minWidth: 0 // Override global min-width
+                        }}
+                    >
+                        <option value="boolean">boolean</option>
+                        <option value="integer">integer</option>
+                        <option value="float">float</option>
+                        <option value="string">string</option>
+                    </select>
+
+                    <div className="local-variable-card__input-wrapper">
+                        <VariableValueInput
+                            type={variable.type}
+                            value={variable.value}
+                            disabled={!canMutate || isMarkedForDelete}
+                            canMutate={canMutate}
+                            onChange={(val) => onUpdate('value', val)}
+                            onNumberBlur={onNumberBlur}
+                        />
+                    </div>
                 </div>
             </div>
 

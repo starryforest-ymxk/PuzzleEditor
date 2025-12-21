@@ -1,10 +1,11 @@
-﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { VariableDefinition } from '../../types/blackboard';
 import type { VariableType } from '../../types/common';
 import type { MessageLevel } from '../../store/types';
 import { useEditorDispatch, useEditorState } from '../../store/context';
 import { withScope } from '../../utils/variableScope';
 import { findNodeVariableReferences } from '../../utils/variableReferences';
+import { findStageVariableReferences } from '../../utils/validation/stageVariableReferences';
 import { generateResourceId } from '../../utils/resourceIdGenerator';
 import { ConfirmDialog } from './ConfirmDialog';
 import { LocalVariableCard } from './localVariable/LocalVariableCard';
@@ -70,7 +71,7 @@ export const LocalVariableEditor: React.FC<LocalVariableEditorProps> = ({
     } | null>(null);
     const [prevDefaults, setPrevDefaults] = useState<Record<string, any>>({});
 
-    // 仅 Node 场景默认提供内置引用解析；其他场景可由 resolveReferences 自定义
+    // Node 和 Stage 场景默认提供内置引用解析；其他场景可由 resolveReferences 自定义
     // 现在返回完整的 VariableReferenceInfo，包含导航上下文
     const referenceMap = useMemo(() => {
         const map: Record<string, VariableReferenceInfo[]> = {};
@@ -80,8 +81,11 @@ export const LocalVariableEditor: React.FC<LocalVariableEditorProps> = ({
                 // 外部解析器返回的是字符串数组，转换为 VariableReferenceInfo
                 map[v.id] = (resolver(v.id) || []).map(loc => ({ location: loc }));
             } else if (ownerType === 'node' && ownerId) {
-                // 内置解析器返回完整的引用信息，包含导航上下文
+                // Node 局部变量引用解析
                 map[v.id] = findNodeVariableReferences(project, ownerId, v.id);
+            } else if (ownerType === 'stage' && ownerId) {
+                // Stage 局部变量引用解析
+                map[v.id] = findStageVariableReferences(project, ownerId, v.id);
             } else {
                 map[v.id] = [];
             }

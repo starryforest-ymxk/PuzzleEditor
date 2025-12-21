@@ -1568,6 +1568,8 @@ html {
   cursor: pointer;
   font-family: 'JetBrains Mono', 'Consolas', monospace;
   min-width: 90px;
+  box-sizing: border-box;
+  /* 确保宽度包含 border 和 padding */
 }
 
 .inspector-type-select:focus {
@@ -1782,7 +1784,10 @@ html {
 }
 
 .local-variable-card__description {
-  margin-top: 8px;
+  margin-top: 6px;
+  /* 与 controls-area 的 gap 保持一致 */
+  padding: 0;
+  /* 使用卡片本身的 padding */
 }
 
 .local-variable-card__description-input {
@@ -1879,8 +1884,94 @@ html {
 }
 
 .local-variable-card__references-item--clickable:hover {
-  background-color: var(--hover-bg);
-  color: var(--accent);
+  background-color: rgba(255, 255, 255, 0.05);
+  color: var(--text-primary);
+}
+
+/* =========================================
+   Refactored Local Variable Card Layout
+   ========================================= */
+
+.local-variable-card__controls-area {
+  padding: 0;
+  /* 使用卡片本身的 12px padding */
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.local-variable-card__control-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  height: 26px;
+}
+
+.local-variable-card__label {
+  width: 85px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  font-size: 11px;
+  color: var(--text-secondary);
+  /* 移除 padding-left，使标签宽度与类型选择器完全一致 */
+}
+
+.local-variable-card__input-wrapper {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.local-variable-card__asset-input {
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid #444;
+  border-radius: var(--radius-sm);
+  padding: 0 6px;
+  font-size: 11px;
+  color: var(--text-primary);
+  font-family: 'JetBrains Mono', monospace;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.local-variable-card__asset-input:focus {
+  border-color: var(--accent-color);
+}
+
+.local-variable-card__warning-row {
+  width: 100%;
+  display: flex;
+  /* 移除固定高度，让内容决定高度，保持与其他行的间隔一致 */
+}
+
+.local-variable-card__warning-content {
+  margin: 0;
+  height: 100%;
+  padding: 0 8px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+/* Alignment Fixes for Dropdowns & Inputs */
+.local-variable-card .inspector-type-select,
+.local-variable-card__value-select {
+  height: 100%;
+  padding-top: 0;
+  padding-bottom: 0;
+  /* Removal of vertical padding fixes vertical alignment in fixed-height containers */
+}
+
+/* Ensure text inputs match the height and padding */
+.local-variable-card__value-text-input {
+  height: 100%;
+  padding: 0 6px;
 }
 
 /* Inspector 中的引用项样式 */

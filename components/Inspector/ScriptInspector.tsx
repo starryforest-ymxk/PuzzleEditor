@@ -21,6 +21,8 @@ import { Trash2, RotateCcw, ExternalLink } from 'lucide-react';
 import { findScriptReferences } from '../../utils/validation/scriptReferences';
 import type { ReferenceNavigationContext } from '../../utils/validation/globalVariableReferences';
 import { ConfirmDialog } from './ConfirmDialog';
+import { InspectorWarning } from './InspectorInfo';
+import { isValidAssetName } from '../../utils/assetNameValidation';
 
 // ========== Props 类型定义 ==========
 interface ScriptInspectorProps {
@@ -69,6 +71,11 @@ export const ScriptInspector: React.FC<ScriptInspectorProps> = ({ scriptId, read
         mode: ConfirmMode;
     } | null>(null);
 
+    // ========== 本地编辑状态（用于失焦校验） ==========
+    const [localName, setLocalName] = useState(script.name);
+    const [localAssetName, setLocalAssetName] = useState(script.assetName || '');
+    const [localDescription, setLocalDescription] = useState(script.description || '');
+
     // ========== 引用计算 ==========
     const references = useMemo(() => {
         return findScriptReferences(project, scriptId);
@@ -90,6 +97,38 @@ export const ScriptInspector: React.FC<ScriptInspectorProps> = ({ scriptId, read
             dispatch({ type: 'UPDATE_SCRIPT', payload: { id: scriptId, data: updates } });
         }
     }, [readOnly, isMarkedForDelete, dispatch, scriptId]);
+
+    // ========== 同步本地状态 ==========
+    React.useEffect(() => {
+        setLocalName(script.name);
+        setLocalAssetName(script.assetName || '');
+        setLocalDescription(script.description || '');
+    }, [script.name, script.assetName, script.description]);
+
+    // ========== 失焦校验处理函数 ==========
+    const handleNameBlur = () => {
+        const trimmed = localName.trim();
+        if (!trimmed) {
+            setLocalName(script.name);
+        } else if (trimmed !== script.name) {
+            handleUpdate({ name: trimmed });
+        }
+    };
+
+    const handleAssetNameBlur = () => {
+        const trimmed = localAssetName.trim();
+        if (!isValidAssetName(trimmed)) {
+            setLocalAssetName(script.assetName || '');
+        } else if (trimmed !== (script.assetName || '')) {
+            handleUpdate({ assetName: trimmed || undefined });
+        }
+    };
+
+    const handleDescriptionBlur = () => {
+        if (localDescription !== (script.description || '')) {
+            handleUpdate({ description: localDescription });
+        }
+    };
 
     // ========== 删除逻辑（与 VariableInspector 一致） ==========
 
@@ -314,8 +353,9 @@ export const ScriptInspector: React.FC<ScriptInspectorProps> = ({ scriptId, read
                         <input
                             type="text"
                             className="inspector-name-input"
-                            value={script.name}
-                            onChange={(e) => handleUpdate({ name: e.target.value })}
+                            value={localName}
+                            onChange={(e) => setLocalName(e.target.value)}
+                            onBlur={handleNameBlur}
                             disabled={isMarkedForDelete}
                         />
                     ) : (
@@ -334,6 +374,30 @@ export const ScriptInspector: React.FC<ScriptInspectorProps> = ({ scriptId, read
                         <div className="prop-label">ID</div>
                         <div className="prop-value monospace" style={{ color: '#666' }}>{script.id}</div>
                     </div>
+
+                    {/* Asset Name */}
+                    <div className="prop-row">
+                        <div className="prop-label">Asset Name</div>
+                        {canEdit ? (
+                            <input
+                                type="text"
+                                className="inspector-input monospace"
+                                value={localAssetName}
+                                onChange={(e) => setLocalAssetName(e.target.value)}
+                                onBlur={handleAssetNameBlur}
+                                placeholder={script.id}
+                            />
+                        ) : (
+                            <div className="prop-value monospace" style={{ color: localAssetName ? 'var(--text-primary)' : '#666' }}>
+                                {localAssetName || script.id}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Asset Name Warning */}
+                    {!script.assetName && (
+                        <InspectorWarning message="Asset Name not set. Using ID as default." />
+                    )}
 
                     {/* Category（只读，创建后不可改） */}
                     <div className="prop-row">
@@ -372,8 +436,9 @@ export const ScriptInspector: React.FC<ScriptInspectorProps> = ({ scriptId, read
                         {!readOnly ? (
                             <textarea
                                 className="inspector-textarea"
-                                value={script.description || ''}
-                                onChange={(e) => handleUpdate({ description: e.target.value })}
+                                value={localDescription}
+                                onChange={(e) => setLocalDescription(e.target.value)}
+                                onBlur={handleDescriptionBlur}
                                 placeholder="No description."
                                 disabled={isMarkedForDelete}
                             />

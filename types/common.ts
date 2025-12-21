@@ -16,9 +16,7 @@ import type {
   TriggerKey,
   VariableId,
   EventId,
-  IdRef,
-  KeyRef,
-  StableRef
+  IdRef
 } from './identity';
 
 export type {
@@ -35,9 +33,7 @@ export type {
   TriggerKey,
   VariableId,
   EventId,
-  IdRef,
-  KeyRef,
-  StableRef
+  IdRef
 } from './identity';
 
 // ========== 基础 ID 类型 ==========
