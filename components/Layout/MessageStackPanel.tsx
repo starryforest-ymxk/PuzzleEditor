@@ -4,16 +4,26 @@
  * 
  * 功能：
  * - 显示消息列表（按时间倒序）
+ * - 支持按等级筛选消息（info/warning/error）
  * - 支持清空所有消息
  * - 点击外部自动关闭
  */
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useEditorState, useEditorDispatch } from '../../store/context';
+import { MessageLevel } from '../../store/types';
+import { Info, AlertTriangle, XCircle } from 'lucide-react';
 
 interface MessageStackPanelProps {
     isOpen: boolean;
     onClose: () => void;
+}
+
+// 消息等级筛选状态
+interface LevelFilters {
+    info: boolean;
+    warning: boolean;
+    error: boolean;
 }
 
 export const MessageStackPanel: React.FC<MessageStackPanelProps> = ({
@@ -23,6 +33,18 @@ export const MessageStackPanel: React.FC<MessageStackPanelProps> = ({
     const { ui } = useEditorState();
     const dispatch = useEditorDispatch();
     const panelRef = useRef<HTMLDivElement>(null);
+
+    // 消息等级筛选状态（默认全部开启）
+    const [levelFilters, setLevelFilters] = useState<LevelFilters>({
+        info: true,
+        warning: true,
+        error: true
+    });
+
+    // 切换某个等级的显示状态
+    const toggleLevel = (level: MessageLevel) => {
+        setLevelFilters(prev => ({ ...prev, [level]: !prev[level] }));
+    };
 
     // 点击外部关闭面板
     useEffect(() => {
@@ -50,15 +72,24 @@ export const MessageStackPanel: React.FC<MessageStackPanelProps> = ({
 
     if (!isOpen) return null;
 
-    // 按时间倒序排列消息
-    const sortedMessages = [...ui.messages].sort((a, b) =>
-        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-    );
+    // 按时间倒序排列消息，并根据筛选条件过滤
+    const sortedMessages = [...ui.messages]
+        .filter(msg => levelFilters[msg.level])
+        .sort((a, b) =>
+            new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+        );
 
     // 清空并关闭
     const handleClearAll = () => {
         dispatch({ type: 'CLEAR_MESSAGES' });
         onClose();
+    };
+
+    // 计算各等级消息数量
+    const counts = {
+        info: ui.messages.filter(m => m.level === 'info').length,
+        warning: ui.messages.filter(m => m.level === 'warning').length,
+        error: ui.messages.filter(m => m.level === 'error').length
     };
 
     return (
@@ -70,8 +101,90 @@ export const MessageStackPanel: React.FC<MessageStackPanelProps> = ({
                 </button>
             </div>
 
+            {/* 消息等级筛选器 */}
+            <div style={{
+                display: 'flex',
+                gap: '8px',
+                padding: '8px 16px',
+                borderBottom: '1px solid var(--border-color)',
+                background: 'rgba(0,0,0,0.2)'
+            }}>
+                {/* Info 开关 */}
+                <button
+                    onClick={() => toggleLevel('info')}
+                    style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        padding: '4px 8px',
+                        fontSize: '11px',
+                        fontWeight: 500,
+                        background: levelFilters.info ? 'rgba(34, 197, 94, 0.2)' : 'transparent',
+                        color: levelFilters.info ? 'var(--accent-success)' : 'var(--text-dim)',
+                        border: `1px solid ${levelFilters.info ? 'var(--accent-success)' : 'var(--border-color)'}`,
+                        borderRadius: 'var(--radius-sm)',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease'
+                    }}
+                    title={levelFilters.info ? 'Hide info messages' : 'Show info messages'}
+                >
+                    <Info size={12} />
+                    Info ({counts.info})
+                </button>
+
+                {/* Warning 开关 */}
+                <button
+                    onClick={() => toggleLevel('warning')}
+                    style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        padding: '4px 8px',
+                        fontSize: '11px',
+                        fontWeight: 500,
+                        background: levelFilters.warning ? 'rgba(245, 158, 11, 0.2)' : 'transparent',
+                        color: levelFilters.warning ? 'var(--accent-warning)' : 'var(--text-dim)',
+                        border: `1px solid ${levelFilters.warning ? 'var(--accent-warning)' : 'var(--border-color)'}`,
+                        borderRadius: 'var(--radius-sm)',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease'
+                    }}
+                    title={levelFilters.warning ? 'Hide warning messages' : 'Show warning messages'}
+                >
+                    <AlertTriangle size={12} />
+                    Warning ({counts.warning})
+                </button>
+
+                {/* Error 开关 */}
+                <button
+                    onClick={() => toggleLevel('error')}
+                    style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        padding: '4px 8px',
+                        fontSize: '11px',
+                        fontWeight: 500,
+                        background: levelFilters.error ? 'rgba(239, 68, 68, 0.2)' : 'transparent',
+                        color: levelFilters.error ? 'var(--accent-error)' : 'var(--text-dim)',
+                        border: `1px solid ${levelFilters.error ? 'var(--accent-error)' : 'var(--border-color)'}`,
+                        borderRadius: 'var(--radius-sm)',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease'
+                    }}
+                    title={levelFilters.error ? 'Hide error messages' : 'Show error messages'}
+                >
+                    <XCircle size={12} />
+                    Error ({counts.error})
+                </button>
+            </div>
+
             {sortedMessages.length === 0 ? (
-                <div className="message-empty">No active messages</div>
+                <div className="message-empty">
+                    {ui.messages.length === 0
+                        ? 'No active messages'
+                        : 'No messages match current filters'}
+                </div>
             ) : (
                 sortedMessages.map(msg => (
                     <div key={msg.id} className={`message-item ${msg.level}`}>
@@ -88,3 +201,4 @@ export const MessageStackPanel: React.FC<MessageStackPanelProps> = ({
 };
 
 export default MessageStackPanel;
+

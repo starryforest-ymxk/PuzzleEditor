@@ -64,6 +64,10 @@ export const PresentationCanvas: React.FC<Props> = ({ graph, ownerNodeId, readOn
     const dragStartPos = useRef<{ x: number; y: number } | null>(null);
     const dragMoved = useRef(false);
 
+    // 画布空白点击检测（用于点击空白选中父级节点）
+    const blankClickStart = useRef<{ x: number; y: number } | null>(null);
+    const isBoxSelecting = useRef(false);
+
     // ========== 将 nextIds 转换为虚拟边 ==========
     const edges = useMemo(() => presentationNodesToEdges(graph.nodes), [graph.nodes]);
 
@@ -301,15 +305,9 @@ export const PresentationCanvas: React.FC<Props> = ({ graph, ownerNodeId, readOn
         const rect = contentRef.current?.getBoundingClientRect();
         const isInsideContent = rect ? (e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom) : true;
 
-        // 点击空白处，如果不是在多选/连线/剪线，清空选择
-        if (!linkingState && !isLineCuttingMode) {
-            // 只有当点击是有效框选开始时，我们才清理？不，FSM 是 isBoxSelecting 时清理 pendingSelect，但真正清理 selection 是 handleCanvasMouseUp 或开始框选时。
-            // FSM 逻辑：handleCanvasMouseDown 设置 isBoxSelecting = true. handleCanvasMouseUp 判断如果只是点击空白则 SELECT NODE(Context)。
-            // 这里简化：点击空白清除 selection。
-            // 实际上 startBoxSelect 会在 drag 时触发。
-            // 我们不需要在这里 dispatch NONE，boxSelect 会处理。
-            // 只有当仅仅是点击（mouseup）且没框选时，才清除。
-        }
+        // 记录空白点击开始位置
+        isBoxSelecting.current = true;
+        blankClickStart.current = isInsideContent ? { x: e.clientX, y: e.clientY } : null;
 
         // 清空多选（如果没有按住 Ctrl）
         if (multiSelectIds.length > 0 && !e.ctrlKey && !e.metaKey) {
@@ -317,6 +315,36 @@ export const PresentationCanvas: React.FC<Props> = ({ graph, ownerNodeId, readOn
         }
 
         startBoxSelect(e);
+    };
+
+    // 点击空白处选中父级节点（ownerNodeId）或演出图本身
+    const handleCanvasMouseUp = (e: React.MouseEvent) => {
+        if (e.button !== 0) return;
+        if (cuttingLine || linkingState || modifyingTransition) {
+            blankClickStart.current = null;
+            return;
+        }
+
+        // 如果正在框选中则不处理（框选结束由 onBoxSelectEnd 处理）
+        if (isBoxSelecting.current && boxSelectRect) return;
+
+        // 空白点击选中父级节点
+        if (blankClickStart.current) {
+            const CLICK_THRESHOLD = 3; // 点击判定阈值
+            const dx = Math.abs(e.clientX - blankClickStart.current.x);
+            const dy = Math.abs(e.clientY - blankClickStart.current.y);
+            if (dx <= CLICK_THRESHOLD && dy <= CLICK_THRESHOLD) {
+                // 如果有 ownerNodeId，选中父级 PuzzleNode；否则选中 PRESENTATION_GRAPH 本身
+                if (ownerNodeId) {
+                    dispatch({ type: 'SELECT_OBJECT', payload: { type: 'NODE', id: ownerNodeId } });
+                } else {
+                    dispatch({ type: 'SELECT_OBJECT', payload: { type: 'PRESENTATION_GRAPH', id: graph.id } });
+                }
+            }
+            blankClickStart.current = null;
+        }
+
+        isBoxSelecting.current = false;
     };
 
     const handleNodeMouseDown = (e: React.MouseEvent, nodeId: string) => {
@@ -567,6 +595,7 @@ export const PresentationCanvas: React.FC<Props> = ({ graph, ownerNodeId, readOn
                             : 'default'
                 }}
                 onMouseDown={handleCanvasMouseDown}
+                onMouseUp={handleCanvasMouseUp}
                 onContextMenu={(e) => handleContextMenu(e, 'CANVAS')}
             >
                 {/* 使用通用右键菜单组件 */}
