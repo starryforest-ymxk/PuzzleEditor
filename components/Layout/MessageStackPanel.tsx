@@ -14,37 +14,28 @@ import { useEditorState, useEditorDispatch } from '../../store/context';
 import { MessageLevel } from '../../store/types';
 import { Info, AlertTriangle, XCircle } from 'lucide-react';
 
-interface MessageStackPanelProps {
-    isOpen: boolean;
-    onClose: () => void;
-}
-
-// 消息等级筛选状态
-interface LevelFilters {
+export interface LevelFilters {
     info: boolean;
     warning: boolean;
     error: boolean;
 }
 
+interface MessageStackPanelProps {
+    isOpen: boolean;
+    onClose: () => void;
+    levelFilters: LevelFilters;
+    onToggleLevel: (level: MessageLevel) => void;
+}
+
 export const MessageStackPanel: React.FC<MessageStackPanelProps> = ({
     isOpen,
-    onClose
+    onClose,
+    levelFilters,
+    onToggleLevel
 }) => {
     const { ui } = useEditorState();
     const dispatch = useEditorDispatch();
     const panelRef = useRef<HTMLDivElement>(null);
-
-    // 消息等级筛选状态（默认全部开启）
-    const [levelFilters, setLevelFilters] = useState<LevelFilters>({
-        info: true,
-        warning: true,
-        error: true
-    });
-
-    // 切换某个等级的显示状态
-    const toggleLevel = (level: MessageLevel) => {
-        setLevelFilters(prev => ({ ...prev, [level]: !prev[level] }));
-    };
 
     // 点击外部关闭面板
     useEffect(() => {
@@ -111,7 +102,7 @@ export const MessageStackPanel: React.FC<MessageStackPanelProps> = ({
             }}>
                 {/* Info 开关 */}
                 <button
-                    onClick={() => toggleLevel('info')}
+                    onClick={() => onToggleLevel('info')}
                     style={{
                         display: 'flex',
                         alignItems: 'center',
@@ -134,7 +125,7 @@ export const MessageStackPanel: React.FC<MessageStackPanelProps> = ({
 
                 {/* Warning 开关 */}
                 <button
-                    onClick={() => toggleLevel('warning')}
+                    onClick={() => onToggleLevel('warning')}
                     style={{
                         display: 'flex',
                         alignItems: 'center',
@@ -157,7 +148,7 @@ export const MessageStackPanel: React.FC<MessageStackPanelProps> = ({
 
                 {/* Error 开关 */}
                 <button
-                    onClick={() => toggleLevel('error')}
+                    onClick={() => onToggleLevel('error')}
                     style={{
                         display: 'flex',
                         alignItems: 'center',

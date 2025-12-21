@@ -160,10 +160,7 @@ export const PresentationGraphInspector: React.FC<PresentationGraphInspectorProp
         }
     }, [project.nodes, dispatch]);
 
-    // ========== 双击打开演出图编辑器 ==========
-    const handleOpenGraph = () => {
-        dispatch({ type: 'NAVIGATE_TO', payload: { graphId } });
-    };
+
 
     return (
         <>
@@ -204,17 +201,7 @@ export const PresentationGraphInspector: React.FC<PresentationGraphInspectorProp
                 <div className="inspector-section inspector-basic-info">
                     <div className="inspector-section-title">Basic Info</div>
 
-                    {/* Open Editor Button */}
-                    <div style={{ marginBottom: '12px' }}>
-                        <button
-                            className="btn btn-primary"
-                            style={{ width: '100%', display: 'flex', justifyContent: 'center', gap: '8px' }}
-                            onClick={handleOpenGraph}
-                        >
-                            <ExternalLink size={14} />
-                            Open Graph Editor
-                        </button>
-                    </div>
+
 
                     {/* ID（只读） */}
                     <div className="prop-row">

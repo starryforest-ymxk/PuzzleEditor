@@ -16,8 +16,10 @@ import { createEmptyProject } from '../../utils/projectFactory';
 import { ProjectMeta } from '../../types/project';
 import { useProjectActions } from '../../hooks/useProjectActions';
 
+import { MessageLevel } from '../../store/types';
+
 // 抽离的子组件
-import { MessageStackPanel } from './MessageStackPanel';
+import { MessageStackPanel, LevelFilters } from './MessageStackPanel';
 import { HeaderDialogManager, HeaderDialogState, HeaderDialogCallbacks } from './HeaderDialogManager';
 import { ProjectMenu } from './ProjectMenu';
 
@@ -32,6 +34,23 @@ export const Header = () => {
   // UI 状态
   const [showMessages, setShowMessages] = useState(false);
   const [dialog, setDialog] = useState<HeaderDialogState>({ type: 'none' });
+
+  // 消息等级筛选状态（默认全部开启）
+  const [levelFilters, setLevelFilters] = useState<LevelFilters>({
+    info: true,
+    warning: true,
+    error: true
+  });
+
+  // 切换某个等级的显示状态
+  const handleToggleLevel = (level: MessageLevel) => {
+    setLevelFilters(prev => ({ ...prev, [level]: !prev[level] }));
+  };
+
+  // 计算过滤后的消息数量
+  const filteredMessageCount = useMemo(() => {
+    return ui.messages.filter(msg => levelFilters[msg.level]).length;
+  }, [ui.messages, levelFilters]);
 
   // ========== 文件加载触发 ==========
   const doLoadFile = useCallback(() => {
@@ -226,7 +245,7 @@ export const Header = () => {
           data-messages-button
         >
           Messages
-          {ui.messages.length > 0 && (
+          {filteredMessageCount > 0 && (
             <span style={{
               position: 'absolute',
               top: '-6px',
@@ -246,7 +265,7 @@ export const Header = () => {
               border: '2px solid var(--bg-color)', // Border to separate from button
               zIndex: 10
             }}>
-              {ui.messages.length}
+              {filteredMessageCount}
             </span>
           )}
         </button>
@@ -256,6 +275,8 @@ export const Header = () => {
       <MessageStackPanel
         isOpen={showMessages}
         onClose={() => setShowMessages(false)}
+        levelFilters={levelFilters}
+        onToggleLevel={handleToggleLevel}
       />
 
       {/* 弹窗管理器 */}
