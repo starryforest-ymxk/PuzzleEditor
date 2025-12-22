@@ -165,6 +165,19 @@ const internalReducer = (state: EditorState, action: Action): EditorState => {
                 ui: { ...state.ui, isLoading: false, errorMessage: action.payload.message }
             };
 
+        // 设置相关 Actions
+        case 'UPDATE_TRANSLATION_SETTINGS':
+            return {
+                ...state,
+                settings: {
+                    ...state.settings,
+                    translation: {
+                        ...state.settings.translation,
+                        ...action.payload
+                    }
+                }
+            };
+
         default:
             return state;
     }

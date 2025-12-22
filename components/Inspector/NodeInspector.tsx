@@ -18,6 +18,7 @@ import { ConfirmDialog } from './ConfirmDialog';
 import { InspectorWarning } from './InspectorInfo';
 import { AssetNameAutoFillButton } from './AssetNameAutoFillButton';
 import { isValidAssetName } from '../../utils/assetNameValidation';
+import { useAutoTranslateAssetName } from '../../hooks/useAutoTranslateAssetName';
 import { Trash2 } from 'lucide-react';
 
 interface NodeInspectorProps {
@@ -34,6 +35,7 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({ nodeId, readOnly =
 
     // 本地编辑状态（用于失焦校验）
     const [localAssetName, setLocalAssetName] = useState('');
+    const [localName, setLocalName] = useState('');
 
 
     // 预先获取脚本、事件选项
@@ -73,7 +75,27 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({ nodeId, readOnly =
     // 同步本地状态
     React.useEffect(() => {
         setLocalAssetName(node.assetName || '');
-    }, [node.assetName]);
+        setLocalName(node.name || '');
+    }, [node.assetName, node.name]);
+
+    // 自动翻译 Hook
+    const triggerAutoTranslate = useAutoTranslateAssetName({
+        currentAssetName: node.assetName,
+        onAssetNameFill: (value) => {
+            setLocalAssetName(value);
+            updateNode({ assetName: value });
+        }
+    });
+
+    // Name 失焦处理：更新名称并触发自动翻译
+    const handleNameBlur = async () => {
+        const trimmed = localName.trim();
+        if (trimmed !== node.name) {
+            updateNode({ name: trimmed });
+        }
+        // 触发自动翻译
+        await triggerAutoTranslate(trimmed);
+    };
 
     // AssetName 失焦校验
     const handleAssetNameBlur = () => {
@@ -149,8 +171,9 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({ nodeId, readOnly =
                         <input
                             type="text"
                             className="search-input"
-                            value={node.name}
-                            onChange={(e) => updateNode({ name: e.target.value })}
+                            value={localName}
+                            onChange={(e) => setLocalName(e.target.value)}
+                            onBlur={handleNameBlur}
                             placeholder="Node name"
                         />
                     )}

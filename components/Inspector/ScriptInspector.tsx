@@ -24,6 +24,7 @@ import { ConfirmDialog } from './ConfirmDialog';
 import { InspectorWarning } from './InspectorInfo';
 import { isValidAssetName } from '../../utils/assetNameValidation';
 import { AssetNameAutoFillButton } from './AssetNameAutoFillButton';
+import { useAutoTranslateAssetName } from '../../hooks/useAutoTranslateAssetName';
 
 // ========== Props 类型定义 ==========
 interface ScriptInspectorProps {
@@ -106,14 +107,25 @@ export const ScriptInspector: React.FC<ScriptInspectorProps> = ({ scriptId, read
         setLocalDescription(script.description || '');
     }, [script.name, script.assetName, script.description]);
 
+    // 自动翻译 Hook
+    const triggerAutoTranslate = useAutoTranslateAssetName({
+        currentAssetName: script.assetName,
+        onAssetNameFill: (value) => {
+            setLocalAssetName(value);
+            handleUpdate({ assetName: value });
+        }
+    });
+
     // ========== 失焦校验处理函数 ==========
-    const handleNameBlur = () => {
+    const handleNameBlur = async () => {
         const trimmed = localName.trim();
         if (!trimmed) {
             setLocalName(script.name);
         } else if (trimmed !== script.name) {
             handleUpdate({ name: trimmed });
         }
+        // 自动翻译
+        await triggerAutoTranslate(trimmed);
     };
 
     const handleAssetNameBlur = () => {

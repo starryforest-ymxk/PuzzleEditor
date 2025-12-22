@@ -36,6 +36,7 @@ import { findGlobalVariableReferences, VariableReferenceInfo, ReferenceNavigatio
 import { findNodeVariableReferences } from '../../utils/variableReferences';
 import { findStageVariableReferences } from '../../utils/validation/stageVariableReferences';
 import { isValidAssetName } from '../../utils/assetNameValidation';
+import { useAutoTranslateAssetName } from '../../hooks/useAutoTranslateAssetName';
 import { AssetNameAutoFillButton } from './AssetNameAutoFillButton';
 
 // ========== Props 类型定义 ==========
@@ -317,6 +318,15 @@ export const VariableInspector: React.FC<VariableInspectorProps> = ({ variableId
         }
     }, [isGlobal, isMarkedForDelete, dispatch, variableId]);
 
+    // 自动翻译 Hook
+    const triggerAutoTranslate = useAutoTranslateAssetName({
+        currentAssetName: variable.assetName,
+        onAssetNameFill: (value) => {
+            setLocalAssetName(value);
+            handleUpdate({ assetName: value });
+        }
+    });
+
     // ========== 删除逻辑（与 LocalVariableEditor 同步） ==========
 
     /**
@@ -421,7 +431,7 @@ export const VariableInspector: React.FC<VariableInspectorProps> = ({ variableId
     // ========== 失焦校验处理函数 ==========
 
     // 名称失焦：非空校验
-    const handleNameBlur = () => {
+    const handleNameBlur = async () => {
         const trimmed = localName.trim();
         if (!trimmed) {
             // 回退到原值
@@ -429,6 +439,8 @@ export const VariableInspector: React.FC<VariableInspectorProps> = ({ variableId
         } else if (trimmed !== variable.name) {
             handleUpdate({ name: trimmed });
         }
+        // 自动翻译
+        await triggerAutoTranslate(trimmed);
     };
 
     // 资产名失焦：校验变量名命名规则

@@ -10,6 +10,7 @@ import type { ScriptDefinition } from '../../types/manifest';
 import { InspectorWarning } from './InspectorInfo';
 import { AssetNameAutoFillButton } from './AssetNameAutoFillButton';
 import { isValidAssetName } from '../../utils/assetNameValidation';
+import { useAutoTranslateAssetName } from '../../hooks/useAutoTranslateAssetName';
 import { Trash2 } from 'lucide-react';
 
 interface Props {
@@ -34,11 +35,31 @@ export const StateInspector = ({ fsmId, stateId, readOnly = false }: Props) => {
 
     // 本地编辑状态（用于失焦校验）
     const [localAssetName, setLocalAssetName] = React.useState('');
+    const [localName, setLocalName] = React.useState('');
 
     // 同步本地状态
     React.useEffect(() => {
         setLocalAssetName(state.assetName || '');
-    }, [state.assetName]);
+        setLocalName(state.name || '');
+    }, [state.assetName, state.name]);
+
+    // 自动翻译 Hook
+    const triggerAutoTranslate = useAutoTranslateAssetName({
+        currentAssetName: state.assetName,
+        onAssetNameFill: (value) => {
+            setLocalAssetName(value);
+            handleChange('assetName', value);
+        }
+    });
+
+    // Name 失焦处理
+    const handleNameBlur = async () => {
+        const trimmed = localName.trim();
+        if (trimmed !== state.name) {
+            handleChange('name', trimmed);
+        }
+        await triggerAutoTranslate(trimmed);
+    };
 
     // AssetName 失焦校验
     const handleAssetNameBlur = () => {
@@ -138,8 +159,9 @@ export const StateInspector = ({ fsmId, stateId, readOnly = false }: Props) => {
                 </div>
                 <input
                     type="text"
-                    value={state.name}
-                    onChange={(e) => handleChange('name', e.target.value)}
+                    value={localName}
+                    onChange={(e) => setLocalName(e.target.value)}
+                    onBlur={handleNameBlur}
                     disabled={readOnly}
                     className="inspector-name-input inspector-name-input--with-margin"
                 />

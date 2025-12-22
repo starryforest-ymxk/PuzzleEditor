@@ -22,6 +22,7 @@ import { X, RotateCcw, Trash2, ChevronDown, ChevronRight, ExternalLink } from 'l
 import type { VariableReferenceInfo, ReferenceNavigationContext } from '../../../utils/validation/globalVariableReferences';
 import { isValidAssetName } from '../../../utils/assetNameValidation';
 import { AssetNameAutoFillButton } from '../AssetNameAutoFillButton';
+import { useAutoTranslateAssetName } from '../../../hooks/useAutoTranslateAssetName';
 import { InspectorWarning } from '../InspectorInfo';
 
 // ========== Props 类型定义 ==========
@@ -94,14 +95,25 @@ export const LocalVariableCard: React.FC<LocalVariableCardProps> = ({
         setLocalAssetName(variable.assetName || '');
     }, [variable.name, variable.assetName]);
 
+    // 自动翻译 Hook
+    const triggerAutoTranslate = useAutoTranslateAssetName({
+        currentAssetName: variable.assetName,
+        onAssetNameFill: (value) => {
+            setLocalAssetName(value);
+            onUpdate('assetName', value);
+        }
+    });
+
     // 名称失焦校验
-    const handleNameBlur = () => {
+    const handleNameBlur = async () => {
         const trimmed = localName.trim();
         if (!trimmed) {
             setLocalName(variable.name);
         } else if (trimmed !== variable.name) {
             onUpdate('name', trimmed);
         }
+        // 自动翻译
+        await triggerAutoTranslate(trimmed);
     };
 
     // 资产名失焦校验
@@ -266,6 +278,7 @@ export const LocalVariableCard: React.FC<LocalVariableCardProps> = ({
                                 setLocalAssetName(value);
                                 onUpdate('assetName', value);
                             }}
+                            size="compact"
                         />
                     )}
                 </div>

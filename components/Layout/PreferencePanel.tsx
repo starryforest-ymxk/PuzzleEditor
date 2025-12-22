@@ -1,4 +1,4 @@
-/**
+﻿/**
  * components/Layout/PreferencePanel.tsx
  * 用户偏好设置面板 - 配置项目存储路径、导出路径等
  * 
@@ -9,6 +9,9 @@ import React, { useState, useEffect } from 'react';
 import { Settings, FolderOpen, RotateCcw } from 'lucide-react';
 import { isElectron, loadPreferences, savePreferences, openDirectoryDialog } from '@/src/electron/api';
 import type { UserPreferences } from '@/electron/types';
+import { useEditorState, useEditorDispatch } from '../../store/context';
+import type { TranslationProvider } from '../../types/settings';
+import { OpenAIModelSelect } from './OpenAIModelSelect';
 
 // 弹窗颜色配置（与现有弹窗保持一致）
 const dialogColors = {
@@ -24,6 +27,59 @@ const dialogColors = {
     success: '#22c55e'
 };
 
+// 统一的字体和卡片样式
+const cardStyles = {
+    // 设置项卡片容器
+    card: {
+        background: dialogColors.panel,
+        borderRadius: '4px',
+        padding: '16px',
+        marginBottom: '16px',
+        border: `1px solid ${dialogColors.borderSecondary}`
+    },
+    // 卡片主标题（白色）
+    cardTitle: {
+        fontSize: '13px',
+        fontWeight: 600,
+        color: dialogColors.text,
+        marginBottom: '4px'
+    },
+    // 卡片次级标题/描述（浅灰）
+    cardDesc: {
+        fontSize: '11px',
+        color: dialogColors.muted,
+        marginBottom: '12px'
+    },
+    // 字段标签（如 "Provider", "API Key"）
+    label: {
+        display: 'block',
+        fontSize: '11px',
+        color: dialogColors.muted,
+        marginBottom: '6px',
+        textTransform: 'uppercase' as const,
+        letterSpacing: '0.5px'
+    },
+    // 输入框样式
+    input: {
+        padding: '10px 12px',
+        borderRadius: '4px',
+        border: `1px solid ${dialogColors.borderSecondary}`,
+        background: dialogColors.inputBg,
+        color: dialogColors.text,
+        fontSize: '13px',
+        outline: 'none',
+        boxSizing: 'border-box' as const
+    },
+    // 帮助文字（最小字号浅灰）
+    helpText: {
+        fontSize: '11px',
+        color: dialogColors.muted
+    }
+};
+
+// 移除旧的 MODEL_OPTIONS 常量，改用 OpenAIModelSelect 组件
+
+
 interface PreferencePanelProps {
     onClose: () => void;
 }
@@ -33,6 +89,17 @@ export const PreferencePanel: React.FC<PreferencePanelProps> = ({ onClose }) => 
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    // 翻译设置状态
+    const { settings } = useEditorState();
+    const dispatch = useEditorDispatch();
+    const [translationProvider, setTranslationProvider] = useState<TranslationProvider>(settings.translation.provider);
+    const [openaiApiKey, setOpenaiApiKey] = useState(settings.translation.openaiApiKey || '');
+    const [googleApiKey, setGoogleApiKey] = useState(settings.translation.googleApiKey || '');
+    const [openaiModel, setOpenaiModel] = useState(settings.translation.openaiModel || 'gpt-3.5-turbo');
+    const [openaiBaseUrl, setOpenaiBaseUrl] = useState(settings.translation.openaiBaseUrl || '');
+    const [googleBaseUrl, setGoogleBaseUrl] = useState(settings.translation.googleBaseUrl || '');
+    const [autoTranslate, setAutoTranslate] = useState(settings.translation.autoTranslate || false);
 
     // 加载偏好设置
     useEffect(() => {
@@ -46,6 +113,17 @@ export const PreferencePanel: React.FC<PreferencePanelProps> = ({ onClose }) => 
             const result = await loadPreferences();
             if (result.success && result.data) {
                 setPreferences(result.data);
+
+                // 从持久化偏好中同步翻译设置
+                if (result.data.translation) {
+                    setTranslationProvider(result.data.translation.provider);
+                    setOpenaiApiKey(result.data.translation.openaiApiKey || '');
+                    setGoogleApiKey(result.data.translation.googleApiKey || '');
+                    setOpenaiModel(result.data.translation.openaiModel || 'gpt-3.5-turbo');
+                    setOpenaiBaseUrl(result.data.translation.openaiBaseUrl || '');
+                    setGoogleBaseUrl(result.data.translation.googleBaseUrl || '');
+                    setAutoTranslate(result.data.translation.autoTranslate || false);
+                }
             } else {
                 setError(result.error || 'Failed to load preferences');
             }
@@ -57,16 +135,47 @@ export const PreferencePanel: React.FC<PreferencePanelProps> = ({ onClose }) => 
 
     // 保存偏好设置
     const handleSave = async () => {
-        if (!preferences) return;
+        // 保存翻译设置到 Store
+        dispatch({
+            type: 'UPDATE_TRANSLATION_SETTINGS',
+            payload: {
+                provider: translationProvider,
+                openaiApiKey: openaiApiKey.trim() || undefined,
+                googleApiKey: googleApiKey.trim() || undefined,
+                openaiModel: openaiModel.trim() || 'gpt-3.5-turbo',
+                openaiBaseUrl: openaiBaseUrl.trim() || undefined,
+                googleBaseUrl: googleBaseUrl.trim() || undefined,
+                autoTranslate: autoTranslate
+            }
+        });
 
-        setSaving(true);
-        const result = await savePreferences(preferences);
-        if (result.success) {
-            onClose();
-        } else {
-            setError(result.error || 'Failed to save preferences');
+        // Electron 模式下保存文件设置
+        if (preferences) {
+            setSaving(true);
+
+            // 构建完整的偏好设置对象，包含翻译设置
+            const updatedPreferences: UserPreferences = {
+                ...preferences,
+                translation: {
+                    provider: translationProvider,
+                    openaiApiKey: openaiApiKey.trim() || undefined,
+                    googleApiKey: googleApiKey.trim() || undefined,
+                    openaiModel: openaiModel.trim() || 'gpt-3.5-turbo',
+                    openaiBaseUrl: openaiBaseUrl.trim() || undefined,
+                    googleBaseUrl: googleBaseUrl.trim() || undefined,
+                    autoTranslate: autoTranslate
+                }
+            };
+
+            const result = await savePreferences(updatedPreferences);
+            if (!result.success) {
+                setError(result.error || 'Failed to save preferences');
+                setSaving(false);
+                return;
+            }
+            setSaving(false);
         }
-        setSaving(false);
+        onClose();
     };
 
     // 选择目录
@@ -140,33 +249,16 @@ export const PreferencePanel: React.FC<PreferencePanelProps> = ({ onClose }) => 
                     </div>
                 ) : preferences && (
                     <>
-                        {/* Projects Directory */}
-                        <div style={{ marginBottom: '16px' }}>
-                            <label style={{
-                                display: 'block',
-                                fontSize: '11px',
-                                color: dialogColors.muted,
-                                marginBottom: '6px',
-                                textTransform: 'uppercase',
-                                letterSpacing: '0.5px'
-                            }}>
-                                Projects Directory
-                            </label>
+                        {/* Projects Directory Card */}
+                        <div style={cardStyles.card}>
+                            <div style={cardStyles.cardTitle}>Projects Directory</div>
+                            <div style={cardStyles.cardDesc}>Default location for new projects</div>
                             <div style={{ display: 'flex', gap: '8px' }}>
                                 <input
                                     type="text"
                                     value={preferences.projectsDirectory}
                                     onChange={(e) => setPreferences({ ...preferences, projectsDirectory: e.target.value })}
-                                    style={{
-                                        flex: 1,
-                                        padding: '10px 12px',
-                                        borderRadius: '4px',
-                                        border: `1px solid ${dialogColors.borderSecondary}`,
-                                        background: dialogColors.inputBg,
-                                        color: dialogColors.text,
-                                        fontSize: '13px',
-                                        outline: 'none'
-                                    }}
+                                    style={{ ...cardStyles.input, flex: 1 }}
                                 />
                                 <button
                                     onClick={() => handleSelectDirectory('projectsDirectory')}
@@ -185,27 +277,13 @@ export const PreferencePanel: React.FC<PreferencePanelProps> = ({ onClose }) => 
                                     <FolderOpen size={16} />
                                 </button>
                             </div>
-                            <div style={{ fontSize: '11px', color: dialogColors.muted, marginTop: '4px' }}>
-                                Default location for new projects
-                            </div>
                         </div>
 
-                        {/* Restore Last Project Toggle */}
-                        <div style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            padding: '12px',
-                            background: dialogColors.panel,
-                            borderRadius: '4px',
-                            border: `1px solid ${dialogColors.borderSecondary}`,
-                            marginBottom: '20px'
-                        }}>
+                        {/* Restore Last Project Card */}
+                        <div style={{ ...cardStyles.card, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                             <div>
-                                <div style={{ fontSize: '13px', marginBottom: '2px' }}>
-                                    Restore Last Project on Startup
-                                </div>
-                                <div style={{ fontSize: '11px', color: dialogColors.muted }}>
+                                <div style={cardStyles.cardTitle}>Restore Last Project</div>
+                                <div style={{ ...cardStyles.cardDesc, marginBottom: 0 }}>
                                     Automatically load the last opened project when starting
                                 </div>
                             </div>
@@ -219,7 +297,8 @@ export const PreferencePanel: React.FC<PreferencePanelProps> = ({ onClose }) => 
                                     background: preferences.restoreLastProject ? dialogColors.success : dialogColors.borderSecondary,
                                     cursor: 'pointer',
                                     position: 'relative',
-                                    transition: 'background 0.2s'
+                                    transition: 'background 0.2s',
+                                    flexShrink: 0
                                 }}
                             >
                                 <div style={{
@@ -233,6 +312,141 @@ export const PreferencePanel: React.FC<PreferencePanelProps> = ({ onClose }) => 
                                     transition: 'left 0.2s'
                                 }} />
                             </button>
+                        </div>
+
+                        {/* Translation Service Card */}
+                        <div style={cardStyles.card}>
+                            <div style={cardStyles.cardTitle}>Translation Service</div>
+                            <div style={cardStyles.cardDesc}>Configure AssetName auto-fill translation provider</div>
+
+                            {/* Provider Select */}
+                            <div style={{ marginBottom: '12px' }}>
+                                <label style={cardStyles.label}>Provider</label>
+                                <select
+                                    value={translationProvider}
+                                    onChange={(e) => setTranslationProvider(e.target.value as TranslationProvider)}
+                                    style={{ ...cardStyles.input, width: '100%', cursor: 'pointer' }}
+                                >
+                                    <option value="local">Local Dictionary (Offline)</option>
+                                    <option value="openai">OpenAI (Recommended)</option>
+                                    <option value="google">Google Translate</option>
+                                </select>
+                            </div>
+
+                            {/* OpenAI Settings */}
+                            {translationProvider === 'openai' && (
+                                <>
+                                    <div style={{ marginBottom: '12px' }}>
+                                        <label style={cardStyles.label}>OpenAI API Key</label>
+                                        <input
+                                            type="password"
+                                            value={openaiApiKey}
+                                            onChange={(e) => setOpenaiApiKey(e.target.value)}
+                                            placeholder="sk-..."
+                                            style={{ ...cardStyles.input, width: '100%', fontFamily: 'monospace' }}
+                                        />
+                                    </div>
+                                    <div style={{ marginBottom: '12px' }}>
+                                        <label style={cardStyles.label}>Model</label>
+                                        <OpenAIModelSelect
+                                            value={openaiModel}
+                                            onChange={(val) => setOpenaiModel(val)}
+                                            style={{ ...cardStyles.input, width: '100%', cursor: 'pointer' }}
+                                        />
+                                    </div>
+                                    <div style={{ marginBottom: '12px' }}>
+                                        <label style={cardStyles.label}>API Base URL (Optional)</label>
+                                        <input
+                                            type="text"
+                                            value={openaiBaseUrl}
+                                            onChange={(e) => setOpenaiBaseUrl(e.target.value)}
+                                            placeholder="https://api.openai.com/v1"
+                                            style={{ ...cardStyles.input, width: '100%', fontFamily: 'monospace' }}
+                                        />
+                                    </div>
+                                    <div style={cardStyles.helpText}>
+                                        ⚠️ Note: API calls will incur costs. Base URL can be a custom proxy; leaving this blank uses the default and automatically appends "/v1/chat/completions".
+                                    </div>
+                                </>
+                            )}
+
+                            {/* Google Settings */}
+                            {translationProvider === 'google' && (
+                                <>
+                                    <div style={{ marginBottom: '12px' }}>
+                                        <label style={cardStyles.label}>Google Cloud API Key</label>
+                                        <input
+                                            type="password"
+                                            value={googleApiKey}
+                                            onChange={(e) => setGoogleApiKey(e.target.value)}
+                                            placeholder="AIza..."
+                                            style={{ ...cardStyles.input, width: '100%', fontFamily: 'monospace' }}
+                                        />
+                                    </div>
+                                    <div style={{ marginBottom: '12px' }}>
+                                        <label style={cardStyles.label}>API Base URL (Optional)</label>
+                                        <input
+                                            type="text"
+                                            value={googleBaseUrl}
+                                            onChange={(e) => setGoogleBaseUrl(e.target.value)}
+                                            placeholder="https://translation.googleapis.com"
+                                            style={{ ...cardStyles.input, width: '100%', fontFamily: 'monospace' }}
+                                        />
+                                    </div>
+                                    <div style={cardStyles.helpText}>
+                                        ⚠️ Note: Requires Google Cloud Translation API; leaving this blank uses the default and automatically appends "/language/translate/v2".
+                                    </div>
+                                </>
+                            )}
+
+                            {/* Local Dictionary Info */}
+                            {translationProvider === 'local' && (
+                                <div style={cardStyles.helpText}>
+                                    ✓ Works offline, 150+ game terms included.
+                                </div>
+                            )}
+
+                            {/* Auto Translate Toggle */}
+                            <div style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                marginTop: '16px',
+                                paddingTop: '16px',
+                                borderTop: `1px solid ${dialogColors.borderSecondary}`
+                            }}>
+                                <div>
+                                    <div style={cardStyles.cardTitle}>Auto Translate AssetName</div>
+                                    <div style={{ ...cardStyles.cardDesc, marginBottom: 0 }}>
+                                        Automatically translate name to AssetName when editing completes
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => setAutoTranslate(!autoTranslate)}
+                                    style={{
+                                        width: '44px',
+                                        height: '24px',
+                                        borderRadius: '12px',
+                                        border: 'none',
+                                        background: autoTranslate ? dialogColors.success : dialogColors.borderSecondary,
+                                        cursor: 'pointer',
+                                        position: 'relative',
+                                        transition: 'background 0.2s',
+                                        flexShrink: 0
+                                    }}
+                                >
+                                    <div style={{
+                                        width: '18px',
+                                        height: '18px',
+                                        borderRadius: '50%',
+                                        background: '#fff',
+                                        position: 'absolute',
+                                        top: '3px',
+                                        left: autoTranslate ? '23px' : '3px',
+                                        transition: 'left 0.2s'
+                                    }} />
+                                </button>
+                            </div>
                         </div>
 
                         {/* Error Display */}
@@ -285,8 +499,9 @@ export const PreferencePanel: React.FC<PreferencePanelProps> = ({ onClose }) => 
                     </>
                 )}
             </div>
-        </div>
+        </div >
     );
 };
 
 export default PreferencePanel;
+

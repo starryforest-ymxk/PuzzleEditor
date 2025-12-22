@@ -29,6 +29,7 @@ export const MainLayout = () => {
   const { ui } = useEditorState();
   const { panelSizes } = ui;
   const READ_ONLY = ui.readOnly;
+  const isEditorView = ui.view === 'EDITOR';
 
   // 全局快捷键由 GlobalKeyboardShortcuts 组件统一管理
   // ESC 清除多选状态
@@ -72,73 +73,56 @@ export const MainLayout = () => {
     dispatch({ type: 'SET_PANEL_SIZES', payload: { stagesHeight: newHeight } });
   }, [dispatch, panelSizes.stagesHeight]);
 
-  const renderEditorView = () => (
-    <>
-      {/* Left Sidebar: Explorer */}
-      <Sidebar title="Explorer" position="left" width={panelSizes.explorerWidth}>
-        {/* Split view: Stages / Nodes with resizable border */}
-        <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-          <div style={{ flex: `0 0 ${panelSizes.stagesHeight}%`, minHeight: 0, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ padding: '8px 16px', fontSize: '10px', color: 'var(--text-secondary)', fontWeight: 600, flexShrink: 0 }}>STAGES</div>
-            <StageExplorer />
-          </div>
-          <Resizer
-            direction="vertical"
-            onResize={(delta) => {
-              const container = document.querySelector('.panel-content');
-              if (container) handleStagesResize(delta, container.clientHeight);
-            }}
-          />
-          <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', boxSizing: 'border-box' }}>
-            <div style={{ padding: '8px 16px', fontSize: '10px', color: 'var(--text-secondary)', fontWeight: 600, flexShrink: 0 }}>NODES</div>
-            <NodeExplorer />
-          </div>
-        </div>
-      </Sidebar>
-
-      {/* Explorer/Canvas Resizer */}
-      <Resizer direction="horizontal" onResize={handleExplorerResize} />
-
-      {/* Center: Canvas */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
-        <Breadcrumb />
-        <Canvas readOnly={READ_ONLY} />
-      </div>
-
-      {/* Canvas/Inspector Resizer */}
-      <Resizer direction="horizontal" onResize={handleInspectorResize} />
-
-      {/* Right Sidebar: Inspector */}
-      <Sidebar title="Inspector" position="right" width={panelSizes.inspectorWidth}>
-        <Inspector readOnly={READ_ONLY} />
-      </Sidebar>
-    </>
-  );
-
-  const renderBlackboardView = () => (
-    <>
-      {/* Center: Blackboard Content */}
-      <div style={{ flex: 1, overflow: 'hidden', minWidth: 0 }}>
-        <BlackboardPanel />
-      </div>
-
-      {/* Blackboard/Inspector Resizer */}
-      <Resizer direction="horizontal" onResize={handleInspectorResize} />
-
-      {/* Right Sidebar: Inspector */}
-      <Sidebar title="Inspector" position="right" width={panelSizes.inspectorWidth}>
-        <Inspector readOnly={READ_ONLY} />
-      </Sidebar>
-    </>
-  );
-
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <GlobalKeyboardShortcuts />
       <Header />
 
       <div className="app-body" style={{ position: 'relative' }}>
-        {ui.view === 'EDITOR' ? renderEditorView() : renderBlackboardView()}
+        {/* 左侧内容：Editor 视图显示 Explorer，Blackboard 视图隐藏 */}
+        {isEditorView && (
+          <>
+            <Sidebar title="Explorer" position="left" width={panelSizes.explorerWidth}>
+              <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                <div style={{ flex: `0 0 ${panelSizes.stagesHeight}%`, minHeight: 0, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
+                  <div style={{ padding: '8px 16px', fontSize: '10px', color: 'var(--text-secondary)', fontWeight: 600, flexShrink: 0 }}>STAGES</div>
+                  <StageExplorer />
+                </div>
+                <Resizer
+                  direction="vertical"
+                  onResize={(delta) => {
+                    const container = document.querySelector('.panel-content');
+                    if (container) handleStagesResize(delta, container.clientHeight);
+                  }}
+                />
+                <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', boxSizing: 'border-box' }}>
+                  <div style={{ padding: '8px 16px', fontSize: '10px', color: 'var(--text-secondary)', fontWeight: 600, flexShrink: 0 }}>NODES</div>
+                  <NodeExplorer />
+                </div>
+              </div>
+            </Sidebar>
+            <Resizer direction="horizontal" onResize={handleExplorerResize} />
+          </>
+        )}
+
+        {/* 中央内容：Editor 或 Blackboard */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
+          {isEditorView ? (
+            <>
+              <Breadcrumb />
+              <Canvas readOnly={READ_ONLY} />
+            </>
+          ) : (
+            <BlackboardPanel />
+          )}
+        </div>
+
+        {/* 右侧 Inspector（始终保持挂载，避免闪烁） */}
+        <Resizer direction="horizontal" onResize={handleInspectorResize} />
+        <Sidebar title="Inspector" position="right" width={panelSizes.inspectorWidth}>
+          <Inspector readOnly={READ_ONLY} />
+        </Sidebar>
+
         <ValidationPanel
           isOpen={ui.showValidationPanel}
           onClose={() => dispatch({ type: 'SET_SHOW_VALIDATION_PANEL', payload: false })}

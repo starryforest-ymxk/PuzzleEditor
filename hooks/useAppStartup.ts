@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { isElectron, loadPreferences, readProject } from '@/src/electron/api';
 import { useProjectActions } from './useProjectActions';
+import { useEditorDispatch } from '../store/context';
 
 /**
  * Hook to handle application startup logic
@@ -8,6 +9,7 @@ import { useProjectActions } from './useProjectActions';
  */
 export const useAppStartup = () => {
     const { loadProjectFromString, pushMessage } = useProjectActions();
+    const dispatch = useEditorDispatch();
     const initialized = useRef(false);
 
     useEffect(() => {
@@ -24,7 +26,17 @@ export const useAppStartup = () => {
                     return;
                 }
 
+
                 const prefs = prefsResult.data;
+
+                // Restore translation settings if available
+                if (prefs.translation) {
+                    dispatch({
+                        type: 'UPDATE_TRANSLATION_SETTINGS',
+                        payload: prefs.translation
+                    });
+                    console.log('Restored translation settings from preferences');
+                }
 
                 // Check if we should restore the last project
                 if (prefs.restoreLastProject && prefs.lastProjectPath) {

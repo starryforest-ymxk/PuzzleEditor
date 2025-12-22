@@ -16,6 +16,7 @@ import {
   StateId
 } from '../types/common';
 import { ProjectMeta } from '../types/project';
+import { EditorSettings, DEFAULT_SETTINGS, TranslationSettings } from '../types/settings';
 
 // ========== Undo/Redo 快照数据 ==========
 export interface ProjectContent {
@@ -126,6 +127,8 @@ export interface EditorState {
     validationResults: ValidationResult[];
     showValidationPanel: boolean;
   };
+  // 编辑器设置（用户偏好，不导出到项目文件）
+  settings: EditorSettings;
 }
 
 // ========== 初始状态 ==========
@@ -185,7 +188,8 @@ export const INITIAL_STATE: EditorState = {
     isDirty: false,
     validationResults: [],
     showValidationPanel: false
-  }
+  },
+  settings: DEFAULT_SETTINGS
 };
 
 // ========== Action 类型定义 ==========
@@ -267,4 +271,6 @@ export type Action =
   // Runtime Actions (P4-T06 Electron)
   | { type: 'SET_PROJECT_PATH'; payload: string | null }
   | { type: 'SET_NEW_UNSAVED_PROJECT'; payload: boolean }
-  | { type: 'SET_PREFERENCES_LOADED'; payload: boolean };
+  | { type: 'SET_PREFERENCES_LOADED'; payload: boolean }
+  // Settings Actions (Translation)
+  | { type: 'UPDATE_TRANSLATION_SETTINGS'; payload: Partial<TranslationSettings> };

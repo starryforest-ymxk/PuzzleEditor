@@ -2,12 +2,13 @@
  * components/Inspector/AssetNameAutoFillButton.tsx
  * AssetName 自动填充按钮组件
  * 
- * 点击后将 Name 翻译为英文并填入 AssetName
- * 目前为占位实现，后续接入翻译 API
+ * 点击后使用翻译服务将 Name 翻译为英文变量名
  */
 
 import React, { useState } from 'react';
 import { Wand2 } from 'lucide-react';
+import { useEditorState, useEditorDispatch } from '../../store/context';
+import { translateToAssetName } from '../../utils/translation/translationService';
 
 interface AssetNameAutoFillButtonProps {
     /** 源名称（用于翻译） */
@@ -16,52 +17,59 @@ interface AssetNameAutoFillButtonProps {
     onFill: (assetName: string) => void;
     /** 是否禁用 */
     disabled?: boolean;
-}
-
-/**
- * 将文本转换为有效的 AssetName（PascalCase）
- * 临时实现：移除非字母字符，转为 PascalCase
- */
-function toAssetName(text: string): string {
-    if (!text) return '';
-
-    // 移除特殊字符，保留字母数字和空格
-    const cleaned = text.replace(/[^a-zA-Z0-9\u4e00-\u9fa5\s]/g, '');
-
-    // 如果是纯英文，直接转 PascalCase
-    if (/^[a-zA-Z0-9\s]+$/.test(cleaned)) {
-        return cleaned
-            .split(/\s+/)
-            .filter(Boolean)
-            .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-            .join('');
-    }
-
-    // 包含中文时，暂时返回空（后续接入翻译 API）
-    return '';
+    /** 尺寸：default (28px) 或 compact (26px) */
+    size?: 'default' | 'compact';
 }
 
 export const AssetNameAutoFillButton: React.FC<AssetNameAutoFillButtonProps> = ({
     sourceName,
     onFill,
-    disabled = false
+    disabled = false,
+    size = 'default'
 }) => {
     const [isLoading, setIsLoading] = useState(false);
+    const { settings } = useEditorState();
+    const dispatch = useEditorDispatch();
 
     const handleClick = async () => {
         if (disabled || isLoading || !sourceName) return;
 
         setIsLoading(true);
         try {
-            // TODO: 后续接入翻译 API
-            const result = toAssetName(sourceName);
-            if (result) {
-                onFill(result);
+            const result = await translateToAssetName(sourceName, settings.translation);
+
+            if (result.success && result.text) {
+                onFill(result.text);
+            } else if (result.error) {
+                // 显示错误消息
+                dispatch({
+                    type: 'ADD_MESSAGE',
+                    payload: {
+                        id: `translate-error-${Date.now()}`,
+                        level: 'warning',
+                        text: result.error,
+                        timestamp: new Date().toISOString()
+                    }
+                });
             }
+        } catch (error) {
+            const message = error instanceof Error ? error.message : 'Translation failed';
+            dispatch({
+                type: 'ADD_MESSAGE',
+                payload: {
+                    id: `translate-error-${Date.now()}`,
+                    level: 'error',
+                    text: message,
+                    timestamp: new Date().toISOString()
+                }
+            });
         } finally {
             setIsLoading(false);
         }
     };
+
+    // 根据 size 确定尺寸
+    const dimension = size === 'compact' ? '26px' : '28px';
 
     return (
         <button
@@ -74,8 +82,8 @@ export const AssetNameAutoFillButton: React.FC<AssetNameAutoFillButtonProps> = (
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                width: '26px',
-                height: '100%',
+                width: dimension,
+                height: dimension,
                 padding: 0,
                 border: '1px solid var(--border-color, #444)',
                 borderRadius: '4px',

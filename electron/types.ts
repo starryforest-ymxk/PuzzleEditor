@@ -20,6 +20,19 @@ export interface RecentProject {
 }
 
 /**
+ * 翻译服务配置 (持久化存储)
+ */
+export interface TranslationPreferences {
+    provider: 'openai' | 'google' | 'local';
+    openaiApiKey?: string;
+    googleApiKey?: string;
+    openaiModel?: string;
+    openaiBaseUrl?: string;
+    googleBaseUrl?: string;
+    autoTranslate?: boolean;
+}
+
+/**
  * 用户偏好设置
  * 存储于 %APPDATA%/StarryTree/PuzzleEditor/preferences.json
  */
@@ -38,6 +51,9 @@ export interface UserPreferences {
 
     /** 最近打开的项目列表 (最多保留 10 条) */
     recentProjects: RecentProject[];
+
+    /** 翻译服务配置 */
+    translation?: TranslationPreferences;
 }
 
 // ============================================================================

@@ -28,6 +28,7 @@ import { hasStageContent } from '../../utils/stageTreeUtils';
 import { isValidAssetName } from '../../utils/assetNameValidation';
 import { InspectorWarning } from './InspectorInfo';
 import { AssetNameAutoFillButton } from './AssetNameAutoFillButton';
+import { useAutoTranslateAssetName } from '../../hooks/useAutoTranslateAssetName';
 import { Trash2 } from 'lucide-react';
 
 interface StageInspectorProps {
@@ -48,6 +49,7 @@ export const StageInspector: React.FC<StageInspectorProps> = ({ stageId, readOnl
 
     // 本地编辑状态（用于失焦校验）
     const [localAssetName, setLocalAssetName] = useState('');
+    const [localName, setLocalName] = useState('');
 
 
     // 预先获取脚本、事件选项，避免条件分支中的 Hook 调用问题
@@ -106,7 +108,26 @@ export const StageInspector: React.FC<StageInspectorProps> = ({ stageId, readOnl
     // 同步本地状态
     React.useEffect(() => {
         setLocalAssetName(stage.assetName || '');
-    }, [stage.assetName]);
+        setLocalName(stage.name || '');
+    }, [stage.assetName, stage.name]);
+
+    // 自动翻译 Hook
+    const triggerAutoTranslate = useAutoTranslateAssetName({
+        currentAssetName: stage.assetName,
+        onAssetNameFill: (value) => {
+            setLocalAssetName(value);
+            updateStage({ assetName: value });
+        }
+    });
+
+    // Name 失焦处理：更新名称并触发自动翻译
+    const handleNameBlur = async () => {
+        const trimmed = localName.trim();
+        if (trimmed !== stage.name) {
+            updateStage({ name: trimmed });
+        }
+        await triggerAutoTranslate(trimmed);
+    };
 
     // AssetName 失焦校验
     const handleAssetNameBlur = () => {
@@ -214,8 +235,9 @@ export const StageInspector: React.FC<StageInspectorProps> = ({ stageId, readOnl
                         <input
                             type="text"
                             className="search-input"
-                            value={stage.name}
-                            onChange={(e) => updateStage({ name: e.target.value })}
+                            value={localName}
+                            onChange={(e) => setLocalName(e.target.value)}
+                            onBlur={handleNameBlur}
                             placeholder="Stage name"
                         />
                     )}

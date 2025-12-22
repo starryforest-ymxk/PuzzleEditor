@@ -23,6 +23,7 @@ import { ConfirmDialog } from './ConfirmDialog';
 import { InspectorWarning } from './InspectorInfo';
 import { isValidAssetName } from '../../utils/assetNameValidation';
 import { AssetNameAutoFillButton } from './AssetNameAutoFillButton';
+import { useAutoTranslateAssetName } from '../../hooks/useAutoTranslateAssetName';
 
 // ========== Props 类型定义 ==========
 interface EventInspectorProps {
@@ -63,14 +64,25 @@ export const EventInspector: React.FC<EventInspectorProps> = ({ eventId, readOnl
         setLocalDescription(event.description || '');
     }, [event.name, event.assetName, event.description]);
 
+    // 自动翻译 Hook
+    const triggerAutoTranslate = useAutoTranslateAssetName({
+        currentAssetName: event.assetName,
+        onAssetNameFill: (value) => {
+            setLocalAssetName(value);
+            handleUpdate({ assetName: value });
+        }
+    });
+
     // ========== 失焦校验处理函数 ==========
-    const handleNameBlur = () => {
+    const handleNameBlur = async () => {
         const trimmed = localName.trim();
         if (!trimmed) {
             setLocalName(event.name);
         } else if (trimmed !== event.name) {
             handleUpdate({ name: trimmed });
         }
+        // 自动翻译
+        await triggerAutoTranslate(trimmed);
     };
 
     const handleAssetNameBlur = () => {
