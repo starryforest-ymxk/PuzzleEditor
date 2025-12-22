@@ -46,12 +46,29 @@ export const collectVisibleVariables = (
   // 全局黑板变量
   const globalVisible: VariableDefinition[] = Object.values(state.project.blackboard?.globalVariables || {});
 
+  // 收集当前 Stage 及其所有祖先 Stage 的局部变量
+  // 按照从根到当前的顺序，子级变量会覆盖同名父级变量
   const stageVisible: VariableDefinition[] = [];
   if (resolvedStageId) {
-    const stage = state.project.stageTree.stages[resolvedStageId];
-    if (stage?.localVariables) {
-      stageVisible.push(...Object.values(stage.localVariables));
+    // 向上遍历父级链，收集所有祖先 Stage
+    const ancestorChain: StageId[] = [];
+    let currentStageId: StageId | null = resolvedStageId;
+
+    while (currentStageId) {
+      ancestorChain.unshift(currentStageId); // 从根到当前的顺序
+      const currentStage = state.project.stageTree.stages[currentStageId];
+      currentStageId = currentStage?.parentId ?? null;
     }
+
+    // 按从根到当前的顺序收集变量（后面的会覆盖前面的同名变量）
+    const stageVarMap: Record<string, VariableDefinition> = {};
+    for (const stageId of ancestorChain) {
+      const stage = state.project.stageTree.stages[stageId];
+      if (stage?.localVariables) {
+        Object.assign(stageVarMap, stage.localVariables);
+      }
+    }
+    stageVisible.push(...Object.values(stageVarMap));
   }
 
   const nodeVisible: VariableDefinition[] = [];

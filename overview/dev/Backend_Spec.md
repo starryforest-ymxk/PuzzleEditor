@@ -95,7 +95,7 @@ public class RuntimeFSM {
 
 *   **查找逻辑**：`GetValue(varId, scope)`
     1.  若 scope 为 `NodeLocal` -> 查当前 Node.LocalVariables
-    2.  若 scope 为 `StageLocal` -> 查当前 Node 所属 Stage.LocalVariables (及其父级链?) *注：前端设计中 Stage 变量通常只在 Stage 自身或其子 Stage 可见，具体需确认 Stage 继承规则。当前设计是 StageLocal 仅指当前 Stage。*
+    2.  若 scope 为 `StageLocal` -> 查当前 Node 所属 Stage.LocalVariables，若未找到则向上遍历父级 Stage 链（子 Stage 可继承访问所有祖先 Stage 的局部变量，同名变量遵循就近原则，子级覆盖父级）
     3.  若 scope 为 `Global` -> 查 GlobalBlackboard
 
 ### 3.2 脚本绑定与反射 (Script Binding)

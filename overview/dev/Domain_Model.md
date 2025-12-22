@@ -1,6 +1,6 @@
 # 领域模型（Domain Model）
 > 本文档描述项目的核心数据结构与类型定义，需与 `types/*` 代码保持同步。  
-> **版本**: 1.2.0 | **更新时间**: 2025-12-22 | **同步至**: Phase 4 完成状态
+> **版本**: 1.2.1 | **更新时间**: 2025-12-22 | **同步至**: 添加 HandledByScript 触发器类型
 
 ---
 
@@ -214,9 +214,10 @@ interface State extends Entity {
 }
 
 interface TriggerConfig {
-  type: 'Always' | 'OnEvent' | 'CustomScript';
-  eventId?: string;    // event-*
-  scriptId?: string;   // script-*（自定义触发脚本）
+  type: 'Always' | 'OnEvent' | 'CustomScript' | 'HandledByScript';
+  eventId?: string;    // event-*（OnEvent 类型）
+  scriptId?: string;   // script-*（CustomScript 类型）
+  // HandledByScript：由后端代码手动触发，无需额外参数
 }
 
 interface Transition extends Entity {
@@ -229,6 +230,7 @@ interface Transition extends Entity {
   triggers: TriggerConfig[];
   condition?: ConditionExpression;
   presentation?: PresentationBinding;
+  invokeEventIds?: string[];  // event-*（Event Invoker：转移执行时触发的事件，可多个）
   parameterModifiers: ParameterModifier[];
 }
 ```

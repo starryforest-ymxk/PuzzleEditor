@@ -182,7 +182,7 @@ interface ProjectMeta {
 - **实体属性**：ID、Name、Type、Node Local Variables、Lifecycle（OnCreate/OnDestroy）
 - **内部逻辑（FSM）**：
   - **State**：生命周期（OnEnter/OnExit）、事件监听（Invoke Script / Modify Param）
-  - **Transition**：触发器（Always/OnEvent/Custom）、条件构造器（And/Or 逻辑）、演出绑定、参数修改器
+  - **Transition**：触发器（Always/OnEvent/Custom/HandledByScript）、条件构造器（And/Or 逻辑）、演出绑定、Event Invoker（触发事件）、参数修改器
 
 ---
 

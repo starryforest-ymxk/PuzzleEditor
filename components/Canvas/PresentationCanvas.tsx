@@ -547,6 +547,12 @@ export const PresentationCanvas: React.FC<Props> = ({ graph, ownerNodeId, readOn
         return (
             <div style={{ fontSize: '10px', color: '#888' }}>
                 {presentationNode.type}
+                {/* Wait 节点：显示等待时间 */}
+                {presentationNode.type === 'Wait' && presentationNode.duration !== undefined && (
+                    <div style={{ marginTop: '2px', color: '#dcdcaa' }}>
+                        Duration: {presentationNode.duration}s
+                    </div>
+                )}
                 {binding?.type === 'Script' && binding.scriptId && (
                     <div style={{ marginTop: '2px', color: '#c586c0' }}>
                         Script: {binding.scriptId}

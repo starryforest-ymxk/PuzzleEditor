@@ -4,7 +4,7 @@ import { ConditionEditor } from './ConditionEditor';
 import { TriggerConfig } from '../../types/stateMachine';
 import { collectVisibleVariables } from '../../utils/variableScope';
 import { ParameterModifier } from '../../types/common';
-import { ResourceSelect } from './ResourceSelect';
+import { ResourceSelect, ResourceDetailsCard } from './ResourceSelect';
 import { ParameterModifierEditor } from './ParameterModifierEditor';
 import { PresentationBindingEditor } from './PresentationBindingEditor';
 import { TriggerEditor } from './TriggerEditor';
@@ -226,6 +226,70 @@ export const TransitionInspector = ({ fsmId, transitionId, readOnly = false }: P
                         }}
                         readOnly={readOnly}
                     />
+                </div>
+            </div>
+
+            {/* Event Invoker Section - 转移执行时触发的事件 */}
+            <div className="inspector-section">
+                <div className="inspector-section-title">Event Invoker</div>
+                <div className={`inspector-list-container ${readOnly ? 'inspector-readonly-wrapper' : ''}`}>
+                    {(trans.invokeEventIds || []).map((eventId, idx) => {
+                        const selectedEvent = eventOptions.find(e => e.id === eventId);
+                        return (
+                            <div key={idx} style={{ marginBottom: '2px' }}>
+                                {/* 第一行：下拉框 + Remove 按钮 */}
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <select
+                                        value={eventId || ''}
+                                        onChange={(e) => {
+                                            const next = [...(trans.invokeEventIds || [])];
+                                            next[idx] = e.target.value;
+                                            handleChange('invokeEventIds', next);
+                                        }}
+                                        className="inspector-select"
+                                        style={{ flex: 1 }}
+                                    >
+                                        <option value="" disabled hidden>Select event to invoke</option>
+                                        {eventOptions.filter(e => e.state !== 'MarkedForDelete' || e.id === eventId).map(opt => (
+                                            <option key={opt.id} value={opt.id} style={{ color: opt.state === 'MarkedForDelete' ? '#f66' : '#eee' }}>
+                                                {opt.name}{opt.state === 'MarkedForDelete' ? ' [Marked for Delete]' : ''}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <button
+                                        onClick={() => {
+                                            const next = (trans.invokeEventIds || []).filter((_, i) => i !== idx);
+                                            handleChange('invokeEventIds', next.length > 0 ? next : undefined);
+                                        }}
+                                        className="btn-remove-text"
+                                        title="Remove Event Invoker"
+                                    >
+                                        × Remove
+                                    </button>
+                                </div>
+                                {/* 第二行：事件详情 */}
+                                {selectedEvent && (
+                                    <div style={{ marginTop: '8px' }}>
+                                        <ResourceDetailsCard resource={selectedEvent} />
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })}
+
+                    {(trans.invokeEventIds || []).length === 0 && (
+                        <div className="inspector-empty-hint">No event triggers</div>
+                    )}
+
+                    <button
+                        className="btn-add-ghost btn-add-ghost--with-margin"
+                        onClick={() => {
+                            const next = [...(trans.invokeEventIds || []), ''];
+                            handleChange('invokeEventIds', next);
+                        }}
+                    >
+                        + Add Event Invoker
+                    </button>
                 </div>
             </div>
 

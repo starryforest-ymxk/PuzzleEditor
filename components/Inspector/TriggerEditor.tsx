@@ -36,12 +36,20 @@ export const TriggerEditor: React.FC<Props> = ({
     };
 
     const handleTypeChange = (index: number, newType: TriggerConfig['type']) => {
-        const base: TriggerConfig =
-            newType === 'OnEvent'
-                ? { type: 'OnEvent', eventId: '' }
-                : newType === 'CustomScript'
-                    ? { type: 'CustomScript', scriptId: '' }
-                    : { type: 'Always' };
+        let base: TriggerConfig;
+        switch (newType) {
+            case 'OnEvent':
+                base = { type: 'OnEvent', eventId: '' };
+                break;
+            case 'CustomScript':
+                base = { type: 'CustomScript', scriptId: '' };
+                break;
+            case 'HandledByScript':
+                base = { type: 'HandledByScript' };
+                break;
+            default:
+                base = { type: 'Always' };
+        }
         handleTriggerChange(index, base);
     };
 
@@ -61,6 +69,7 @@ export const TriggerEditor: React.FC<Props> = ({
                                     <option value="Always">Always</option>
                                     <option value="OnEvent">On Event</option>
                                     <option value="CustomScript">Custom Script</option>
+                                    <option value="HandledByScript">Handled By Script</option>
                                 </select>
                             </div>
                             <button

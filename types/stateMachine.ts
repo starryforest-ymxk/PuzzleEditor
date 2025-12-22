@@ -41,11 +41,13 @@ export interface State extends Entity {
  * - Always: 每帧检查
  * - OnEvent: 特定事件触发（必须携带 eventId）
  * - CustomScript: 自定义触发脚本（必须携带 scriptId）
+ * - HandledByScript: 由后端代码手动触发（不需要额外参数）
  */
 export type TriggerConfig =
   | { type: 'Always' }
   | { type: 'OnEvent'; eventId: EventId }
-  | { type: 'CustomScript'; scriptId: ScriptId };
+  | { type: 'CustomScript'; scriptId: ScriptId }
+  | { type: 'HandledByScript' };
 
 // ========== 条件表达式 ==========
 /**
@@ -101,6 +103,9 @@ export interface Transition extends Entity {
 
   // 演出绑定（转移时执行）
   presentation?: PresentationBinding;
+
+  // 事件触发（转移执行时 Invoke 指定事件，可多个）
+  invokeEventIds?: EventId[];
 
   // 参数修改器（转移时修改参数）
   parameterModifiers: ParameterModifier[];

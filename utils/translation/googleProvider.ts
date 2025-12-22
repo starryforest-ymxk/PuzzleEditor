@@ -23,7 +23,7 @@ function toPascalCase(text: string): string {
     // 去除常见冠词/介词等停用词，避免生成的标识符带无意义的连接词
     const STOP_WORDS = new Set([
         'the', 'a', 'an', 'and', 'or', 'of', 'to', 'in', 'on', 'at', 'for', 'with', 'by', 'from',
-        'into', 'onto', 'over', 'under', 'off', 'up', 'down', 'about', 'above', 'below', 'near',
+        'into', 'onto', 'over', 'under', 'up', 'down', 'about', 'above', 'below', 'near',
         'before', 'after'
     ]);
 
