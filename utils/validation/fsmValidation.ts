@@ -190,15 +190,16 @@ function resolveVariableByScope(state: EditorState, scope: string, variableId: s
 
   if (scope === 'StageLocal') {
     const node = state.project.nodes[nodeId];
-    const stageId = node?.stageId;
-    if (stageId) {
-      return state.project.stageTree?.stages?.[stageId]?.localVariables?.[variableId];
-    }
-    // 防御性：若缺 stageId，则尝试全表搜索
-    const stages = state.project.stageTree?.stages || {};
-    for (const stage of Object.values(stages)) {
-      const found = stage.localVariables?.[variableId];
-      if (found) return found;
+    let currentStageId = node?.stageId ?? null;
+
+    // 向上遍历父级 Stage 链，查找变量（与 variableScope.ts 保持一致）
+    while (currentStageId) {
+      const currentStage = state.project.stageTree?.stages?.[currentStageId];
+      const variable = currentStage?.localVariables?.[variableId];
+      if (variable) {
+        return variable;
+      }
+      currentStageId = currentStage?.parentId ?? null;
     }
   }
 
