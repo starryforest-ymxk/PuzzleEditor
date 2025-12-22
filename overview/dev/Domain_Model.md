@@ -143,12 +143,14 @@ interface VariableDefinition extends Entity {
   value: any;            // 变量的当前值
   state: ResourceState;
   scope: VariableScope;
+  displayOrder?: number; // 显示顺序
 }
 
 interface EventDefinition extends Entity {
   id: string;
   assetName?: string;    // 资产名（可选）
   state: ResourceState;
+  displayOrder?: number; // 显示顺序
 }
 
 // 演出脚本的参数由用户在绑定时动态配置，不预定义在脚本中
@@ -158,6 +160,7 @@ interface ScriptDefinition extends Entity {
   category: ScriptCategory;
   lifecycleType?: LifecycleScriptTarget;     // 仅 Lifecycle 类型有效
   state: ResourceState;
+  displayOrder?: number; // 显示顺序
 }
 ```
 
@@ -203,6 +206,7 @@ interface StateMachine {
   initialStateId: string | null;   // state-*
   states: Record<string, State>;
   transitions: Record<string, Transition>;
+  displayOrder?: number;           // 显示顺序
 }
 
 interface State extends Entity {
@@ -270,6 +274,7 @@ interface PresentationGraph extends Entity {
   startNodeId: string | null;        // pnode-*
   nodes: Record<string, PresentationNode>;
   edgeProperties?: Record<string, PresentationEdgeProperties>; // 连线视觉属性
+  displayOrder?: number;             // 显示顺序
 }
 ```
 

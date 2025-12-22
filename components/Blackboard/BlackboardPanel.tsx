@@ -39,6 +39,7 @@ import { ScriptCard } from './ScriptCard';
 import { EventCard } from './EventCard';
 import { GraphCard } from './GraphCard';
 import { FsmCard } from './FsmCard';
+import { DraggableCard } from './DraggableCard';
 
 // ========== Tab Definitions ==========
 type TabType = 'Variables' | 'Scripts' | 'Events' | 'Graphs';
@@ -130,19 +131,51 @@ export const BlackboardPanel: React.FC = () => {
   const matchState = (s?: ResourceState) => stateFilter === 'ALL' || s === stateFilter;
   const matchVarType = (type?: string) => varTypeFilter === 'ALL' || type === varTypeFilter;
 
-  const filteredVariables = filterFn<VariableDefinition>(variableList).filter(v => matchState(v.state) && matchVarType(v.type));
-  const filteredEvents = filterFn<EventDefinition>(eventList).filter(e => matchState(e.state));
+  // 按 displayOrder 排序的工具函数
+  const sortByDisplayOrder = <T extends { displayOrder?: number; id: string }>(list: T[]): T[] => {
+    return [...list].sort((a, b) => {
+      const orderA = a.displayOrder ?? Infinity;
+      const orderB = b.displayOrder ?? Infinity;
+      if (orderA !== orderB) return orderA - orderB;
+      return a.id.localeCompare(b.id); // 相同 order 按 ID 排序
+    });
+  };
+
+  const filteredVariables = sortByDisplayOrder(filterFn<VariableDefinition>(variableList).filter(v => matchState(v.state) && matchVarType(v.type)));
+  const filteredEvents = sortByDisplayOrder(filterFn<EventDefinition>(eventList).filter(e => matchState(e.state)));
   const filteredScripts = filterFn<ScriptDefinition>(scriptList).filter(s => matchState(s.state));
   const filteredLocalVariables = useMemo(() => {
     const lowerFilter = filter.toLowerCase();
-    return localVariableList.filter(v => {
+    const filtered = localVariableList.filter(v => {
       const textMatch = !filter.trim()
         || v.name.toLowerCase().includes(lowerFilter)
         || v.id.toLowerCase().includes(lowerFilter)
         || v.scopeName.toLowerCase().includes(lowerFilter);
       return textMatch && matchState(v.state) && matchVarType(v.type);
     });
+    // 按 displayOrder 排序
+    return sortByDisplayOrder(filtered);
   }, [localVariableList, filter, stateFilter, varTypeFilter]);
+
+  // 将 Local Variables 按 scopeType 分组（Stage Local / Node Local）
+  const stageLocalVariables = useMemo(() => {
+    return filteredLocalVariables.filter(v => v.scopeType === 'Stage');
+  }, [filteredLocalVariables]);
+
+  const nodeLocalVariables = useMemo(() => {
+    return filteredLocalVariables.filter(v => v.scopeType === 'Node');
+  }, [filteredLocalVariables]);
+
+  // 将 Local Variables 按 scopeId 分组（用于拖拽排序）
+  const localVariablesByScope = useMemo(() => {
+    const groups: Record<string, LocalVarWithScope[]> = {};
+    filteredLocalVariables.forEach(v => {
+      const key = `${v.scopeType}-${v.scopeId}`;
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(v);
+    });
+    return groups;
+  }, [filteredLocalVariables]);
 
   // ========== 引用数量计算 ==========
   // 全局变量引用数量
@@ -198,7 +231,18 @@ export const BlackboardPanel: React.FC = () => {
     return counts;
   }, [project, graphList]);
 
-  // 按分类分组脚本（Lifecycle 细分作用范围）
+  // FSM 拥有者名称映射（FSM ID -> Owner Node Name）
+  const fsmOwnerNames = useMemo<Record<string, string>>(() => {
+    const names: Record<string, string> = {};
+    Object.values<PuzzleNode>(project.nodes).forEach(node => {
+      if (node.stateMachineId) {
+        names[node.stateMachineId] = node.name;
+      }
+    });
+    return names;
+  }, [project.nodes]);
+
+  // 按分类分组脚本（Lifecycle 细分作用范围）并按 displayOrder 排序
   const scriptGroups = useMemo(() => {
     const groups: Record<Exclude<ScriptCategory, 'Lifecycle'>, ScriptDefinition[]> = {
       Performance: [], Condition: [], Trigger: []
@@ -209,11 +253,15 @@ export const BlackboardPanel: React.FC = () => {
         groups[s.category as Exclude<ScriptCategory, 'Lifecycle'>].push(s);
       }
     });
+    // 对每个分组按 displayOrder 排序
+    (Object.keys(groups) as Exclude<ScriptCategory, 'Lifecycle'>[]).forEach(key => {
+      groups[key] = sortByDisplayOrder(groups[key]);
+    });
     return groups;
   }, [filteredScripts]);
 
   const lifecycleGroups = useMemo(() => {
-    return filteredScripts
+    const groups = filteredScripts
       .filter(s => s.category === 'Lifecycle')
       .reduce<Record<'Stage' | 'Node' | 'State', ScriptDefinition[]>>((acc, cur) => {
         const key = cur.lifecycleType === 'Stage' || cur.lifecycleType === 'Node' || cur.lifecycleType === 'State'
@@ -222,19 +270,30 @@ export const BlackboardPanel: React.FC = () => {
         acc[key].push(cur);
         return acc;
       }, { Stage: [], Node: [], State: [] });
+    // 对每个子分组按 displayOrder 排序
+    (['Stage', 'Node', 'State'] as const).forEach(key => {
+      groups[key] = sortByDisplayOrder(groups[key]);
+    });
+    return groups;
   }, [filteredScripts]);
 
-  // 筛选图形
+  // 筛选图形并按 displayOrder 排序
   const filteredGraphs = useMemo(() => {
-    if (!filter.trim()) return graphList;
-    const lowerFilter = filter.toLowerCase();
-    return graphList.filter(g => g.name.toLowerCase().includes(lowerFilter) || g.id.toLowerCase().includes(lowerFilter));
+    let result = graphList;
+    if (filter.trim()) {
+      const lowerFilter = filter.toLowerCase();
+      result = graphList.filter(g => g.name.toLowerCase().includes(lowerFilter) || g.id.toLowerCase().includes(lowerFilter));
+    }
+    return sortByDisplayOrder(result);
   }, [graphList, filter]);
 
   const filteredFsms = useMemo(() => {
-    if (!filter.trim()) return fsmList;
-    const lowerFilter = filter.toLowerCase();
-    return fsmList.filter(fsm => fsm.name.toLowerCase().includes(lowerFilter) || fsm.id.toLowerCase().includes(lowerFilter));
+    let result = fsmList;
+    if (filter.trim()) {
+      const lowerFilter = filter.toLowerCase();
+      result = fsmList.filter(fsm => fsm.name.toLowerCase().includes(lowerFilter) || fsm.id.toLowerCase().includes(lowerFilter));
+    }
+    return sortByDisplayOrder(result);
   }, [fsmList, filter]);
 
   // ========== State Persistence ==========
@@ -285,6 +344,135 @@ export const BlackboardPanel: React.FC = () => {
         dispatch({ type: 'SELECT_OBJECT', payload: { type: 'NODE', id: localVar.scopeId } });
       }
     }
+  };
+
+  // ========== Drag & Drop Reorder Handlers ==========
+  const [dragState, setDragState] = useState<{ dragIndex: number; hoverIndex: number } | null>(null);
+  // 使用 ref 跟踪最新的拖拽状态，解决闭包陷阱问题
+  const dragStateRef = useRef<{ dragIndex: number; hoverIndex: number } | null>(null);
+
+  // 更新拖拽状态时同时更新 ref
+  const updateDragState = (newState: { dragIndex: number; hoverIndex: number } | null) => {
+    dragStateRef.current = newState;
+    setDragState(newState);
+  };
+
+  // 通用拖拽重排函数
+  const reorderItems = <T extends { id: string }>(items: T[], fromIndex: number, toIndex: number): string[] => {
+    const result = [...items];
+    const [removed] = result.splice(fromIndex, 1);
+    result.splice(toIndex, 0, removed);
+    return result.map(item => item.id);
+  };
+
+  // 全局变量拖拽
+  const handleVariableDragStart = (_id: string, index: number) => {
+    updateDragState({ dragIndex: index, hoverIndex: index });
+  };
+  const handleVariableDragOver = (targetIndex: number) => {
+    const current = dragStateRef.current;
+    if (current) updateDragState({ ...current, hoverIndex: targetIndex });
+  };
+  const handleVariableDragEnd = () => {
+    const current = dragStateRef.current;
+    if (current && current.dragIndex !== current.hoverIndex) {
+      const orderedIds = reorderItems(filteredVariables, current.dragIndex, current.hoverIndex);
+      dispatch({ type: 'REORDER_GLOBAL_VARIABLES', payload: { orderedIds } });
+    }
+    updateDragState(null);
+  };
+
+  // 事件拖拽
+  const handleEventDragStart = (_id: string, index: number) => {
+    updateDragState({ dragIndex: index, hoverIndex: index });
+  };
+  const handleEventDragOver = (targetIndex: number) => {
+    const current = dragStateRef.current;
+    if (current) updateDragState({ ...current, hoverIndex: targetIndex });
+  };
+  const handleEventDragEnd = () => {
+    const current = dragStateRef.current;
+    if (current && current.dragIndex !== current.hoverIndex) {
+      const orderedIds = reorderItems(filteredEvents, current.dragIndex, current.hoverIndex);
+      dispatch({ type: 'REORDER_EVENTS', payload: { orderedIds } });
+    }
+    updateDragState(null);
+  };
+
+  // 脚本拖拽（分组内）
+  const createScriptDragHandlers = (
+    category: string,
+    lifecycleType: string | undefined,
+    scripts: ScriptDefinition[]
+  ) => ({
+    onDragStart: (_id: string, index: number) => updateDragState({ dragIndex: index, hoverIndex: index }),
+    onDragOver: (targetIndex: number) => {
+      const current = dragStateRef.current;
+      if (current) updateDragState({ ...current, hoverIndex: targetIndex });
+    },
+    onDragEnd: () => {
+      const current = dragStateRef.current;
+      if (current && current.dragIndex !== current.hoverIndex) {
+        const orderedIds = reorderItems(scripts, current.dragIndex, current.hoverIndex);
+        dispatch({ type: 'REORDER_SCRIPTS', payload: { category, lifecycleType, orderedIds } });
+      }
+      updateDragState(null);
+    }
+  });
+
+  // Local Variables 拖拽（按 scopeType 分组）
+  const createLocalVarDragHandlers = (
+    scopeType: 'Stage' | 'Node',
+    scopeId: string,
+    variables: LocalVarWithScope[]
+  ) => ({
+    onDragStart: (_id: string, index: number) => updateDragState({ dragIndex: index, hoverIndex: index }),
+    onDragOver: (targetIndex: number) => {
+      const current = dragStateRef.current;
+      if (current) updateDragState({ ...current, hoverIndex: targetIndex });
+    },
+    onDragEnd: () => {
+      const current = dragStateRef.current;
+      if (current && current.dragIndex !== current.hoverIndex) {
+        const orderedIds = reorderItems(variables, current.dragIndex, current.hoverIndex);
+        dispatch({ type: 'REORDER_LOCAL_VARIABLES', payload: { scopeType, scopeId, orderedIds } });
+      }
+      updateDragState(null);
+    }
+  });
+
+  // FSM 拖拽
+  const handleFsmDragStart = (_id: string, index: number) => {
+    updateDragState({ dragIndex: index, hoverIndex: index });
+  };
+  const handleFsmDragOver = (targetIndex: number) => {
+    const current = dragStateRef.current;
+    if (current) updateDragState({ ...current, hoverIndex: targetIndex });
+  };
+  const handleFsmDragEnd = () => {
+    const current = dragStateRef.current;
+    if (current && current.dragIndex !== current.hoverIndex) {
+      const orderedIds = reorderItems(filteredFsms, current.dragIndex, current.hoverIndex);
+      dispatch({ type: 'REORDER_FSMS', payload: { orderedIds } });
+    }
+    updateDragState(null);
+  };
+
+  // Presentation Graph 拖拽
+  const handleGraphDragStart = (_id: string, index: number) => {
+    updateDragState({ dragIndex: index, hoverIndex: index });
+  };
+  const handleGraphDragOver = (targetIndex: number) => {
+    const current = dragStateRef.current;
+    if (current) updateDragState({ ...current, hoverIndex: targetIndex });
+  };
+  const handleGraphDragEnd = () => {
+    const current = dragStateRef.current;
+    if (current && current.dragIndex !== current.hoverIndex) {
+      const orderedIds = reorderItems(filteredGraphs, current.dragIndex, current.hoverIndex);
+      dispatch({ type: 'REORDER_PRESENTATION_GRAPHS', payload: { orderedIds } });
+    }
+    updateDragState(null);
   };
 
   // ========== Creation Handlers ==========
@@ -358,29 +546,107 @@ export const BlackboardPanel: React.FC = () => {
         <div className="card-grid card-grid--with-margin">
           {filteredVariables.length === 0
             ? <div className="empty-state empty-state--inline">No global variables defined</div>
-            : filteredVariables.map(v => (
-              <VariableCard key={v.id} variable={v} isSelected={ui.selection.type === 'VARIABLE' && ui.selection.id === v.id} onClick={() => handleSelectVariable(v.id)} referenceCount={globalVariableRefCounts[v.id]} />
+            : filteredVariables.map((v, idx) => (
+              <DraggableCard
+                key={v.id}
+                id={v.id}
+                dragType="global-variable"
+                index={idx}
+                onDragStart={handleVariableDragStart}
+                onDragOver={handleVariableDragOver}
+                onDragEnd={handleVariableDragEnd}
+              >
+                <VariableCard variable={v} isSelected={ui.selection.type === 'VARIABLE' && ui.selection.id === v.id} onClick={() => handleSelectVariable(v.id)} referenceCount={globalVariableRefCounts[v.id]} />
+              </DraggableCard>
             ))
           }
         </div>
       )}
       <SectionHeader title="Local Variables" count={filteredLocalVariables.length} expanded={expandedSections['local'] ?? true} onToggle={() => toggleSection('local')} />
       {(expandedSections['local'] ?? true) && (
-        <div className="card-grid">
-          {filteredLocalVariables.length === 0
-            ? <div className="empty-state empty-state--inline">No local variables in Stages or Nodes</div>
-            : filteredLocalVariables.map(v => (
-              <LocalVariableCard
-                key={`${v.scopeType}-${v.scopeId}-${v.id}`}
-                variable={v}
-                isSelected={ui.selection.type === 'VARIABLE' && ui.selection.id === v.id}
-                onClick={() => handleSelectVariable(v.id)}
-                onDoubleClick={() => handleDoubleClickLocalVariable(v)}
-                referenceCount={localVariableRefCounts[v.id]}
-              />
-            ))
-          }
-        </div>
+        <>
+          {/* Stage Local Variables */}
+          <SectionHeader
+            title="Stage Local"
+            count={stageLocalVariables.length}
+            expanded={expandedSections['local:Stage'] ?? true}
+            onToggle={() => toggleSection('local:Stage')}
+            level={2}
+          />
+          {(expandedSections['local:Stage'] ?? true) && (
+            <div className="card-grid card-grid--with-margin">
+              {stageLocalVariables.length === 0
+                ? <div className="empty-state empty-state--inline">No Stage local variables</div>
+                : (Object.entries(localVariablesByScope) as [string, LocalVarWithScope[]][])
+                  .filter(([key]) => key.startsWith('Stage-'))
+                  .map(([scopeKey, scopeVars]) => {
+                    const [scopeType, scopeId] = scopeKey.split('-') as ['Stage' | 'Node', string];
+                    const handlers = createLocalVarDragHandlers(scopeType, scopeId, scopeVars);
+                    return scopeVars.map((v, idx) => (
+                      <DraggableCard
+                        key={`${v.scopeType}-${v.scopeId}-${v.id}`}
+                        id={v.id}
+                        dragType={`local-var-${scopeKey}`}
+                        index={idx}
+                        onDragStart={handlers.onDragStart}
+                        onDragOver={handlers.onDragOver}
+                        onDragEnd={handlers.onDragEnd}
+                      >
+                        <LocalVariableCard
+                          variable={v}
+                          isSelected={ui.selection.type === 'VARIABLE' && ui.selection.id === v.id}
+                          onClick={() => handleSelectVariable(v.id)}
+                          onDoubleClick={() => handleDoubleClickLocalVariable(v)}
+                          referenceCount={localVariableRefCounts[v.id]}
+                        />
+                      </DraggableCard>
+                    ));
+                  })
+              }
+            </div>
+          )}
+
+          {/* Node Local Variables */}
+          <SectionHeader
+            title="Node Local"
+            count={nodeLocalVariables.length}
+            expanded={expandedSections['local:Node'] ?? true}
+            onToggle={() => toggleSection('local:Node')}
+            level={2}
+          />
+          {(expandedSections['local:Node'] ?? true) && (
+            <div className="card-grid card-grid--with-margin">
+              {nodeLocalVariables.length === 0
+                ? <div className="empty-state empty-state--inline">No Node local variables</div>
+                : (Object.entries(localVariablesByScope) as [string, LocalVarWithScope[]][])
+                  .filter(([key]) => key.startsWith('Node-'))
+                  .map(([scopeKey, scopeVars]) => {
+                    const [scopeType, scopeId] = scopeKey.split('-') as ['Stage' | 'Node', string];
+                    const handlers = createLocalVarDragHandlers(scopeType, scopeId, scopeVars);
+                    return scopeVars.map((v, idx) => (
+                      <DraggableCard
+                        key={`${v.scopeType}-${v.scopeId}-${v.id}`}
+                        id={v.id}
+                        dragType={`local-var-${scopeKey}`}
+                        index={idx}
+                        onDragStart={handlers.onDragStart}
+                        onDragOver={handlers.onDragOver}
+                        onDragEnd={handlers.onDragEnd}
+                      >
+                        <LocalVariableCard
+                          variable={v}
+                          isSelected={ui.selection.type === 'VARIABLE' && ui.selection.id === v.id}
+                          onClick={() => handleSelectVariable(v.id)}
+                          onDoubleClick={() => handleDoubleClickLocalVariable(v)}
+                          referenceCount={localVariableRefCounts[v.id]}
+                        />
+                      </DraggableCard>
+                    ));
+                  })
+              }
+            </div>
+          )}
+        </>
       )}
     </>
   );
@@ -397,46 +663,74 @@ export const BlackboardPanel: React.FC = () => {
       {(expandedSections['Lifecycle'] ?? true) && (
         <>
           {([['Stage', 'Lifecycle · Stage'] as const, ['Node', 'Lifecycle · Node'] as const, ['State', 'Lifecycle · State'] as const]
-            .map(([key, title]) => (
-              <React.Fragment key={key}>
-                <SectionHeader
-                  title={title}
-                  count={lifecycleGroups[key as 'Stage' | 'Node' | 'State'].length}
-                  expanded={expandedSections[`Lifecycle:${key}`] ?? true}
-                  onToggle={() => toggleSection(`Lifecycle:${key}`)}
-                  level={2}
-                />
-                {(expandedSections[`Lifecycle:${key}`] ?? true) && (
-                  <div className="card-grid card-grid--with-margin">
-                    {lifecycleGroups[key as 'Stage' | 'Node' | 'State'].length === 0
-                      ? <div className="empty-state empty-state--inline">No lifecycle scripts</div>
-                      : lifecycleGroups[key as 'Stage' | 'Node' | 'State'].map(s => (
-                        <ScriptCard key={s.id} script={s} isSelected={ui.selection.type === 'SCRIPT' && ui.selection.id === s.id} onClick={() => handleSelectScript(s.id)} referenceCount={scriptRefCounts[s.id]} />
-                      ))
-                    }
-                  </div>
-                )}
-              </React.Fragment>
-            )))}
+            .map(([key, title]) => {
+              const scripts = lifecycleGroups[key as 'Stage' | 'Node' | 'State'];
+              const handlers = createScriptDragHandlers('Lifecycle', key, scripts);
+              return (
+                <React.Fragment key={key}>
+                  <SectionHeader
+                    title={title}
+                    count={scripts.length}
+                    expanded={expandedSections[`Lifecycle:${key}`] ?? true}
+                    onToggle={() => toggleSection(`Lifecycle:${key}`)}
+                    level={2}
+                  />
+                  {(expandedSections[`Lifecycle:${key}`] ?? true) && (
+                    <div className="card-grid card-grid--with-margin">
+                      {scripts.length === 0
+                        ? <div className="empty-state empty-state--inline">No lifecycle scripts</div>
+                        : scripts.map((s, idx) => (
+                          <DraggableCard
+                            key={s.id}
+                            id={s.id}
+                            dragType={`script-lifecycle-${key}`}
+                            index={idx}
+                            onDragStart={handlers.onDragStart}
+                            onDragOver={handlers.onDragOver}
+                            onDragEnd={handlers.onDragEnd}
+                          >
+                            <ScriptCard script={s} isSelected={ui.selection.type === 'SCRIPT' && ui.selection.id === s.id} onClick={() => handleSelectScript(s.id)} referenceCount={scriptRefCounts[s.id]} />
+                          </DraggableCard>
+                        ))
+                      }
+                    </div>
+                  )}
+                </React.Fragment>
+              );
+            }))}
         </>
       )}
 
       {/* Then Performance, Condition, Trigger in order */}
-      {(['Performance', 'Condition', 'Trigger'] as Exclude<ScriptCategory, 'Lifecycle'>[]).map(category => (
-        <React.Fragment key={category}>
-          <SectionHeader title={`${category} Scripts`} count={scriptGroups[category].length} expanded={expandedSections[category] ?? true} onToggle={() => toggleSection(category)} />
-          {(expandedSections[category] ?? true) && (
-            <div className="card-grid card-grid--with-margin">
-              {scriptGroups[category].length === 0
-                ? <div className="empty-state empty-state--inline">No {category.toLowerCase()} scripts</div>
-                : scriptGroups[category].map(s => (
-                  <ScriptCard key={s.id} script={s} isSelected={ui.selection.type === 'SCRIPT' && ui.selection.id === s.id} onClick={() => handleSelectScript(s.id)} referenceCount={scriptRefCounts[s.id]} />
-                ))
-              }
-            </div>
-          )}
-        </React.Fragment>
-      ))}
+      {(['Performance', 'Condition', 'Trigger'] as Exclude<ScriptCategory, 'Lifecycle'>[]).map(category => {
+        const scripts = scriptGroups[category];
+        const handlers = createScriptDragHandlers(category, undefined, scripts);
+        return (
+          <React.Fragment key={category}>
+            <SectionHeader title={`${category} Scripts`} count={scripts.length} expanded={expandedSections[category] ?? true} onToggle={() => toggleSection(category)} />
+            {(expandedSections[category] ?? true) && (
+              <div className="card-grid card-grid--with-margin">
+                {scripts.length === 0
+                  ? <div className="empty-state empty-state--inline">No {category.toLowerCase()} scripts</div>
+                  : scripts.map((s, idx) => (
+                    <DraggableCard
+                      key={s.id}
+                      id={s.id}
+                      dragType={`script-${category}`}
+                      index={idx}
+                      onDragStart={handlers.onDragStart}
+                      onDragOver={handlers.onDragOver}
+                      onDragEnd={handlers.onDragEnd}
+                    >
+                      <ScriptCard script={s} isSelected={ui.selection.type === 'SCRIPT' && ui.selection.id === s.id} onClick={() => handleSelectScript(s.id)} referenceCount={scriptRefCounts[s.id]} />
+                    </DraggableCard>
+                  ))
+                }
+              </div>
+            )}
+          </React.Fragment>
+        );
+      })}
     </>
   );
 
@@ -444,8 +738,18 @@ export const BlackboardPanel: React.FC = () => {
     <div className="card-grid">
       {filteredEvents.length === 0
         ? <div className="empty-state empty-state--inline" style={{ padding: '40px', fontSize: '13px' }}>No events defined</div>
-        : filteredEvents.map(e => (
-          <EventCard key={e.id} event={e} isSelected={ui.selection.type === 'EVENT' && ui.selection.id === e.id} onClick={() => handleSelectEvent(e.id)} referenceCount={eventRefCounts[e.id] || 0} />
+        : filteredEvents.map((e, idx) => (
+          <DraggableCard
+            key={e.id}
+            id={e.id}
+            dragType="event"
+            index={idx}
+            onDragStart={handleEventDragStart}
+            onDragOver={handleEventDragOver}
+            onDragEnd={handleEventDragEnd}
+          >
+            <EventCard event={e} isSelected={ui.selection.type === 'EVENT' && ui.selection.id === e.id} onClick={() => handleSelectEvent(e.id)} referenceCount={eventRefCounts[e.id] || 0} />
+          </DraggableCard>
         ))
       }
     </div>
@@ -459,8 +763,18 @@ export const BlackboardPanel: React.FC = () => {
         <div className="card-grid" style={{ marginBottom: '20px' }}>
           {filteredFsms.length === 0
             ? <div className="empty-state empty-state--inline">No state machines defined</div>
-            : filteredFsms.map(fsm => (
-              <FsmCard key={fsm.id} fsm={fsm} isSelected={ui.selection.type === 'FSM' && ui.selection.id === fsm.id} onClick={() => handleSelectFsm(fsm.id)} onDoubleClick={() => handleOpenFsm(fsm.id)} />
+            : filteredFsms.map((fsm, idx) => (
+              <DraggableCard
+                key={fsm.id}
+                id={fsm.id}
+                dragType="fsm"
+                index={idx}
+                onDragStart={handleFsmDragStart}
+                onDragOver={handleFsmDragOver}
+                onDragEnd={handleFsmDragEnd}
+              >
+                <FsmCard fsm={fsm} ownerName={fsmOwnerNames[fsm.id]} isSelected={ui.selection.type === 'FSM' && ui.selection.id === fsm.id} onClick={() => handleSelectFsm(fsm.id)} onDoubleClick={() => handleOpenFsm(fsm.id)} />
+              </DraggableCard>
             ))
           }
         </div>
@@ -471,8 +785,18 @@ export const BlackboardPanel: React.FC = () => {
         <div className="card-grid">
           {filteredGraphs.length === 0
             ? <div className="empty-state empty-state--inline">No presentation graphs defined</div>
-            : filteredGraphs.map(g => (
-              <GraphCard key={g.id} graph={g} isSelected={ui.selection.type === 'PRESENTATION_GRAPH' && ui.selection.id === g.id} onClick={() => handleSelectGraph(g.id)} onDoubleClick={() => handleOpenGraph(g.id)} referenceCount={graphRefCounts[g.id] || 0} />
+            : filteredGraphs.map((g, idx) => (
+              <DraggableCard
+                key={g.id}
+                id={g.id}
+                dragType="presentation-graph"
+                index={idx}
+                onDragStart={handleGraphDragStart}
+                onDragOver={handleGraphDragOver}
+                onDragEnd={handleGraphDragEnd}
+              >
+                <GraphCard graph={g} isSelected={ui.selection.type === 'PRESENTATION_GRAPH' && ui.selection.id === g.id} onClick={() => handleSelectGraph(g.id)} onDoubleClick={() => handleOpenGraph(g.id)} referenceCount={graphRefCounts[g.id] || 0} />
+              </DraggableCard>
             ))
           }
         </div>

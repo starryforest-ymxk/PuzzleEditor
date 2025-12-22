@@ -54,5 +54,7 @@ export interface PresentationGraph extends Entity {
    * 用于存储连线的 fromSide/toSide，实现与 FSM 一致的端点拖拽
    */
   edgeProperties?: Record<string, PresentationEdgeProperties>;
+
+  displayOrder?: number;  // 显示顺序（用于黑板拖拽排序）
 }
 

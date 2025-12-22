@@ -11,6 +11,8 @@ import { StateMachine } from '../../types/stateMachine';
 interface FsmCardProps {
     /** 状态机数据 */
     fsm: StateMachine;
+    /** 拥有者名称（PuzzleNode 名称） */
+    ownerName?: string;
     /** 是否被选中 */
     isSelected: boolean;
     /** 点击卡片的回调（选中） */
@@ -27,6 +29,7 @@ interface FsmCardProps {
  */
 export const FsmCard: React.FC<FsmCardProps> = ({
     fsm,
+    ownerName,
     isSelected,
     onClick,
     onDoubleClick
@@ -47,7 +50,7 @@ export const FsmCard: React.FC<FsmCardProps> = ({
                 padding: '12px'
             }}
         >
-            {/* 头部：图标 + 名称 */}
+            {/* 头部：图标 + Owner Name + 名称 */}
             <div style={{
                 display: 'flex',
                 justifyContent: 'space-between',
@@ -56,6 +59,15 @@ export const FsmCard: React.FC<FsmCardProps> = ({
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <span style={{ color: '#4fc1ff', fontSize: '14px' }}>▶</span>
+                    {ownerName && (
+                        <span style={{
+                            fontSize: '12px',
+                            color: '#4fc1ff',
+                            fontWeight: 500
+                        }}>
+                            {ownerName}
+                        </span>
+                    )}
                     <span style={{
                         fontWeight: 600,
                         fontSize: '13px',
@@ -106,3 +118,4 @@ export const FsmCard: React.FC<FsmCardProps> = ({
 };
 
 export default FsmCard;
+

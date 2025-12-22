@@ -26,6 +26,7 @@ export interface ScriptDefinition extends Entity {
   // 生命周期脚本的挂载对象范围（仅 category === 'Lifecycle' 时生效）
   lifecycleType?: LifecycleScriptTarget;
   state: ResourceState;
+  displayOrder?: number;               // 显示顺序（用于黑板拖拽排序）
 }
 
 // ========== 脚本清单 ==========

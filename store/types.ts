@@ -216,6 +216,13 @@ export type Action =
   | { type: 'UPDATE_SCRIPT'; payload: { id: string; data: Partial<ScriptDefinition> } }
   | { type: 'SOFT_DELETE_SCRIPT'; payload: { id: string } }
   | { type: 'APPLY_DELETE_SCRIPT'; payload: { id: string } }
+  // Blackboard Reorder (拖拽排序)
+  | { type: 'REORDER_GLOBAL_VARIABLES'; payload: { orderedIds: string[] } }
+  | { type: 'REORDER_EVENTS'; payload: { orderedIds: string[] } }
+  | { type: 'REORDER_SCRIPTS'; payload: { category: string; lifecycleType?: string; orderedIds: string[] } }
+  | { type: 'REORDER_LOCAL_VARIABLES'; payload: { scopeType: 'Stage' | 'Node'; scopeId: string; orderedIds: string[] } }
+  | { type: 'REORDER_FSMS'; payload: { orderedIds: string[] } }
+  | { type: 'REORDER_PRESENTATION_GRAPHS'; payload: { orderedIds: string[] } }
   | { type: 'SOFT_DELETE_STAGE_VARIABLE'; payload: { stageId: string; varId: string } }
   | { type: 'APPLY_DELETE_STAGE_VARIABLE'; payload: { stageId: string; varId: string } }
   // Stage CRUD (P4-T02)

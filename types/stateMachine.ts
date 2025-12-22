@@ -120,4 +120,5 @@ export interface StateMachine {
   initialStateId: StateId | null;
   states: Record<StateId, State>;
   transitions: Record<TransitionId, Transition>;
+  displayOrder?: number;  // 显示顺序（用于黑板拖拽排序）
 }

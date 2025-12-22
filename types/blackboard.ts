@@ -25,6 +25,7 @@ export interface VariableDefinition extends Entity {
   value: any;           // 变量的当前值
   state: ResourceState;
   scope: VariableScope;      // 定义时的作用域
+  displayOrder?: number;     // 显示顺序（用于黑板拖拽排序）
 }
 
 // ========== 事件定义 ==========
@@ -37,6 +38,7 @@ export interface EventDefinition extends Entity {
   id: EventId;
   assetName?: string;        // 资产名（符合变量命名规则：字母/下划线开头，只含字母数字下划线）
   state: ResourceState;
+  displayOrder?: number;     // 显示顺序（用于黑板拖拽排序）
 }
 
 // ========== 黑板数据结构 ==========

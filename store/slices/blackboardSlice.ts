@@ -22,6 +22,13 @@ export type BlackboardAction =
     | { type: 'UPDATE_SCRIPT'; payload: { id: string; data: Partial<ScriptDefinition> } }
     | { type: 'SOFT_DELETE_SCRIPT'; payload: { id: string } }
     | { type: 'APPLY_DELETE_SCRIPT'; payload: { id: string } }
+    // Reorder Actions
+    | { type: 'REORDER_GLOBAL_VARIABLES'; payload: { orderedIds: string[] } }
+    | { type: 'REORDER_EVENTS'; payload: { orderedIds: string[] } }
+    | { type: 'REORDER_SCRIPTS'; payload: { category: string; lifecycleType?: string; orderedIds: string[] } }
+    | { type: 'REORDER_LOCAL_VARIABLES'; payload: { scopeType: 'Stage' | 'Node'; scopeId: string; orderedIds: string[] } }
+    | { type: 'REORDER_FSMS'; payload: { orderedIds: string[] } }
+    | { type: 'REORDER_PRESENTATION_GRAPHS'; payload: { orderedIds: string[] } }
     | { type: 'SOFT_DELETE_STAGE_VARIABLE'; payload: { stageId: string; varId: string } }
     | { type: 'APPLY_DELETE_STAGE_VARIABLE'; payload: { stageId: string; varId: string } };
 
@@ -34,6 +41,8 @@ export const isBlackboardAction = (action: Action): action is BlackboardAction =
         'SOFT_DELETE_EVENT', 'APPLY_DELETE_EVENT',
         'ADD_SCRIPT', 'UPDATE_SCRIPT',
         'SOFT_DELETE_SCRIPT', 'APPLY_DELETE_SCRIPT',
+        'REORDER_GLOBAL_VARIABLES', 'REORDER_EVENTS', 'REORDER_SCRIPTS',
+        'REORDER_LOCAL_VARIABLES', 'REORDER_FSMS', 'REORDER_PRESENTATION_GRAPHS',
         'SOFT_DELETE_STAGE_VARIABLE', 'APPLY_DELETE_STAGE_VARIABLE'
     ];
     return blackboardActionTypes.includes(action.type);
@@ -242,6 +251,144 @@ export const blackboardReducer = (state: EditorState, action: BlackboardAction):
                 project: {
                     ...state.project,
                     scripts: { ...state.project.scripts, scripts: nextScripts }
+                }
+            };
+        }
+
+        // --- 拖拽排序操作 ---
+        case 'REORDER_GLOBAL_VARIABLES': {
+            // 根据 orderedIds 更新 displayOrder
+            const vars = state.project.blackboard.globalVariables || {};
+            const nextVars = { ...vars };
+            action.payload.orderedIds.forEach((id, index) => {
+                if (nextVars[id]) {
+                    nextVars[id] = { ...nextVars[id], displayOrder: index };
+                }
+            });
+            return {
+                ...state,
+                project: {
+                    ...state.project,
+                    blackboard: { ...state.project.blackboard, globalVariables: nextVars }
+                }
+            };
+        }
+
+        case 'REORDER_EVENTS': {
+            const events = state.project.blackboard.events || {};
+            const nextEvents = { ...events };
+            action.payload.orderedIds.forEach((id, index) => {
+                if (nextEvents[id]) {
+                    nextEvents[id] = { ...nextEvents[id], displayOrder: index };
+                }
+            });
+            return {
+                ...state,
+                project: {
+                    ...state.project,
+                    blackboard: { ...state.project.blackboard, events: nextEvents }
+                }
+            };
+        }
+
+        case 'REORDER_SCRIPTS': {
+            // 只更新指定分组内脚本的 displayOrder
+            const scripts = state.project.scripts.scripts || {};
+            const nextScripts = { ...scripts };
+            action.payload.orderedIds.forEach((id, index) => {
+                if (nextScripts[id]) {
+                    nextScripts[id] = { ...nextScripts[id], displayOrder: index };
+                }
+            });
+            return {
+                ...state,
+                project: {
+                    ...state.project,
+                    scripts: { ...state.project.scripts, scripts: nextScripts }
+                }
+            };
+        }
+
+        case 'REORDER_LOCAL_VARIABLES': {
+            const { scopeType, scopeId, orderedIds } = action.payload;
+
+            if (scopeType === 'Stage') {
+                const stage = state.project.stageTree.stages[scopeId];
+                if (!stage?.localVariables) return state;
+
+                const nextVars = { ...stage.localVariables };
+                orderedIds.forEach((id, index) => {
+                    if (nextVars[id]) {
+                        nextVars[id] = { ...nextVars[id], displayOrder: index };
+                    }
+                });
+                return {
+                    ...state,
+                    project: {
+                        ...state.project,
+                        stageTree: {
+                            ...state.project.stageTree,
+                            stages: {
+                                ...state.project.stageTree.stages,
+                                [scopeId]: { ...stage, localVariables: nextVars }
+                            }
+                        }
+                    }
+                };
+            } else {
+                // Node local variables
+                const node = state.project.nodes[scopeId];
+                if (!node?.localVariables) return state;
+
+                const nextVars = { ...node.localVariables };
+                orderedIds.forEach((id, index) => {
+                    if (nextVars[id]) {
+                        nextVars[id] = { ...nextVars[id], displayOrder: index };
+                    }
+                });
+                return {
+                    ...state,
+                    project: {
+                        ...state.project,
+                        nodes: {
+                            ...state.project.nodes,
+                            [scopeId]: { ...node, localVariables: nextVars }
+                        }
+                    }
+                };
+            }
+        }
+
+        case 'REORDER_FSMS': {
+            const fsms = state.project.stateMachines || {};
+            const nextFsms = { ...fsms };
+            action.payload.orderedIds.forEach((id, index) => {
+                if (nextFsms[id]) {
+                    nextFsms[id] = { ...nextFsms[id], displayOrder: index };
+                }
+            });
+            return {
+                ...state,
+                project: {
+                    ...state.project,
+                    stateMachines: nextFsms
+                }
+            };
+        }
+
+        case 'REORDER_PRESENTATION_GRAPHS': {
+            const graphs = state.project.presentationGraphs || {};
+            const nextGraphs = { ...graphs };
+            action.payload.orderedIds.forEach((id, index) => {
+                if (nextGraphs[id]) {
+                    nextGraphs[id] = { ...nextGraphs[id], displayOrder: index };
+                }
+            });
+            return {
+                ...state,
+                project: {
+                    ...state.project,
+                    presentationGraphs: nextGraphs
                 }
             };
         }
