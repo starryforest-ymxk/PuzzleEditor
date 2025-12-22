@@ -176,6 +176,14 @@ public static class PuzzleAssets {
         public const string PlaySound = "PlaySound";  // assetName
         public const string ShowDialog = "ShowDialog";  // assetName
     }
+    public static class Stages {
+        public const string EntranceHall = "EntranceHall";  // assetName
+        public const string Basement = "Basement";          // assetName
+    }
+    public static class Nodes {
+        public const string DoorPuzzle = "DoorPuzzle";      // assetName
+        public const string KeyLocker = "KeyLocker";        // assetName
+    }
 }
 ```
 
@@ -195,7 +203,17 @@ public static class PuzzleIdMap {
         ["var-ghi789"] = "Sanity",
         ["var-jkl012"] = "HasKey",
     };
-    // ... Events, Stages 等
+    
+    public static readonly Dictionary<string, string> Stages = new() {
+        ["stage-abc123"] = "EntranceHall",
+        ["stage-def456"] = "Basement",
+    };
+    
+    public static readonly Dictionary<string, string> Nodes = new() {
+        ["node-xyz789"] = "DoorPuzzle",
+        ["node-uvw012"] = "KeyLocker",
+    };
+    // ... Events 等
 }
 ```
 

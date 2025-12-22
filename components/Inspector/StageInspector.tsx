@@ -25,6 +25,7 @@ import { LocalVariableEditor } from './LocalVariableEditor';
 import { ConfirmDialog } from './ConfirmDialog';
 import { collectVisibleVariables } from '../../utils/variableScope';
 import { hasStageContent } from '../../utils/stageTreeUtils';
+import { InspectorWarning } from './InspectorInfo';
 import { Trash2 } from 'lucide-react';
 
 interface StageInspectorProps {
@@ -42,6 +43,10 @@ export const StageInspector: React.FC<StageInspectorProps> = ({ stageId, readOnl
         childStageCount: number;
         nodeCount: number;
     } | null>(null);
+
+    // 本地编辑状态（用于失焦校验）
+    const [localAssetName, setLocalAssetName] = useState('');
+
 
     // 预先获取脚本、事件选项，避免条件分支中的 Hook 调用问题
     const scriptDefsMap: Record<string, ScriptDefinition> = project.scripts?.scripts ?? {};
@@ -95,6 +100,19 @@ export const StageInspector: React.FC<StageInspectorProps> = ({ stageId, readOnl
             payload: { stageId: stageId as StageId, data: partial }
         });
     }, [readOnly, dispatch, stageId]);
+
+    // 同步本地状态
+    React.useEffect(() => {
+        setLocalAssetName(stage.assetName || '');
+    }, [stage.assetName]);
+
+    // AssetName 失焦校验
+    const handleAssetNameBlur = () => {
+        const trimmed = localAssetName.trim();
+        if (trimmed !== (stage.assetName || '')) {
+            updateStage({ assetName: trimmed || undefined });
+        }
+    };
 
     // 请求删除 Stage
     const handleRequestDelete = useCallback(() => {
@@ -195,6 +213,27 @@ export const StageInspector: React.FC<StageInspectorProps> = ({ stageId, readOnl
                         />
                     )}
                 </div>
+                <div className="prop-row">
+                    <div className="prop-label">Asset Name</div>
+                    {readOnly ? (
+                        <div className="prop-value" style={{ fontFamily: 'monospace', color: stage.assetName ? undefined : '#999' }}>
+                            {stage.assetName || stage.id}
+                        </div>
+                    ) : (
+                        <input
+                            type="text"
+                            className="search-input"
+                            value={localAssetName}
+                            onChange={(e) => setLocalAssetName(e.target.value)}
+                            onBlur={handleAssetNameBlur}
+                            placeholder={stage.id}
+                            style={{ fontFamily: 'monospace' }}
+                        />
+                    )}
+                </div>
+                {!stage.assetName && (
+                    <InspectorWarning message="Asset Name not set. Using ID as default." />
+                )}
                 <div className="prop-row">
                     <div className="prop-label">Description</div>
                     {readOnly ? (

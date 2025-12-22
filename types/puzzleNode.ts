@@ -21,6 +21,7 @@ import { VariableDefinition } from './blackboard';
  */
 export interface PuzzleNode extends Entity {
   id: PuzzleNodeId;
+  assetName?: string;            // 资产名（符合变量命名规则：字母/下划线开头，只含字母数字下划线）
   stageId: StageId;              // 所属 Stage
 
   // 核心逻辑组件

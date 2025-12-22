@@ -20,6 +20,7 @@ import { ConditionExpression, TriggerConfig } from './stateMachine';
  */
 export interface StageNode extends Entity {
   id: StageId;
+  assetName?: string;          // 资产名（符合变量命名规则：字母/下划线开头，只含字母数字下划线）
   parentId: StageId | null;
   childrenIds: StageId[];      // 子阶段ID列表
   isInitial?: boolean;         // 是否为父节点下的初始阶段

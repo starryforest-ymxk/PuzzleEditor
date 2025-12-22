@@ -15,6 +15,7 @@ import type { ScriptDefinition } from '../../types/manifest';
 import type { EventDefinition } from '../../types/blackboard';
 import type { PuzzleNode } from '../../types/puzzleNode';
 import { ConfirmDialog } from './ConfirmDialog';
+import { InspectorWarning } from './InspectorInfo';
 import { Trash2 } from 'lucide-react';
 
 interface NodeInspectorProps {
@@ -28,6 +29,10 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({ nodeId, readOnly =
 
     // 删除确认弹窗状态
     const [deleteConfirm, setDeleteConfirm] = useState<{ nodeName: string; stageName?: string; siblingCount: number } | null>(null);
+
+    // 本地编辑状态（用于失焦校验）
+    const [localAssetName, setLocalAssetName] = useState('');
+
 
     // 预先获取脚本、事件选项
     const scriptDefs = project.scripts.scripts || {};
@@ -62,6 +67,19 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({ nodeId, readOnly =
         if (readOnly) return;
         dispatch({ type: 'UPDATE_NODE', payload: { nodeId: node.id, data: partial } });
     }, [dispatch, node.id, readOnly]);
+
+    // 同步本地状态
+    React.useEffect(() => {
+        setLocalAssetName(node.assetName || '');
+    }, [node.assetName]);
+
+    // AssetName 失焦校验
+    const handleAssetNameBlur = () => {
+        const trimmed = localAssetName.trim();
+        if (trimmed !== (node.assetName || '')) {
+            updateNode({ assetName: trimmed || undefined });
+        }
+    };
 
     // 请求删除节点；统一弹窗确认，避免首个节点被直接删除
     const handleRequestDelete = useCallback(() => {
@@ -130,6 +148,27 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({ nodeId, readOnly =
                         />
                     )}
                 </div>
+                <div className="prop-row">
+                    <div className="prop-label">Asset Name</div>
+                    {readOnly ? (
+                        <div className="prop-value" style={{ fontFamily: 'monospace', color: node.assetName ? undefined : '#999' }}>
+                            {node.assetName || node.id}
+                        </div>
+                    ) : (
+                        <input
+                            type="text"
+                            className="search-input"
+                            value={localAssetName}
+                            onChange={(e) => setLocalAssetName(e.target.value)}
+                            onBlur={handleAssetNameBlur}
+                            placeholder={node.id}
+                            style={{ fontFamily: 'monospace' }}
+                        />
+                    )}
+                </div>
+                {!node.assetName && (
+                    <InspectorWarning message="Asset Name not set. Using ID as default." />
+                )}
                 <div className="prop-row">
                     <div className="prop-label">Description</div>
                     {readOnly ? (

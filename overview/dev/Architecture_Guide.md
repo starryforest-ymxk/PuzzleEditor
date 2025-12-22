@@ -1,7 +1,7 @@
 # 架构指南（Architecture Guide）
 
 > 本文档描述项目的整体架构设计、分层结构与开发规范，用于指导后续阶段的功能实现。  
-> **版本**: 1.2.1 | **更新时间**: 2025-12-22 | **同步至**: Phase 4/5 验证系统集成
+> **版本**: 1.2.2 | **更新时间**: 2025-12-22 | **同步至**: AssetName 字段功能完成
 
 ---
 
@@ -233,6 +233,7 @@ collectVisibleVariables(state, stageId, nodeId): VisibleVariables
 - 所有新增数据结构必须先在 `types/` 定义。
 - 使用带前缀的 ID 类型（如 `stage-*`、`node-*`）。
 - 变量引用必须携带 `scope` 字段。
+- **AssetName 字段**：脚本、变量、事件、Stage、PuzzleNode 等资源均支持可选的 `assetName` 属性，用于代码生成。命名规则：字母/下划线开头，只含字母数字下划线。
 
 ### 5.2 中文注释
 

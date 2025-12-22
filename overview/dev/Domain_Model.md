@@ -165,6 +165,7 @@ interface ScriptDefinition extends Entity {
 ```ts
 interface StageNode extends Entity {
   id: string;               // stage-*
+  assetName?: string;       // 资产名（可选）
   parentId: string | null;  // stage-*
   childrenIds: string[];    // stage-*
   isInitial?: boolean;      // 每个父级的首个子节点应标记为 true
@@ -185,6 +186,7 @@ interface StageTreeData { rootId: string; stages: Record<string, StageNode>; }
 ```ts
 interface PuzzleNode extends Entity {
   id: string;              // node-*
+  assetName?: string;      // 资产名（可选）
   stageId: string;         // stage-*
   stateMachineId: string;  // fsm-*
   localVariables: Record<string, VariableDefinition>;
