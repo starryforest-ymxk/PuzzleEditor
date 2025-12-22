@@ -16,6 +16,8 @@ import type { EventDefinition } from '../../types/blackboard';
 import type { PuzzleNode } from '../../types/puzzleNode';
 import { ConfirmDialog } from './ConfirmDialog';
 import { InspectorWarning } from './InspectorInfo';
+import { AssetNameAutoFillButton } from './AssetNameAutoFillButton';
+import { isValidAssetName } from '../../utils/assetNameValidation';
 import { Trash2 } from 'lucide-react';
 
 interface NodeInspectorProps {
@@ -76,6 +78,11 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({ nodeId, readOnly =
     // AssetName 失焦校验
     const handleAssetNameBlur = () => {
         const trimmed = localAssetName.trim();
+        if (!isValidAssetName(trimmed)) {
+            // 校验失败，恢复原值
+            setLocalAssetName(node.assetName || '');
+            return;
+        }
         if (trimmed !== (node.assetName || '')) {
             updateNode({ assetName: trimmed || undefined });
         }
@@ -155,15 +162,24 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({ nodeId, readOnly =
                             {node.assetName || node.id}
                         </div>
                     ) : (
-                        <input
-                            type="text"
-                            className="search-input"
-                            value={localAssetName}
-                            onChange={(e) => setLocalAssetName(e.target.value)}
-                            onBlur={handleAssetNameBlur}
-                            placeholder={node.id}
-                            style={{ fontFamily: 'monospace' }}
-                        />
+                        <div style={{ display: 'flex', gap: '6px', flex: 1, minWidth: 0 }}>
+                            <input
+                                type="text"
+                                className="search-input"
+                                value={localAssetName}
+                                onChange={(e) => setLocalAssetName(e.target.value)}
+                                onBlur={handleAssetNameBlur}
+                                placeholder={node.id}
+                                style={{ fontFamily: 'monospace', flex: 1, minWidth: 0 }}
+                            />
+                            <AssetNameAutoFillButton
+                                sourceName={node.name}
+                                onFill={(value) => {
+                                    setLocalAssetName(value);
+                                    updateNode({ assetName: value });
+                                }}
+                            />
+                        </div>
                     )}
                 </div>
                 {!node.assetName && (

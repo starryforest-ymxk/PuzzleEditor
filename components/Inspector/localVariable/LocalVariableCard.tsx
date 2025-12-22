@@ -21,6 +21,7 @@ import { VariableValueInput } from './VariableValueInput';
 import { X, RotateCcw, Trash2, ChevronDown, ChevronRight, ExternalLink } from 'lucide-react';
 import type { VariableReferenceInfo, ReferenceNavigationContext } from '../../../utils/validation/globalVariableReferences';
 import { isValidAssetName } from '../../../utils/assetNameValidation';
+import { AssetNameAutoFillButton } from '../AssetNameAutoFillButton';
 import { InspectorWarning } from '../InspectorInfo';
 
 // ========== Props 类型定义 ==========
@@ -257,6 +258,16 @@ export const LocalVariableCard: React.FC<LocalVariableCardProps> = ({
                             </span>
                         )}
                     </div>
+                    {/* 自动填充按钮 - 放在 input-wrapper 外部，保持对齐 */}
+                    {canMutate && !isMarkedForDelete && (
+                        <AssetNameAutoFillButton
+                            sourceName={localName}
+                            onFill={(value) => {
+                                setLocalAssetName(value);
+                                onUpdate('assetName', value);
+                            }}
+                        />
+                    )}
                 </div>
 
                 {/* Warning Row (Full Width) */}

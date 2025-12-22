@@ -25,6 +25,7 @@ import {
  */
 export interface State extends Entity {
   id: StateId;
+  assetName?: string;       // 资产名（可选）
   position: Vector2;        // 画布坐标
 
   // 生命周期脚本（统一入口，不再区分 OnEnter/OnExit）

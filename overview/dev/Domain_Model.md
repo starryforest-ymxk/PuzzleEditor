@@ -105,7 +105,7 @@ type ValueSource =
 interface ParameterModifier {
   targetVariableId: string;
   targetScope: VariableScope;
-  operation: 'Set' | 'Add' | 'Subtract';
+  operation: 'Set' | 'Add' | 'Subtract' | 'Multiply' | 'Divide' | 'Toggle';
   source: ValueSource;
 }
 
@@ -207,6 +207,7 @@ interface StateMachine {
 
 interface State extends Entity {
   id: StateId;               // state-*
+  assetName?: string;        // 资产名（可选）
   position: Vector2;         // 画布坐标
   lifecycleScriptId?: ScriptId; // 统一的生命周期脚本（含进入/退出回调，由脚本内部处理）
   eventListeners: EventListener[];

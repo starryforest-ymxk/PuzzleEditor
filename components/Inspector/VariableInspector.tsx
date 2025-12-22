@@ -36,6 +36,7 @@ import { findGlobalVariableReferences, VariableReferenceInfo, ReferenceNavigatio
 import { findNodeVariableReferences } from '../../utils/variableReferences';
 import { findStageVariableReferences } from '../../utils/validation/stageVariableReferences';
 import { isValidAssetName } from '../../utils/assetNameValidation';
+import { AssetNameAutoFillButton } from './AssetNameAutoFillButton';
 
 // ========== Props 类型定义 ==========
 interface VariableInspectorProps {
@@ -615,14 +616,24 @@ export const VariableInspector: React.FC<VariableInspectorProps> = ({ variableId
                     <div className="prop-row">
                         <div className="prop-label">Asset Name</div>
                         {canEdit ? (
-                            <input
-                                type="text"
-                                className="inspector-input monospace"
-                                value={localAssetName}
-                                onChange={(e) => setLocalAssetName(e.target.value)}
-                                onBlur={handleAssetNameBlur}
-                                placeholder={variable.id}
-                            />
+                            <div style={{ display: 'flex', gap: '6px', flex: 1, minWidth: 0 }}>
+                                <input
+                                    type="text"
+                                    className="inspector-input monospace"
+                                    value={localAssetName}
+                                    onChange={(e) => setLocalAssetName(e.target.value)}
+                                    onBlur={handleAssetNameBlur}
+                                    placeholder={variable.id}
+                                    style={{ flex: 1, minWidth: 0 }}
+                                />
+                                <AssetNameAutoFillButton
+                                    sourceName={localName}
+                                    onFill={(value) => {
+                                        setLocalAssetName(value);
+                                        handleUpdate({ assetName: value });
+                                    }}
+                                />
+                            </div>
                         ) : (
                             <div className="prop-value monospace" style={{ color: localAssetName ? 'var(--text-primary)' : '#666' }}>
                                 {localAssetName || variable.id}

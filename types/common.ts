@@ -116,7 +116,8 @@ export type ValueSource =
 export interface ParameterModifier {
   targetVariableId: VariableId;
   targetScope: VariableScope;
-  operation: 'Set' | 'Add' | 'Subtract';
+  // 操作类型：设置、加、减、乘、除、反转(布尔值专用)
+  operation: 'Set' | 'Add' | 'Subtract' | 'Multiply' | 'Divide' | 'Toggle';
   source: ValueSource;
 }
 

@@ -1905,6 +1905,7 @@ html {
   gap: 8px;
   align-items: center;
   height: 26px;
+  overflow: hidden;
 }
 
 .local-variable-card__label {

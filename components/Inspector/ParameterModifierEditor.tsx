@@ -28,8 +28,10 @@ export const ParameterModifierEditor: React.FC<Props> = ({ modifier, onChange, v
 
   // 根据目标变量类型限定可用操作
   const opOptions = useMemo(() => {
-    if (targetType === 'boolean') return ['Set'];
-    if (targetType === 'integer' || targetType === 'float') return ['Set', 'Add', 'Subtract'];
+    // 布尔类型支持：设置、反转（Toggle不需要来源值）
+    if (targetType === 'boolean') return ['Set', 'Toggle'];
+    // 数值类型支持：设置、加、减、乘、除运算
+    if (targetType === 'integer' || targetType === 'float') return ['Set', 'Add', 'Subtract', 'Multiply', 'Divide'];
     return ['Set'];
   }, [targetType]);
 
@@ -41,6 +43,9 @@ export const ParameterModifierEditor: React.FC<Props> = ({ modifier, onChange, v
   }, [opOptions.join(','), modifier.operation]);
 
   const validOperation = opOptions.includes(modifier.operation) ? modifier.operation : opOptions[0];
+
+  // Toggle 操作不需要来源值
+  const needsSource = validOperation !== 'Toggle';
 
   // 根据目标变量类型计算允许的来源变量类型
   // 规则：
@@ -60,6 +65,34 @@ export const ParameterModifierEditor: React.FC<Props> = ({ modifier, onChange, v
     return availableVariables.filter(v => allowedSourceTypes.includes(v.type));
   }, [availableVariables, targetType, allowedSourceTypes]);
 
+  // 操作选择器样式
+  const selectStyle = {
+    background: '#27272a',
+    color: '#e4e4e7',
+    border: '1px solid #52525b',
+    padding: '4px 8px',
+    fontSize: '12px',
+    borderRadius: '4px',
+    flex: 1,
+    minWidth: 0,
+    height: 30,
+    outline: 'none',
+    fontFamily: 'Inter, sans-serif'
+  };
+
+  // 操作选择器组件
+  const operationSelect = (
+    <select
+      value={validOperation}
+      onChange={(e) => onChange({ ...modifier, operation: e.target.value as any })}
+      style={selectStyle}
+    >
+      {opOptions.map(op => (
+        <option key={op} value={op}>{op}</option>
+      ))}
+    </select>
+  );
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%' }}>
       {/* 目标变量一行：内置筛选与搜索 */}
@@ -70,37 +103,24 @@ export const ParameterModifierEditor: React.FC<Props> = ({ modifier, onChange, v
         placeholder="Select target variable"
       />
 
-      {/* 操作与来源：使用 ValueSourceEditor 的 prefixElement 以实现 2 行布局 */}
-      <ValueSourceEditor
-        source={modifier.source}
-        onChange={(v) => onChange({ ...modifier, source: v })}
-        variables={sourceVariables}
-        valueType={targetType}
-        allowedTypes={allowedSourceTypes}
-        prefixElement={
-          <select
-            value={validOperation}
-            onChange={(e) => onChange({ ...modifier, operation: e.target.value as any })}
-            style={{
-              background: '#27272a',
-              color: '#e4e4e7',
-              border: '1px solid #52525b',
-              padding: '4px 8px',
-              fontSize: '12px',
-              borderRadius: '4px',
-              flex: 1,
-              minWidth: 0,
-              height: 30,
-              outline: 'none',
-              fontFamily: 'Inter, sans-serif'
-            }}
-          >
-            {opOptions.map(op => (
-              <option key={op} value={op}>{op}</option>
-            ))}
-          </select>
-        }
-      />
+      {/* 操作与来源：Toggle 不需要来源值 */}
+      {needsSource ? (
+        <ValueSourceEditor
+          source={modifier.source}
+          onChange={(v) => onChange({ ...modifier, source: v })}
+          variables={sourceVariables}
+          valueType={targetType}
+          allowedTypes={allowedSourceTypes}
+          prefixElement={operationSelect}
+        />
+      ) : (
+        <div style={{ display: 'flex', gap: '8px' }}>
+          {operationSelect}
+          <span style={{ color: '#a1a1aa', fontSize: '12px', alignSelf: 'center', fontStyle: 'italic' }}>
+            (inverts current value)
+          </span>
+        </div>
+      )}
     </div>
   );
 };

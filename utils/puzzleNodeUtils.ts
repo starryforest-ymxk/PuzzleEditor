@@ -224,6 +224,7 @@ export function createTriggerNodeWithStateMachine(
     const state1: State = {
         id: state1Id,
         name: 'Not triggered',
+        assetName: 'NotTriggered',  // 默认资产名
         description: 'Initial state: Waiting for trigger',
         position: { x: 200, y: 150 },
         eventListeners: []
@@ -234,6 +235,7 @@ export function createTriggerNodeWithStateMachine(
     const state2: State = {
         id: state2Id,
         name: 'Triggered',
+        assetName: 'Triggered',  // 默认资产名
         description: 'State after being triggered',
         position: { x: 600, y: 150 },
         eventListeners: []

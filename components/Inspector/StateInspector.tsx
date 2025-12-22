@@ -7,6 +7,9 @@ import { ResourceSelect } from './ResourceSelect';
 import type { PuzzleNode } from '../../types/puzzleNode';
 import type { EventDefinition } from '../../types/blackboard';
 import type { ScriptDefinition } from '../../types/manifest';
+import { InspectorWarning } from './InspectorInfo';
+import { AssetNameAutoFillButton } from './AssetNameAutoFillButton';
+import { isValidAssetName } from '../../utils/assetNameValidation';
 import { Trash2 } from 'lucide-react';
 
 interface Props {
@@ -28,6 +31,27 @@ export const StateInspector = ({ fsmId, stateId, readOnly = false }: Props) => {
     const state = fsm ? fsm.states[stateId] : null;
 
     if (!state) return <div className="empty-state">State not found</div>;
+
+    // 本地编辑状态（用于失焦校验）
+    const [localAssetName, setLocalAssetName] = React.useState('');
+
+    // 同步本地状态
+    React.useEffect(() => {
+        setLocalAssetName(state.assetName || '');
+    }, [state.assetName]);
+
+    // AssetName 失焦校验
+    const handleAssetNameBlur = () => {
+        const trimmed = localAssetName.trim();
+        if (!isValidAssetName(trimmed)) {
+            // 校验失败，恢复原值
+            setLocalAssetName(state.assetName || '');
+            return;
+        }
+        if (trimmed !== (state.assetName || '')) {
+            handleChange('assetName', trimmed || undefined);
+        }
+    };
 
     // 更新状态属性
     const handleChange = (field: string, value: any) => {
@@ -140,6 +164,36 @@ export const StateInspector = ({ fsmId, stateId, readOnly = false }: Props) => {
                     <div className="prop-label">ID</div>
                     <div className="prop-value inspector-value-monospace">{state.id}</div>
                 </div>
+                <div className="prop-row">
+                    <div className="prop-label">Asset Name</div>
+                    {readOnly ? (
+                        <div className="prop-value" style={{ fontFamily: 'monospace', color: state.assetName ? undefined : '#999' }}>
+                            {state.assetName || state.id}
+                        </div>
+                    ) : (
+                        <div style={{ display: 'flex', gap: '6px', flex: 1, minWidth: 0 }}>
+                            <input
+                                type="text"
+                                className="inspector-input monospace"
+                                value={localAssetName}
+                                onChange={(e) => setLocalAssetName(e.target.value)}
+                                onBlur={handleAssetNameBlur}
+                                placeholder={state.id}
+                                style={{ flex: 1, minWidth: 0 }}
+                            />
+                            <AssetNameAutoFillButton
+                                sourceName={state.name}
+                                onFill={(value) => {
+                                    setLocalAssetName(value);
+                                    handleChange('assetName', value);
+                                }}
+                            />
+                        </div>
+                    )}
+                </div>
+                {!state.assetName && (
+                    <InspectorWarning message="Asset Name not set. Using ID as default." />
+                )}
                 <div className="inspector-description-block">
                     <div className="inspector-description-label">Description</div>
                     <textarea

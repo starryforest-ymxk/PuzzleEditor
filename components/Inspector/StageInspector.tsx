@@ -25,7 +25,9 @@ import { LocalVariableEditor } from './LocalVariableEditor';
 import { ConfirmDialog } from './ConfirmDialog';
 import { collectVisibleVariables } from '../../utils/variableScope';
 import { hasStageContent } from '../../utils/stageTreeUtils';
+import { isValidAssetName } from '../../utils/assetNameValidation';
 import { InspectorWarning } from './InspectorInfo';
+import { AssetNameAutoFillButton } from './AssetNameAutoFillButton';
 import { Trash2 } from 'lucide-react';
 
 interface StageInspectorProps {
@@ -109,6 +111,11 @@ export const StageInspector: React.FC<StageInspectorProps> = ({ stageId, readOnl
     // AssetName 失焦校验
     const handleAssetNameBlur = () => {
         const trimmed = localAssetName.trim();
+        if (!isValidAssetName(trimmed)) {
+            // 校验失败，恢复原值
+            setLocalAssetName(stage.assetName || '');
+            return;
+        }
         if (trimmed !== (stage.assetName || '')) {
             updateStage({ assetName: trimmed || undefined });
         }
@@ -220,15 +227,24 @@ export const StageInspector: React.FC<StageInspectorProps> = ({ stageId, readOnl
                             {stage.assetName || stage.id}
                         </div>
                     ) : (
-                        <input
-                            type="text"
-                            className="search-input"
-                            value={localAssetName}
-                            onChange={(e) => setLocalAssetName(e.target.value)}
-                            onBlur={handleAssetNameBlur}
-                            placeholder={stage.id}
-                            style={{ fontFamily: 'monospace' }}
-                        />
+                        <div style={{ display: 'flex', gap: '6px', flex: 1, minWidth: 0 }}>
+                            <input
+                                type="text"
+                                className="search-input"
+                                value={localAssetName}
+                                onChange={(e) => setLocalAssetName(e.target.value)}
+                                onBlur={handleAssetNameBlur}
+                                placeholder={stage.id}
+                                style={{ fontFamily: 'monospace', flex: 1, minWidth: 0 }}
+                            />
+                            <AssetNameAutoFillButton
+                                sourceName={stage.name}
+                                onFill={(value) => {
+                                    setLocalAssetName(value);
+                                    updateStage({ assetName: value });
+                                }}
+                            />
+                        </div>
                     )}
                 </div>
                 {!stage.assetName && (
