@@ -31,9 +31,9 @@ graph LR
 3.  **前端主导 (Frontend Authority)**：任何逻辑结构的变更（如新增状态、修改条件）必须在前端完成，后端不得手动修改导出的数据文件。
 4.  **资产名引用 (AssetName Reference)**：代码生成和脚本绑定使用 `assetName` 字段作为标识符，而非内部 `id`。`assetName` 遵循标准变量命名规则（字母/下划线开头，只含字母数字下划线），适合作为 C# 标识符。
 
-### 1.3 依赖库
+### 1.3 协程执行模型
 
-- **UniTask**：Unity 异步编程库，用于实现无 GC 的异步执行模型。所有演出脚本使用 `UniTask` 替代 `Task`。
+- **Coroutine**：使用 Unity 原生协程（`IEnumerator`）实现异步执行模型，无需引入第三方依赖。所有演出脚本使用协程进行异步操作。
 
 ---
 
@@ -116,9 +116,9 @@ public class RuntimePresentationGraph {
     
     /// <summary>
     /// 执行演出图，按拓扑顺序依次执行节点。
-    /// 每个节点的 UniTask 完成后才执行下一个节点。
+    /// 每个节点的协程完成后才执行下一个节点。
     /// </summary>
-    public async UniTask ExecuteAsync(ScriptContext ctx, CancellationToken ct);
+    public IEnumerator Execute(ScriptContext ctx);
 }
 
 public class RuntimePresentationNode {
@@ -150,21 +150,22 @@ public class RuntimePresentationNode {
 #### 3.2.1 接口定义
 
 ```csharp
-using Cysharp.Threading.Tasks;
+using UnityEngine;
+using System.Collections;
 
 /// <summary>
 /// 演出脚本接口。
-/// UniTask 完成时表示"逻辑返回"被允许，系统可继续后续流程。
+/// 协程完成时表示"逻辑返回"被允许，系统可继续后续流程。
 /// </summary>
 public interface IPerformanceScript {
     void Initialize();
-    UniTask ExecuteAsync(CancellationToken ct);
+    IEnumerator Execute();
 }
 ```
 
 #### 3.2.2 执行模型
 
-演出脚本使用统一的异步模型：**`UniTask` 完成 = 逻辑返回被允许**
+演出脚本使用统一的协程模型：**协程完成 = 逻辑返回被允许**
 
 ```mermaid
 sequenceDiagram
@@ -173,9 +174,9 @@ sequenceDiagram
     participant Next as 后续逻辑
 
     Note over System: Stage OnEnter / OnExit / Transition 触发
-    System->>Script: ExecuteAsync(ct)
-    Script-->>Script: 播放动画/音效...
-    Script-->>System: UniTask 完成
+    System->>Script: Execute()
+    Script-->>Script: 播放动画/音效... (yield return)
+    Script-->>System: 协程完成
     System->>Next: 执行后续逻辑
 ```
 
@@ -189,6 +190,9 @@ sequenceDiagram
 // 生成时间: 2025-12-23
 // 数据来源: puzzle_export.json
 // ============================================
+
+using UnityEngine;
+using System.Collections;
 
 namespace Puzzle.Generated {
 
@@ -227,18 +231,18 @@ namespace Puzzle.Generated {
         /// <summary>音调 (可选，默认: 1.0)</summary>
         protected float Pitch { get; private set; }
         
-        public sealed override async UniTask ExecuteAsync(CancellationToken ct) {
+        public sealed override IEnumerator Execute() {
             // 自动从参数上下文注入到属性
             AudioFile = Params.GetRequired<string>("AudioFile");
             Volume = Params.Get<float>("Volume", 1.0f);
             Loop = Params.Get<bool>("Loop", false);
             Pitch = Params.Get<float>("Pitch", 1.0f);
             
-            await OnExecuteAsync(ct);
+            yield return OnExecute();
         }
         
         /// <summary>实现此方法来编写演出逻辑</summary>
-        protected abstract UniTask OnExecuteAsync(CancellationToken ct);
+        protected abstract IEnumerator OnExecute();
     }
 }
 ```
@@ -247,13 +251,15 @@ namespace Puzzle.Generated {
 
 ```csharp
 using Puzzle.Generated;
-using Cysharp.Threading.Tasks;
+using UnityEngine;
+using System.Collections;
 
 public class PlaySoundScript : PlaySoundScriptBase {
     
-    protected override async UniTask OnExecuteAsync(CancellationToken ct) {
+    protected override IEnumerator OnExecute() {
         // 直接使用继承的属性，IDE 有自动补全
-        var clip = await AudioManager.LoadClipAsync(AudioFile, ct);
+        AudioClip clip = null;
+        yield return AudioManager.LoadClip(AudioFile, result => clip = result);
         
         var source = AudioManager.Play(clip);
         source.volume = Volume;
@@ -261,7 +267,7 @@ public class PlaySoundScript : PlaySoundScriptBase {
         source.loop = Loop;
         
         if (!Loop) {
-            await UniTask.Delay(TimeSpan.FromSeconds(clip.length), cancellationToken: ct);
+            yield return new WaitForSeconds(clip.length);
         }
     }
 }
@@ -383,6 +389,86 @@ public interface ICustomCondition {
     bool Evaluate();
 }
 ```
+
+### 3.5 事件服务 (Event Service)
+
+系统通过**依赖注入**支持可替换的事件服务，允许与外部事件框架集成。
+
+#### 3.5.1 事件服务接口
+
+```csharp
+/// <summary>
+/// 事件服务接口 - 支持依赖注入
+/// </summary>
+public interface IPuzzleEventService
+{
+    /// <summary>触发事件</summary>
+    void Invoke(string eventAssetName);
+    
+    /// <summary>注册事件监听</summary>
+    /// <returns>用于取消注册的 handle</returns>
+    IDisposable Register(string eventAssetName, Action callback);
+}
+```
+
+#### 3.5.2 内置默认实现
+
+```csharp
+/// <summary>
+/// 系统内置的简单事件服务（默认实现）
+/// </summary>
+public class DefaultPuzzleEventService : IPuzzleEventService
+{
+    private readonly Dictionary<string, List<Action>> _listeners = new();
+    
+    public void Invoke(string eventAssetName)
+    {
+        if (_listeners.TryGetValue(eventAssetName, out var list))
+        {
+            foreach (var callback in list)
+                callback?.Invoke();
+        }
+    }
+    
+    public IDisposable Register(string eventAssetName, Action callback)
+    {
+        if (!_listeners.ContainsKey(eventAssetName))
+            _listeners[eventAssetName] = new List<Action>();
+        
+        _listeners[eventAssetName].Add(callback);
+        
+        return new EventRegistration(() => _listeners[eventAssetName].Remove(callback));
+    }
+}
+```
+
+#### 3.5.3 注入外部实现
+
+```csharp
+public class PuzzleRuntimeManager
+{
+    private IPuzzleEventService _eventService;
+    
+    /// <summary>
+    /// 初始化时注入事件服务（可选）
+    /// 不注入则使用默认实现
+    /// </summary>
+    public void Initialize(IPuzzleEventService externalEventService = null)
+    {
+        _eventService = externalEventService ?? new DefaultPuzzleEventService();
+    }
+    
+    /// <summary>暴露事件服务供外部访问</summary>
+    public IPuzzleEventService EventService => _eventService;
+}
+```
+
+#### 3.5.4 双向互通
+
+注入外部事件服务后，可实现双向事件互通：
+
+- **外部 → Puzzle**：外部系统调用 `EventService.Invoke("PlayerDeath")`，Puzzle 内部的 Transition OnEvent 触发器自动响应
+- **Puzzle → 外部**：Puzzle 内部 Transition 触发 `InvokedEvents`，外部通过 `EventService.Register()` 注册的回调自动执行
 
 ---
 
@@ -852,7 +938,30 @@ public class GameManager : MonoBehaviour {
 
 ---
 
-## 11. 验证标准 (Verification Criteria)
+## 11. Unity 编辑器工具 (Editor Tools)
+
+为辅助开发调试，需实现 Unity 编辑器工具链。**注意**：所有配置工作在前端编辑器完成，Unity 编辑器仅作为辅助工具。
+
+### 11.1 核心模块
+
+| 模块 | 职责 |
+|------|------|
+| **结构预览** | 只读树形展示 Stage / Node / FSM 结构，校验导入数据正确性 |
+| **脚本检查** | 显示待实现脚本列表及绑定状态，提示开发进度 |
+| **运行时监控** | Play Mode 下实时显示当前阶段、活跃节点、演出状态、变量值 |
+| **测试配置** | 配置起始 Stage、Node 启用/禁用、初始状态、变量预设，跳过前置流程 |
+
+### 11.2 设计原则
+
+- Unity 编辑器**只做校验、检查、监控、调试**
+- **不展示详细配置信息**（解锁条件、转移详情、演出图结构等在前端查看）
+- 保持界面简洁，避免与前端编辑器功能重复
+
+> 📄 **详细设计请参阅**：[编辑器工具设计.md](./编辑器工具设计.md)
+
+---
+
+## 12. 验证标准 (Verification Criteria)
 
 后端开发完成后，必须通过 `test/test_project.puzzle.json` 的验证：
 
@@ -868,7 +977,7 @@ public class GameManager : MonoBehaviour {
     *   [ ] 参数修改正确执行
 4.  **演出测试**：
     *   [ ] 演出图按顺序执行节点
-    *   [ ] UniTask 完成后才执行后续逻辑
+    *   [ ] 协程完成后才执行后续逻辑
 5.  **持久化测试**：
     *   [ ] 能正确导出状态快照
     *   [ ] 能从快照恢复所有状态
@@ -876,12 +985,12 @@ public class GameManager : MonoBehaviour {
 
 ---
 
-## 12. 后续工作 (Next Steps)
+## 13. 后续工作 (Next Steps)
 
-1.  安装 UniTask 包到 Unity 工程
-2.  搭建 Unity/C# 基础工程，建立上述类结构
-3.  编写 JSON Importer，实现从 JsonNet 到 Runtime 对象的转换
-4.  实现代码生成管线
-5.  实现基础的 FSM Ticker
-6.  实现持久化快照系统
+1.  搭建 Unity/C# 基础工程，建立上述类结构
+2.  编写 JSON Importer，实现从 JsonNet 到 Runtime 对象的转换
+3.  实现代码生成管线
+4.  实现基础的 FSM Ticker
+5.  实现持久化快照系统
+6.  实现 Unity 编辑器工具
 7.  运行并通过上述测试用例
