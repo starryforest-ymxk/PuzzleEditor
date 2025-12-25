@@ -57,10 +57,9 @@ export const useAppStartup = () => {
                             pushMessage('error', 'Failed to restore last session: Invalid file format');
                         }
                     } else {
-                        // File might be missing or unreadable
+                        // 文件可能丢失或无法读取，向用户显示警告
                         console.warn(`Could not restore last project at ${path}:`, projectResult.error);
-                        // Optional: Notify user, or just fail silently to default empty project
-                        // pushMessage('warning', 'Could not restore last project: File not found');
+                        pushMessage('warning', `Could not restore last project: ${projectResult.error || 'File not found'}`);
                     }
                 }
             } catch (error) {
