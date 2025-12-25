@@ -355,17 +355,17 @@ export const PreferencePanel: React.FC<PreferencePanelProps> = ({ onClose }) => 
                                         />
                                     </div>
                                     <div style={{ marginBottom: '12px' }}>
-                                        <label style={cardStyles.label}>API Base URL (Optional)</label>
+                                        <label style={cardStyles.label}>Service Endpoint (Optional)</label>
                                         <input
                                             type="text"
                                             value={openaiBaseUrl}
                                             onChange={(e) => setOpenaiBaseUrl(e.target.value)}
-                                            placeholder="https://api.openai.com/v1"
+                                            placeholder="https://api.openai.com/v1/chat/completions"
                                             style={{ ...cardStyles.input, width: '100%', fontFamily: 'monospace' }}
                                         />
                                     </div>
                                     <div style={cardStyles.helpText}>
-                                        ⚠️ Note: API calls will incur costs. Base URL can be a custom proxy; leaving this blank uses the default and automatically appends "/v1/chat/completions".
+                                        ⚠️ Note: API calls will incur costs. Service endpoint can be a custom proxy; leaving this blank uses the default.
                                     </div>
                                 </>
                             )}
