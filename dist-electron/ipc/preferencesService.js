@@ -39,7 +39,7 @@ function getDefaultPreferences() {
         // 默认使用本地词典翻译，避免未配置 API Key 时请求外网失败
         translation: {
             provider: 'local',
-            openaiModel: 'gpt-4o'
+            openaiModel: 'gpt-4o-mini'
         }
     };
 }

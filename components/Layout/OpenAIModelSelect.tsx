@@ -117,7 +117,7 @@ export const OpenAIModelSelect: React.FC<OpenAIModelSelectProps> = ({ value, onC
                     type="text"
                     value={customModel}
                     onChange={handleCustomInputChange}
-                    placeholder="e.g. gpt-4o"
+                    placeholder="e.g. gpt-4o-mini"
                     style={{
                         ...style,
                         flex: '1 1 auto',

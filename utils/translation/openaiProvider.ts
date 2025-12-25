@@ -31,7 +31,7 @@ export async function translateWithOpenAI(
         return { success: false, error: 'OpenAI API Key not configured' };
     }
 
-    const model = settings.openaiModel || 'gpt-3.5-turbo';
+    const model = settings.openaiModel || 'gpt-4o-mini';
 
     // 处理 API URL
     let apiUrl = 'https://api.openai.com/v1/chat/completions';
@@ -86,7 +86,7 @@ Rules:
         const result = data.choices?.[0]?.message?.content?.trim();
 
         if (!result) {
-            return { success: false, error: 'Empty response from OpenAI' };
+            return { success: false, error: 'Incorrect response from OpenAI service. Response details: ' + JSON.stringify(data) };
         }
 
         // 清理结果，确保符合变量名规则
