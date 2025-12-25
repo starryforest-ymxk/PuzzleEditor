@@ -487,8 +487,14 @@ export const ProjectMenu: React.FC<ProjectMenuProps> = ({
                             </div>
                         </div>
 
-                        <div style={{ fontSize: '14px', color: menuColors.muted, marginBottom: '20px', lineHeight: 1.5 }}>
-                            The project file at <b>{errorProject.path}</b> could not be found. It may have been moved, renamed, or deleted.
+                        <div style={{
+                            fontSize: '14px',
+                            color: menuColors.muted,
+                            marginBottom: '20px',
+                            lineHeight: 1.5,
+                            wordBreak: 'break-all'  // 强制长路径换行
+                        }}>
+                            The project file at <b style={{ color: menuColors.text }}>{errorProject.path}</b> could not be found. It may have been moved, renamed, or deleted.
                             <br /><br />
                             Do you want to remove it from the recent projects list?
                         </div>
