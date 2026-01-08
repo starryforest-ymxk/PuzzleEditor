@@ -181,6 +181,18 @@ const internalReducer = (state: EditorState, action: Action): EditorState => {
                 }
             };
 
+        case 'UPDATE_MESSAGE_FILTERS':
+            return {
+                ...state,
+                settings: {
+                    ...state.settings,
+                    messageFilters: {
+                        ...state.settings.messageFilters,
+                        ...action.payload
+                    }
+                }
+            };
+
         default:
             return state;
     }

@@ -38,6 +38,14 @@ export const useAppStartup = () => {
                     console.log('Restored translation settings from preferences');
                 }
 
+                // Restore message filters if available
+                if (prefs.messageFilters) {
+                    dispatch({
+                        type: 'UPDATE_MESSAGE_FILTERS',
+                        payload: prefs.messageFilters
+                    });
+                }
+
                 // Check if we should restore the last project
                 if (prefs.restoreLastProject && prefs.lastProjectPath) {
                     const path = prefs.lastProjectPath;

@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { useEditorState, useEditorDispatch } from '../../store/context';
 import { PresentationBindingEditor } from './PresentationBindingEditor';
+import { ConditionEditor } from './ConditionEditor';
 import { VariableDefinition } from '../../types/blackboard';
 import { collectVisibleVariables } from '../../utils/variableScope';
 import type { StageNode } from '../../types/stage';
@@ -92,6 +93,12 @@ export const PresentationNodeInspector = ({ graphId, nodeId, readOnly = false }:
 
     // Presentation binding options
     const performanceScriptOptions = useMemo(() => performanceScriptList.map(s => ({ id: s.id, name: s.name, state: s.state, description: s.description })), [performanceScriptList]);
+
+    // Filter scripts for Condition category
+    const conditionScriptOptions = useMemo(() => scriptList
+        .filter(s => s.category === 'Condition')
+        .map(s => ({ id: s.id, name: s.name, state: s.state, description: s.description })), [scriptList]);
+
     const graphOptions = useMemo(() => Object.values<PresentationGraph>(project.presentationGraphs || {}).filter(g => g.id !== graphId).map(g => ({ id: g.id, name: g.name, state: 'Draft' as const, description: g.description })), [project.presentationGraphs, graphId]);
     const scriptDefs = project.scripts.scripts || {};
 
@@ -231,12 +238,95 @@ export const PresentationNodeInspector = ({ graphId, nodeId, readOnly = false }:
                 </div>
             )}
 
-            {/* Branch / Parallel: Info placeholder */}
-            {(node.type === 'Branch' || node.type === 'Parallel') && (
+            {/* Branch Node Configuration */}
+            {node.type === 'Branch' && (
+                <>
+                    <div className="inspector-section">
+                        <div className="inspector-section-title">Condition</div>
+                        <ConditionEditor
+                            condition={node.condition}
+                            variables={visibleVars}
+                            conditionScripts={conditionScriptOptions}
+                            onChange={readOnly ? undefined : (newCond) => handleChange('condition', newCond)}
+                        />
+                    </div>
+
+                    <div className="inspector-section">
+                        <div className="inspector-section-title">Branching Paths</div>
+
+                        {/* True Path (Index 0) */}
+                        <div className="inspector-list-item" style={{ flexDirection: 'column', alignItems: 'stretch', gap: '4px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                    <span style={{
+                                        display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%',
+                                        background: node.nextIds[0] ? '#4ec9b0' : '#444'
+                                    }} />
+                                    <span style={{ fontSize: '12px', fontWeight: 600, color: '#4ec9b0' }}>TRUE Path</span>
+                                </div>
+                                {node.nextIds[0] && !readOnly && (
+                                    <button
+                                        className="btn-icon btn-icon--danger"
+                                        onClick={() => {
+                                            dispatch({
+                                                type: 'UNLINK_PRESENTATION_NODES',
+                                                payload: { graphId: graph.id, fromNodeId: node.id, toNodeId: node.nextIds[0] }
+                                            });
+                                        }}
+                                        title="Disconnect"
+                                    >
+                                        <Trash2 size={12} />
+                                    </button>
+                                )}
+                            </div>
+                            <div style={{ fontSize: '11px', color: '#888', paddingLeft: '14px' }}>
+                                {node.nextIds[0]
+                                    ? `→ Connected to ${graph.nodes[node.nextIds[0]]?.name || node.nextIds[0]}`
+                                    : '(Primary outgoing connection)'}
+                            </div>
+                        </div>
+
+                        {/* False Path (Index 1) */}
+                        <div className="inspector-list-item" style={{ flexDirection: 'column', alignItems: 'stretch', gap: '4px', marginTop: '4px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                    <span style={{
+                                        display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%',
+                                        background: node.nextIds[1] ? '#e6a23c' : '#444'
+                                    }} />
+                                    <span style={{ fontSize: '12px', fontWeight: 600, color: '#e6a23c' }}>FALSE Path</span>
+                                </div>
+                                {node.nextIds[1] && !readOnly && (
+                                    <button
+                                        className="btn-icon btn-icon--danger"
+                                        onClick={() => {
+                                            dispatch({
+                                                type: 'UNLINK_PRESENTATION_NODES',
+                                                payload: { graphId: graph.id, fromNodeId: node.id, toNodeId: node.nextIds[1] }
+                                            });
+                                        }}
+                                        title="Disconnect"
+                                    >
+                                        <Trash2 size={12} />
+                                    </button>
+                                )}
+                            </div>
+                            <div style={{ fontSize: '11px', color: '#888', paddingLeft: '14px' }}>
+                                {node.nextIds[1]
+                                    ? `→ Connected to ${graph.nodes[node.nextIds[1]]?.name || node.nextIds[1]}`
+                                    : '(Second outgoing connection)'}
+                            </div>
+                        </div>
+                    </div>
+                </>
+            )}
+
+            {/* Parallel Node - Info only */}
+            {node.type === 'Parallel' && (
                 <div style={{ padding: '12px 16px' }}>
                     <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Configuration</div>
                     <div style={{ color: '#666', fontSize: '12px', padding: '8px', textAlign: 'center' }}>
-                        {node.type === 'Branch' ? 'Branch nodes use outgoing connections for control flow.' : 'Parallel nodes execute all child branches simultaneously.'}
+                        Parallel nodes execute all child branches simultaneously.
                     </div>
                 </div>
             )}

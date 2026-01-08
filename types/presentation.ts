@@ -4,6 +4,7 @@
  */
 
 import { Entity, Vector2, PresentationGraphId, PresentationNodeId, Side, PresentationBinding } from './common';
+import { ConditionExpression } from './stateMachine';
 
 // ========== 演出节点类型 ==========
 export type PresentationNodeType = 'PresentationNode' | 'Wait' | 'Branch' | 'Parallel';
@@ -25,6 +26,9 @@ export interface PresentationNode extends Entity {
 
   // 连线关系（后继节点）
   nextIds: PresentationNodeId[];
+
+  // Branch 类型：分支条件
+  condition?: ConditionExpression;
 }
 
 // ========== 边属性（用于存储连线端点方向） ==========

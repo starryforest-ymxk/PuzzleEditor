@@ -38,7 +38,10 @@ export interface GraphEdgeProps {
     /** 点击选中事件 */
     onSelect: (e: React.MouseEvent, edgeId: string) => void;
     /** 右键菜单事件 */
+    /** 右键菜单事件 */
     onContextMenu: (e: React.MouseEvent, edgeId: string) => void;
+    /** 自定义线条颜色 */
+    customColor?: string;
 }
 
 /**
@@ -55,6 +58,7 @@ export const GraphEdge: React.FC<GraphEdgeProps> = React.memo(({
     isModifying = false,
     hasError = false,
     disableInteractions = false,
+    customColor,
     onSelect,
     onContextMenu
 }) => {
@@ -82,7 +86,7 @@ export const GraphEdge: React.FC<GraphEdgeProps> = React.memo(({
             ? 'var(--accent-warning)'
             : isSelected
                 ? 'var(--accent-color)'
-                : '#666';
+                : (customColor || '#666');
 
     const markerId = hasError
         ? 'url(#arrow-error)'

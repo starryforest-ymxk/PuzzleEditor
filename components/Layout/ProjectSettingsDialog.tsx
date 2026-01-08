@@ -334,10 +334,10 @@ export const ProjectSettingsDialog: React.FC<ProjectSettingsDialogProps> = ({
                             fontSize: '13px',
                             outline: 'none'
                         }}
-                        placeholder={`${name || 'project'}_export`}
+                        placeholder={`${name || 'project'}.export`}
                     />
                     <div style={{ fontSize: '11px', color: dialogColors.muted, marginTop: '4px' }}>
-                        Leave empty to use default: {`<project_name>_export.json`}
+                        Leave empty to use default: {`<project_name>.export.json`}
                     </div>
                 </div>
 

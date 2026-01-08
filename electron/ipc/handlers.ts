@@ -201,7 +201,7 @@ export function registerIpcHandlers(ipcMain: IpcMain): void {
                 ? (defaultFileName ? `${defaultPath}/${defaultFileName}` : defaultPath)
                 : defaultFileName,
             filters: [
-                { name: 'JSON', extensions: ['json'] },
+                { name: 'Puzzle Export', extensions: ['json'] },
                 { name: 'All Files', extensions: ['*'] },
             ],
         });

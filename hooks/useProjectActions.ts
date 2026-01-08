@@ -140,7 +140,16 @@ export function useProjectActions() {
 
         const jsonStr = JSON.stringify(exportBundle, null, 2);
         // 使用项目设置的导出文件名，或默认生成
-        const defaultFileName = project.meta.exportFileName || `${project.meta.name || 'project'}_export.json`;
+        let defaultFileName = project.meta.exportFileName;
+        if (!defaultFileName) {
+            defaultFileName = `${project.meta.name || 'project'}.export.json`;
+        } else if (!defaultFileName.toLowerCase().endsWith('.json')) {
+            // 如果用户自定义了文件名但没有后缀，自动补充 .export.json
+            if (!defaultFileName.toLowerCase().endsWith('.export')) {
+                defaultFileName += '.export';
+            }
+            defaultFileName += '.json';
+        }
 
         // Electron 环境：使用保存对话框
         if (isElectron()) {

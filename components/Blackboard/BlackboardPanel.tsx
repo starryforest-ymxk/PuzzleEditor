@@ -126,7 +126,7 @@ export const BlackboardPanel: React.FC = () => {
     if (!filter.trim()) return list;
     const lowerFilter = filter.toLowerCase();
     // 按名称或 ID 筛选
-    return list.filter(item => item.name.toLowerCase().includes(lowerFilter) || item.id.toLowerCase().includes(lowerFilter));
+    return list.filter(item => (item.name || '').toLowerCase().includes(lowerFilter) || (item.id || '').toLowerCase().includes(lowerFilter));
   };
   const matchState = (s?: ResourceState) => stateFilter === 'ALL' || s === stateFilter;
   const matchVarType = (type?: string) => varTypeFilter === 'ALL' || type === varTypeFilter;
@@ -148,9 +148,9 @@ export const BlackboardPanel: React.FC = () => {
     const lowerFilter = filter.toLowerCase();
     const filtered = localVariableList.filter(v => {
       const textMatch = !filter.trim()
-        || v.name.toLowerCase().includes(lowerFilter)
-        || v.id.toLowerCase().includes(lowerFilter)
-        || v.scopeName.toLowerCase().includes(lowerFilter);
+        || (v.name || '').toLowerCase().includes(lowerFilter)
+        || (v.id || '').toLowerCase().includes(lowerFilter)
+        || (v.scopeName || '').toLowerCase().includes(lowerFilter);
       return textMatch && matchState(v.state) && matchVarType(v.type);
     });
     // 按 displayOrder 排序
@@ -282,7 +282,7 @@ export const BlackboardPanel: React.FC = () => {
     let result = graphList;
     if (filter.trim()) {
       const lowerFilter = filter.toLowerCase();
-      result = graphList.filter(g => g.name.toLowerCase().includes(lowerFilter) || g.id.toLowerCase().includes(lowerFilter));
+      result = graphList.filter(g => (g.name || '').toLowerCase().includes(lowerFilter) || (g.id || '').toLowerCase().includes(lowerFilter));
     }
     return sortByDisplayOrder(result);
   }, [graphList, filter]);
@@ -291,7 +291,7 @@ export const BlackboardPanel: React.FC = () => {
     let result = fsmList;
     if (filter.trim()) {
       const lowerFilter = filter.toLowerCase();
-      result = fsmList.filter(fsm => fsm.name.toLowerCase().includes(lowerFilter) || fsm.id.toLowerCase().includes(lowerFilter));
+      result = fsmList.filter(fsm => (fsm.name || '').toLowerCase().includes(lowerFilter) || (fsm.id || '').toLowerCase().includes(lowerFilter));
     }
     return sortByDisplayOrder(result);
   }, [fsmList, filter]);

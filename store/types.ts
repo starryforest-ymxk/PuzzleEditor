@@ -280,4 +280,5 @@ export type Action =
   | { type: 'SET_NEW_UNSAVED_PROJECT'; payload: boolean }
   | { type: 'SET_PREFERENCES_LOADED'; payload: boolean }
   // Settings Actions (Translation)
-  | { type: 'UPDATE_TRANSLATION_SETTINGS'; payload: Partial<TranslationSettings> };
+  | { type: 'UPDATE_TRANSLATION_SETTINGS'; payload: Partial<TranslationSettings> }
+  | { type: 'UPDATE_MESSAGE_FILTERS'; payload: Partial<import('../types/settings').MessageFilters> };

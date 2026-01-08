@@ -54,6 +54,13 @@ export interface UserPreferences {
 
     /** 翻译服务配置 */
     translation?: TranslationPreferences;
+
+    /** 消息过滤器配置 */
+    messageFilters?: {
+        info: boolean;
+        warning: boolean;
+        error: boolean;
+    };
 }
 
 // ============================================================================

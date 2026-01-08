@@ -333,6 +333,16 @@ export const findGlobalVariableReferences = (
         `Presentation graph ${graphName} > Node ${graphNode.name || graphNode.id}`,
         navContext
       );
+
+      if (graphNode.condition) {
+        collectFromCondition(
+          graphNode.condition,
+          variableId,
+          push,
+          `Presentation graph ${graphName} > Node ${graphNode.name || graphNode.id} > Condition`,
+          navContext
+        );
+      }
     });
   });
 

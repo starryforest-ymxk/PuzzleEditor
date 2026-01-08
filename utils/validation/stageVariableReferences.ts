@@ -286,6 +286,16 @@ export const findStageVariableReferences = (
                     navContext
                 );
             }
+
+            if (graphNode.condition) {
+                collectFromCondition(
+                    graphNode.condition,
+                    variableId,
+                    push,
+                    `Presentation graph ${graphName} > Node ${graphNode.name || graphNode.id} > Condition`,
+                    navContext
+                );
+            }
         });
     });
 

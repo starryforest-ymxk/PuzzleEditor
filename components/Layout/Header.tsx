@@ -18,13 +18,16 @@ import { useProjectActions } from '../../hooks/useProjectActions';
 
 import { MessageLevel } from '../../store/types';
 
+import { isElectron, loadPreferences, savePreferences } from '@/src/electron/api';
+import type { UserPreferences } from '@/electron/types';
+
 // 抽离的子组件
 import { MessageStackPanel, LevelFilters } from './MessageStackPanel';
 import { HeaderDialogManager, HeaderDialogState, HeaderDialogCallbacks } from './HeaderDialogManager';
 import { ProjectMenu } from './ProjectMenu';
 
 export const Header = () => {
-  const { project, ui, runtime } = useEditorState();
+  const { project, ui, runtime, settings } = useEditorState();
   const dispatch = useEditorDispatch();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -35,22 +38,40 @@ export const Header = () => {
   const [showMessages, setShowMessages] = useState(false);
   const [dialog, setDialog] = useState<HeaderDialogState>({ type: 'none' });
 
-  // 消息等级筛选状态（默认全部开启）
-  const [levelFilters, setLevelFilters] = useState<LevelFilters>({
-    info: true,
-    warning: true,
-    error: true
-  });
-
   // 切换某个等级的显示状态
-  const handleToggleLevel = (level: MessageLevel) => {
-    setLevelFilters(prev => ({ ...prev, [level]: !prev[level] }));
+  const handleToggleLevel = async (level: MessageLevel) => {
+    const newValue = !settings.messageFilters[level];
+
+    dispatch({
+      type: 'UPDATE_MESSAGE_FILTERS',
+      payload: { [level]: newValue }
+    });
+
+    // 持久化保存到偏好设置
+    if (isElectron()) {
+      try {
+        const result = await loadPreferences();
+        if (result.success && result.data) {
+          const currentFilters = result.data.messageFilters || { info: true, warning: true, error: true };
+          const updatedPrefs: UserPreferences = {
+            ...result.data,
+            messageFilters: {
+              ...currentFilters,
+              [level]: newValue
+            }
+          };
+          await savePreferences(updatedPrefs);
+        }
+      } catch (error) {
+        console.error('Failed to save message filters:', error);
+      }
+    }
   };
 
   // 计算过滤后的消息数量
   const filteredMessageCount = useMemo(() => {
-    return ui.messages.filter(msg => levelFilters[msg.level]).length;
-  }, [ui.messages, levelFilters]);
+    return ui.messages.filter(msg => settings.messageFilters[msg.level]).length;
+  }, [ui.messages, settings.messageFilters]);
 
   // ========== 文件加载触发 ==========
   const doLoadFile = useCallback(() => {
@@ -275,7 +296,7 @@ export const Header = () => {
       <MessageStackPanel
         isOpen={showMessages}
         onClose={() => setShowMessages(false)}
-        levelFilters={levelFilters}
+        levelFilters={settings.messageFilters}
         onToggleLevel={handleToggleLevel}
       />
 

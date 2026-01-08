@@ -31,11 +31,22 @@ export interface TranslationSettings {
 }
 
 /**
+ * 消息过滤器设置
+ */
+export interface MessageFilters {
+    info: boolean;
+    warning: boolean;
+    error: boolean;
+}
+
+/**
  * 编辑器设置（用户偏好）
  */
 export interface EditorSettings {
     /** 翻译服务配置 */
     translation: TranslationSettings;
+    /** 消息过滤器配置 */
+    messageFilters: MessageFilters;
 }
 
 /**
@@ -45,5 +56,10 @@ export const DEFAULT_SETTINGS: EditorSettings = {
     translation: {
         provider: 'local',
         openaiModel: 'gpt-3.5-turbo'
+    },
+    messageFilters: {
+        info: true,
+        warning: true,
+        error: true
     }
 };

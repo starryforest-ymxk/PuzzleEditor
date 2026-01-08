@@ -188,9 +188,22 @@ export const findNodeVariableReferences = (
         graphId: graph.id,
         presentationNodeId: nodeItem.id
       };
+
+      // 1. 检查 Script 绑定参数
       const nodeBinding = nodeItem.presentation;
       if (nodeBinding?.type === 'Script') {
         collectFromBindings(nodeBinding.parameters, variableId, push, `Presentation graph ${graph.name || graph.id} > Node ${nodeItem.name || nodeItem.id}`, navContext);
+      }
+
+      // 2. 检查 Branch 节点的条件表达式
+      if (nodeItem.condition) {
+        collectFromCondition(
+          nodeItem.condition,
+          variableId,
+          push,
+          `Presentation graph ${graph.name || graph.id} > Node ${nodeItem.name || nodeItem.id} > Condition`,
+          navContext
+        );
       }
     });
   });

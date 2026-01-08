@@ -546,22 +546,44 @@ export const PresentationCanvas: React.FC<Props> = ({ graph, ownerNodeId, readOn
         const binding = presentationNode.presentation;
         return (
             <div style={{ fontSize: '10px', color: '#888' }}>
-                {presentationNode.type}
-                {/* Wait 节点：显示等待时间 */}
-                {presentationNode.type === 'Wait' && presentationNode.duration !== undefined && (
-                    <div style={{ marginTop: '2px', color: '#dcdcaa' }}>
-                        Duration: {presentationNode.duration}s
+                {presentationNode.type === 'Branch' ? (
+                    <div style={{ marginTop: '0px', display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                        {presentationNode.type}
+                        {/* True Info */}
+                        <div style={{ display: 'flex', alignItems: 'center', color: '#4ec9b0' }}>
+                            <span style={{ fontWeight: 'bold', minWidth: '36px', fontSize: '10px' }}>TRUE:</span>
+                            <span style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', color: '#ccc' }}>
+                                {presentationNode.nextIds[0] ? (graph.nodes[presentationNode.nextIds[0]]?.name || presentationNode.nextIds[0]) : '--'}
+                            </span>
+                        </div>
+                        {/* False Info */}
+                        <div style={{ display: 'flex', alignItems: 'center', color: '#e6a23c' }}>
+                            <span style={{ fontWeight: 'bold', minWidth: '36px', fontSize: '10px' }}>FALSE:</span>
+                            <span style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', color: '#ccc' }}>
+                                {presentationNode.nextIds[1] ? (graph.nodes[presentationNode.nextIds[1]]?.name || presentationNode.nextIds[1]) : '--'}
+                            </span>
+                        </div>
                     </div>
-                )}
-                {binding?.type === 'Script' && binding.scriptId && (
-                    <div style={{ marginTop: '2px', color: '#c586c0' }}>
-                        Script: {binding.scriptId}
-                    </div>
-                )}
-                {binding?.type === 'Graph' && binding.graphId && (
-                    <div style={{ marginTop: '2px', color: '#9cdcfe' }}>
-                        Graph: {binding.graphId}
-                    </div>
+                ) : (
+                    <>
+                        {presentationNode.type}
+                        {/* Wait 节点：显示等待时间 */}
+                        {presentationNode.type === 'Wait' && presentationNode.duration !== undefined && (
+                            <div style={{ marginTop: '2px', color: '#dcdcaa' }}>
+                                Duration: {presentationNode.duration}s
+                            </div>
+                        )}
+                        {binding?.type === 'Script' && binding.scriptId && (
+                            <div style={{ marginTop: '2px', color: '#c586c0' }}>
+                                Script: {binding.scriptId}
+                            </div>
+                        )}
+                        {binding?.type === 'Graph' && binding.graphId && (
+                            <div style={{ marginTop: '2px', color: '#9cdcfe' }}>
+                                Graph: {binding.graphId}
+                            </div>
+                        )}
+                    </>
                 )}
             </div>
         );
@@ -651,6 +673,29 @@ export const PresentationCanvas: React.FC<Props> = ({ graph, ownerNodeId, readOn
                             const toPos = getNodeDisplayPosition(edge.toNodeId, toNode.position);
                             const isModifying = modifyingTransition?.id === edge.id;
 
+                            // 针对 Branch 节点的特殊处理：连线颜色与标签
+                            let customColor: string | undefined;
+                            let label: React.ReactNode | undefined;
+
+                            if (fromNode.type === 'Branch') {
+                                // 查找该边对应的索引 (0=True, 1=False)
+                                // 注意：如果有重复连接到同一个节点，indexOf 会返回第一个。
+                                // 更好的方式是利用 edge.id 中可能隐含的信息，或者 graphAdapter 解析逻辑。
+                                // 这里 graphAdapter.presentationNodesToEdges 生成的 edge.id 格式通常包含 index 信息?
+                                // 查看 graphAdapter: `id: generateVirtualEdgeId(node.id, index)`
+                                // parseVirtualEdgeId 返回 { index }
+                                const parsed = parseVirtualEdgeId(edge.id);
+                                if (parsed) {
+                                    if (parsed.index === 0) {
+                                        customColor = '#4ec9b0'; // True - Green
+                                        label = <span style={{ color: '#4ec9b0', fontWeight: 'bold' }}>TRUE</span>;
+                                    } else if (parsed.index === 1) {
+                                        customColor = '#e6a23c'; // False - Orange
+                                        label = <span style={{ color: '#e6a23c', fontWeight: 'bold' }}>FALSE</span>;
+                                    }
+                                }
+                            }
+
                             return (
                                 <GraphEdge
                                     key={edge.id}
@@ -662,6 +707,8 @@ export const PresentationCanvas: React.FC<Props> = ({ graph, ownerNodeId, readOn
                                     isContextTarget={contextMenu?.type === 'EDGE' && contextMenu?.targetId === edge.id}
                                     isModifying={isModifying}
                                     disableInteractions
+                                    customColor={customColor}
+                                    renderLabel={label ? () => label : undefined}
                                     onSelect={handleEdgeSelect}
                                     onContextMenu={handleEdgeContextMenu}
                                 />
@@ -763,6 +810,10 @@ export const PresentationCanvas: React.FC<Props> = ({ graph, ownerNodeId, readOn
                         const isMultiSelected = multiSelectIds.includes(node.id); // 检查是否在多选列表中
                         const isStart = graph.startNodeId === node.id;
 
+                        // Check for Branch node error (more than 2 outgoing connections)
+                        const isBranchError = node.type === 'Branch' && node.nextIds.filter(id => !!id).length > 2;
+                        const errorTooltip = isBranchError ? "Branch nodes can only have 2 paths (True/False)" : undefined;
+
                         return (
                             <GraphNode
                                 key={node.id}
@@ -774,6 +825,8 @@ export const PresentationCanvas: React.FC<Props> = ({ graph, ownerNodeId, readOn
                                 isInitial={isStart}
                                 isContextTarget={contextMenu?.type === 'NODE' && contextMenu?.targetId === node.id}
                                 readOnly={readOnly}
+                                hasError={isBranchError}
+                                errorTooltip={errorTooltip}
                                 renderContent={renderNodeContent}
                                 onMouseDown={handleNodeMouseDown}
                                 onMouseUp={handleNodeMouseUp}
