@@ -43,7 +43,6 @@ export const EventCard: React.FC<EventCardProps> = ({
                 opacity: isDeleted ? 0.5 : 1,
                 cursor: 'pointer',
                 marginBottom: '8px',
-                height: 'auto',
                 padding: '12px'
             }}
         >

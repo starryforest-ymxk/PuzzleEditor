@@ -46,7 +46,6 @@ export const FsmCard: React.FC<FsmCardProps> = ({
             style={{
                 cursor: 'pointer',
                 marginBottom: '8px',
-                height: 'auto',
                 padding: '12px'
             }}
         >

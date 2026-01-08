@@ -699,6 +699,16 @@ html {
   margin-bottom: 16px;
 }
 
+/* 确保网格内卡片高度统一（同行卡片以最高者为准） */
+.card-grid>* {
+  height: 100%;
+}
+
+.card-grid .overview-card {
+  height: 100%;
+  box-sizing: border-box;
+}
+
 /* ========== 分区标题 ========== */
 .section-title {
   font-size: 11px;

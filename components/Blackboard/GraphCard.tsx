@@ -45,7 +45,6 @@ export const GraphCard: React.FC<GraphCardProps> = ({
             style={{
                 cursor: 'pointer',
                 marginBottom: '8px',
-                height: 'auto',
                 padding: '12px'
             }}
         >

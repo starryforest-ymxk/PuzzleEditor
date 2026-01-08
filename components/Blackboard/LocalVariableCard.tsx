@@ -57,7 +57,6 @@ export const LocalVariableCard: React.FC<LocalVariableCardProps> = ({
                 opacity: isDeleted ? 0.5 : 1,
                 cursor: 'pointer',
                 marginBottom: '8px',
-                height: 'auto',
                 padding: '12px'
             }}
         >
