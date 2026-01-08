@@ -44,7 +44,8 @@ function validateVariableId(
         variable = project.blackboard.globalVariables[variableId];
     } else if (scope === 'StageLocal') {
         if (context.stage && context.stage.localVariables) {
-            variable = context.stage.localVariables.find(v => v.id === variableId);
+            // localVariables is a Record, use bracket access
+            variable = context.stage.localVariables[variableId];
         } else {
             // Referenced StageLocal but no stage context (e.g. cross-context reference which shouldn't happen, or inside a node causing issues?)
             // Actually Nodes belong to Stages, so Node logic can access StageLocal.
@@ -52,7 +53,8 @@ function validateVariableId(
         }
     } else if (scope === 'NodeLocal') {
         if (context.node && context.node.localVariables) {
-            variable = context.node.localVariables.find(v => v.id === variableId);
+            // localVariables is a Record, use bracket access
+            variable = context.node.localVariables[variableId];
         }
     }
 
