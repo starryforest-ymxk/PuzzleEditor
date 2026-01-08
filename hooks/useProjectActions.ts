@@ -20,6 +20,7 @@ import { createEmptyProject } from '../utils/projectFactory';
 import { ExportBundle, ProjectFile } from '../types/project';
 import { UiMessage } from '../store/types';
 import { isElectron, saveFileDialog, exportProject as electronExportProject, writeProject, readProject } from '@/src/electron/api';
+import { validateProject } from '../utils/validation/validator';
 
 // 编辑器版本号 - 集中管理
 export const EDITOR_VERSION = '1.0.0';
@@ -119,6 +120,28 @@ export function useProjectActions() {
      */
     const exportProjectData = useCallback(async () => {
         if (!project.isLoaded) return;
+
+        // 1. Run Validation
+        const validationResults = validateProject(project);
+        const errors = validationResults.filter(r => r.level === 'error');
+
+        if (errors.length > 0) {
+            pushMessage('error', `Export failed: Found ${errors.length} critical errors.`);
+            // Push individual errors to stack
+            errors.forEach(err => {
+                pushMessage('error', `[${err.location}] ${err.message}`);
+            });
+            return; // Block export
+        }
+
+        // 2. Warn about warnings if any (optional, just logging count)
+        const warnings = validationResults.filter(r => r.level === 'warning');
+        if (warnings.length > 0) {
+            pushMessage('warning', `Exporting with ${warnings.length} warnings. Check message stack for details.`);
+            warnings.forEach(warn => {
+                pushMessage('warning', `[${warn.location}] ${warn.message}`);
+            });
+        }
 
         // 精简导出：仅包含游戏引擎需要的运行时数据
         const exportBundle: ExportBundle = {

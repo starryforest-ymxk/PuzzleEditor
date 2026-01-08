@@ -82,12 +82,16 @@ export const EventInspector: React.FC<EventInspectorProps> = ({ eventId, readOnl
             handleUpdate({ name: trimmed });
         }
         // 自动翻译
-        await triggerAutoTranslate(trimmed);
+        if (trimmed) {
+            await triggerAutoTranslate(trimmed);
+        }
     };
 
     const handleAssetNameBlur = () => {
         const trimmed = localAssetName.trim();
+        // Allow clearing asset name so validation warning can show
         if (!isValidAssetName(trimmed)) {
+            // Invalid format (e.g. starts with number) -> revert
             setLocalAssetName(event.assetName || '');
         } else if (trimmed !== (event.assetName || '')) {
             handleUpdate({ assetName: trimmed || undefined });
