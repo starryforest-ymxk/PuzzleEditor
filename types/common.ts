@@ -12,8 +12,6 @@ import type {
   PresentationGraphId,
   PresentationNodeId,
   ScriptId,
-  TriggerId,
-  TriggerKey,
   VariableId,
   EventId,
   IdRef
@@ -29,8 +27,6 @@ export type {
   PresentationGraphId,
   PresentationNodeId,
   ScriptId,
-  TriggerId,
-  TriggerKey,
   VariableId,
   EventId,
   IdRef

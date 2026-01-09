@@ -35,12 +35,9 @@ export type VariableId = string;
 /** Recommend: EVENT_* */
 export type EventId = string;
 
-// Script/Trigger resources (global manifest)
+// Script resources (global manifest)
 /** Recommend: SCRIPT_* */
 export type ScriptId = string;
-/** Recommend: TRIGGER_* */
-export type TriggerId = string;
-export type TriggerKey = string;
 
 // Reference helpers
 export type IdRef<TId extends string> = { id: TId };

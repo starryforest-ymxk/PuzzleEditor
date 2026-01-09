@@ -14,7 +14,7 @@ import {
   PresentationGraphId
 } from './common';
 import { BlackboardData } from './blackboard';
-import { ScriptsManifest, TriggersManifest } from './manifest';
+import { ScriptsManifest } from './manifest';
 import { StageTreeData } from './stage';
 import { PuzzleNode } from './puzzleNode';
 import { StateMachine } from './stateMachine';
@@ -47,11 +47,8 @@ export interface ProjectData {
   // 黑板资源（全局变量与事件）
   blackboard: BlackboardData;
 
-  // 脚本清单（黑板脚本定义）
+  // 脚本清单（包含所有类型：Performance、Lifecycle、Condition、Trigger）
   scripts: ScriptsManifest;
-
-  // 触发器清单
-  triggers: TriggersManifest;
 
   // 阶段树
   stageTree: StageTreeData;
@@ -126,7 +123,6 @@ export interface ExportBundle {
   data: {
     blackboard: BlackboardData;
     scripts: ScriptsManifest;
-    triggers: TriggersManifest;
     stageTree: StageTreeData;
     nodes: Record<PuzzleNodeId, PuzzleNode>;
     stateMachines: Record<StateMachineId, StateMachine>;

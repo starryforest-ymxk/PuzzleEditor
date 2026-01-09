@@ -83,9 +83,6 @@ export function createEmptyProject(name: string, description?: string): ProjectD
             version: '1.0.0',
             scripts: {}
         },
-        triggers: {
-            triggers: {}
-        },
         stageTree,
         nodes: {},
         stateMachines: {},

@@ -5,7 +5,7 @@
 
 import { StageTreeData } from '../types/stage';
 import { PuzzleNode } from '../types/puzzleNode';
-import { ScriptsManifest, TriggersManifest, ScriptDefinition, TriggerDefinition } from '../types/manifest';
+import { ScriptsManifest, ScriptDefinition } from '../types/manifest';
 import { StateMachine, State, Transition } from '../types/stateMachine';
 import { PresentationGraph, PresentationNode } from '../types/presentation';
 import { VariableDefinition, BlackboardData } from '../types/blackboard';
@@ -27,7 +27,6 @@ export interface ProjectContent {
   blackboard: BlackboardData;
   meta: ProjectMeta;
   scripts: ScriptsManifest;
-  triggers: TriggersManifest;
 }
 
 // ========== UI 消息类型 ==========
@@ -75,7 +74,6 @@ export interface EditorState {
     presentationGraphs: Record<PresentationGraphId, PresentationGraph>;
     blackboard: BlackboardData;
     scripts: ScriptsManifest;
-    triggers: TriggersManifest;
   };
   // 运行时状态（Electron 相关）
   runtime: {
@@ -88,10 +86,9 @@ export interface EditorState {
     past: ProjectContent[];
     future: ProjectContent[];
   };
-  // 全局可用脚本/触发器（UI 展示）
+  // 全局可用脚本（UI 展示）
   manifest: {
     scripts: ScriptDefinition[];
-    triggers: TriggerDefinition[];
     isLoaded: boolean;
   };
   ui: {
@@ -141,8 +138,7 @@ export const INITIAL_STATE: EditorState = {
     stateMachines: {},
     presentationGraphs: {},
     blackboard: { globalVariables: {}, events: {} },
-    scripts: { version: '', scripts: {} },
-    triggers: { triggers: {} }
+    scripts: { version: '', scripts: {} }
   },
   runtime: {
     currentProjectPath: null,
@@ -155,7 +151,6 @@ export const INITIAL_STATE: EditorState = {
   },
   manifest: {
     scripts: [],
-    triggers: [],
     isLoaded: false
   },
   ui: {
@@ -197,7 +192,7 @@ export type Action =
   | { type: 'UNDO' }
   | { type: 'REDO' }
   | { type: 'INIT_START' }
-  | { type: 'INIT_SUCCESS'; payload: { stageTree: StageTreeData; nodes: Record<string, PuzzleNode>; stateMachines: Record<string, StateMachine>; presentationGraphs: Record<string, PresentationGraph>; blackboard: BlackboardData; meta: ProjectMeta; scripts: ScriptsManifest; triggers: TriggersManifest } }
+  | { type: 'INIT_SUCCESS'; payload: { stageTree: StageTreeData; nodes: Record<string, PuzzleNode>; stateMachines: Record<string, StateMachine>; presentationGraphs: Record<string, PresentationGraph>; blackboard: BlackboardData; meta: ProjectMeta; scripts: ScriptsManifest } }
   | { type: 'INIT_ERROR'; payload: { message: string } }
   | { type: 'SELECT_OBJECT'; payload: { type: 'STAGE' | 'NODE' | 'STATE' | 'TRANSITION' | 'FSM' | 'PRESENTATION_GRAPH' | 'PRESENTATION_NODE' | 'VARIABLE' | 'SCRIPT' | 'EVENT' | 'NONE'; id: string | null; contextId?: string | null } }
   | { type: 'UPDATE_STAGE_TREE'; payload: StageTreeData }

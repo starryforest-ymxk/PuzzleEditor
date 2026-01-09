@@ -64,8 +64,7 @@ const getProjectSnapshot = (state: EditorState): ProjectContent => ({
     presentationGraphs: state.project.presentationGraphs,
     blackboard: state.project.blackboard,
     meta: state.project.meta,
-    scripts: state.project.scripts,
-    triggers: state.project.triggers
+    scripts: state.project.scripts
 });
 
 // ========== Core Business Logic Reducer ==========
@@ -135,13 +134,11 @@ const internalReducer = (state: EditorState, action: Action): EditorState => {
                     stateMachines: action.payload.stateMachines || {},
                     presentationGraphs: action.payload.presentationGraphs || {},
                     blackboard: action.payload.blackboard || { globalVariables: {}, events: {} },
-                    scripts: action.payload.scripts,
-                    triggers: action.payload.triggers
+                    scripts: action.payload.scripts
                 },
                 history: { past: [], future: [] },
                 manifest: {
                     scripts: Object.values(action.payload.scripts.scripts),
-                    triggers: Object.values(action.payload.triggers.triggers || {}),
                     isLoaded: true
                 },
                 ui: {

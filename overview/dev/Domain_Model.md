@@ -1,6 +1,6 @@
 # 领域模型（Domain Model）
 > 本文档描述项目的核心数据结构与类型定义，需与 `types/*` 代码保持同步。  
-> **版本**: 1.2.1 | **更新时间**: 2025-12-22 | **同步至**: 添加 HandledByScript 触发器类型
+> **版本**: 1.3.0 | **更新时间**: 2026-01-09 | **同步至**: 移除冗余的 TriggersManifest，触发器脚本统一使用 ScriptsManifest 管理
 
 ---
 
@@ -10,7 +10,7 @@
 
 | 分类 | 说明 | 示例 |
 |------|------|------|
-| **基础资源（不可实例化）** | 全局定义，被各处引用 | Script、Trigger、Event、Global Variable |
+| **基础资源（不可实例化）** | 全局定义，被各处引用 | Script、Event、Global Variable |
 | **结构实体（可实例化）** | 在项目中可多次创建 | Stage、PuzzleNode、State、Transition |
 | **复合结构** | 嵌套的数据结构 | StateMachine、PresentationGraph、ConditionExpression |
 | **枚举数据集合** | 类型标识符 | ResourceState、VariableScope、ScriptCategory |
@@ -22,7 +22,6 @@ graph TB
         Meta[ProjectMeta]
         BB[Blackboard]
         Scripts[ScriptsManifest]
-        Triggers[TriggersManifest]
         Tree[StageTree]
     end
     
@@ -49,7 +48,7 @@ graph TB
     
     BB --> |引用| Stage
     Scripts --> |引用| FSM
-    Triggers --> |引用| Trans
+    Scripts --> |引用| Trans
 ```
 
 ---
@@ -60,8 +59,8 @@ graph TB
   - `proj-*` 项目，`stage-*` 阶段，`node-*` 解谜节点
   - `fsm-*` 状态机，`state-*` 状态，`trans-*` 转移
   - `pres-*` 演出图，`pnode-*` 演出节点
-  - `script-*` 脚本；触发器/事件/变量推荐 `trigger-*` / `event-*` / `var-*`
-- **Key（稳定标识，需唯一）**：脚本、触发器、变量、事件都携带 `key`，用于外部或跨版本兼容。
+  - `script-*` 脚本（包含触发器类型）；事件/变量推荐 `event-*` / `var-*`
+- **Key（稳定标识，需唯一）**：脚本、变量、事件都携带 `key`，用于外部或跨版本兼容。
 - **引用方式**：项目内部统一使用 `id` 字段；变量引用必须携带 `scope`（Global | StageLocal | NodeLocal | Temporary）。如需兼容 key，可在 API 层引入 `StableRef = {id}|{key}` 再解析为 `id`。
 
 ---
@@ -76,7 +75,6 @@ graph TB
     "meta": { "...": "..." },
     "blackboard": { "globalVariables": {}, "events": {} },
     "scripts": { "version": "1.0.0", "scripts": {} },
-    "triggers": { "triggers": {} },
     "stageTree": { "rootId": "stage-root", "stages": {} },
     "nodes": {},
     "stateMachines": {},
@@ -292,8 +290,7 @@ interface ProjectMeta {
 interface ProjectData {
   meta: ProjectMeta;
   blackboard: BlackboardData;
-  scripts: ScriptsManifest;
-  triggers: TriggersManifest;  // 触发器清单
+  scripts: ScriptsManifest;  // 包含所有类型：Performance、Lifecycle、Condition、Trigger
   stageTree: StageTreeData;
   nodes: Record<PuzzleNodeId, PuzzleNode>;
   stateMachines: Record<StateMachineId, StateMachine>;
@@ -311,7 +308,7 @@ interface ExportManifest {
 
 ## 5. 唯一性与引用约束
 
-- **全局唯一**：Script / Trigger / Event，`globalVariables` 的 key/ID。
+- **全局唯一**：Script / Event，`globalVariables` 的 key/ID。
 - **局部唯一**：
   - Stage Local Variable：同一 Stage 内 key 不重复
   - Node Local Variable：同一 PuzzleNode 内 key 不重复
@@ -349,7 +346,6 @@ interface EditorState {
     presentationGraphs: Record<PresentationGraphId, PresentationGraph>;
     blackboard: BlackboardData;
     scripts: ScriptsManifest;
-    triggers: TriggersManifest;
   };
   
   // 历史记录（主 reducer 管理）
@@ -358,10 +354,9 @@ interface EditorState {
     future: ProjectContent[]; // Redo 栈
   };
   
-  // 全局可用脚本/触发器清单（blackboardSlice 管理）
+  // 全局可用脚本清单（blackboardSlice 管理）
   manifest: {
     scripts: ScriptDefinition[];
-    triggers: TriggerDefinition[];
     isLoaded: boolean;
   };
   

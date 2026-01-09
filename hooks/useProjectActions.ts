@@ -66,7 +66,6 @@ export function useProjectActions() {
                 },
                 blackboard: project.blackboard,
                 scripts: project.scripts,
-                triggers: project.triggers,
                 stageTree: project.stageTree,
                 nodes: project.nodes,
                 stateMachines: project.stateMachines,
@@ -153,7 +152,6 @@ export function useProjectActions() {
             data: {
                 blackboard: project.blackboard,
                 scripts: project.scripts,
-                triggers: project.triggers,
                 stageTree: project.stageTree,
                 nodes: project.nodes,
                 stateMachines: project.stateMachines,
@@ -295,7 +293,6 @@ export function useProjectActions() {
                     meta: newProject.meta,
                     blackboard: newProject.blackboard,
                     scripts: newProject.scripts,
-                    triggers: newProject.triggers,
                     stageTree: newProject.stageTree,
                     nodes: newProject.nodes,
                     stateMachines: newProject.stateMachines,
@@ -334,8 +331,7 @@ export function useProjectActions() {
                 presentationGraphs: newProject.presentationGraphs,
                 blackboard: newProject.blackboard,
                 meta: newProject.meta,
-                scripts: newProject.scripts,
-                triggers: newProject.triggers
+                scripts: newProject.scripts
             }
         });
 
@@ -385,8 +381,7 @@ export function useProjectActions() {
                     presentationGraphs: normalized.project.presentationGraphs,
                     blackboard: normalized.project.blackboard,
                     meta: normalized.project.meta,
-                    scripts: normalized.project.scripts,
-                    triggers: normalized.project.triggers
+                    scripts: normalized.project.scripts
                 }
             });
 

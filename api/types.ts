@@ -4,14 +4,13 @@
  */
 
 import { ExportManifest } from '../types/project';
-import { ScriptsManifest, TriggersManifest } from '../types/manifest';
+import { ScriptsManifest } from '../types/manifest';
 
 // ========== 数据类型定义 ==========
 
-/** Manifest 数据结构 */
+/** Manifest 数据结构（仅包含脚本清单） */
 export interface ManifestData {
     scripts: ScriptsManifest;
-    triggers: TriggersManifest;
 }
 
 // ========== API 服务接口定义 ==========

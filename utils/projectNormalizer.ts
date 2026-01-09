@@ -15,13 +15,12 @@ import { PuzzleNode } from '../types/puzzleNode';
 import { StateMachine, State, Transition } from '../types/stateMachine';
 import { PresentationGraph, PresentationNode } from '../types/presentation';
 import { BlackboardData } from '../types/blackboard';
-import { ScriptsManifest, TriggersManifest } from '../types/manifest';
+import { ScriptsManifest } from '../types/manifest';
 import { normalizePresentationNode } from './presentation';
 
 export interface NormalizedProjectResult {
   project: ProjectData;
   scripts: ScriptsManifest['scripts'];
-  triggers: TriggersManifest['triggers'] | undefined;
   /** 编辑器 UI 状态（仅 ProjectFile 格式包含） */
   editorState?: EditorUIState;
 }
@@ -193,30 +192,24 @@ export const normalizeProjectForStore = (
     meta: normalizeMeta(project.meta),
     blackboard: normalizeBlackboard(project.blackboard),
     scripts: project.scripts ?? { version: '1.0.0', scripts: {} },
-    triggers: project.triggers ?? { triggers: {} },
     stageTree: normalizeStageTree(project.stageTree),
     nodes: normalizeNodes(project.nodes),
     stateMachines: normalizeStateMachines(project.stateMachines),
     presentationGraphs: normalizePresentationGraphs(project.presentationGraphs)
   };
 
-  // 兼容独立 manifest 响应：若 project 未附带 scripts/triggers，则使用额外 manifest 覆盖
+  // 兼容独立 manifest 响应：若 project 未附带 scripts，则使用额外 manifest 覆盖
   const scripts = manifest?.scripts
     ? manifest.scripts.scripts
     : normalized.scripts.scripts;
-  const triggers = manifest?.triggers
-    ? manifest.triggers.triggers
-    : normalized.triggers?.triggers;
 
   return {
     project: {
       ...normalized,
-      // Store 中暂不需要 scripts/triggers 的清单结构，但保留数据以便后续导出
-      scripts: { version: normalized.scripts.version, scripts },
-      triggers: { triggers: triggers ?? {} }
+      // Store 中暂不需要 scripts 的清单结构，但保留数据以便后续导出
+      scripts: { version: normalized.scripts.version, scripts }
     },
     scripts,
-    triggers,
     // 返回编辑器状态（仅 ProjectFile 格式包含）
     editorState
   };

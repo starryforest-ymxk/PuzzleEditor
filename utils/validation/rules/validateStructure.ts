@@ -79,9 +79,9 @@ export const validateStructure = (project: ProjectData): ValidationResult[] => {
                     id: `err-fsm-no-initial-${fsm.id}`,
                     level: 'error',
                     message: `State Machine has states but no Initial State set.`,
-                    objectType: 'STATE_MACHINE',
-                    objectId: fsm.id,
-                    contextId: ownerNode?.id,
+                    objectType: 'NODE',
+                    objectId: ownerNode?.id || fsm.id,
+                    contextId: fsm.id,
                     location: location
                 });
             } else if (!fsm.states[fsm.initialStateId]) {
@@ -92,25 +92,13 @@ export const validateStructure = (project: ProjectData): ValidationResult[] => {
                     id: `err-fsm-dangling-initial-${fsm.id}`,
                     level: 'error',
                     message: `State Machine Initial State references missing state: ${fsm.initialStateId}`,
-                    objectType: 'STATE_MACHINE',
-                    objectId: fsm.id,
-                    contextId: ownerNode?.id,
-                    location: location
-                });
-            } else if (fsm.states[fsm.initialStateId].state === 'MarkedForDelete') {
-                const ownerNode = Object.values(project.nodes).find(n => n.stateMachineId === fsm.id);
-                const location = ownerNode ? `Node: ${ownerNode.name}` : `FSM: ${fsm.id}`;
-
-                results.push({
-                    id: `err-fsm-del-initial-${fsm.id}`,
-                    level: 'error',
-                    message: `State Machine Initial State references state marked for delete: ${fsm.states[fsm.initialStateId].name}`,
-                    objectType: 'STATE_MACHINE',
-                    objectId: fsm.id,
-                    contextId: ownerNode?.id,
+                    objectType: 'NODE',
+                    objectId: ownerNode?.id || fsm.id,
+                    contextId: fsm.id,
                     location: location
                 });
             }
+            // 注：FSM State 没有 ResourceState，不支持软删除检查
         }
     });
 
@@ -128,16 +116,8 @@ export const validateStructure = (project: ProjectData): ValidationResult[] => {
                     objectId: stage.id,
                     location: `Stage: ${stage.name}`
                 });
-            } else if (childStage.state === 'MarkedForDelete') {
-                results.push({
-                    id: `err-stage-child-del-${stage.id}-${childId}`,
-                    level: 'error',
-                    message: `Stage "${stage.name}" references child stage marked for delete: ${childStage.name}`,
-                    objectType: 'STAGE',
-                    objectId: stage.id,
-                    location: `Stage: ${stage.name}`
-                });
             }
+            // 注：StageNode 没有 ResourceState，不支持软删除检查
         });
     });
 
@@ -154,16 +134,8 @@ export const validateStructure = (project: ProjectData): ValidationResult[] => {
                     objectId: node.id,
                     location: `Node: ${node.name}`
                 });
-            } else if (parentStage.state === 'MarkedForDelete') {
-                results.push({
-                    id: `err-node-stage-del-${node.id}`,
-                    level: 'error',
-                    message: `Puzzle Node "${node.name}" belongs to stage marked for delete: ${parentStage.name}`,
-                    objectType: 'NODE',
-                    objectId: node.id,
-                    location: `Node: ${node.name}`
-                });
             }
+            // 注：StageNode 没有 ResourceState，不支持软删除检查
         }
     });
 
