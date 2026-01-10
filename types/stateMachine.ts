@@ -16,7 +16,8 @@ import {
   TransitionId,
   EventId,
   ScriptId,
-  VariableId
+  VariableId,
+  ValueSource
 } from './common';
 
 // ========== 状态节点 ==========
@@ -55,27 +56,23 @@ export type TriggerConfig =
  * 支持变量比较、逻辑组合和自定义脚本
  */
 export interface ConditionExpression {
-  type: 'AND' | 'OR' | 'NOT' | 'COMPARISON' | 'LITERAL' | 'VARIABLE_REF' | 'SCRIPT_REF';
+  type: 'AND' | 'OR' | 'NOT' | 'COMPARISON' | 'LITERAL' | 'SCRIPT_REF';
 
-  // 逻辑组合 (AND/OR)
+  // 逻辑运算 (AND/OR)
   children?: ConditionExpression[];
 
-  // 逻辑取反 (NOT)
+  // 逻辑非 (NOT)
   operand?: ConditionExpression;
 
   // 比较表达式 (COMPARISON)
   operator?: '==' | '!=' | '>' | '<' | '>=' | '<=';
-  left?: ConditionExpression;
-  right?: ConditionExpression;
+  left?: ValueSource;
+  right?: ValueSource;
 
-  // 字面值 (LITERAL)
-  value?: any;
+  // 字面值 (LITERAL - Always True/False)
+  value?: boolean;
 
-  // 变量引用 (VARIABLE_REF)
-  variableId?: VariableId;
-  variableScope?: VariableScope;    // 明确变量作用域
-
-  // 脚本引用 (SCRIPT_REF) - 自定义条件脚本
+  // 脚本引用 (SCRIPT_REF)
   scriptId?: ScriptId;
 }
 

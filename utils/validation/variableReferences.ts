@@ -60,25 +60,28 @@ const collectFromCondition = (
   navContext?: ReferenceNavigationContext
 ) => {
   if (!condition) return;
-  if (condition.type === 'VARIABLE_REF') {
-    if (condition.variableScope === 'NodeLocal' && condition.variableId === variableId) {
-      collector({ location: origin, navContext });
-    }
+
+  // 逻辑组合：递归子节点
+  if (condition.type === 'AND' || condition.type === 'OR') {
+    condition.children?.forEach((c, idx) => collectFromCondition(c, variableId, collector, `${origin} > Sub condition ${idx + 1}`, navContext));
     return;
   }
 
-  if (condition.type === 'AND' || condition.type === 'OR') {
-    condition.children?.forEach((c, idx) => collectFromCondition(c, variableId, collector, `${origin} > Sub condition ${idx + 1}`, navContext));
+  if (condition.type === 'NOT') {
+    if (condition.operand) collectFromCondition(condition.operand, variableId, collector, `${origin} > Not`, navContext);
+    return;
   }
 
-  if (condition.type === 'NOT' && condition.operand) {
-    collectFromCondition(condition.operand, variableId, collector, `${origin} > Not`, navContext);
-  }
-
+  // 比较表达式：检查左右操作数 (ValueSource)
   if (condition.type === 'COMPARISON') {
-    if (condition.left) collectFromCondition(condition.left, variableId, collector, `${origin} > Left`, navContext);
-    if (condition.right) collectFromCondition(condition.right, variableId, collector, `${origin} > Right`, navContext);
+    collectFromValueSource(condition.left, variableId, collector, `${origin} > Left`, navContext);
+    collectFromValueSource(condition.right, variableId, collector, `${origin} > Right`, navContext);
+    return;
   }
+
+
+
+  // SCRIPT_REF 和 LITERAL 不需要处理变量引用
 };
 
 const collectFromEventListeners = (

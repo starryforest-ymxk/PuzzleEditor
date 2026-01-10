@@ -99,12 +99,7 @@ function validateCondition(
     if (condition.operand) {
         validateCondition(results, condition.operand, project, locationContext, `${contextDescription} > NOT`);
     }
-    if (condition.left) {
-        validateCondition(results, condition.left, project, locationContext, `${contextDescription} > Left`);
-    }
-    if (condition.right) {
-        validateCondition(results, condition.right, project, locationContext, `${contextDescription} > Right`);
-    }
+
 }
 
 /**

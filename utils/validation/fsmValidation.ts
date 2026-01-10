@@ -118,6 +118,28 @@ function isGraphMarkedForDelete(state: EditorState, graphId: string | undefined)
 // ========== 递归检查条件表达式 ==========
 
 /**
+ * 检查 ValueSource 中的资源引用
+ */
+function checkValueSource(
+  source: ValueSource | undefined,
+  state: EditorState,
+  nodeId: string,
+  issues: ValidationIssue[]
+): void {
+  if (!source) return;
+  if (source.type === 'VariableRef') {
+    if (isVariableMarkedForDelete(state, source.variableId, source.scope, nodeId)) {
+      issues.push({
+        type: 'error',
+        message: `Reference to deleted variable: ${source.variableId}`,
+        resourceType: 'variable',
+        resourceId: source.variableId
+      });
+    }
+  }
+}
+
+/**
  * 检查条件表达式中的资源引用
  */
 function checkConditionExpression(
@@ -140,22 +162,10 @@ function checkConditionExpression(
     }
   }
 
-  // 检查变量引用
-  if (condition.type === 'VARIABLE_REF' && condition.variableId) {
-    if (isVariableMarkedForDelete(state, condition.variableId, condition.variableScope, nodeId)) {
-      issues.push({
-        type: 'error',
-        message: `Condition references deleted variable: ${condition.variableId}`,
-        resourceType: 'variable',
-        resourceId: condition.variableId
-      });
-    }
-  }
-
-  // 检查比较表达式的左右操作数
+  // 检查比较表达式的左右操作数 (ValueSource)
   if (condition.type === 'COMPARISON') {
-    checkConditionExpression(condition.left, state, nodeId, issues);
-    checkConditionExpression(condition.right, state, nodeId, issues);
+    checkValueSource(condition.left, state, nodeId, issues);
+    checkValueSource(condition.right, state, nodeId, issues);
   }
 
   // 递归检查逻辑组合的子节点

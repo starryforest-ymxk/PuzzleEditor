@@ -172,11 +172,11 @@ export const typeSelectStyle = (style: BlockStyle): React.CSSProperties => ({
     fontSize: '11px',
     fontWeight: 700,
     height: INPUT_HEIGHT,
-    padding: '0% 22px', // 对称留白，避免文字右偏
-    lineHeight: `${INPUT_HEIGHT}px`, // 垂直居中文本
+    padding: '0 22px 0 8px', // Left align padding (Right space for arrow)
+    lineHeight: `${INPUT_HEIGHT - 2}px`, // 24px content height (26 - 2 border)
     cursor: 'pointer',
-    textAlign: 'center',
-    textAlignLast: 'center',
+    textAlign: 'left',
+    textAlignLast: 'left',
     whiteSpace: 'nowrap',
     overflow: 'hidden',
     textOverflow: 'ellipsis',

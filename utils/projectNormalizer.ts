@@ -9,7 +9,7 @@
  * - ExportManifest (旧版): 兼容旧版导出格式
  */
 import { ManifestData } from '../api/types';
-import { ExportManifest, ProjectData, ProjectFile, ExportBundle, EditorUIState } from '../types/project';
+import { ProjectData, ProjectFile, ExportBundle, EditorUIState } from '../types/project';
 import { StageNode, StageTreeData } from '../types/stage';
 import { PuzzleNode } from '../types/puzzleNode';
 import { StateMachine, State, Transition } from '../types/stateMachine';
@@ -58,12 +58,7 @@ const extractProject = (payload: any): { project: ProjectData; editorState?: Edi
     };
   }
 
-  // ExportManifest 旧版格式
-  if ((payload as ExportManifest).project) {
-    return {
-      project: (payload as ExportManifest).project
-    };
-  }
+
 
   // 原始 ProjectData
   return {
@@ -182,7 +177,7 @@ const normalizePresentationGraphs = (graphs?: Record<string, PresentationGraph>)
 
 // ========= 主归一化入口 =========
 export const normalizeProjectForStore = (
-  raw: any,  // 支持 ProjectFile, ExportBundle, ExportManifest, ProjectData
+  raw: any,  // 支持 ProjectFile, ExportBundle, ProjectData
   manifest?: ManifestData
 ): NormalizedProjectResult => {
   // 提取项目数据和可能的编辑器状态

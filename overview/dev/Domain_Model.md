@@ -112,6 +112,7 @@ interface ParameterBinding {
   source: ValueSource;
   id?: string;                       // 前端渲染辅助 ID
   kind?: 'Variable' | 'Temporary';   // 参数来源类型
+  description?: string;              // 参数描述
   tempVariable?: {                   // 临时参数元数据，仅当 kind === 'Temporary'
     id: string;
     name: string;
@@ -125,8 +126,8 @@ type PresentationBinding =
   | { type: 'Graph'; graphId: string };
 
 type EventAction =
-  | { type: 'InvokeScript'; scriptId: string; parameters?: ParameterBinding[] }
-  | { type: 'ModifyParameter'; modifier: ParameterModifier };
+  | { type: 'InvokeScript' } // 隐式调用当前对象绑定的生命周期脚本
+  | { type: 'ModifyParameter'; modifiers: ParameterModifier[] };
 
 interface EventListener { eventId: string; action: EventAction; }
 ```
@@ -240,15 +241,13 @@ interface Transition extends Entity {
 ### 4.5 条件表达式
 ```ts
 interface ConditionExpression {
-  type: 'AND' | 'OR' | 'NOT' | 'COMPARISON' | 'LITERAL' | 'VARIABLE_REF' | 'SCRIPT_REF';
+  type: 'AND' | 'OR' | 'NOT' | 'COMPARISON' | 'LITERAL' | 'SCRIPT_REF';
   children?: ConditionExpression[];
   operand?: ConditionExpression;
   operator?: '==' | '!=' | '>' | '<' | '>=' | '<=';
-  left?: ConditionExpression;
-  right?: ConditionExpression;
-  value?: any;
-  variableId?: string;
-  variableScope?: VariableScope;
+  left?: ValueSource;
+  right?: ValueSource;
+  value?: boolean;   // Literal 仅用于 boolean (Always True/False)
   scriptId?: string; // 自定义条件脚本
 }
 ```
@@ -261,8 +260,7 @@ interface PresentationNode extends Entity {
   id: string;                  // pnode-*
   type: PresentationNodeType;
   position: { x: number; y: number };
-  scriptId?: string;
-  parameters?: ParameterBinding[];
+  presentation?: PresentationBinding; // 统一演出绑定（脚本或子图）
   duration?: number;
   nextIds: string[];           // pnode-*
 }
@@ -285,6 +283,8 @@ interface ProjectMeta {
   version: string;
   createdAt: string;  // ISO8601
   updatedAt: string;  // ISO8601
+  exportFileName?: string;  // 自定义导出文件名
+  exportPath?: string;      // 项目导出目录路径
 }
 
 interface ProjectData {
@@ -297,11 +297,7 @@ interface ProjectData {
   presentationGraphs: Record<PresentationGraphId, PresentationGraph>;
 }
 
-interface ExportManifest {
-  manifestVersion: '1.0.0';
-  exportedAt: string;  // ISO8601
-  project: ProjectData;
-}
+
 ```
 
 ---

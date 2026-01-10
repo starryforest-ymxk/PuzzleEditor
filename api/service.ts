@@ -3,8 +3,8 @@
  * 提供统一的 API 服务类型定义
  */
 
-import { IApiService, ManifestData, ExportManifest } from './types';
+import { IApiService, ManifestData, ProjectFile } from './types';
 
 // 导出类型定义
-export type { IApiService, ManifestData, ExportManifest };
+export type { IApiService, ManifestData, ProjectFile };
 

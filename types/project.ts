@@ -43,22 +43,16 @@ export interface ProjectMeta {
 export interface ProjectData {
   // 元数据
   meta: ProjectMeta;
-
   // 黑板资源（全局变量与事件）
   blackboard: BlackboardData;
-
   // 脚本清单（包含所有类型：Performance、Lifecycle、Condition、Trigger）
   scripts: ScriptsManifest;
-
   // 阶段树
   stageTree: StageTreeData;
-
   // 解谜节点（扁平化存储）
   nodes: Record<PuzzleNodeId, PuzzleNode>;
-
   // 状态机（扁平化存储）
   stateMachines: Record<StateMachineId, StateMachine>;
-
   // 演出子图（扁平化存储）
   presentationGraphs: Record<PresentationGraphId, PresentationGraph>;
 }
@@ -130,13 +124,5 @@ export interface ExportBundle {
   };
 }
 
-// ========== 兼容旧版导出格式 ==========
-/**
- * @deprecated 旧版导出格式，保留用于兼容性
- */
-export interface ExportManifest {
-  manifestVersion: '1.0.0';
-  exportedAt: string;
-  project: ProjectData;
-}
+
 

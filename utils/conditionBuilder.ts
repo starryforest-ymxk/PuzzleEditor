@@ -8,22 +8,20 @@ import { ParameterModifier, VariableScope } from '../types/common';
 
 // ===== ConditionExpression Builders =====
 
-/** 构造布尔字面量 */
+// ===== ConditionExpression Builders =====
+
+/** 构造布尔字面量（仅支持 boolean） */
 export const literalTrue = (): ConditionExpression => ({ type: 'LITERAL', value: true });
 export const literalFalse = (): ConditionExpression => ({ type: 'LITERAL', value: false });
 
-/** 构造变量引用节点 */
-export const variableRef = (variableId: string, variableScope: VariableScope): ConditionExpression => ({
-  type: 'VARIABLE_REF',
-  variableId,
-  variableScope
-});
-
-/** 构造比较表达式，默认右值为空字符串避免自动填充 0 */
+/** 
+ * 构造比较表达式
+ * 左右操作数现在直接使用 ValueSource
+ */
 export const comparison = (
-  left: ConditionExpression,
+  left: ConditionExpression['left'] = { type: 'VariableRef', variableId: '', scope: 'NodeLocal' },
   operator: ConditionExpression['operator'] = '==',
-  right: ConditionExpression = { type: 'LITERAL', value: '' }
+  right: ConditionExpression['right'] = { type: 'Constant', value: '' }
 ): ConditionExpression => ({
   type: 'COMPARISON',
   operator,
@@ -61,7 +59,7 @@ export const isGroupType = (type: ConditionExpression['type']): boolean =>
 
 /** 判断是否为叶子条件类型（不可包含子条件） */
 export const isLeafType = (type: ConditionExpression['type']): boolean =>
-  type === 'COMPARISON' || type === 'VARIABLE_REF' || type === 'SCRIPT_REF' || type === 'LITERAL';
+  type === 'COMPARISON' || type === 'SCRIPT_REF' || type === 'LITERAL';
 
 /** 创建一个空的逻辑组 */
 export const createGroup = (type: 'AND' | 'OR' | 'NOT' = 'AND'): ConditionExpression => {
@@ -76,8 +74,8 @@ export const createGroup = (type: 'AND' | 'OR' | 'NOT' = 'AND'): ConditionExpres
 export const createComparison = (): ConditionExpression => ({
   type: 'COMPARISON',
   operator: '==',
-  left: { type: 'VARIABLE_REF', variableId: '', variableScope: 'NodeLocal' as VariableScope },
-  right: { type: 'LITERAL', value: '' }
+  left: { type: 'VariableRef', variableId: '', scope: 'NodeLocal' },
+  right: { type: 'Constant', value: '' }
 });
 
 /** 创建一个脚本条件引用 */

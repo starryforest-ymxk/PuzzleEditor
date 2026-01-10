@@ -56,48 +56,23 @@ export const LeafConditionEditor: React.FC<LeafConditionEditorProps> = ({
 }) => {
     const style = getBlockStyle(condition.type);
 
-    // 预处理 COMPARISON 类型：若 left/right/operator 缺失，在此填充默认值，避免类型切换瞬间传入不完整数据导致渲染崩溃
+    // 预处理 COMPARISON 类型：若 left/right/operator 缺失，填充默认值
     useEffect(() => {
         if (!onChange) return;
         if (condition.type !== 'COMPARISON') return;
 
-        const needLeft = !condition.left || condition.left.type !== 'VARIABLE_REF';
-        const needRight = !condition.right || (condition.right.type !== 'VARIABLE_REF' && condition.right.type !== 'LITERAL');
+        const needLeft = !condition.left;
+        const needRight = !condition.right;
         const needOperator = !condition.operator;
 
         if (needLeft || needRight || needOperator) {
             onChange({
                 type: 'COMPARISON',
                 operator: condition.operator || '==',
-                left: needLeft
-                    ? { type: 'VARIABLE_REF', variableId: '', variableScope: 'NodeLocal' }
-                    : {
-                        ...condition.left,
-                        variableScope: condition.left!.variableScope || 'NodeLocal'
-                    },
-                right: needRight
-                    ? { type: 'LITERAL', value: '' }
-                    : (condition.right!.type === 'VARIABLE_REF'
-                        ? {
-                            type: 'VARIABLE_REF',
-                            variableId: condition.right!.variableId || '',
-                            variableScope: condition.right!.variableScope || 'NodeLocal'
-                        }
-                        : { type: 'LITERAL', value: condition.right!.value ?? '' })
+                left: condition.left || { type: 'VariableRef', variableId: '', scope: 'NodeLocal' },
+                right: condition.right || { type: 'Constant', value: '' }
             });
         }
-    }, [condition, onChange]);
-
-    // VARIABLE_REF é¡¹ç›®ç¼ºå°‘ä½œç”¨åŸŸæ—¶ï¼Œè¡¥ä¸Šé»˜è®¤ NodeLocal è§†å›¾å†…å¯è§?
-    useEffect(() => {
-        if (!onChange) return;
-        if (condition.type !== 'VARIABLE_REF') return;
-        if (condition.variableScope) return;
-
-        onChange({
-            ...condition,
-            variableScope: 'NodeLocal'
-        });
     }, [condition, onChange]);
 
     // 过滤可用变量（排除已标记删除的）
@@ -106,15 +81,9 @@ export const LeafConditionEditor: React.FC<LeafConditionEditorProps> = ({
         [variables]
     );
 
-    // VARIABLE_REF 类型条件只能选择布尔类型变量
-    const booleanVars = useMemo(
-        () => availableVars.filter(v => v.type === 'boolean'),
-        [availableVars]
-    );
-
     // 获取左侧选中的变量，用于类型过滤操作符
     const selectedLeftVar = useMemo(() => {
-        if (condition.type === 'COMPARISON' && condition.left?.type === 'VARIABLE_REF') {
+        if (condition.type === 'COMPARISON' && condition.left?.type === 'VariableRef') {
             return variables.find(v => v.id === condition.left?.variableId);
         }
         return undefined;
@@ -160,24 +129,21 @@ export const LeafConditionEditor: React.FC<LeafConditionEditorProps> = ({
                 onChange({
                     type: 'COMPARISON',
                     operator: '==',
-                    left: { type: 'VARIABLE_REF', variableId: '', variableScope: 'NodeLocal' },
-                    right: { type: 'LITERAL', value: '' }
+                    left: { type: 'VariableRef', variableId: '', scope: 'NodeLocal' },
+                    right: { type: 'Constant', value: '' }
                 });
                 break;
             case 'SCRIPT_REF':
                 onChange({ type: 'SCRIPT_REF', scriptId: '' });
                 break;
-            case 'VARIABLE_REF':
-                onChange({ type: 'VARIABLE_REF', variableId: '', variableScope: 'NodeLocal' });
-                break;
             case 'LITERAL':
-                // LITERAL 现在与空态解耦，可以使用 true 或 false
+                // LITERAL (Always True/False)
                 onChange({ type: 'LITERAL', value: true });
                 break;
         }
     };
 
-    // 渲染变量状态警告（使用 InspectorError 组件）
+    // 渲染变量状态警告
     const renderVariableWarning = (variableId?: string) => {
         const state = checkVariableState(variableId);
         if (!state.missing && !state.marked) return null;
@@ -208,7 +174,6 @@ export const LeafConditionEditor: React.FC<LeafConditionEditorProps> = ({
                 )}
 
                 {/* 类型选择器 (合并了显示标记) */}
-                {/* 自绘箭头容器，避免浏览器默认箭头重复平铺导致的花纹 */}
                 <div style={{ position: 'relative', display: 'inline-block', minWidth: 0, flexShrink: 1, maxWidth: '100%', verticalAlign: 'middle' }}>
                     <select
                         value={condition.type}
@@ -218,7 +183,6 @@ export const LeafConditionEditor: React.FC<LeafConditionEditorProps> = ({
                     >
                         <option value="COMPARISON">COMPARE</option>
                         <option value="SCRIPT_REF">SCRIPT</option>
-                        <option value="VARIABLE_REF">VARIABLE</option>
                         <option value="LITERAL">LITERAL</option>
                     </select>
                     <span
@@ -253,29 +217,8 @@ export const LeafConditionEditor: React.FC<LeafConditionEditorProps> = ({
                                 description: s.description
                             }))}
                             placeholder="Select condition script"
-                            showDetails={false} // Disable internal details to maintain row layout
+                            showDetails={false}
                             style={{ width: '100%' }}
-                            height={INPUT_HEIGHT}
-                        />
-                    </div>
-                )}
-
-                {/* VARIABLE_REF 类型：布尔变量选择器 (Inline) */}
-                {condition.type === 'VARIABLE_REF' && (
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                        <VariableSelector
-                            value={condition.variableId || ''}
-                            variables={booleanVars}
-                            allowedTypes={['boolean']}
-                            onChange={(val, scope) => {
-                                if (!onChange) return;
-                                onChange({
-                                    ...condition,
-                                    variableId: val,
-                                    variableScope: scope || condition.variableScope || 'NodeLocal'
-                                });
-                            }}
-                            placeholder="Select variable"
                             height={INPUT_HEIGHT}
                         />
                     </div>
@@ -284,7 +227,7 @@ export const LeafConditionEditor: React.FC<LeafConditionEditorProps> = ({
                 {/* LITERAL 类型：布尔值切换 (Inline) */}
                 {condition.type === 'LITERAL' && (
                     <select
-                        value={condition.value === true ? 'true' : 'false'}
+                        value={condition.value ? 'true' : 'false'}
                         onChange={(e) => onChange && onChange({ ...condition, value: e.target.value === 'true' })}
                         disabled={!onChange}
                         style={{
@@ -322,7 +265,7 @@ export const LeafConditionEditor: React.FC<LeafConditionEditorProps> = ({
                 )}
             </div>
 
-            {/* SCRIPT_REF 错误提示（显示在 Header Row 下一行） */}
+            {/* SCRIPT_REF 错误提示 */}
             {condition.type === 'SCRIPT_REF' && (scriptState.missing || scriptState.marked) && (
                 <InspectorError
                     message={scriptState.missing ? 'Script unavailable' : 'Script is marked for delete'}
@@ -330,19 +273,7 @@ export const LeafConditionEditor: React.FC<LeafConditionEditorProps> = ({
                 />
             )}
 
-            {/* VARIABLE_REF 错误提示（显示在 Header Row 下一行） */}
-            {condition.type === 'VARIABLE_REF' && (() => {
-                const state = checkVariableState(condition.variableId);
-                if (!state.missing && !state.marked) return null;
-                return (
-                    <InspectorError
-                        message={state.missing ? 'Variable unavailable' : 'Variable is marked for delete'}
-                        style={{ marginTop: `${ROW_GAP}px`, marginBottom: 0 }}
-                    />
-                );
-            })()}
-
-            {/* SCRIPT_REF 详细信息显示 (Rendered below row to verify layout) */}
+            {/* SCRIPT_REF 详细信息显示 */}
             {condition.type === 'SCRIPT_REF' && condition.scriptId && (() => {
                 const selectedScript = conditionScripts.find(s => s.id === condition.scriptId);
                 if (!selectedScript) return null;
@@ -376,9 +307,9 @@ export const LeafConditionEditor: React.FC<LeafConditionEditorProps> = ({
 };
 
 /**
- * 比较条件编辑器 - 内部子组件
- * 处理 COMPARISON 类型的左值、操作符、右值编辑
- */
+* 比较条件编辑器 - 内部子组件
+* 处理 COMPARISON 类型的左值、操作符、右值编辑
+*/
 interface ComparisonEditorProps {
     condition: ConditionExpression;
     onChange?: (newCondition: ConditionExpression) => void;
@@ -397,42 +328,15 @@ const ComparisonEditor: React.FC<ComparisonEditorProps> = ({
     renderVariableWarning
 }) => {
     if (condition.type !== 'COMPARISON') return null;
-    // 防御性检查：避免切换类型时导致 left/right 尚未初始化的瞬态崩溃
+    // Defensive check
     if (!condition.left || !condition.right) return null;
 
-    // 将 ConditionExpression 转换为 ValueSource
-    const rightAsValueSource = (): ValueSource => {
-        if (condition.right?.type === 'VARIABLE_REF') {
-            return {
-                type: 'VariableRef',
-                variableId: condition.right.variableId || '',
-                scope: condition.right.variableScope || 'NodeLocal'
-            };
-        }
-        return {
-            type: 'Constant',
-            value: condition.right?.value ?? ''
-        };
-    };
-
-    // 将 ValueSource 转换回 ConditionExpression
     const handleRightChange = (src: ValueSource) => {
         if (!onChange) return;
-        if (src.type === 'VariableRef') {
-            onChange({
-                ...condition,
-                right: {
-                    type: 'VARIABLE_REF',
-                    variableId: src.variableId,
-                    variableScope: src.scope || 'NodeLocal'
-                }
-            });
-        } else {
-            onChange({
-                ...condition,
-                right: { type: 'LITERAL', value: src.value }
-            });
-        }
+        onChange({
+            ...condition,
+            right: src
+        });
     };
 
     // 根据左侧变量类型计算允许的右侧变量类型
@@ -449,29 +353,28 @@ const ComparisonEditor: React.FC<ComparisonEditorProps> = ({
             {/* 左侧变量选择器 */}
             <div style={{ width: '100%' }}>
                 <VariableSelector
-                    value={condition.left?.variableId || ''}
+                    value={condition.left?.type === 'VariableRef' ? condition.left.variableId : ''}
                     variables={availableVars}
                     onChange={(val, scope) => {
-                        if (!onChange || !condition.left) return;
+                        if (!onChange) return;
                         onChange({
                             ...condition,
                             left: {
-                                ...condition.left,
-                                type: 'VARIABLE_REF',
+                                type: 'VariableRef',
                                 variableId: val,
-                                variableScope: scope || 'NodeLocal'
+                                scope: scope || 'NodeLocal'
                             }
                         });
                     }}
                     placeholder="Select left variable"
                     height={INPUT_HEIGHT}
                 />
-                {condition.left?.type === 'VARIABLE_REF' && renderVariableWarning(condition.left?.variableId)}
+                {condition.left?.type === 'VariableRef' && renderVariableWarning(condition.left.variableId)}
             </div>
 
             {/* 操作符 + 右值编辑器 */}
             <ValueSourceEditor
-                source={rightAsValueSource()}
+                source={condition.right}
                 onChange={handleRightChange}
                 variables={availableVars.filter(v => allowedRightTypes.includes(v.type))}
                 valueType={varType}
@@ -491,7 +394,7 @@ const ComparisonEditor: React.FC<ComparisonEditorProps> = ({
                             borderRadius: '4px',
                             flex: 1,
                             minWidth: 0,
-                            height: INPUT_HEIGHT, // Unified Height
+                            height: INPUT_HEIGHT,
                             outline: 'none',
                             fontFamily: 'Inter, sans-serif',
                             lineHeight: `${INPUT_HEIGHT - 2}px`

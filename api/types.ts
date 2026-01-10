@@ -3,7 +3,7 @@
  * 定义数据访问层的抽象接口，实现与后端的解耦
  */
 
-import { ExportManifest } from '../types/project';
+import { ProjectFile } from '../types/project';
 import { ScriptsManifest } from '../types/manifest';
 
 // ========== 数据类型定义 ==========
@@ -21,14 +21,14 @@ export interface ManifestData {
  */
 export interface IApiService {
     /** 加载项目数据 */
-    loadProject(): Promise<ExportManifest>;
+    loadProject(): Promise<ProjectFile>;
 
     /** 加载 Manifest 数据（脚本、触发器定义等） */
     loadManifest(): Promise<ManifestData>;
 
     /** 保存项目数据 */
-    saveProject(data: ExportManifest): Promise<boolean>;
+    saveProject(data: ProjectFile): Promise<boolean>;
 }
 
 // 便于外部引用导出类型
-export type { ExportManifest };
+export type { ProjectFile };

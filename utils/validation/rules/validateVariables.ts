@@ -143,12 +143,13 @@ function validateCondition(
 ) {
     if (!condition) return;
 
-    // Check Variable Ref
-    if (condition.type === 'VARIABLE_REF') {
-        validateVariableId(results, condition.variableId, condition.variableScope, project, context, locationContext, `${contextDescription} (Variable)`);
+    // Check COMPARISON operands
+    if (condition.type === 'COMPARISON') {
+        validateValueSource(results, condition.left, project, context, locationContext, `${contextDescription} > Left`);
+        validateValueSource(results, condition.right, project, context, locationContext, `${contextDescription} > Right`);
     }
 
-    // Recurse
+    // Recurse children
     if (condition.children) {
         condition.children.forEach((child, idx) => {
             validateCondition(results, child, project, context, locationContext, `${contextDescription} > Sub #${idx + 1}`);
@@ -156,12 +157,6 @@ function validateCondition(
     }
     if (condition.operand) {
         validateCondition(results, condition.operand, project, context, locationContext, `${contextDescription} > NOT`);
-    }
-    if (condition.left) {
-        validateCondition(results, condition.left, project, context, locationContext, `${contextDescription} > Left`);
-    }
-    if (condition.right) {
-        validateCondition(results, condition.right, project, context, locationContext, `${contextDescription} > Right`);
     }
 }
 
