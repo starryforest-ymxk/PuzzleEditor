@@ -263,6 +263,7 @@ interface PresentationNode extends Entity {
   presentation?: PresentationBinding; // 统一演出绑定（脚本或子图）
   duration?: number;
   nextIds: string[];           // pnode-*
+  condition?: ConditionExpression; // Branch 类型：分支条件
 }
 
 interface PresentationGraph extends Entity {
