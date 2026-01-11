@@ -18,7 +18,8 @@ export type UiAction =
     | { type: 'ADD_MESSAGE'; payload: UiMessage }
     | { type: 'CLEAR_MESSAGES' }
     | { type: 'SET_VALIDATION_RESULTS'; payload: import('../types').ValidationResult[] }
-    | { type: 'SET_SHOW_VALIDATION_PANEL'; payload: boolean };
+    | { type: 'SET_SHOW_VALIDATION_PANEL'; payload: boolean }
+    | { type: 'SET_CONFIRM_DIALOG'; payload: { isOpen: boolean; title?: string; message?: string; confirmAction?: import('../types').Action; danger?: boolean } };
 
 // ========== 类型守卫：判断是否为 UI Action ==========
 export const isUiAction = (action: Action): action is UiAction => {
@@ -27,7 +28,8 @@ export const isUiAction = (action: Action): action is UiAction => {
         'TOGGLE_STAGE_EXPAND', 'SET_STAGE_EXPANDED',
         'SET_BLACKBOARD_VIEW', 'SET_PANEL_SIZES',
         'ADD_MESSAGE', 'CLEAR_MESSAGES',
-        'SET_VALIDATION_RESULTS', 'SET_SHOW_VALIDATION_PANEL'
+        'SET_VALIDATION_RESULTS', 'SET_SHOW_VALIDATION_PANEL',
+        'SET_CONFIRM_DIALOG'
     ];
     return uiActionTypes.includes(action.type);
 };
@@ -135,6 +137,19 @@ export const uiReducer = (state: EditorState, action: UiAction): EditorState => 
             return {
                 ...state,
                 ui: { ...state.ui, showValidationPanel: action.payload }
+            };
+        }
+
+        case 'SET_CONFIRM_DIALOG': {
+            return {
+                ...state,
+                ui: {
+                    ...state.ui,
+                    confirmDialog: {
+                        ...state.ui.confirmDialog,
+                        ...action.payload
+                    }
+                }
             };
         }
 

@@ -272,7 +272,7 @@ interface Transition extends Entity {
 ### 4.5 条件表达式
 ```ts
 interface ConditionExpression {
-  type: 'AND' | 'OR' | 'NOT' | 'COMPARISON' | 'LITERAL' | 'SCRIPT_REF';
+  type: 'And' | 'Or' | 'Not' | 'Comparison' | 'Literal' | 'ScriptRef';
   children?: ConditionExpression[];
   operand?: ConditionExpression;
   operator?: '==' | '!=' | '>' | '<' | '>=' | '<=';

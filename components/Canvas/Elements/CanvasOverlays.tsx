@@ -16,6 +16,8 @@ interface InfoOverlayProps {
     hasNoInitialState?: boolean;
     /** 顶部标签文案，默认 FSM Editor */
     headerLabel?: string;
+    /** 初始状态警告文案 */
+    initialStateWarningText?: string;
 }
 
 export const CanvasInfoOverlay: React.FC<InfoOverlayProps> = ({
@@ -25,7 +27,8 @@ export const CanvasInfoOverlay: React.FC<InfoOverlayProps> = ({
     isLinkMode,
     isPanMode,
     hasNoInitialState = false,
-    headerLabel = 'FSM Editor'
+    headerLabel = 'FSM Editor',
+    initialStateWarningText = 'No initial state set'
 }) => (
     <div style={{
         position: 'absolute',
@@ -56,7 +59,7 @@ export const CanvasInfoOverlay: React.FC<InfoOverlayProps> = ({
                     gap: '4px'
                 }}>
                     <span style={{ fontSize: '12px' }}>⚠</span>
-                    No initial state set
+                    {initialStateWarningText}
                 </div>
             )}
             {multiSelectCount > 0 && (

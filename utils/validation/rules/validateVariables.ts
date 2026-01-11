@@ -2,7 +2,7 @@
  * utils/validation/rules/validateVariables.ts
  * 校验变量引用的完整性 (Global, StageLocal, NodeLocal)
  * 
- * 检查以下位置的 VARIABLE_REF:
+ * 检查以下位置的 VariableRef:
  * 1. Conditions
  * 2. Parameter Modifiers
  * 3. Parameter Bindings
@@ -143,8 +143,8 @@ function validateCondition(
 ) {
     if (!condition) return;
 
-    // Check COMPARISON operands
-    if (condition.type === 'COMPARISON') {
+    // Check Comparison operands
+    if (condition.type === 'Comparison') {
         validateValueSource(results, condition.left, project, context, locationContext, `${contextDescription} > Left`);
         validateValueSource(results, condition.right, project, context, locationContext, `${contextDescription} > Right`);
     }

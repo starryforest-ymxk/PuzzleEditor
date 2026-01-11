@@ -133,7 +133,6 @@ export const StateMachineCanvas = ({ node, readOnly = false }: Props) => {
                         toStateId: targetId,
                         fromSide,
                         toSide,
-                        condition: { type: 'LITERAL', value: true },
                         priority: 0,
                         triggers: [{ type: 'Always' }],
                         parameterModifiers: []

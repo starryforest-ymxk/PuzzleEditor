@@ -10,7 +10,7 @@ interface AddDropdownProps {
     onAddCondition: () => void;     // 添加条件回调
     onAddGroup: () => void;         // 添加组回调
     disabled?: boolean;             // 是否禁用
-    disabledReason?: string;        // 禁用原因提示（如 NOT 组限制）
+    disabledReason?: string;        // 禁用原因提示（如 not  组限制）
 }
 
 /**

@@ -30,7 +30,6 @@ import type { MessageLevel } from '../../store/types';
 import type { StageNode } from '../../types/stage';
 import type { PuzzleNode } from '../../types/puzzleNode';
 import { Trash2, RotateCcw, ExternalLink } from 'lucide-react';
-import { ConfirmDialog } from './ConfirmDialog';
 import { InspectorWarning } from './InspectorInfo';
 import { findGlobalVariableReferences, VariableReferenceInfo, ReferenceNavigationContext } from '../../utils/validation/globalVariableReferences';
 import { findNodeVariableReferences } from '../../utils/variableReferences';
@@ -38,6 +37,7 @@ import { findStageVariableReferences } from '../../utils/validation/stageVariabl
 import { isValidAssetName } from '../../utils/assetNameValidation';
 import { useAutoTranslateAssetName } from '../../hooks/useAutoTranslateAssetName';
 import { AssetNameAutoFillButton } from './AssetNameAutoFillButton';
+import { useDeleteHandler } from '../../hooks/useDeleteHandler';
 
 // ========== Props 类型定义 ==========
 interface VariableInspectorProps {
@@ -143,15 +143,6 @@ export const VariableInspector: React.FC<VariableInspectorProps> = ({ variableId
     const [localAssetName, setLocalAssetName] = useState(variable.assetName || '');
     const [localValue, setLocalValue] = useState<any>(variable.value);
     const [localDescription, setLocalDescription] = useState(variable.description || '');
-
-    // ========== 确认对话框状态 ==========
-    type ConfirmMode = 'soft-delete' | 'hard-delete' | 'delete';
-    const [confirmDialog, setConfirmDialog] = useState<{
-        title: string;
-        message: string;
-        refs: string[];
-        mode: ConfirmMode;
-    } | null>(null);
 
     // ========== 变量引用检查（支持全局和局部变量） ==========
     const references = useMemo((): VariableReferenceInfo[] => {
@@ -335,72 +326,15 @@ export const VariableInspector: React.FC<VariableInspectorProps> = ({ variableId
      * - hard-delete: MarkedForDelete -> 物理删除
      * - delete: Draft -> 物理删除
      */
-    const applyDeleteAction = (mode: ConfirmMode) => {
-        if (!isGlobal) return;
-
-        if (mode === 'hard-delete' || variable.state === 'MarkedForDelete') {
-            // 硬删除：直接物理删除
-            dispatch({ type: 'APPLY_DELETE_GLOBAL_VARIABLE', payload: { id: variableId } });
-            pushMessage(
-                references.length > 0 ? 'warning' : 'info',
-                `Permanently deleted global variable "${variable.name}".`
-            );
-        } else if (mode === 'soft-delete' && variable.state === 'Implemented') {
-            // 软删除：标记为 MarkedForDelete
-            dispatch({ type: 'SOFT_DELETE_GLOBAL_VARIABLE', payload: { id: variableId } });
-            pushMessage('warning', `Marked global variable "${variable.name}" for delete. Editing is now locked.`);
-        } else {
-            // Draft 状态直接删除
-            dispatch({ type: 'SOFT_DELETE_GLOBAL_VARIABLE', payload: { id: variableId } });
-            pushMessage(
-                references.length > 0 ? 'warning' : 'info',
-                `Deleted global variable "${variable.name}".`
-            );
-        }
-
-        setConfirmDialog(null);
-    };
+    // ========== 删除逻辑 (使用 unified hook) ==========
+    const { deleteGlobalVariable } = useDeleteHandler();
 
     /**
      * 删除按钮点击处理
-     * 根据变量状态和引用情况决定是否弹窗确认
      */
     const handleDelete = () => {
-        if (!isGlobal) return;
-        const hasRefs = references.length > 0;
-        const preview = referenceLocations.slice(0, 5);
-
-        // MarkedForDelete 状态：弹窗确认后硬删除
-        if (variable.state === 'MarkedForDelete') {
-            setConfirmDialog({
-                title: 'Apply Delete (Irreversible)',
-                message: 'This variable is already marked for delete. Applying delete will permanently remove it. This action cannot be undone.',
-                refs: preview,
-                mode: 'hard-delete'
-            });
-            return;
-        }
-
-        // 有引用：弹窗确认
-        if (hasRefs) {
-            const isImplemented = variable.state === 'Implemented';
-            setConfirmDialog({
-                title: isImplemented ? 'Mark For Delete' : 'Confirm Delete',
-                message: `Variable "${variable.name}" is referenced ${references.length} time(s). ${isImplemented ? 'It will be marked as "MarkedForDelete" and locked.' : 'Deleting it will require fixing those references manually.'}`,
-                refs: preview,
-                mode: isImplemented ? 'soft-delete' : 'delete'
-            });
-            return;
-        }
-
-        // 无引用 + Implemented：直接软删除（不弹窗）
-        if (variable.state === 'Implemented') {
-            applyDeleteAction('soft-delete');
-            return;
-        }
-
-        // 无引用 + Draft：直接删除（不弹窗）
-        applyDeleteAction('delete');
+        if (!isGlobal || readOnly) return;
+        deleteGlobalVariable(variableId);
     };
 
     /**
@@ -412,21 +346,6 @@ export const VariableInspector: React.FC<VariableInspectorProps> = ({ variableId
         dispatch({ type: 'UPDATE_GLOBAL_VARIABLE', payload: { id: variableId, data: { state: 'Implemented' } } });
         pushMessage('info', `Restored global variable "${variable.name}" to Implemented state.`);
     };
-
-    /**
-     * 确认对话框确认按钮处理
-     */
-    const handleConfirmDelete = () => {
-        if (!confirmDialog) return;
-        applyDeleteAction(confirmDialog.mode);
-    };
-
-    // 确认按钮文案
-    const confirmButtonLabel = confirmDialog?.mode === 'hard-delete'
-        ? 'Apply Delete'
-        : confirmDialog?.mode === 'soft-delete'
-            ? 'Mark for Delete'
-            : 'Delete';
 
     // ========== 失焦校验处理函数 ==========
 
@@ -548,12 +467,7 @@ export const VariableInspector: React.FC<VariableInspectorProps> = ({ variableId
         }
     };
 
-    // 获取删除按钮提示文案
-    const getDeleteTooltip = (): string => {
-        if (variable.state === 'Draft') return 'Delete';
-        if (variable.state === 'Implemented') return 'Mark for Delete';
-        return 'Apply Delete';
-    };
+
 
     return (
         <>
@@ -591,7 +505,7 @@ export const VariableInspector: React.FC<VariableInspectorProps> = ({ variableId
                                     <button
                                         className="btn-icon btn-icon--danger"
                                         onClick={handleDelete}
-                                        title={getDeleteTooltip()}
+                                        title="Delete"
                                     >
                                         <Trash2 size={14} />
                                     </button>
@@ -788,18 +702,7 @@ export const VariableInspector: React.FC<VariableInspectorProps> = ({ variableId
                 </div>
             </div>
 
-            {/* Confirm Dialog - 确认对话框 (移到 opacity 容器外，避免透明度问题) */}
-            {confirmDialog && isGlobal && (
-                <ConfirmDialog
-                    title={confirmDialog.title}
-                    message={confirmDialog.message}
-                    confirmText={confirmButtonLabel}
-                    references={confirmDialog.refs}
-                    totalReferences={references.length}
-                    onCancel={() => setConfirmDialog(null)}
-                    onConfirm={handleConfirmDelete}
-                />
-            )}
+
         </>
     );
 };

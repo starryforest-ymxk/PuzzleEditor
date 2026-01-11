@@ -11,8 +11,11 @@ import { ParameterModifier, VariableScope } from '../types/common';
 // ===== ConditionExpression Builders =====
 
 /** 构造布尔字面量（仅支持 boolean） */
-export const literalTrue = (): ConditionExpression => ({ type: 'LITERAL', value: true });
-export const literalFalse = (): ConditionExpression => ({ type: 'LITERAL', value: false });
+// ===== ConditionExpression Builders =====
+
+/** 构造布尔字面量（仅支持 boolean） */
+export const literalTrue = (): ConditionExpression => ({ type: 'Literal', value: true });
+export const literalFalse = (): ConditionExpression => ({ type: 'Literal', value: false });
 
 /** 
  * 构造比较表达式
@@ -23,7 +26,7 @@ export const comparison = (
   operator: ConditionExpression['operator'] = '==',
   right: ConditionExpression['right'] = { type: 'Constant', value: '' }
 ): ConditionExpression => ({
-  type: 'COMPARISON',
+  type: 'Comparison',
   operator,
   left,
   right
@@ -31,23 +34,23 @@ export const comparison = (
 
 /** 构造逻辑与/或 */
 export const logicalAnd = (children: ConditionExpression[]): ConditionExpression => ({
-  type: 'AND',
+  type: 'And',
   children
 });
 export const logicalOr = (children: ConditionExpression[]): ConditionExpression => ({
-  type: 'OR',
+  type: 'Or',
   children
 });
 
 /** 构造取反 */
 export const logicalNot = (operand: ConditionExpression): ConditionExpression => ({
-  type: 'NOT',
+  type: 'Not',
   operand
 });
 
 /** 构造自定义条件脚本引用 */
 export const scriptCondition = (scriptId: string): ConditionExpression => ({
-  type: 'SCRIPT_REF',
+  type: 'ScriptRef',
   scriptId
 });
 
@@ -55,24 +58,24 @@ export const scriptCondition = (scriptId: string): ConditionExpression => ({
 
 /** 判断是否为逻辑组类型（可包含子条件） */
 export const isGroupType = (type: ConditionExpression['type']): boolean =>
-  type === 'AND' || type === 'OR' || type === 'NOT';
+  type === 'And' || type === 'Or' || type === 'Not';
 
 /** 判断是否为叶子条件类型（不可包含子条件） */
 export const isLeafType = (type: ConditionExpression['type']): boolean =>
-  type === 'COMPARISON' || type === 'SCRIPT_REF' || type === 'LITERAL';
+  type === 'Comparison' || type === 'ScriptRef' || type === 'Literal';
 
 /** 创建一个空的逻辑组 */
-export const createGroup = (type: 'AND' | 'OR' | 'NOT' = 'AND'): ConditionExpression => {
-  // NOT 组仅允许 1 个子节点，初始时 operand 置为 undefined
-  if (type === 'NOT') {
-    return { type: 'NOT', operand: undefined };
+export const createGroup = (type: 'And' | 'Or' | 'Not' = 'And'): ConditionExpression => {
+  // not  组仅允许 1 个子节点，初始时 operand 置为 undefined
+  if (type === 'Not') {
+    return { type: 'Not', operand: undefined };
   }
   return { type, children: [] };
 };
 
 /** 创建一个默认的比较条件 */
 export const createComparison = (): ConditionExpression => ({
-  type: 'COMPARISON',
+  type: 'Comparison',
   operator: '==',
   left: { type: 'VariableRef', variableId: '', scope: 'NodeLocal' },
   right: { type: 'Constant', value: '' }
@@ -80,16 +83,16 @@ export const createComparison = (): ConditionExpression => ({
 
 /** 创建一个脚本条件引用 */
 export const createScriptRef = (): ConditionExpression => ({
-  type: 'SCRIPT_REF',
+  type: 'ScriptRef',
   scriptId: ''
 });
 
 /** 获取组内子条件数量 */
 export const getChildCount = (condition: ConditionExpression): number => {
-  if (condition.type === 'NOT') {
+  if (condition.type === 'Not') {
     return condition.operand ? 1 : 0;
   }
-  if (condition.type === 'AND' || condition.type === 'OR') {
+  if (condition.type === 'And' || condition.type === 'Or') {
     return condition.children?.length || 0;
   }
   return 0;
@@ -97,21 +100,21 @@ export const getChildCount = (condition: ConditionExpression): number => {
 
 /** 判断是否可以向组内添加子条件（NOT 组最多 1 个） */
 export const canAddChild = (condition: ConditionExpression): boolean => {
-  if (condition.type === 'NOT') {
+  if (condition.type === 'Not') {
     return !condition.operand;
   }
-  if (condition.type === 'AND' || condition.type === 'OR') {
-    return true; // AND/OR 可无限添加
+  if (condition.type === 'And' || condition.type === 'Or') {
+    return true; // And/Or 可无限添加
   }
   return false; // 非组类型不可添加
 };
 
 /** 获取组的子条件数组（统一接口） */
 export const getChildren = (condition: ConditionExpression): ConditionExpression[] => {
-  if (condition.type === 'NOT') {
+  if (condition.type === 'Not') {
     return condition.operand ? [condition.operand] : [];
   }
-  if (condition.type === 'AND' || condition.type === 'OR') {
+  if (condition.type === 'And' || condition.type === 'Or') {
     return condition.children || [];
   }
   return [];
@@ -119,11 +122,11 @@ export const getChildren = (condition: ConditionExpression): ConditionExpression
 
 /** 设定组的子条件（统一接口） */
 export const setChildren = (condition: ConditionExpression, children: ConditionExpression[]): ConditionExpression => {
-  if (condition.type === 'NOT') {
+  if (condition.type === 'Not') {
     // 仅取第一个子节点，其余忽略
     return { ...condition, operand: children[0] };
   }
-  if (condition.type === 'AND' || condition.type === 'OR') {
+  if (condition.type === 'And' || condition.type === 'Or') {
     return { ...condition, children };
   }
   return condition;

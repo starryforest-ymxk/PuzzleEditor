@@ -148,6 +148,7 @@ export function createDefaultStage(
         parentId,
         childrenIds: [],
         isInitial: false,
+        unlockTriggers: [{ type: 'Always' }],
         localVariables: {},
         eventListeners: [],
         isExpanded: false

@@ -143,7 +143,7 @@ public class RuntimePresentationNode {
 | 节点生命周期 | `Lifecycle` (PuzzleNode) | PuzzleNode 的进入/退出/更新/事件/状态变化处理 |
 | 状态生命周期 | `Lifecycle` (State) | FSM State 的进入/退出/更新/事件处理 |
 | 自定义触发器 | `Trigger` | 用于 TriggerConfig.type = 'CustomScript' |
-| 自定义条件 | `Condition` | 用于 ConditionExpression.type = 'SCRIPT_REF' |
+| 自定义条件 | `Condition` | 用于 ConditionExpression.type = 'ScriptRef' |
 
 ### 3.2 演出脚本 (Performance Script)
 

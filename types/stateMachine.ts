@@ -58,21 +58,21 @@ export type TriggerConfig =
 export interface ConditionExpression {
   type: 'And' | 'Or' | 'Not' | 'Comparison' | 'Literal' | 'ScriptRef';
 
-  // 逻辑运算 (AND/OR)
+  // 逻辑运算 (And/Or)
   children?: ConditionExpression[];
 
-  // 逻辑非 (NOT)
+  // 逻辑非 (Not)
   operand?: ConditionExpression;
 
-  // 比较表达式 (COMPARISON)
+  // 比较表达式 (Comparison)
   operator?: '==' | '!=' | '>' | '<' | '>=' | '<=';
   left?: ValueSource;
   right?: ValueSource;
 
-  // 字面值 (LITERAL - Always True/False)
+  // 字面值 (Literal - Always True/False)
   value?: boolean;
 
-  // 脚本引用 (SCRIPT_REF)
+  // 脚本引用 (ScriptRef)
   scriptId?: ScriptId;
 }
 

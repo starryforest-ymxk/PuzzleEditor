@@ -9,6 +9,20 @@ import { ProjectData } from '../../../types/project';
 export const validateStructure = (project: ProjectData): ValidationResult[] => {
     const results: ValidationResult[] = [];
 
+    // --- 0. Root Stage Initial Check ---
+    const rootId = project.stageTree.rootId;
+    const rootStage = project.stageTree.stages[rootId];
+    if (rootStage && !rootStage.isInitial) {
+        results.push({
+            id: `err-root-not-initial-${rootId}`,
+            level: 'error',
+            message: `Root Stage "${rootStage.name}" must be marked as Initial.`,
+            objectType: 'STAGE',
+            objectId: rootId,
+            location: `Stage: ${rootStage.name}`
+        });
+    }
+
     // --- 1. Puzzle Node & FSM Check ---
     Object.values(project.nodes).forEach(node => {
         const fsm = project.stateMachines[node.stateMachineId];
@@ -119,6 +133,18 @@ export const validateStructure = (project: ProjectData): ValidationResult[] => {
             }
             // 注：StageNode 没有 ResourceState，不支持软删除检查
         });
+
+        // Check Unlock Triggers (Non-Initial Stage must have triggers)
+        if (!stage.isInitial && (!stage.unlockTriggers || stage.unlockTriggers.length === 0)) {
+            results.push({
+                id: `err-stage-no-unlock-trigger-${stage.id}`,
+                level: 'error',
+                message: `Stage "${stage.name}" is not initial but has no Unlock Triggers. It will never be unlocked.`,
+                objectType: 'STAGE',
+                objectId: stage.id,
+                location: `Stage: ${stage.name}`
+            });
+        }
     });
 
     // 4. Node Ownership Integrity
@@ -139,9 +165,98 @@ export const validateStructure = (project: ProjectData): ValidationResult[] => {
         }
     });
 
-    // 5. Presentation Graph Edge Integrity
+    // 5. Structure & Transition Logic Check
+    Object.values(project.stateMachines || {}).forEach(fsm => {
+        // Calculate in-degrees for FSM
+        const inDegrees = new Map<string, number>();
+        Object.keys(fsm.states || {}).forEach(id => inDegrees.set(id, 0));
+        Object.values(fsm.transitions || {}).forEach(trans => {
+            if (trans.toStateId && inDegrees.has(trans.toStateId)) {
+                inDegrees.set(trans.toStateId, (inDegrees.get(trans.toStateId) || 0) + 1);
+            }
+        });
+
+        // Check Unreachable States
+        Object.values(fsm.states || {}).forEach(state => {
+            if (state.id !== fsm.initialStateId && (inDegrees.get(state.id) || 0) === 0) {
+                const ownerNode = Object.values(project.nodes).find(n => n.stateMachineId === fsm.id);
+                const location = ownerNode ? `Node: ${ownerNode.name} > State: ${state.name}` : `FSM: ${fsm.id} > State: ${state.name}`;
+                results.push({
+                    id: `warn-fsm-unreachable-${fsm.id}-${state.id}`,
+                    level: 'warning',
+                    message: `State "${state.name}" is unreachable (no incoming transitions).`,
+                    objectType: 'NODE', // FSM States are part of Node logic
+                    objectId: ownerNode?.id || state.id,
+                    contextId: fsm.id,
+                    location: location
+                });
+            }
+        });
+
+        Object.values(fsm.transitions || {}).forEach(trans => {
+            if (!trans.triggers || trans.triggers.length === 0) {
+                // Try to resolve context for better error message
+                const ownerNode = Object.values(project.nodes).find(n => n.stateMachineId === fsm.id);
+                const fromState = fsm.states[trans.fromStateId];
+                const fromStateName = fromState ? fromState.name : trans.fromStateId;
+                const location = ownerNode
+                    ? `Node: ${ownerNode.name} > State: ${fromStateName} > Transition`
+                    : `FSM: ${fsm.id} > Transition: ${trans.id}`;
+
+                results.push({
+                    id: `err-trans-no-trigger-${trans.id}`,
+                    level: 'error',
+                    message: `Transition details: State "${fromStateName}" -> Target has no Triggers. It will never evaluate.`,
+                    objectType: 'TRANSITION',
+                    objectId: trans.id,
+                    contextId: fsm.id,
+                    location: location
+                });
+            }
+        });
+    });
+
+    // 6. Presentation Graph Edge Integrity
     Object.values(project.presentationGraphs || {}).forEach(graph => {
+        // Calculate in-degrees for Graph
+        const inDegrees = new Map<string, number>();
+        Object.keys(graph.nodes || {}).forEach(id => inDegrees.set(id, 0));
+        Object.values(graph.nodes || {}).forEach(node => {
+            node.nextIds.forEach(targetId => {
+                if (targetId && inDegrees.has(targetId)) {
+                    inDegrees.set(targetId, (inDegrees.get(targetId) || 0) + 1);
+                }
+            });
+        });
+
         Object.values(graph.nodes || {}).forEach(pNode => {
+            // Check Unreachable Nodes
+            if (pNode.id !== graph.startNodeId && (inDegrees.get(pNode.id) || 0) === 0) {
+                results.push({
+                    id: `warn-pres-unreachable-${graph.id}-${pNode.id}`,
+                    level: 'warning',
+                    message: `Presentation Node "${pNode.name || pNode.id}" is unreachable (no incoming connections).`,
+                    objectType: 'PRESENTATION_GRAPH',
+                    objectId: graph.id,
+                    location: `Graph: ${graph.name || graph.id} > Node: ${pNode.name || pNode.id}`
+                });
+            }
+
+            // Check Multiple Outgoing Edges for non-Branch/Parallel
+            if (pNode.type !== 'Branch' && pNode.type !== 'Parallel') {
+                const validOutputs = pNode.nextIds?.filter(id => !!id) || [];
+                if (validOutputs.length > 1) {
+                    results.push({
+                        id: `warn-pres-multi-out-${graph.id}-${pNode.id}`,
+                        level: 'warning',
+                        message: `Node "${pNode.name || pNode.id}" has multiple outgoing edges. Only the first will be executed.`,
+                        objectType: 'PRESENTATION_GRAPH',
+                        objectId: graph.id,
+                        location: `Graph: ${graph.name || graph.id} > Node: ${pNode.name || pNode.id}`
+                    });
+                }
+            }
+
             // Logic Integrity: Branch Node must have condition
             if (pNode.type === 'Branch' && !pNode.condition) {
                 results.push({
@@ -166,10 +281,6 @@ export const validateStructure = (project: ProjectData): ValidationResult[] => {
                         location: `Graph: ${graph.name || graph.id} > Node: ${pNode.name || pNode.id}`
                     });
                 }
-                // Nodes inside graph structure usually don't have individual 'MarkedForDelete', they are just present or not. 
-                // If the design adds soft-delete for nodes, check here. Assuming 'Entity' has no state, or we check common type.
-                // PresentationNode extends Entity, Entity doesn't have 'state'. ResourceState is on Resource types.
-                // So we skip MarkedForDelete check for internal graph nodes for now unless schemas change.
             });
         });
     });

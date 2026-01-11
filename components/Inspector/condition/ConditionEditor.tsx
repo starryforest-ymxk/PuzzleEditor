@@ -3,7 +3,7 @@
  * 支持嵌套的条件逻辑编辑，符合 条件构造器.md 设计规范
  * 
  * UI 结构:
- * - Logic Bar: 逻辑模式选择 (AND/OR/NOT) + Add 下拉菜单
+ * - Logic Bar: 逻辑模式选择 (And/Or/Not) + Add 下拉菜单
  * - Condition List: 支持 Group 行和 Condition 行嵌套
  * - Empty State: 无条件时显示 "No conditions (Always true)"
  * 
@@ -61,7 +61,7 @@ interface DeleteConfirmState {
 const countGroupContent = (condition: ConditionExpression): number => {
     const countSelfAndDesc = (cond: ConditionExpression): number => {
         if (!isGroupType(cond.type)) return 1;
-        if (cond.type === 'NOT') {
+        if (cond.type === 'Not') {
             return 1 + (cond.operand ? countSelfAndDesc(cond.operand) : 0);
         }
         return 1 + (cond.children || []).reduce((sum, child) => sum + countSelfAndDesc(child), 0);
@@ -74,7 +74,7 @@ const countGroupContent = (condition: ConditionExpression): number => {
 
 /**
  * 条件编辑器主组件
- * 支持嵌套逻辑组（AND/OR/NOT）和叶子条件
+ * 支持嵌套逻辑组（And/Or/Not）和叶子条件
  */
 export const ConditionEditor: React.FC<ConditionEditorProps> = ({
     condition,
@@ -94,9 +94,9 @@ export const ConditionEditor: React.FC<ConditionEditorProps> = ({
     // ========== 派生状态 ==========
     const isEmpty = condition === undefined;
 
-    // 空状态时使用空 AND 组便于渲染；否则使用实际 condition
+    // 空状态时使用空 and 组便于渲染；否则使用实际 condition
     const effectiveCondition: ConditionExpression = useMemo(() => {
-        return isEmpty ? { type: 'AND', children: [] } : condition;
+        return isEmpty ? { type: 'And', children: [] } : condition;
     }, [condition, isEmpty]);
 
     // ========== 核心处理函数 ==========
@@ -120,9 +120,9 @@ export const ConditionEditor: React.FC<ConditionEditorProps> = ({
                 return;
             }
 
-            // AND 且仅 1 条叶子 -> 拆封为单条，避免多余包裹
+            // and 且仅 1 条叶子 -> 拆封为单条，避免多余包裹
             if (!options?.preserveGroup &&
-                newCond.type === 'AND' &&
+                newCond.type === 'And' &&
                 children.length === 1 &&
                 isLeafType(children[0].type)) {
                 onChange(children[0]);
@@ -155,7 +155,7 @@ export const ConditionEditor: React.FC<ConditionEditorProps> = ({
 
     // ========== 组类型渲染准备 ==========
 
-    const groupType = effectiveCondition.type as 'AND' | 'OR' | 'NOT';
+    const groupType = effectiveCondition.type as 'And' | 'Or' | 'Not';
     const style = getBlockStyle(groupType);
     const children = getChildren(effectiveCondition);
     const childCount = children.length;
@@ -163,25 +163,25 @@ export const ConditionEditor: React.FC<ConditionEditorProps> = ({
 
     // ========== 逻辑模式切换 ==========
 
-    const handleModeChange = (newMode: 'AND' | 'OR' | 'NOT') => {
+    const handleModeChange = (newMode: 'And' | 'Or' | 'Not') => {
         if (!onChange || newMode === groupType) return;
 
-        if (newMode === 'NOT') {
-            // 切换为 NOT 时若已有多个子项，将现有子项自动包成一个子 Group
+        if (newMode === 'Not') {
+            // 切换为 not  时若已有多个子项，将现有子项自动包成一个子 Group
             if (children.length > 1) {
                 const wrappedGroup: ConditionExpression = {
-                    type: groupType as 'AND' | 'OR',
+                    type: groupType as 'And' | 'Or',
                     children: children
                 };
-                handleEffectiveChange({ type: 'NOT', operand: wrappedGroup }, { preserveGroup: true });
+                handleEffectiveChange({ type: 'Not', operand: wrappedGroup }, { preserveGroup: true });
             } else {
-                handleEffectiveChange({ type: 'NOT', operand: children[0] }, { preserveGroup: true });
+                handleEffectiveChange({ type: 'Not', operand: children[0] }, { preserveGroup: true });
             }
         } else {
-            // AND/OR 可以有多个子项
+            // And/Or 可以有多个子项
             handleEffectiveChange({
                 type: newMode,
-                children: effectiveCondition.type === 'NOT' && effectiveCondition.operand
+                children: effectiveCondition.type === 'Not' && effectiveCondition.operand
                     ? [effectiveCondition.operand]
                     : children
             }, { preserveGroup: true });
@@ -194,9 +194,9 @@ export const ConditionEditor: React.FC<ConditionEditorProps> = ({
         if (!onChange || !canAdd) return;
         const newChild = createComparison();
 
-        // 根层且当前为单叶时，将现有叶子与新条件合并为 AND 组
+        // 根层且当前为单叶时，将现有叶子与新条件合并为 and 组
         if (depth === 0 && condition && isLeafType(condition.type)) {
-            handleEffectiveChange({ type: 'AND', children: [condition, newChild] }, { preserveGroup: true });
+            handleEffectiveChange({ type: 'And', children: [condition, newChild] }, { preserveGroup: true });
             return;
         }
 
@@ -209,7 +209,7 @@ export const ConditionEditor: React.FC<ConditionEditorProps> = ({
 
     const handleAddGroup = () => {
         if (!onChange || !canAdd) return;
-        const newGroup: ConditionExpression = { type: 'AND', children: [] };
+        const newGroup: ConditionExpression = { type: 'And', children: [] };
 
         // 根层空态时，替换为新组
         if (depth === 0 && isEmpty) {
@@ -217,9 +217,9 @@ export const ConditionEditor: React.FC<ConditionEditorProps> = ({
             return;
         }
 
-        // 根层单叶时，提升为 AND 组并新增子组
+        // 根层单叶时，提升为 and 组并新增子组
         if (depth === 0 && condition && isLeafType(condition.type)) {
-            handleEffectiveChange({ type: 'AND', children: [condition, newGroup] }, { preserveGroup: true });
+            handleEffectiveChange({ type: 'And', children: [condition, newGroup] }, { preserveGroup: true });
             return;
         }
 
@@ -319,7 +319,7 @@ export const ConditionEditor: React.FC<ConditionEditorProps> = ({
                             onAddCondition={handleAddCondition}
                             onAddGroup={handleAddGroup}
                             disabled={!canAdd}
-                            disabledReason={!canAdd && groupType === 'NOT' ? 'NOT group allows only one condition' : undefined}
+                            disabledReason={!canAdd && groupType === 'Not' ? 'Not group allows only one condition' : undefined}
                         />
                     )}
                 </div>
@@ -407,7 +407,7 @@ export const ConditionEditor: React.FC<ConditionEditorProps> = ({
  * 组头部组件 - 显示折叠按钮、拖拽手柄、逻辑模式按钮、删除按钮
  */
 interface GroupHeaderProps {
-    groupType: 'AND' | 'OR' | 'NOT';
+    groupType: 'And' | 'Or' | 'Not';
     childCount: number;
     collapsed: boolean;
     depth: number;
@@ -416,7 +416,7 @@ interface GroupHeaderProps {
     onDragStart?: (e: React.DragEvent) => void;
     onDragEnd?: () => void;
     onCollapsedChange: (collapsed: boolean) => void;
-    onModeChange: (mode: 'AND' | 'OR' | 'NOT') => void;
+    onModeChange: (mode: 'And' | 'Or' | 'Not') => void;
     onDeleteClick: () => void;
 }
 
@@ -480,9 +480,9 @@ const GroupHeader: React.FC<GroupHeaderProps> = ({
 
         {/* 逻辑模式按钮组 */}
         <div style={{ display: 'flex', gap: '4px', minWidth: 0, flexShrink: 1 }}>
-            <LogicModeButton mode="AND" label="AND" isActive={groupType === 'AND'} onClick={() => onModeChange('AND')} disabled={!onChange} />
-            <LogicModeButton mode="OR" label="OR" isActive={groupType === 'OR'} onClick={() => onModeChange('OR')} disabled={!onChange} />
-            <LogicModeButton mode="NOT" label="NOT" isActive={groupType === 'NOT'} onClick={() => onModeChange('NOT')} disabled={!onChange} />
+            <LogicModeButton mode="And" label="And" isActive={groupType === 'And'} onClick={() => onModeChange('And')} disabled={!onChange} />
+            <LogicModeButton mode="Or" label="Or" isActive={groupType === 'Or'} onClick={() => onModeChange('Or')} disabled={!onChange} />
+            <LogicModeButton mode="Not" label="Not" isActive={groupType === 'Not'} onClick={() => onModeChange('Not')} disabled={!onChange} />
         </div>
 
         {/* 子项数量摘要 */}
@@ -491,18 +491,20 @@ const GroupHeader: React.FC<GroupHeaderProps> = ({
         </span>
 
         {/* 删除按钮 */}
-        {(onChange || onRemove) && (
-            <button
-                onClick={onDeleteClick}
-                title="Delete Group"
-                style={buttonStyles.deleteButton}
-                onMouseEnter={(e) => e.currentTarget.style.color = COLORS.danger}
-                onMouseLeave={(e) => e.currentTarget.style.color = COLORS.textMuted}
-            >
-                🗑
-            </button>
-        )}
-    </div>
+        {
+            (onChange || onRemove) && (
+                <button
+                    onClick={onDeleteClick}
+                    title="Delete Group"
+                    style={buttonStyles.deleteButton}
+                    onMouseEnter={(e) => e.currentTarget.style.color = COLORS.danger}
+                    onMouseLeave={(e) => e.currentTarget.style.color = COLORS.textMuted}
+                >
+                    🗑
+                </button>
+            )
+        }
+    </div >
 );
 
 /**
@@ -512,7 +514,7 @@ interface GroupChildrenProps {
     children: ConditionExpression[];
     childCount: number;
     depth: number;
-    groupType: 'AND' | 'OR' | 'NOT';
+    groupType: 'And' | 'Or' | 'Not';
     canAdd: boolean;
     dragState: DragState;
     variables: VariableDefinition[];
@@ -566,7 +568,7 @@ const GroupChildren: React.FC<GroupChildrenProps> = ({
                         onAddCondition={onAddCondition}
                         onAddGroup={onAddGroup}
                         disabled={!canAdd}
-                        disabledReason={!canAdd && groupType === 'NOT' ? 'NOT group allows only one condition' : undefined}
+                        disabledReason={!canAdd && groupType === 'Not' ? 'Not group allows only one condition' : undefined}
                     />
                 )}
             </div>
@@ -623,7 +625,7 @@ const GroupChildren: React.FC<GroupChildrenProps> = ({
                     onAddCondition={onAddCondition}
                     onAddGroup={onAddGroup}
                     disabled={!canAdd}
-                    disabledReason={!canAdd && groupType === 'NOT' ? 'NOT group allows only one condition' : undefined}
+                    disabledReason={!canAdd && groupType === 'Not' ? 'Not group allows only one condition' : undefined}
                 />
             </div>
         )}

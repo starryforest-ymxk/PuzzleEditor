@@ -22,7 +22,6 @@ import { ConditionEditor } from './ConditionEditor';
 import { TriggerEditor } from './TriggerEditor';
 import { ResourceSelect } from './ResourceSelect';
 import { LocalVariableEditor } from './LocalVariableEditor';
-import { ConfirmDialog } from './ConfirmDialog';
 import { collectVisibleVariables } from '../../utils/variableScope';
 import { hasStageContent } from '../../utils/stageTreeUtils';
 import { isValidAssetName } from '../../utils/assetNameValidation';
@@ -30,6 +29,7 @@ import { InspectorWarning } from './InspectorInfo';
 import { AssetNameAutoFillButton } from './AssetNameAutoFillButton';
 import { useAutoTranslateAssetName } from '../../hooks/useAutoTranslateAssetName';
 import { Trash2 } from 'lucide-react';
+import { useDeleteHandler } from '../../hooks/useDeleteHandler';
 
 interface StageInspectorProps {
     stageId: string;
@@ -39,13 +39,7 @@ interface StageInspectorProps {
 export const StageInspector: React.FC<StageInspectorProps> = ({ stageId, readOnly = false }) => {
     const { project, ui } = useEditorState();
     const dispatch = useEditorDispatch();
-
-    // 删除确认弹窗状态
-    const [deleteConfirm, setDeleteConfirm] = useState<{
-        stageName: string;
-        childStageCount: number;
-        nodeCount: number;
-    } | null>(null);
+    const { deleteStage } = useDeleteHandler();
 
     // 本地编辑状态（用于失焦校验）
     const [localAssetName, setLocalAssetName] = useState('');
@@ -144,27 +138,9 @@ export const StageInspector: React.FC<StageInspectorProps> = ({ stageId, readOnl
 
     // 请求删除 Stage
     const handleRequestDelete = useCallback(() => {
-        if (!canDelete) return;
-        const contentInfo = hasStageContent(project.stageTree, project.nodes, stageId as StageId);
-
-        if (contentInfo.hasChildren || contentInfo.totalDescendantStages > 0 || contentInfo.totalDescendantNodes > 0) {
-            // 有子内容，显示确认弹窗
-            setDeleteConfirm({
-                stageName: stage.name,
-                childStageCount: contentInfo.totalDescendantStages,
-                nodeCount: contentInfo.totalDescendantNodes
-            });
-        } else {
-            // 无子内容，直接删除
-            dispatch({ type: 'DELETE_STAGE', payload: { stageId: stageId as StageId } });
-        }
-    }, [canDelete, project.stageTree, project.nodes, stageId, stage.name, dispatch]);
-
-    // 确认删除
-    const handleConfirmDelete = useCallback(() => {
-        dispatch({ type: 'DELETE_STAGE', payload: { stageId: stageId as StageId } });
-        setDeleteConfirm(null);
-    }, [dispatch, stageId]);
+        if (!canDelete || readOnly) return;
+        deleteStage(stageId);
+    }, [canDelete, readOnly, deleteStage, stageId]);
 
     // Stage 局部变量操作回调
     const handleAddVariable = useCallback((variable: VariableDefinition) => {
@@ -414,21 +390,7 @@ export const StageInspector: React.FC<StageInspectorProps> = ({ stageId, readOnl
                 />
             </div>
 
-            {/* 删除确认弹窗 */}
-            {deleteConfirm && (
-                <ConfirmDialog
-                    title="Delete Stage"
-                    message={`Are you sure you want to delete "${deleteConfirm.stageName}"? This will also delete all child content. This action cannot be undone.`}
-                    references={[
-                        deleteConfirm.childStageCount > 0 ? `${deleteConfirm.childStageCount} child stage(s)` : '',
-                        deleteConfirm.nodeCount > 0 ? `${deleteConfirm.nodeCount} puzzle node(s)` : ''
-                    ].filter(Boolean)}
-                    confirmText="Delete"
-                    cancelText="Cancel"
-                    onConfirm={handleConfirmDelete}
-                    onCancel={() => setDeleteConfirm(null)}
-                />
-            )}
+
         </div>
     );
 };

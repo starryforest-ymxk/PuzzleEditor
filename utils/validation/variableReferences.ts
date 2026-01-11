@@ -62,18 +62,18 @@ const collectFromCondition = (
   if (!condition) return;
 
   // 逻辑组合：递归子节点
-  if (condition.type === 'AND' || condition.type === 'OR') {
+  if (condition.type === 'And' || condition.type === 'Or') {
     condition.children?.forEach((c, idx) => collectFromCondition(c, variableId, collector, `${origin} > Sub condition ${idx + 1}`, navContext));
     return;
   }
 
-  if (condition.type === 'NOT') {
+  if (condition.type === 'Not') {
     if (condition.operand) collectFromCondition(condition.operand, variableId, collector, `${origin} > Not`, navContext);
     return;
   }
 
   // 比较表达式：检查左右操作数 (ValueSource)
-  if (condition.type === 'COMPARISON') {
+  if (condition.type === 'Comparison') {
     collectFromValueSource(condition.left, variableId, collector, `${origin} > Left`, navContext);
     collectFromValueSource(condition.right, variableId, collector, `${origin} > Right`, navContext);
     return;
@@ -81,7 +81,7 @@ const collectFromCondition = (
 
 
 
-  // SCRIPT_REF 和 LITERAL 不需要处理变量引用
+  // ScriptRef 和 Literal 不需要处理变量引用
 };
 
 const collectFromEventListeners = (

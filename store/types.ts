@@ -123,6 +123,14 @@ export interface EditorState {
     isDirty: boolean;
     validationResults: ValidationResult[];
     showValidationPanel: boolean;
+    confirmDialog: {
+      isOpen: boolean;
+      title: string;
+      message: string;
+      confirmAction: Action;
+      danger?: boolean;
+      references?: string[];
+    };
   };
   // 编辑器设置（用户偏好，不导出到项目文件）
   settings: EditorSettings;
@@ -182,7 +190,14 @@ export const INITIAL_STATE: EditorState = {
     },
     isDirty: false,
     validationResults: [],
-    showValidationPanel: false
+    showValidationPanel: false,
+    confirmDialog: {
+      isOpen: false,
+      title: '',
+      message: '',
+      confirmAction: { type: 'MARK_CLEAN' },
+      danger: false
+    }
   },
   settings: DEFAULT_SETTINGS
 };
@@ -276,4 +291,5 @@ export type Action =
   | { type: 'SET_PREFERENCES_LOADED'; payload: boolean }
   // Settings Actions (Translation)
   | { type: 'UPDATE_TRANSLATION_SETTINGS'; payload: Partial<TranslationSettings> }
-  | { type: 'UPDATE_MESSAGE_FILTERS'; payload: Partial<import('../types/settings').MessageFilters> };
+  | { type: 'UPDATE_MESSAGE_FILTERS'; payload: Partial<import('../types/settings').MessageFilters> }
+  | { type: 'SET_CONFIRM_DIALOG'; payload: { isOpen: boolean; title?: string; message?: string; confirmAction?: Action; danger?: boolean; references?: string[] } };

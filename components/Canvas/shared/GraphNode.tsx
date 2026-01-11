@@ -39,8 +39,10 @@ export interface GraphNodeProps {
     readOnly?: boolean;
     /** 是否有校验错误 */
     hasError?: boolean;
+    hasWarning?: boolean;
     /** 错误提示信息 */
     errorTooltip?: string;
+    warningTooltip?: string;
     /** 自定义内容渲染器 */
     renderContent?: (node: IGraphNode) => React.ReactNode;
     /** 自定义标题渲染器 */
@@ -69,7 +71,9 @@ export const GraphNode: React.FC<GraphNodeProps> = React.memo(({
     isContextTarget,
     readOnly = false,
     hasError = false,
+    hasWarning = false,
     errorTooltip,
+    warningTooltip,
     renderContent,
     renderTitle,
     className,
@@ -79,26 +83,39 @@ export const GraphNode: React.FC<GraphNodeProps> = React.memo(({
 }) => {
     // 计算边框阴影样式
     const getBoxShadow = (): string => {
+        const shadows: string[] = [];
+
+        // 1. 基础状态 (Error/Warning) 占据内层 (0-2px)
         if (hasError) {
-            return '0 0 0 2px var(--accent-error, #ef4444), var(--shadow-md)';
+            shadows.push('0 0 0 2px var(--accent-error, #ef4444)');
+        } else if (hasWarning) {
+            shadows.push('0 0 0 2px var(--accent-warning, #e6a23c)');
         }
-        if (isContextTarget) {
-            return '0 0 0 2px var(--accent-warning), var(--shadow-md)';
-        }
+
+        // 2. 选中状态 占据外层 (叠加)
+        // 如果有状态颜色，选中框向外扩张；否则占据基础位置
+        const baseOffset = (hasError || hasWarning) ? 2 : 0;
+        const spread = 2; // 选中框宽度
+
         if (isMultiSelected) {
-            // 框选高亮使用粉色描边
-            return '0 0 0 2px #f472b6, var(--shadow-md)';
+            shadows.push(`0 0 0 ${baseOffset + spread}px #f472b6`);
+        } else if (isSelected) {
+            shadows.push(`0 0 0 ${baseOffset + spread}px var(--selection-border)`);
+        } else if (isContextTarget) {
+            shadows.push(`0 0 0 ${baseOffset + spread}px var(--accent-warning)`);
         }
-        if (isSelected) {
-            return '0 0 0 2px var(--selection-border), var(--shadow-md)';
-        }
-        return 'var(--shadow-md)';
+
+        shadows.push('var(--shadow-md)');
+        return shadows.join(', ');
     };
 
     // 计算标题栏背景
     const getTitleBackground = (): string => {
         if (hasError) {
             return 'linear-gradient(90deg, #3f1515, #2d2d2d)';
+        }
+        if (hasWarning) {
+            return 'linear-gradient(90deg, #3c2a0d, #2d2d2d)';
         }
         if (isInitial) {
             return 'linear-gradient(90deg, #4a2a4a, #2d2d2d)';
@@ -114,7 +131,7 @@ export const GraphNode: React.FC<GraphNodeProps> = React.memo(({
             onMouseUp={(e) => onMouseUp(e, node.id)}
             onContextMenu={(e) => onContextMenu(e, node.id)}
             onClick={(e) => e.stopPropagation()}
-            title={hasError ? errorTooltip : undefined}
+            title={hasError ? errorTooltip : (hasWarning ? warningTooltip : undefined)}
             style={{
                 position: 'absolute',
                 left: position.x,
@@ -147,6 +164,15 @@ export const GraphNode: React.FC<GraphNodeProps> = React.memo(({
                 {hasError && (
                     <span style={{
                         color: '#ef4444',
+                        marginRight: '4px',
+                        fontSize: '12px',
+                        fontWeight: 'bold'
+                    }}>⚠</span>
+                )}
+                {/* 警告图标 (当没有Error时显示) */}
+                {!hasError && hasWarning && (
+                    <span style={{
+                        color: '#e6a23c',
                         marginRight: '4px',
                         fontSize: '12px',
                         fontWeight: 'bold'

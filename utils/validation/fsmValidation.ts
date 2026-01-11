@@ -33,35 +33,41 @@ export type ValidationIssue = FsmValidationIssue;
 /** 状态节点校验结果 */
 export interface StateValidation {
   hasError: boolean;
+  hasWarning?: boolean;
   issues: FsmValidationIssue[];
 }
 
 /** 转移连线校验结果 */
 export interface TransitionValidation {
   hasError: boolean;
+  hasWarning?: boolean;
   issues: FsmValidationIssue[];
 }
 
 // ========== 资源状态检查工具 ==========
 
 /**
- * 检查脚本是否为已删除状态
+ * 检查脚本状态
  */
-function isScriptMarkedForDelete(state: EditorState, scriptId: string | undefined): boolean {
-  if (!scriptId) return false;
+function getScriptValidationStatus(state: EditorState, scriptId: string | undefined): 'Valid' | 'Missing' | 'Deleted' {
+  if (!scriptId) return 'Valid';
   const scripts = state.project.scripts?.scripts || {};
   const script = scripts[scriptId];
-  return script?.state === 'MarkedForDelete';
+  if (!script) return 'Missing';
+  if (script.state === 'MarkedForDelete') return 'Deleted';
+  return 'Valid';
 }
 
 /**
- * 检查事件是否为已删除状态
+ * 检查事件状态
  */
-function isEventMarkedForDelete(state: EditorState, eventId: string | undefined): boolean {
-  if (!eventId) return false;
+function getEventValidationStatus(state: EditorState, eventId: string | undefined): 'Valid' | 'Missing' | 'Deleted' {
+  if (!eventId) return 'Valid'; // Empty ID handled elsewhere if needed
   const events = state.project.blackboard?.events || {};
   const event = events[eventId];
-  return event?.state === 'MarkedForDelete';
+  if (!event) return 'Missing';
+  if (event.state === 'MarkedForDelete') return 'Deleted';
+  return 'Valid';
 }
 
 /**
@@ -135,6 +141,17 @@ function checkValueSource(
         resourceType: 'variable',
         resourceId: source.variableId
       });
+    } else {
+      // Check for missing variable (simplified scope check)
+      const v = resolveVariableByScope(state, source.scope, source.variableId, nodeId);
+      if (!v) {
+        issues.push({
+          type: 'error',
+          message: `Reference to missing variable: ${source.variableId}`,
+          resourceType: 'variable',
+          resourceId: source.variableId
+        });
+      }
     }
   }
 }
@@ -151,11 +168,19 @@ function checkConditionExpression(
   if (!condition) return;
 
   // 检查脚本引用
-  if (condition.type === 'SCRIPT_REF' && condition.scriptId) {
-    if (isScriptMarkedForDelete(state, condition.scriptId)) {
+  if (condition.type === 'ScriptRef' && condition.scriptId) {
+    const status = getScriptValidationStatus(state, condition.scriptId);
+    if (status === 'Deleted') {
       issues.push({
         type: 'error',
         message: `Condition references deleted script: ${condition.scriptId}`,
+        resourceType: 'script',
+        resourceId: condition.scriptId
+      });
+    } else if (status === 'Missing') {
+      issues.push({
+        type: 'error',
+        message: `Condition references missing script: ${condition.scriptId}`,
         resourceType: 'script',
         resourceId: condition.scriptId
       });
@@ -163,18 +188,18 @@ function checkConditionExpression(
   }
 
   // 检查比较表达式的左右操作数 (ValueSource)
-  if (condition.type === 'COMPARISON') {
+  if (condition.type === 'Comparison') {
     checkValueSource(condition.left, state, nodeId, issues);
     checkValueSource(condition.right, state, nodeId, issues);
   }
 
   // 递归检查逻辑组合的子节点
-  if ((condition.type === 'AND' || condition.type === 'OR') && condition.children) {
+  if ((condition.type === 'And' || condition.type === 'Or') && condition.children) {
     condition.children.forEach(child => checkConditionExpression(child, state, nodeId, issues));
   }
 
-  // 检查 NOT 操作数
-  if (condition.type === 'NOT' && condition.operand) {
+  // 检查 not  操作数
+  if (condition.type === 'Not' && condition.operand) {
     checkConditionExpression(condition.operand, state, nodeId, issues);
   }
 }
@@ -318,10 +343,18 @@ function checkEventListeners(
 
   listeners.forEach(listener => {
     // 检查事件引用
-    if (isEventMarkedForDelete(state, listener.eventId)) {
+    const status = getEventValidationStatus(state, listener.eventId);
+    if (status === 'Deleted') {
       issues.push({
         type: 'error',
         message: `Listener references deleted event: ${listener.eventId}`,
+        resourceType: 'event',
+        resourceId: listener.eventId
+      });
+    } else if (status === 'Missing') {
+      issues.push({
+        type: 'error',
+        message: `Listener references missing event: ${listener.eventId}`,
         resourceType: 'event',
         resourceId: listener.eventId
       });
@@ -351,10 +384,18 @@ function checkPresentationBinding(
   if (!binding) return;
 
   if (binding.type === 'Script' && binding.scriptId) {
-    if (isScriptMarkedForDelete(state, binding.scriptId)) {
+    const status = getScriptValidationStatus(state, binding.scriptId);
+    if (status === 'Deleted') {
       issues.push({
         type: 'error',
         message: `Presentation references deleted script: ${binding.scriptId}`,
+        resourceType: 'script',
+        resourceId: binding.scriptId
+      });
+    } else if (status === 'Missing') {
+      issues.push({
+        type: 'error',
+        message: `Presentation references missing script: ${binding.scriptId}`,
         resourceType: 'script',
         resourceId: binding.scriptId
       });
@@ -403,10 +444,18 @@ function checkTriggers(
   triggers.forEach(trigger => {
     if (trigger.type === 'OnEvent') {
       const eventTrigger = trigger as { type: 'OnEvent'; eventId: string };
-      if (isEventMarkedForDelete(state, eventTrigger.eventId)) {
+      const status = getEventValidationStatus(state, eventTrigger.eventId);
+      if (status === 'Deleted') {
         issues.push({
           type: 'error',
           message: `Trigger references deleted event: ${eventTrigger.eventId}`,
+          resourceType: 'event',
+          resourceId: eventTrigger.eventId
+        });
+      } else if (status === 'Missing') {
+        issues.push({
+          type: 'error',
+          message: `Trigger references missing event: ${eventTrigger.eventId}`,
           resourceType: 'event',
           resourceId: eventTrigger.eventId
         });
@@ -415,10 +464,18 @@ function checkTriggers(
 
     if (trigger.type === 'CustomScript') {
       const scriptTrigger = trigger as { type: 'CustomScript'; scriptId: string };
-      if (isScriptMarkedForDelete(state, scriptTrigger.scriptId)) {
+      const status = getScriptValidationStatus(state, scriptTrigger.scriptId);
+      if (status === 'Deleted') {
         issues.push({
           type: 'error',
           message: `Trigger references deleted script: ${scriptTrigger.scriptId}`,
+          resourceType: 'script',
+          resourceId: scriptTrigger.scriptId
+        });
+      } else if (status === 'Missing') {
+        issues.push({
+          type: 'error',
+          message: `Trigger references missing script: ${scriptTrigger.scriptId}`,
           resourceType: 'script',
           resourceId: scriptTrigger.scriptId
         });
@@ -443,12 +500,30 @@ export function checkStateValidation(
   const issues: ValidationIssue[] = [];
 
   // 检查生命周期脚本
-  if (isScriptMarkedForDelete(editorState, stateNode.lifecycleScriptId)) {
+  const lcStatus = getScriptValidationStatus(editorState, stateNode.lifecycleScriptId);
+  if (lcStatus === 'Deleted') {
     issues.push({
       type: 'error',
       message: `Lifecycle script is deleted: ${stateNode.lifecycleScriptId}`,
       resourceType: 'script',
       resourceId: stateNode.lifecycleScriptId!
+    });
+  } else if (lcStatus === 'Missing') {
+    issues.push({
+      type: 'error',
+      message: `Lifecycle script is missing: ${stateNode.lifecycleScriptId}`,
+      resourceType: 'script',
+      resourceId: stateNode.lifecycleScriptId!
+    });
+  }
+
+  // 检查 Asset Name 是否为空 (Warning)
+  if (!stateNode.assetName || stateNode.assetName.trim() === '') {
+    issues.push({
+      type: 'warning',
+      message: 'State has no Asset Name (References in code will fail)',
+      resourceType: 'variable',
+      resourceId: stateNode.id
     });
   }
 
@@ -456,7 +531,8 @@ export function checkStateValidation(
   checkEventListeners(stateNode.eventListeners, editorState, nodeId, issues);
 
   return {
-    hasError: issues.length > 0,
+    hasError: issues.some(i => i.type === 'error'),
+    hasWarning: issues.some(i => i.type === 'warning'),
     issues
   };
 }
@@ -477,7 +553,16 @@ export function checkTransitionValidation(
   const issues: ValidationIssue[] = [];
 
   // 检查触发器
-  checkTriggers(transition.triggers, editorState, issues);
+  if (!transition.triggers || transition.triggers.length === 0) {
+    issues.push({
+      type: 'error',
+      message: 'Transition must have at least one trigger',
+      resourceType: 'variable',
+      resourceId: transition.id
+    });
+  } else {
+    checkTriggers(transition.triggers, editorState, issues);
+  }
 
   // 检查条件表达式
   checkConditionExpression(transition.condition, editorState, nodeId, issues);
@@ -489,7 +574,8 @@ export function checkTransitionValidation(
   checkPresentationBinding(transition.presentation, editorState, nodeId, issues);
 
   return {
-    hasError: issues.length > 0,
+    hasError: issues.some(i => i.type === 'error'),
+    hasWarning: issues.some(i => i.type === 'warning'),
     issues
   };
 }
@@ -517,9 +603,60 @@ export function validateStateMachine(
   const stateResults: Record<string, StateValidation> = {};
   const transitionResults: Record<string, TransitionValidation> = {};
 
+  // 0. 预计算 Asset Name 重复情况 和 入度统计
+  const nameCounts = new Map<string, number>();
+  const inDegrees = new Map<string, number>();
+
+  // 初始化所有状态入度为 0
+  Object.keys(fsm.states).forEach(id => inDegrees.set(id, 0));
+
+  // 计算入度
+  Object.values(fsm.transitions).forEach(trans => {
+    if (trans.toStateId && inDegrees.has(trans.toStateId)) {
+      inDegrees.set(trans.toStateId, (inDegrees.get(trans.toStateId) || 0) + 1);
+    }
+  });
+
+  Object.values(fsm.states).forEach(state => {
+    if (state.assetName && state.assetName.trim() !== '') {
+      const name = state.assetName.trim();
+      nameCounts.set(name, (nameCounts.get(name) || 0) + 1);
+    }
+  });
+
   // 校验所有状态节点
   Object.values(fsm.states).forEach(state => {
-    stateResults[state.id] = checkStateValidation(state, editorState, nodeId);
+    const result = checkStateValidation(state, editorState, nodeId);
+
+    // 检查重复 Asset Name (Error)
+    if (state.assetName && state.assetName.trim() !== '') {
+      const name = state.assetName.trim();
+      if ((nameCounts.get(name) || 0) > 1) {
+        result.issues.push({
+          type: 'error',
+          message: `Duplicate Asset Name: "${name}"`,
+          resourceType: 'variable',
+          resourceId: state.id
+        });
+      }
+    }
+
+    // 检查孤立节点 (Warning): 非初始状态且入度为 0
+    // 注意：初始状态不需要入度
+    if (state.id !== fsm.initialStateId && (inDegrees.get(state.id) || 0) === 0) {
+      result.issues.push({
+        type: 'warning',
+        message: 'Unreachable state: No incoming transitions',
+        resourceType: 'variable',
+        resourceId: state.id
+      });
+    }
+
+    // 重新计算 hasError/hasWarning
+    result.hasError = result.issues.some(i => i.type === 'error');
+    result.hasWarning = result.issues.some(i => i.type === 'warning');
+
+    stateResults[state.id] = result;
   });
 
   // 校验所有转移连线

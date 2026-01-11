@@ -1,6 +1,6 @@
 /**
- * Õ®”√»∑»œµØ¥∞◊Èº˛£®Inspector «¯”Ú∏¥”√£©
- * ≤…”√”Îœ÷”–»Ì…æµØ¥∞“ª÷¬µƒ—˘ Ω£¨÷ß≥÷“˝”√‘§¿¿°£
+ * ÈÄöÁî®Á°ÆËÆ§ÂºπÁ™óÁªÑ‰ª∂ÔºàInspector Âå∫ÂüüÂ§çÁî®Ôºâ
+ * ÈááÁî®‰∏éÁé∞ÊúâËΩØÂà†ÂºπÁ™ó‰∏ÄËá¥ÁöÑÊ†∑ÂºèÔºåÊîØÊåÅÂºïÁî®È¢ÑËßà„ÄÇ
  */
 import React from 'react';
 
@@ -9,21 +9,21 @@ interface ConfirmDialogProps {
     message: string;
     confirmText?: string;
     cancelText?: string;
-    references?: string[];
-    totalReferences?: number;
     onConfirm: () => void;
     onCancel: () => void;
+    references?: string[];
 }
 
+// Áªü‰∏ÄÊ∑±Ëâ≤ÂºπÁ™óÈÖçËâ≤
 const dialogColors = {
-    overlay: 'rgba(0,0,0,0.55)',
     background: '#1f1f23',
-    border: '#52525b',
-    borderSecondary: '#3f3f46',
+    panel: '#27272a',
+    border: '#3f3f46',
     text: '#e4e4e7',
-    accent: '#f97316',
     muted: '#a1a1aa',
-    panel: '#18181b'
+    accent: '#ef4444', // Danger Red
+    buttonPrimary: '#ef4444',
+    buttonSecondary: '#3f3f46'
 };
 
 export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
@@ -31,73 +31,74 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
     message,
     confirmText = 'Confirm',
     cancelText = 'Cancel',
-    references = [],
-    totalReferences,
     onConfirm,
-    onCancel
+    onCancel,
+    references
 }) => {
-    const hasRefs = references.length > 0;
-    const moreCount = totalReferences !== undefined && totalReferences > references.length
-        ? totalReferences - references.length
-        : 0;
-
     return (
         <div style={{
             position: 'fixed',
-            top: 0, left: 0, right: 0, bottom: 0,
-            background: dialogColors.overlay,
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.7)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             zIndex: 9999
         }}>
             <div style={{
-                width: '420px',
-                background: dialogColors.background,
+                backgroundColor: dialogColors.background,
                 border: `1px solid ${dialogColors.border}`,
-                borderRadius: '6px',
-                boxShadow: '0 12px 32px rgba(0,0,0,0.45)',
+                width: '440px',
+                borderRadius: '8px',
                 padding: '20px',
-                color: dialogColors.text,
-                fontFamily: 'Inter, "IBM Plex Mono", monospace'
+                boxShadow: '0 8px 30px rgba(0, 0, 0, 0.5)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '16px'
             }}>
-                <div style={{ fontSize: '13px', letterSpacing: '0.5px', color: dialogColors.accent, marginBottom: '8px', textTransform: 'uppercase' }}>
+                <div style={{ fontSize: '16px', fontWeight: 600, color: dialogColors.text }}>
                     {title}
                 </div>
-                <div style={{ fontSize: '14px', marginBottom: hasRefs ? '12px' : '16px', lineHeight: 1.5 }}>
+                <div style={{ fontSize: '13px', color: dialogColors.muted, lineHeight: '1.5' }}>
                     {message}
                 </div>
 
-                {hasRefs && (
+                {/* ÂºïÁî®ÂàóË°®È¢ÑËßà */}
+                {references && references.length > 0 && (
                     <div style={{
-                        border: '1px solid #2f2f36',
+                        marginTop: '4px',
+                        backgroundColor: '#18181b',
+                        border: `1px solid ${dialogColors.border}`,
                         borderRadius: '4px',
-                        padding: '10px',
-                        background: dialogColors.panel,
-                        maxHeight: '140px',
-                        overflow: 'auto',
-                        marginBottom: '12px'
+                        padding: '8px',
+                        maxHeight: '120px',
+                        overflowY: 'auto'
                     }}>
-                        <div style={{ fontSize: '12px', color: dialogColors.muted, marginBottom: '6px' }}>Reference preview</div>
-                        {references.map((ref, idx) => (
-                            <div key={idx} style={{ fontSize: '12px', color: dialogColors.text, lineHeight: 1.4 }}>- {ref}</div>
+                        <div style={{ fontSize: '11px', color: '#71717a', marginBottom: '6px', fontWeight: 500 }}>
+                            References Found ({references.length}):
+                        </div>
+                        {references.map((ref, i) => (
+                            <div key={i} style={{ fontSize: '12px', color: '#d4d4d8', padding: '2px 0' }}>
+                                ‚Ä¢ {ref}
+                            </div>
                         ))}
-                        {moreCount > 0 && (
-                            <div style={{ fontSize: '12px', color: dialogColors.muted, marginTop: '4px' }}>... {moreCount} more reference(s)</div>
-                        )}
                     </div>
                 )}
 
-                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '8px' }}>
                     <button
                         onClick={onCancel}
                         style={{
-                            padding: '8px 14px',
+                            padding: '6px 16px',
+                            background: 'transparent',
+                            border: `1px solid ${dialogColors.border}`,
                             borderRadius: '4px',
-                            border: `1px solid ${dialogColors.borderSecondary}`,
-                            background: '#27272a',
                             color: dialogColors.text,
-                            cursor: 'pointer'
+                            cursor: 'pointer',
+                            fontSize: '13px'
                         }}
                     >
                         {cancelText}
@@ -105,13 +106,14 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
                     <button
                         onClick={onConfirm}
                         style={{
-                            padding: '8px 14px',
+                            padding: '6px 16px',
+                            background: dialogColors.buttonPrimary,
+                            border: 'none',
                             borderRadius: '4px',
-                            border: `1px solid ${dialogColors.accent}`,
-                            background: dialogColors.accent,
-                            color: '#0b0b0f',
-                            fontWeight: 600,
-                            cursor: 'pointer'
+                            color: '#fff',
+                            cursor: 'pointer',
+                            fontSize: '13px',
+                            fontWeight: 500
                         }}
                     >
                         {confirmText}

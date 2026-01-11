@@ -1,17 +1,17 @@
 # P1-T05 条件构造器与参数修改器抽象模型（落地）
 
-> 目标：统一条件表达式与参数修改器的 JSON 结构，支持变量比较、自定义条件脚本、AND/OR/NOT 组合，以及参数修改的可复用抽象（作用域化变量引用）。
+> 目标：统一条件表达式与参数修改器的 JSON 结构，支持变量比较、自定义条件脚本、And/Or/Not 组合，以及参数修改的可复用抽象（作用域化变量引用）。
 
 ## 1. 条件表达式（ConditionExpression）
 
-- 结构：`type` ∈ `AND | OR | NOT | COMPARISON | LITERAL | VARIABLE_REF | SCRIPT_REF`
+- 结构：`type` ∈  `And | Or | Not  | Comparison | Literal | VariableRef | ScriptRef`
 - 字段：
-  - `children?: ConditionExpression[]`（AND/OR）
+  - `children?: ConditionExpression[]`（And/Or）
   - `operand?: ConditionExpression`（NOT）
-  - `left?` / `right?` + `operator?: == != > < >= <=`（COMPARISON）
-  - `value?: any`（LITERAL）
-  - `variableId?: string` + `variableScope?: VariableScope`（VARIABLE_REF，必须携带 scope）
-  - `scriptId?: string`（SCRIPT_REF，自定义条件脚本）
+  - `left?` / `right?` + `operator?: == != > < >= <=`（Comparison）
+  - `value?: any`（Literal）
+  - `variableId?: string` + `variableScope?: VariableScope`（VariableRef，必须携带 scope）
+  - `scriptId?: string`（ScriptRef，自定义条件脚本）
 - 作用域要求：凡引用变量必须带 `variableScope`（Global / StageLocal / NodeLocal / Temporary）。
 
 ## 2. 参数修改器（ParameterModifier）
@@ -28,8 +28,8 @@
   - 触发器默认值：`alwaysTrigger/onEventTrigger/customTrigger`
 - `types/common.ts`：ParameterModifier 的 `operation` 限定为 `Set/Add/Subtract`。
 - `components/Inspector/ConditionEditor.tsx`
-  - UI 支持 `SCRIPT_REF` 与 `VARIABLE_REF` 的作用域选择（Global/StageLocal/NodeLocal/Temporary）。
-  - NOT 使用 `operand` 字段；默认值防御空节点。
+  - UI 支持 `ScriptRef` 与 `VariableRef` 的作用域选择（Global/StageLocal/NodeLocal/Temporary）。
+  - not  使用 `operand` 字段；默认值防御空节点。
 
 ## 4. 后续工作
 

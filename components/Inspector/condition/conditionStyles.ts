@@ -9,31 +9,31 @@ import React from 'react';
  * 不同逻辑块类型的视觉样式 - 工业复古主题
  */
 export const BLOCK_STYLES = {
-    AND: {
+    And: {
         borderLeft: '4px solid #4ade80', // Green-400
         bg: 'rgba(74, 222, 128, 0.05)',
         labelColor: '#4ade80',
         labelBg: 'rgba(74, 222, 128, 0.12)'
     },
-    OR: {
+    Or: {
         borderLeft: '4px solid #f97316', // Orange-500
         bg: 'rgba(249, 115, 22, 0.05)',
         labelColor: '#f97316',
         labelBg: 'rgba(249, 115, 22, 0.12)'
     },
-    NOT: {
+    Not: {
         borderLeft: '4px solid #ef4444', // Red-500
         bg: 'rgba(239, 68, 68, 0.05)',
         labelColor: '#ef4444',
         labelBg: 'rgba(239, 68, 68, 0.12)'
     },
-    COMPARISON: {
+    Comparison: {
         borderLeft: '4px solid #3b82f6', // Blue-500
         bg: 'rgba(59, 130, 246, 0.05)',
         labelColor: '#3b82f6',
         labelBg: 'rgba(59, 130, 246, 0.12)'
     },
-    SCRIPT_REF: {
+    ScriptRef: {
         borderLeft: '4px solid #a855f7', // Purple-500
         bg: 'rgba(168, 85, 247, 0.05)',
         labelColor: '#a855f7',
@@ -63,7 +63,19 @@ export interface BlockStyle {
  * 获取条件类型对应的样式
  */
 export const getBlockStyle = (type: string): BlockStyle => {
-    return (BLOCK_STYLES[type as BlockStyleKey] || BLOCK_STYLES.DEFAULT) as BlockStyle;
+    // 1. 尝试直接匹配
+    const exactMatch = BLOCK_STYLES[type as BlockStyleKey];
+    if (exactMatch) return exactMatch;
+
+    // 2. 尝试 PascalCase 转换 (兼容旧数据 and -> And)
+    if (type && type.length > 0) {
+        const normalized = (type.charAt(0).toUpperCase() + type.slice(1).toLowerCase()) as BlockStyleKey;
+        const normalizedMatch = BLOCK_STYLES[normalized];
+        if (normalizedMatch) return normalizedMatch;
+    }
+
+    // 3. 默认样式
+    return BLOCK_STYLES.DEFAULT;
 };
 
 /**

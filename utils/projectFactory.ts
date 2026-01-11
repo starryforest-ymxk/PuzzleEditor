@@ -41,7 +41,8 @@ const createRootStage = (id: StageId): StageNode => ({
     childrenIds: [],
     localVariables: {},
     eventListeners: [],
-    isExpanded: true
+    isExpanded: true,
+    isInitial: true
 });
 
 /**

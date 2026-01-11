@@ -16,8 +16,10 @@ interface Props {
     readOnly?: boolean;
     /** 是否存在校验错误（引用已删除资源） */
     hasError?: boolean;
+    hasWarning?: boolean;
     /** 错误提示信息 */
     errorTooltip?: string;
+    warningTooltip?: string;
 }
 
 export const StateNode = React.memo(({
@@ -32,23 +34,35 @@ export const StateNode = React.memo(({
     onContextMenu,
     readOnly,
     hasError = false,
-    errorTooltip
+    hasWarning = false,
+    errorTooltip,
+    warningTooltip
 }: Props) => {
-    // 计算边框样式：错误状态优先显示红色边框
+    // 计算边框样式：错误状态(内层) 与 选中状态(外层) 叠加
     const getBoxShadow = () => {
+        const shadows: string[] = [];
+
+        // 1. 基础状态 (Error/Warning) 占据内层 (0-2px)
         if (hasError) {
-            return '0 0 0 2px var(--accent-error, #ef4444), var(--shadow-md)';
+            shadows.push('0 0 0 2px var(--accent-error, #ef4444)');
+        } else if (hasWarning) {
+            shadows.push('0 0 0 2px var(--accent-warning, #e6a23c)');
         }
-        if (isContextTarget) {
-            return '0 0 0 2px var(--accent-warning), var(--shadow-md)';
-        }
+
+        // 2. 选中状态 占据外层 (叠加)
+        const baseOffset = (hasError || hasWarning) ? 2 : 0;
+        const spread = 2; // 选中框宽度
+
         if (isMultiSelected) {
-            return '0 0 0 2px #4fc1ff, var(--shadow-md)';  // 框选时的蓝色边框
+            shadows.push(`0 0 0 ${baseOffset + spread}px #4fc1ff`); // 框选时的蓝色边框
+        } else if (isSelected) {
+            shadows.push(`0 0 0 ${baseOffset + spread}px var(--selection-border)`);
+        } else if (isContextTarget) {
+            shadows.push(`0 0 0 ${baseOffset + spread}px var(--accent-warning)`);
         }
-        if (isSelected) {
-            return '0 0 0 2px var(--selection-border), var(--shadow-md)';
-        }
-        return 'var(--shadow-md)';
+
+        shadows.push('var(--shadow-md)');
+        return shadows.join(', ');
     };
 
     return (
@@ -58,7 +72,7 @@ export const StateNode = React.memo(({
             onMouseUp={(e) => onMouseUp(e, state.id)}
             onContextMenu={(e) => onContextMenu(e, state.id)}
             onClick={(e) => e.stopPropagation()}
-            title={hasError ? errorTooltip : undefined}
+            title={hasError ? errorTooltip : (hasWarning ? warningTooltip : undefined)}
             style={{
                 position: 'absolute',
                 left: position.x,
@@ -77,9 +91,11 @@ export const StateNode = React.memo(({
                 height: 28,
                 background: hasError
                     ? 'linear-gradient(90deg, #3f1515, #2d2d2d)'  // 错误状态：红色渐变
-                    : isInitial
-                        ? 'linear-gradient(90deg, #1e3a5f, #2d2d2d)'
-                        : '#383838',
+                    : hasWarning
+                        ? 'linear-gradient(90deg, #3c2a0d, #2d2d2d)'   // 警告状态：黄色/褐色渐变
+                        : isInitial
+                            ? 'linear-gradient(90deg, #1e3a5f, #2d2d2d)'
+                            : '#383838',
                 borderBottom: '1px solid rgba(0,0,0,0.5)',
                 display: 'flex',
                 alignItems: 'center',
@@ -93,6 +109,15 @@ export const StateNode = React.memo(({
                 {hasError && (
                     <span style={{
                         color: '#ef4444',
+                        marginRight: '4px',
+                        fontSize: '12px',
+                        fontWeight: 'bold'
+                    }}>⚠</span>
+                )}
+                {/* 警告图标 */}
+                {!hasError && hasWarning && (
+                    <span style={{
+                        color: '#e6a23c',
                         marginRight: '4px',
                         fontSize: '12px',
                         fontWeight: 'bold'

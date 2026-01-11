@@ -13,6 +13,7 @@ import { BlackboardPanel } from '../Blackboard/BlackboardPanel';
 import { useAppStartup } from '../../hooks/useAppStartup';
 import { ValidationPanel } from './ValidationPanel';
 import { Footer } from './Footer';
+import GlobalConfirmDialog from './GlobalConfirmDialog';
 
 // Constraints for panel sizes
 const MIN_SIDEBAR_WIDTH = 180;
@@ -127,6 +128,7 @@ export const MainLayout = () => {
           isOpen={ui.showValidationPanel}
           onClose={() => dispatch({ type: 'SET_SHOW_VALIDATION_PANEL', payload: false })}
         />
+        <GlobalConfirmDialog />
       </div>
     </div>
   );

@@ -67,27 +67,8 @@ export function useGraphKeyboardShortcuts({
         // 忽略输入框内的按键
         if (['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName) || target.isContentEditable) return;
 
-        if (e.key === 'Delete' || e.key === 'Backspace') {
-            if (readOnly) return;
+        // GlobalKeyboardShortcuts handles Delete/Backspace
 
-            // 优先处理多选删除
-            if (multiSelectIds.length > 0) {
-                multiSelectIds.forEach(nodeId => {
-                    onDeleteNode(nodeId);
-                });
-                onClearMultiSelect();
-                return;
-            }
-
-            // 单选删除 - 检查上下文匹配
-            if (selection.contextId === contextId && selection.id) {
-                if (selection.type === nodeSelectionType) {
-                    onDeleteNode(selection.id);
-                } else if (edgeSelectionType && selection.type === edgeSelectionType && onDeleteEdge) {
-                    onDeleteEdge(selection.id);
-                }
-            }
-        }
 
         if (e.key === 'Escape') {
             onClearMultiSelect();

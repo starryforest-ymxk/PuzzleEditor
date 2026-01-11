@@ -56,7 +56,10 @@ export const StatesLayer: React.FC<StatesLayerProps> = ({
             {Object.values(states).map((state: State) => {
                 const stateValidation = validationResults[state.id];
                 const errorTooltip = stateValidation?.hasError
-                    ? stateValidation.issues.map(i => i.message).join('\n')
+                    ? stateValidation.issues.filter(i => i.type === 'error').map(i => i.message).join('\n')
+                    : undefined;
+                const warningTooltip = stateValidation?.hasWarning
+                    ? stateValidation.issues.filter(i => i.type === 'warning').map(i => i.message).join('\n')
                     : undefined;
 
                 return (
@@ -73,7 +76,9 @@ export const StatesLayer: React.FC<StatesLayerProps> = ({
                         onContextMenu={(e) => onContextMenu(e, state.id)}
                         readOnly={readOnly}
                         hasError={stateValidation?.hasError}
+                        hasWarning={stateValidation?.hasWarning}
                         errorTooltip={errorTooltip}
+                        warningTooltip={warningTooltip}
                     />
                 );
             })}

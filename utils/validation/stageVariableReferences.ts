@@ -68,15 +68,15 @@ const collectFromCondition = (
 ) => {
     if (!condition) return;
 
-    if (condition.type === 'AND' || condition.type === 'OR') {
+    if (condition.type === 'And' || condition.type === 'Or') {
         condition.children?.forEach((c, idx) => collectFromCondition(c, variableId, collector, `${origin} > Sub condition ${idx + 1}`, navContext));
     }
 
-    if (condition.type === 'NOT' && condition.operand) {
+    if (condition.type === 'Not' && condition.operand) {
         collectFromCondition(condition.operand, variableId, collector, `${origin} > Not`, navContext);
     }
 
-    if (condition.type === 'COMPARISON') {
+    if (condition.type === 'Comparison') {
         collectFromValueSource(condition.left, variableId, collector, `${origin} > Left`, navContext);
         collectFromValueSource(condition.right, variableId, collector, `${origin} > Right`, navContext);
     }

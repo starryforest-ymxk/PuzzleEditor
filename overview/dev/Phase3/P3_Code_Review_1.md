@@ -20,7 +20,7 @@
 | P3-T03 | 状态生命周期与事件监听配置 | ✅ 完成 | `StateInspector` 支持脚本绑定与事件监听器编辑 |
 | P3-T04 | 连线创建、删除与基本属性编辑 | ✅ 完成 | 支持 Shift+拖拽/右键菜单创建连线，重复边保护，自环支持 |
 | P3-T05 | 触发器编辑 | ✅ 完成 | `TriggerEditor` 支持 Always/OnEvent/CustomScript 多条触发器 |
-| P3-T06 | 条件构造器编辑 | ✅ 完成 | `ConditionEditor` 支持变量比较、脚本引用、AND/OR/NOT 嵌套 |
+| P3-T06 | 条件构造器编辑 | ✅ 完成 | `ConditionEditor` 支持变量比较、脚本引用、And/Or/Not 嵌套 |
 | P3-T07 | 参数修改器配置 | ✅ 完成 | `ParameterModifierEditor` 支持目标变量/操作/值来源配置 |
 | P3-T08 | 演出绑定与参数传递 | ✅ 完成 | `PresentationBindingEditor` 支持脚本/子图绑定与临时参数 |
 | P3-T09 | 画布编辑体验 & 基础校验 | ✅ 完成 | 框选/多选/批量移动/Ctrl剪线/软删资源校验/错误标记 |
@@ -283,7 +283,7 @@ export function createLogger(tag: LogTag): { log, warn, error };
 | 多选框选 | ✅ | `boxSelectRect` |
 | Inspector - State 编辑 | ✅ | `StateInspector` |
 | Inspector - Transition 编辑 | ✅ | `TransitionInspector` |
-| 条件构造器 AND/OR | ✅ | `ConditionEditor` |
+| 条件构造器 And/Or | ✅ | `ConditionEditor` |
 | 参数修改器 Set/Add/Sub | ✅ | `ParameterModifierEditor` |
 | 演出绑定脚本/子图 | ✅ | `PresentationBindingEditor` |
 | 临时参数创建 | ✅ | Temporary 参数支持 |

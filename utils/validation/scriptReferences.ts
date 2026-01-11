@@ -32,8 +32,8 @@ const collectScriptFromCondition = (
 ) => {
     if (!condition) return;
 
-    // 检查 SCRIPT_REF 类型
-    if (condition.type === 'SCRIPT_REF') {
+    // 检查 ScriptRef 类型
+    if (condition.type === 'ScriptRef') {
         if ((condition as any).scriptId === scriptId) {
             collector({ location: origin, navContext });
         }
@@ -41,13 +41,13 @@ const collectScriptFromCondition = (
     }
 
     // 递归处理复合条件
-    if (condition.type === 'AND' || condition.type === 'OR') {
+    if (condition.type === 'And' || condition.type === 'Or') {
         condition.children?.forEach((c, idx) =>
             collectScriptFromCondition(c, scriptId, collector, `${origin} > Sub condition ${idx + 1}`, navContext)
         );
     }
 
-    if (condition.type === 'NOT' && condition.operand) {
+    if (condition.type === 'Not' && condition.operand) {
         collectScriptFromCondition(condition.operand, scriptId, collector, `${origin} > Not`, navContext);
     }
 };

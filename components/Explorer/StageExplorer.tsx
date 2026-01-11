@@ -12,10 +12,10 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { useEditorState, useEditorDispatch } from '../../store/context';
 import { ChevronRight, ChevronDown, Folder, Flag, Box, FolderPlus, FilePlus, Trash2, Edit3 } from 'lucide-react';
-import { createDefaultStage, hasStageContent } from '../../utils/stageTreeUtils';
-import { ConfirmDialog } from '../Inspector/ConfirmDialog';
+import { createDefaultStage } from '../../utils/stageTreeUtils';
 import { StageId } from '../../types/common';
 import { useStageDrag } from '../../hooks/useStageDrag';
+import { useDeleteHandler } from '../../hooks/useDeleteHandler';
 
 // ========== 类型定义 ==========
 
@@ -26,19 +26,12 @@ interface ContextMenuState {
     stageId: string | null;  // null 表示空白区域菜单
 }
 
-/** 删除确认弹窗状态 */
-interface DeleteConfirmState {
-    stageId: string;
-    stageName: string;
-    childStageCount: number;
-    nodeCount: number;
-}
-
 // ========== 组件实现 ==========
 
 export const StageExplorer: React.FC = () => {
     const { project, ui } = useEditorState();
     const dispatch = useEditorDispatch();
+    const { deleteStage } = useDeleteHandler();
 
     // ========== 状态管理 ==========
 
@@ -47,8 +40,6 @@ export const StageExplorer: React.FC = () => {
     // 内联编辑状态
     const [editingStageId, setEditingStageId] = useState<string | null>(null);
     const [editingName, setEditingName] = useState<string>('');
-    // 删除确认弹窗状态
-    const [deleteConfirm, setDeleteConfirm] = useState<DeleteConfirmState | null>(null);
     // 编辑输入框引用
     const editInputRef = useRef<HTMLInputElement>(null);
     // Stage 树容器引用：用于限定拖拽空白区域“最后节点”计算范围（避免被 Nodes 列表等 .tree-node 干扰）
@@ -234,40 +225,12 @@ export const StageExplorer: React.FC = () => {
     // ========== 事件处理：删除 ==========
 
     /** 请求删除 Stage */
+    /** 请求删除 Stage */
     const handleRequestDelete = useCallback(() => {
         if (!contextMenu?.stageId) return;
-        const stage = project.stageTree.stages[contextMenu.stageId];
-        if (!stage?.parentId) {
-            setContextMenu(null);
-            return;
-        }
-
-        const contentInfo = hasStageContent(project.stageTree, project.nodes, contextMenu.stageId as StageId);
-
-        if (contentInfo.hasChildren || contentInfo.totalDescendantStages > 0 || contentInfo.totalDescendantNodes > 0) {
-            setDeleteConfirm({
-                stageId: contextMenu.stageId,
-                stageName: stage.name,
-                childStageCount: contentInfo.totalDescendantStages,
-                nodeCount: contentInfo.totalDescendantNodes
-            });
-        } else {
-            dispatch({ type: 'DELETE_STAGE', payload: { stageId: contextMenu.stageId as StageId } });
-        }
+        deleteStage(contextMenu.stageId);
         setContextMenu(null);
-    }, [contextMenu, project.stageTree, project.nodes, dispatch]);
-
-    /** 确认删除 */
-    const handleConfirmDelete = useCallback(() => {
-        if (!deleteConfirm) return;
-        dispatch({ type: 'DELETE_STAGE', payload: { stageId: deleteConfirm.stageId as StageId } });
-        setDeleteConfirm(null);
-    }, [deleteConfirm, dispatch]);
-
-    /** 取消删除 */
-    const handleCancelDelete = useCallback(() => {
-        setDeleteConfirm(null);
-    }, []);
+    }, [contextMenu, deleteStage]);
 
     // ========== 渲染：树节点 ==========
 
@@ -283,9 +246,8 @@ export const StageExplorer: React.FC = () => {
         const dropClass = getDropClass(stage.id);
         const dropEdge = getDropEdge(stage.id);
 
-        // 初始阶段判断：父节点的第一个子节点
-        const parent = stage.parentId ? project.stageTree.stages[stage.parentId] : null;
-        const isInitial = parent ? parent.childrenIds?.[0] === stage.id : false;
+        // 初始阶段判断：直接读取 isInitial 属性
+        const isInitial = stage.isInitial ?? false;
 
         // 获取拖拽事件处理器
         const dragHandlers = createNodeDragHandlers(stage.id);
@@ -479,21 +441,7 @@ export const StageExplorer: React.FC = () => {
                 </div>
             )}
 
-            {/* 删除确认弹窗 */}
-            {deleteConfirm && (
-                <ConfirmDialog
-                    title="Delete Stage"
-                    message={`Are you sure you want to delete "${deleteConfirm.stageName}"? This will also delete all child content. This action cannot be undone.`}
-                    references={[
-                        deleteConfirm.childStageCount > 0 ? `${deleteConfirm.childStageCount} child stage(s)` : '',
-                        deleteConfirm.nodeCount > 0 ? `${deleteConfirm.nodeCount} puzzle node(s)` : ''
-                    ].filter(Boolean)}
-                    confirmText="Delete"
-                    cancelText="Cancel"
-                    onConfirm={handleConfirmDelete}
-                    onCancel={handleCancelDelete}
-                />
-            )}
+
         </div>
     );
 };

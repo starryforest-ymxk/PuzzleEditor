@@ -1,7 +1,7 @@
 {
   "fileType": "puzzle-project",
   "editorVersion": "1.0.0",
-  "savedAt": "2026-01-11T10:01:39.696Z",
+  "savedAt": "2026-01-11T12:54:12.195Z",
   "project": {
     "meta": {
       "id": "PROJECT_1",
@@ -9,7 +9,7 @@
       "description": "Bubble Horror 泡泡恐怖",
       "version": "1.0.0",
       "createdAt": "2025-12-21T16:19:29.007Z",
-      "updatedAt": "2026-01-11T10:01:39.696Z",
+      "updatedAt": "2026-01-11T12:54:12.195Z",
       "exportPath": "D:\\UnityProjects\\Projects\\PuzzleSystem\\Assets\\PuzzleProject\\ExportPath",
       "exportFileName": "BubbleHorror"
     },
@@ -406,6 +406,7 @@
             "STAGE_3",
             "STAGE_8"
           ],
+          "isInitial": true,
           "localVariables": {},
           "eventListeners": [],
           "isExpanded": true,
@@ -417,7 +418,7 @@
           "description": "社区警员牛老师在接受到一通报警电话说家里有很多不知道哪里出现的泡泡，牛老师决定前去调查",
           "parentId": "STAGE_1",
           "childrenIds": [],
-          "isInitial": false,
+          "isInitial": true,
           "localVariables": {
             "STAGE_2_STAGEVAR_1": {
               "id": "STAGE_2_STAGEVAR_1",
@@ -447,7 +448,8 @@
             "type": "Graph",
             "graphId": "GRAPH_1"
           },
-          "assetName": "FirstEncounterException"
+          "assetName": "FirstEncounterException",
+          "unlockTriggers": []
         },
         "STAGE_3": {
           "id": "STAGE_3",
@@ -485,8 +487,7 @@
           "isExpanded": false,
           "unlockTriggers": [
             {
-              "type": "OnEvent",
-              "eventId": "EVENT_3"
+              "type": "Always"
             }
           ],
           "assetName": "EnterHouse"
@@ -497,7 +498,7 @@
           "description": "牛老师发现了房间里的泡泡，准备去看看泡泡从哪里出来的",
           "parentId": "STAGE_3",
           "childrenIds": [],
-          "isInitial": false,
+          "isInitial": true,
           "localVariables": {
             "STAGE_4_STAGEVAR_1": {
               "id": "STAGE_4_STAGEVAR_1",
@@ -533,7 +534,8 @@
           "eventListeners": [],
           "isExpanded": false,
           "assetName": "CloseBubbleEmitter",
-          "lifecycleScriptId": "SCRIPT_LIFE_2"
+          "lifecycleScriptId": "SCRIPT_LIFE_2",
+          "unlockTriggers": []
         },
         "STAGE_5": {
           "id": "STAGE_5",
@@ -541,7 +543,7 @@
           "description": "牛老师在关闭完几个泡泡出口以后，遭遇了停电，还听到了一声异响，牛老师决定去看看是什么声音",
           "parentId": "STAGE_7",
           "childrenIds": [],
-          "isInitial": false,
+          "isInitial": true,
           "localVariables": {
             "STAGE_5_STAGEVAR_1": {
               "id": "STAGE_5_STAGEVAR_1",
@@ -566,11 +568,7 @@
           },
           "eventListeners": [],
           "isExpanded": false,
-          "unlockTriggers": [
-            {
-              "type": "Always"
-            }
-          ],
+          "unlockTriggers": [],
           "assetName": "PowerOutage",
           "onEnterPresentation": {
             "type": "Script",
@@ -595,7 +593,7 @@
             }
           ],
           "unlockCondition": {
-            "type": "COMPARISON",
+            "type": "Comparison",
             "operator": ">=",
             "left": {
               "type": "VariableRef",
@@ -614,7 +612,6 @@
           "description": "牛老师遭遇了停电，但是主电力系统坏了，需要启用备用电机",
           "parentId": "STAGE_3",
           "childrenIds": [
-            "STAGE_9",
             "STAGE_5",
             "STAGE_6"
           ],
@@ -625,14 +622,12 @@
           "assetName": "PowerOutageFindDiesel",
           "unlockTriggers": [
             {
-              "type": "Always",
-              "eventId": "",
-              "scriptId": ""
+              "type": "Always"
             }
           ],
           "lifecycleScriptId": "SCRIPT_LIFE_4",
           "unlockCondition": {
-            "type": "COMPARISON",
+            "type": "Comparison",
             "operator": "==",
             "left": {
               "type": "VariableRef",
@@ -662,7 +657,7 @@
             }
           ],
           "unlockCondition": {
-            "type": "COMPARISON",
+            "type": "Comparison",
             "operator": "==",
             "left": {
               "type": "VariableRef",
@@ -673,22 +668,6 @@
               "type": "Constant",
               "value": true
             }
-          }
-        },
-        "STAGE_9": {
-          "id": "STAGE_9",
-          "name": "New Stage",
-          "description": "",
-          "parentId": "STAGE_7",
-          "childrenIds": [],
-          "isInitial": false,
-          "localVariables": {},
-          "eventListeners": [],
-          "isExpanded": false,
-          "unlockTriggers": [],
-          "unlockCondition": {
-            "type": "SCRIPT_REF",
-            "scriptId": "SCRIPT_COND_1"
           }
         }
       }
@@ -909,8 +888,8 @@
             "name": "对话未触发",
             "description": "Initial state: Waiting for trigger",
             "position": {
-              "x": 446,
-              "y": 318
+              "x": 433,
+              "y": 322
             },
             "eventListeners": [],
             "assetName": "UntriggeredDialogue"
@@ -921,7 +900,7 @@
             "description": "State after being triggered",
             "position": {
               "x": 749,
-              "y": 317
+              "y": 316
             },
             "eventListeners": [],
             "assetName": "DialogComplete"
@@ -1318,7 +1297,7 @@
               }
             ],
             "condition": {
-              "type": "COMPARISON",
+              "type": "Comparison",
               "operator": "==",
               "left": {
                 "type": "VariableRef",
@@ -1515,7 +1494,7 @@
             "fromSide": "right",
             "toSide": "left",
             "condition": {
-              "type": "COMPARISON",
+              "type": "Comparison",
               "operator": "==",
               "left": {
                 "type": "VariableRef",
@@ -1757,7 +1736,7 @@
             "fromSide": "right",
             "toSide": "left",
             "condition": {
-              "type": "SCRIPT_REF",
+              "type": "ScriptRef",
               "scriptId": "SCRIPT_COND_1"
             },
             "priority": 0,
@@ -1777,7 +1756,7 @@
             "fromSide": "right",
             "toSide": "left",
             "condition": {
-              "type": "LITERAL",
+              "type": "Literal",
               "value": true
             },
             "priority": 0,
@@ -1796,7 +1775,7 @@
             "fromSide": "bottom",
             "toSide": "bottom",
             "condition": {
-              "type": "LITERAL",
+              "type": "Literal",
               "value": true
             },
             "priority": 0,
@@ -1815,7 +1794,7 @@
             "fromSide": "right",
             "toSide": "left",
             "condition": {
-              "type": "LITERAL",
+              "type": "Literal",
               "value": true
             },
             "priority": 0,
@@ -1847,8 +1826,8 @@
             "assetName": "NotStarted",
             "description": "Initial state: Waiting for trigger",
             "position": {
-              "x": 200,
-              "y": 150
+              "x": 190,
+              "y": 151
             },
             "eventListeners": []
           },
@@ -1888,7 +1867,7 @@
               }
             ],
             "condition": {
-              "type": "COMPARISON",
+              "type": "Comparison",
               "operator": ">=",
               "left": {
                 "type": "VariableRef",
@@ -1951,7 +1930,7 @@
             "fromSide": "right",
             "toSide": "left",
             "condition": {
-              "type": "LITERAL",
+              "type": "Literal",
               "value": true
             },
             "priority": 0,
@@ -2064,7 +2043,7 @@
             "fromSide": "right",
             "toSide": "left",
             "condition": {
-              "type": "LITERAL",
+              "type": "Literal",
               "value": true
             },
             "priority": 0,
@@ -2094,7 +2073,7 @@
             "fromSide": "right",
             "toSide": "left",
             "condition": {
-              "type": "LITERAL",
+              "type": "Literal",
               "value": true
             },
             "priority": 0,
@@ -2117,7 +2096,7 @@
             "fromSide": "right",
             "toSide": "left",
             "condition": {
-              "type": "LITERAL",
+              "type": "Literal",
               "value": true
             },
             "priority": 0,
@@ -2244,7 +2223,7 @@
               "PNODE_4"
             ],
             "condition": {
-              "type": "COMPARISON",
+              "type": "Comparison",
               "operator": "==",
               "left": {
                 "type": "VariableRef",
@@ -2292,7 +2271,7 @@
   "editorState": {
     "panelSizes": {
       "explorerWidth": 280,
-      "inspectorWidth": 485,
+      "inspectorWidth": 393,
       "stagesHeight": 55
     },
     "stageExpanded": {
@@ -2300,9 +2279,9 @@
       "STAGE_3": true,
       "STAGE_7": true
     },
-    "currentStageId": "STAGE_9",
+    "currentStageId": null,
     "currentNodeId": null,
-    "currentGraphId": null,
+    "currentGraphId": "GRAPH_2",
     "view": "EDITOR"
   }
 }

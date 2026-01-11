@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { isElectron, loadPreferences, readProject } from '@/src/electron/api';
+import { isElectron, loadPreferences, readProject, updateRecentProject } from '@/src/electron/api';
 import { useProjectActions } from './useProjectActions';
 import { useEditorDispatch } from '../store/context';
 
@@ -57,7 +57,12 @@ export const useAppStartup = () => {
                         try {
                             // Load the project into the editor
                             console.log(`DEBUG: Restoring project from ${path}`);
-                            // console.log(`DEBUG: Content preview:`, projectResult.data.substring(0, 50));
+
+                            const projectData = JSON.parse(projectResult.data);
+                            const projectName = projectData?.project?.meta?.name || 'Unknown Project';
+
+                            // 更新最近打开时间
+                            await updateRecentProject(path, projectName);
 
                             loadProjectFromString(projectResult.data, path);
                         } catch (e) {

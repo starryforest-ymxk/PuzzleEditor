@@ -25,6 +25,7 @@ import { ConnectionArrowMarkers } from './Elements/TempConnectionLine';
 import { ShortcutPanel, CuttingLineOverlay, BoxSelectOverlay, CanvasInfoOverlay } from './Elements/CanvasOverlays';
 import { CANVAS } from '../../utils/constants';
 import { IGraphNode } from '../../types/graphCore';
+import { validatePresentationGraph } from '../../utils/validation/presentationValidation';
 
 // ========== Props ==========
 interface Props {
@@ -72,6 +73,12 @@ export const PresentationCanvas: React.FC<Props> = ({ graph, ownerNodeId, readOn
     const edges = useMemo(() => presentationNodesToEdges(graph.nodes), [graph.nodes]);
 
     const multiSelectIds = ui.multiSelectPresentationNodeIds || [];
+
+    // ========== 演出图校验 ==========
+    const editorState = useEditorState();
+    const validationResults = useMemo(() => {
+        return validatePresentationGraph(graph, editorState);
+    }, [graph, editorState]);
 
     // ========== 工具函数 ==========
     const getLocalCoordinates = useCallback((clientX: number, clientY: number) => {
@@ -599,8 +606,9 @@ export const PresentationCanvas: React.FC<Props> = ({ graph, ownerNodeId, readOn
                 isLineCuttingMode={isLineCuttingMode}
                 isLinkMode={Boolean(linkingState || modifyingTransition || isLinkKeyActive)}
                 isPanMode={isPanningActive}
-                hasNoInitialState={!graph.startNodeId && Object.keys(graph.nodes).length > 0}
+                hasNoInitialState={!graph.startNodeId || !graph.nodes[graph.startNodeId]}
                 headerLabel="Presentation Editor"
+                initialStateWarningText="No start node set"
             />
 
             {/* 快捷键面板 */}
@@ -810,9 +818,14 @@ export const PresentationCanvas: React.FC<Props> = ({ graph, ownerNodeId, readOn
                         const isMultiSelected = multiSelectIds.includes(node.id); // 检查是否在多选列表中
                         const isStart = graph.startNodeId === node.id;
 
-                        // Check for Branch node error (more than 2 outgoing connections)
-                        const isBranchError = node.type === 'Branch' && node.nextIds.filter(id => !!id).length > 2;
-                        const errorTooltip = isBranchError ? "Branch nodes can only have 2 paths (True/False)" : undefined;
+                        // 获取校验结果
+                        const nodeValidation = validationResults[node.id];
+                        const errorTooltip = nodeValidation?.hasError
+                            ? nodeValidation.issues.filter(i => i.type === 'error').map(i => i.message).join('\n')
+                            : undefined;
+                        const warningTooltip = nodeValidation?.hasWarning
+                            ? nodeValidation.issues.filter(i => i.type === 'warning').map(i => i.message).join('\n')
+                            : undefined;
 
                         return (
                             <GraphNode
@@ -825,8 +838,10 @@ export const PresentationCanvas: React.FC<Props> = ({ graph, ownerNodeId, readOn
                                 isInitial={isStart}
                                 isContextTarget={contextMenu?.type === 'NODE' && contextMenu?.targetId === node.id}
                                 readOnly={readOnly}
-                                hasError={isBranchError}
+                                hasError={nodeValidation?.hasError}
+                                hasWarning={nodeValidation?.hasWarning}
                                 errorTooltip={errorTooltip}
+                                warningTooltip={warningTooltip}
                                 renderContent={renderNodeContent}
                                 onMouseDown={handleNodeMouseDown}
                                 onMouseUp={handleNodeMouseUp}

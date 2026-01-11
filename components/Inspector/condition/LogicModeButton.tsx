@@ -1,13 +1,13 @@
 /**
  * LogicModeButton.tsx - 逻辑模式切换按钮
- * 用于 Condition Builder 的 AND/OR/NOT 模式切换
+ * 用于 Condition Builder 的 And/Or/Not 模式切换
  */
 
 import React from 'react';
-import { BLOCK_STYLES } from './conditionStyles';
+import { getBlockStyle } from './conditionStyles';
 
 interface LogicModeButtonProps {
-    mode: 'AND' | 'OR' | 'NOT';    // 逻辑模式
+    mode: 'And' | 'Or' | 'Not';    // 逻辑模式
     label?: string;                 // 显示文字（可自定义，如 OR 显示为 ANY）
     isActive: boolean;              // 是否激活状态
     onClick: () => void;            // 点击回调
@@ -25,7 +25,7 @@ export const LogicModeButton: React.FC<LogicModeButtonProps> = ({
     onClick,
     disabled
 }) => {
-    const style = BLOCK_STYLES[mode];
+    const style = getBlockStyle(mode);
 
     return (
         <button

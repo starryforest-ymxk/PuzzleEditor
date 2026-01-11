@@ -61,25 +61,8 @@ export function useKeyboardShortcuts({
         // 忽略输入框内的其他按键
         if (isInputElement) return;
 
-        if (e.key === 'Delete' || e.key === 'Backspace') {
-            if (readOnly) return;
+        // GlobalKeyboardShortcuts handles Delete/Backspace
 
-            // 优先处理多选删除
-            if (multiSelectIds.length > 0) {
-                multiSelectIds.forEach(stateId => {
-                    onDeleteState(stateId);
-                });
-                onClearMultiSelect();
-                return;
-            }
-
-            // 单选删除
-            if (selection.type === 'STATE' && selection.contextId === nodeId && selection.id) {
-                onDeleteState(selection.id);
-            } else if (selection.type === 'TRANSITION' && selection.contextId === nodeId && selection.id) {
-                onDeleteTransition(selection.id);
-            }
-        }
 
         if (e.key === 'Escape') {
             onClearMultiSelect();

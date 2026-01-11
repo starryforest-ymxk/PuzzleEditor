@@ -38,7 +38,7 @@ export interface ValidationIssue {
     /** 严重级别 */
     severity: ValidationSeverity;
 
-    /** 错误代码，用于程序化处理（如 'DELETED_SCRIPT_REF', 'DUPLICATE_NAME'） */
+    /** 错误代码，用于程序化处理（如 'DELETED_ScriptRef', 'DUPLICATE_NAME'） */
     code: string;
 
     /** 用户可读的错误消息 */

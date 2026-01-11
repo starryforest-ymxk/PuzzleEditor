@@ -20,11 +20,12 @@ import type { MessageLevel } from '../../store/types';
 import { Trash2, RotateCcw, ExternalLink } from 'lucide-react';
 import { findScriptReferences } from '../../utils/validation/scriptReferences';
 import type { ReferenceNavigationContext } from '../../utils/validation/globalVariableReferences';
-import { ConfirmDialog } from './ConfirmDialog';
+
 import { InspectorWarning } from './InspectorInfo';
 import { isValidAssetName } from '../../utils/assetNameValidation';
 import { AssetNameAutoFillButton } from './AssetNameAutoFillButton';
 import { useAutoTranslateAssetName } from '../../hooks/useAutoTranslateAssetName';
+import { useDeleteHandler } from '../../hooks/useDeleteHandler';
 
 // ========== Props 类型定义 ==========
 interface ScriptInspectorProps {
@@ -50,9 +51,6 @@ const categoryLabels: Record<ScriptCategory, string> = {
     Trigger: 'TRIGGER SCRIPT'
 };
 
-// ========== 确认对话框模式 ==========
-type ConfirmMode = 'soft-delete' | 'hard-delete' | 'delete';
-
 // ========== 主组件 ==========
 export const ScriptInspector: React.FC<ScriptInspectorProps> = ({ scriptId, readOnly = false }) => {
     const { project } = useEditorState();
@@ -64,14 +62,6 @@ export const ScriptInspector: React.FC<ScriptInspectorProps> = ({ scriptId, read
     const categoryColor = categoryColors[script.category] || '#c586c0';
     const categoryLabel = categoryLabels[script.category] || script.category.toUpperCase();
     const isMarkedForDelete = script.state === 'MarkedForDelete';
-
-    // ========== 确认对话框状态 ==========
-    const [confirmDialog, setConfirmDialog] = useState<{
-        title: string;
-        message: string;
-        refs: string[];
-        mode: ConfirmMode;
-    } | null>(null);
 
     // ========== 本地编辑状态（用于失焦校验） ==========
     const [localName, setLocalName] = useState(script.name);
@@ -145,76 +135,15 @@ export const ScriptInspector: React.FC<ScriptInspectorProps> = ({ scriptId, read
 
     // ========== 删除逻辑（与 VariableInspector 一致） ==========
 
-    /**
-     * 执行删除操作
-     * - soft-delete: Implemented -> MarkedForDelete
-     * - hard-delete: MarkedForDelete -> 物理删除
-     * - delete: Draft -> 物理删除
-     */
-    const applyDeleteAction = (mode: ConfirmMode) => {
-        if (mode === 'hard-delete' || script.state === 'MarkedForDelete') {
-            // 硬删除：直接物理删除
-            dispatch({ type: 'APPLY_DELETE_SCRIPT', payload: { id: scriptId } });
-            pushMessage(
-                references.length > 0 ? 'warning' : 'info',
-                `Permanently deleted script "${script.name}".`
-            );
-        } else if (mode === 'soft-delete' && script.state === 'Implemented') {
-            // 软删除：标记为 MarkedForDelete
-            dispatch({ type: 'SOFT_DELETE_SCRIPT', payload: { id: scriptId } });
-            pushMessage('warning', `Marked script "${script.name}" for delete. Editing is now locked.`);
-        } else {
-            // Draft 状态直接删除
-            dispatch({ type: 'APPLY_DELETE_SCRIPT', payload: { id: scriptId } });
-            pushMessage(
-                references.length > 0 ? 'warning' : 'info',
-                `Deleted script "${script.name}".`
-            );
-        }
-
-        setConfirmDialog(null);
-    };
+    // ========== 删除逻辑 (使用 unified hook) ==========
+    const { deleteScript } = useDeleteHandler();
 
     /**
      * 删除按钮点击处理
-     * 根据脚本状态和引用情况决定是否弹窗确认
      */
     const handleDelete = () => {
         if (readOnly) return;
-        const hasRefs = references.length > 0;
-        const preview = referenceLocations.slice(0, 5);
-
-        // MarkedForDelete 状态：弹窗确认后硬删除
-        if (script.state === 'MarkedForDelete') {
-            setConfirmDialog({
-                title: 'Apply Delete (Irreversible)',
-                message: 'This script is already marked for delete. Applying delete will permanently remove it. This action cannot be undone.',
-                refs: preview,
-                mode: 'hard-delete'
-            });
-            return;
-        }
-
-        // 有引用：弹窗确认
-        if (hasRefs) {
-            const isImplemented = script.state === 'Implemented';
-            setConfirmDialog({
-                title: isImplemented ? 'Mark For Delete' : 'Confirm Delete',
-                message: `Script "${script.name}" is referenced ${references.length} time(s). ${isImplemented ? 'It will be marked as "MarkedForDelete" and locked.' : 'Deleting it will require fixing those references manually.'}`,
-                refs: preview,
-                mode: isImplemented ? 'soft-delete' : 'delete'
-            });
-            return;
-        }
-
-        // 无引用 + Implemented：直接软删除（不弹窗）
-        if (script.state === 'Implemented') {
-            applyDeleteAction('soft-delete');
-            return;
-        }
-
-        // 无引用 + Draft：直接删除（不弹窗）
-        applyDeleteAction('delete');
+        deleteScript(scriptId);
     };
 
     /**
@@ -225,28 +154,6 @@ export const ScriptInspector: React.FC<ScriptInspectorProps> = ({ scriptId, read
         if (readOnly || script.state !== 'MarkedForDelete') return;
         dispatch({ type: 'UPDATE_SCRIPT', payload: { id: scriptId, data: { state: 'Implemented' } } });
         pushMessage('info', `Restored script "${script.name}" to Implemented state.`);
-    };
-
-    /**
-     * 确认对话框确认按钮处理
-     */
-    const handleConfirmDelete = () => {
-        if (!confirmDialog) return;
-        applyDeleteAction(confirmDialog.mode);
-    };
-
-    // 确认按钮文案
-    const confirmButtonLabel = confirmDialog?.mode === 'hard-delete'
-        ? 'Apply Delete'
-        : confirmDialog?.mode === 'soft-delete'
-            ? 'Mark for Delete'
-            : 'Delete';
-
-    // 获取删除按钮提示文案
-    const getDeleteTooltip = (): string => {
-        if (script.state === 'Draft') return 'Delete';
-        if (script.state === 'Implemented') return 'Mark for Delete';
-        return 'Apply Delete';
     };
 
     // 是否可编辑（MarkedForDelete 状态下不可编辑）
@@ -350,11 +257,7 @@ export const ScriptInspector: React.FC<ScriptInspectorProps> = ({ scriptId, read
                                     <button
                                         className="btn-icon btn-icon--danger"
                                         onClick={handleDelete}
-                                        title={
-                                            script.state === 'Draft'
-                                                ? references.length > 0 ? "Delete (References exist)" : "Delete Draft"
-                                                : "Delete (Mark for Deletion)"
-                                        }
+                                        title="Delete"
                                     >
                                         <Trash2 size={14} />
                                     </button>
@@ -517,18 +420,7 @@ export const ScriptInspector: React.FC<ScriptInspectorProps> = ({ scriptId, read
                 </div>
             </div>
 
-            {/* Confirm Dialog - 确认对话框 (放在 opacity 容器外，避免透明度问题) */}
-            {confirmDialog && (
-                <ConfirmDialog
-                    title={confirmDialog.title}
-                    message={confirmDialog.message}
-                    confirmText={confirmButtonLabel}
-                    references={confirmDialog.refs}
-                    totalReferences={references.length}
-                    onCancel={() => setConfirmDialog(null)}
-                    onConfirm={handleConfirmDelete}
-                />
-            )}
+
         </>
     );
 };

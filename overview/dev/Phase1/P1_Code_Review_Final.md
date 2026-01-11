@@ -55,12 +55,12 @@
 ### P1-T05 ✅ 条件构造器与参数修改器抽象模型
 
 - `types/stateMachine.ts` 定义了 `ConditionExpression` AST 结构
-  - 支持 AND/OR/NOT/COMPARISON/LITERAL/VARIABLE_REF/SCRIPT_REF
+  - 支持 And/Or/Not/Comparison/Literal/VariableRef/ScriptRef
 - `types/common.ts` 定义了 `ParameterModifier` 结构
   - 操作类型：Set/Add/Subtract（不支持 CopyFromVar，使用 VariableRef + Set/Add/Sub 即可覆盖复制场景）
   - 值来源：常量/变量引用
 - `utils/conditionBuilder.ts` 提供了构造辅助函数
-- `ConditionEditor.tsx` 实现了可视化编辑（支持 AND/OR 逻辑嵌套）
+- `ConditionEditor.tsx` 实现了可视化编辑（支持 And/Or 逻辑嵌套）
 - `ParameterModifierEditor.tsx` 实现了参数修改器 UI
 
 ### P1-T06 ✅ 事件与触发器模型

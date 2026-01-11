@@ -1,6 +1,6 @@
 /**
  * LeafConditionEditor.tsx - 叶子条件编辑器
- * 用于编辑叶子条件（COMPARISON / SCRIPT_REF / VARIABLE_REF / LITERAL）
+ * 用于编辑叶子条件（Comparison / ScriptRef / VariableRef / Literal）
  */
 
 import React, { useEffect, useMemo } from 'react';
@@ -56,10 +56,10 @@ export const LeafConditionEditor: React.FC<LeafConditionEditorProps> = ({
 }) => {
     const style = getBlockStyle(condition.type);
 
-    // 预处理 COMPARISON 类型：若 left/right/operator 缺失，填充默认值
+    // 预处理 Comparison 类型：若 left/right/operator 缺失，填充默认值
     useEffect(() => {
         if (!onChange) return;
-        if (condition.type !== 'COMPARISON') return;
+        if (condition.type !== 'Comparison') return;
 
         const needLeft = !condition.left;
         const needRight = !condition.right;
@@ -67,7 +67,7 @@ export const LeafConditionEditor: React.FC<LeafConditionEditorProps> = ({
 
         if (needLeft || needRight || needOperator) {
             onChange({
-                type: 'COMPARISON',
+                type: 'Comparison',
                 operator: condition.operator || '==',
                 left: condition.left || { type: 'VariableRef', variableId: '', scope: 'NodeLocal' },
                 right: condition.right || { type: 'Constant', value: '' }
@@ -83,7 +83,7 @@ export const LeafConditionEditor: React.FC<LeafConditionEditorProps> = ({
 
     // 获取左侧选中的变量，用于类型过滤操作符
     const selectedLeftVar = useMemo(() => {
-        if (condition.type === 'COMPARISON' && condition.left?.type === 'VariableRef') {
+        if (condition.type === 'Comparison' && condition.left?.type === 'VariableRef') {
             return variables.find(v => v.id === condition.left?.variableId);
         }
         return undefined;
@@ -110,7 +110,7 @@ export const LeafConditionEditor: React.FC<LeafConditionEditorProps> = ({
 
     // 检查脚本状态
     const scriptState = useMemo(() => {
-        if (condition.type !== 'SCRIPT_REF' || !condition.scriptId) {
+        if (condition.type !== 'ScriptRef' || !condition.scriptId) {
             return { missing: false, marked: false };
         }
         const matched = conditionScripts.find(s => s.id === condition.scriptId);
@@ -125,20 +125,20 @@ export const LeafConditionEditor: React.FC<LeafConditionEditorProps> = ({
         if (!onChange) return;
 
         switch (newType) {
-            case 'COMPARISON':
+            case 'Comparison':
                 onChange({
-                    type: 'COMPARISON',
+                    type: 'Comparison',
                     operator: '==',
                     left: { type: 'VariableRef', variableId: '', scope: 'NodeLocal' },
                     right: { type: 'Constant', value: '' }
                 });
                 break;
-            case 'SCRIPT_REF':
-                onChange({ type: 'SCRIPT_REF', scriptId: '' });
+            case 'ScriptRef':
+                onChange({ type: 'ScriptRef', scriptId: '' });
                 break;
-            case 'LITERAL':
-                // LITERAL (Always True/False)
-                onChange({ type: 'LITERAL', value: true });
+            case 'Literal':
+                // Literal (Always True/False)
+                onChange({ type: 'Literal', value: true });
                 break;
         }
     };
@@ -181,9 +181,9 @@ export const LeafConditionEditor: React.FC<LeafConditionEditorProps> = ({
                         disabled={!onChange}
                         style={{ ...typeSelectStyle(style), width: '100%' }}
                     >
-                        <option value="COMPARISON">COMPARE</option>
-                        <option value="SCRIPT_REF">SCRIPT</option>
-                        <option value="LITERAL">LITERAL</option>
+                        <option value="Comparison">Compare</option>
+                        <option value="ScriptRef">Script</option>
+                        <option value="Literal">Literal</option>
                     </select>
                     <span
                         aria-hidden
@@ -202,8 +202,8 @@ export const LeafConditionEditor: React.FC<LeafConditionEditorProps> = ({
                     </span>
                 </div>
 
-                {/* SCRIPT_REF 类型：脚本选择器 (Inline) */}
-                {condition.type === 'SCRIPT_REF' && (
+                {/* ScriptRef 类型：脚本选择器 (Inline) */}
+                {condition.type === 'ScriptRef' && (
                     <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
                         <ResourceSelect
                             value={condition.scriptId || ''}
@@ -224,8 +224,8 @@ export const LeafConditionEditor: React.FC<LeafConditionEditorProps> = ({
                     </div>
                 )}
 
-                {/* LITERAL 类型：布尔值切换 (Inline) */}
-                {condition.type === 'LITERAL' && (
+                {/* Literal 类型：布尔值切换 (Inline) */}
+                {condition.type === 'Literal' && (
                     <select
                         value={condition.value ? 'true' : 'false'}
                         onChange={(e) => onChange && onChange({ ...condition, value: e.target.value === 'true' })}
@@ -265,16 +265,16 @@ export const LeafConditionEditor: React.FC<LeafConditionEditorProps> = ({
                 )}
             </div>
 
-            {/* SCRIPT_REF 错误提示 */}
-            {condition.type === 'SCRIPT_REF' && (scriptState.missing || scriptState.marked) && (
+            {/* ScriptRef 错误提示 */}
+            {condition.type === 'ScriptRef' && (scriptState.missing || scriptState.marked) && (
                 <InspectorError
                     message={scriptState.missing ? 'Script unavailable' : 'Script is marked for delete'}
                     style={{ marginTop: `${ROW_GAP}px`, marginBottom: 0 }}
                 />
             )}
 
-            {/* SCRIPT_REF 详细信息显示 */}
-            {condition.type === 'SCRIPT_REF' && condition.scriptId && (() => {
+            {/* ScriptRef 详细信息显示 */}
+            {condition.type === 'ScriptRef' && condition.scriptId && (() => {
                 const selectedScript = conditionScripts.find(s => s.id === condition.scriptId);
                 if (!selectedScript) return null;
                 return (
@@ -291,8 +291,8 @@ export const LeafConditionEditor: React.FC<LeafConditionEditorProps> = ({
                 );
             })()}
 
-            {/* COMPARISON 类型：独立的主体块 */}
-            {condition.type === 'COMPARISON' && (
+            {/* Comparison 类型：独立的主体块 */}
+            {condition.type === 'Comparison' && (
                 <ComparisonEditor
                     condition={condition}
                     onChange={onChange}
@@ -308,7 +308,7 @@ export const LeafConditionEditor: React.FC<LeafConditionEditorProps> = ({
 
 /**
 * 比较条件编辑器 - 内部子组件
-* 处理 COMPARISON 类型的左值、操作符、右值编辑
+* 处理 Comparison 类型的左值、操作符、右值编辑
 */
 interface ComparisonEditorProps {
     condition: ConditionExpression;
@@ -327,7 +327,7 @@ const ComparisonEditor: React.FC<ComparisonEditorProps> = ({
     comparisonOperators,
     renderVariableWarning
 }) => {
-    if (condition.type !== 'COMPARISON') return null;
+    if (condition.type !== 'Comparison') return null;
     // Defensive check
     if (!condition.left || !condition.right) return null;
 

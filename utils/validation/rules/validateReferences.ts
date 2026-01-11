@@ -86,7 +86,7 @@ function validateCondition(
     if (!condition) return;
 
     // Check Script Ref
-    if (condition.type === 'SCRIPT_REF') {
+    if (condition.type === 'ScriptRef') {
         validateScriptId(results, condition.scriptId, project, locationContext, `${contextDescription} (Script)`);
     }
 

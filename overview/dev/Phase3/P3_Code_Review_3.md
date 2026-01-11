@@ -269,7 +269,7 @@ validation/
 | 多选框选 | ✅ | `useGraphInteraction.ts` |
 | Inspector - State 编辑 | ✅ | `StateInspector.tsx` |
 | Inspector - Transition 编辑 | ✅ | `TransitionInspector.tsx` |
-| 条件构造器 AND/OR/NOT | ✅ | `condition/ConditionEditor.tsx` |
+| 条件构造器 And/Or/Not | ✅ | `condition/ConditionEditor.tsx` |
 | 参数修改器 Set/Add/Subtract | ✅ | `ParameterModifierEditor.tsx` |
 | 演出绑定脚本/子图 | ✅ | `PresentationBindingEditor.tsx` |
 | 临时参数创建 | ✅ | `ParameterBinding.tempVariable` |
