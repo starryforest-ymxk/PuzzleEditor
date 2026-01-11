@@ -1,17 +1,17 @@
 {
   "fileType": "puzzle-project",
   "editorVersion": "1.0.0",
-  "savedAt": "2025-12-22T18:11:51.216Z",
+  "savedAt": "2026-01-11T10:01:39.696Z",
   "project": {
     "meta": {
       "id": "PROJECT_1",
       "name": "Bubble Horror",
-      "description": "",
+      "description": "Bubble Horror 泡泡恐怖",
       "version": "1.0.0",
       "createdAt": "2025-12-21T16:19:29.007Z",
-      "updatedAt": "2025-12-22T18:11:51.216Z",
+      "updatedAt": "2026-01-11T10:01:39.696Z",
       "exportPath": "D:\\UnityProjects\\Projects\\PuzzleSystem\\Assets\\PuzzleProject\\ExportPath",
-      "exportFileName": "BubbleHorror_export"
+      "exportFileName": "BubbleHorror"
     },
     "blackboard": {
       "globalVariables": {
@@ -47,6 +47,16 @@
           "scope": "Global",
           "assetName": "StartDieselGenerator",
           "displayOrder": 2
+        },
+        "VAR_4": {
+          "id": "VAR_4",
+          "name": "玩家成功逃离",
+          "type": "boolean",
+          "value": false,
+          "state": "Draft",
+          "description": "玩家最后是否成功逃离了房屋",
+          "scope": "Global",
+          "assetName": "PlayerEscaped"
         }
       },
       "events": {
@@ -78,7 +88,7 @@
           "id": "EVENT_9",
           "name": "尝试开启电闸",
           "state": "Draft",
-          "description": "牛老师开启电闸，尝试恢复电力",
+          "description": "牛老师开启电闸，尝试恢复电力\n",
           "assetName": "TurnOnCircuitBreaker",
           "displayOrder": 3
         },
@@ -125,7 +135,8 @@
           "category": "Performance",
           "state": "Draft",
           "description": "",
-          "displayOrder": 0
+          "displayOrder": 0,
+          "assetName": "AnswerPhoneCall"
         },
         "SCRIPT_PERF_2": {
           "id": "SCRIPT_PERF_2",
@@ -133,7 +144,8 @@
           "category": "Performance",
           "state": "Draft",
           "description": "",
-          "displayOrder": 1
+          "displayOrder": 1,
+          "assetName": "ProtagonistDeparture"
         },
         "SCRIPT_PERF_3": {
           "id": "SCRIPT_PERF_3",
@@ -141,7 +153,8 @@
           "category": "Performance",
           "state": "Draft",
           "description": "",
-          "displayOrder": 2
+          "displayOrder": 2,
+          "assetName": "BangBangLuoDialogue"
         },
         "SCRIPT_LIFE_1": {
           "id": "SCRIPT_LIFE_1",
@@ -352,11 +365,33 @@
           "lifecycleType": "Node",
           "assetName": "HouseDoor",
           "displayOrder": 0
+        },
+        "SCRIPT_TRIG_2": {
+          "id": "SCRIPT_TRIG_2",
+          "name": "玩家逃离大宅倒计时",
+          "category": "Trigger",
+          "state": "Draft",
+          "description": "玩家逃离大宅倒计时，如果未逃离则自动失败",
+          "assetName": "EscapeManorCountdown"
+        },
+        "SCRIPT_PERF_10": {
+          "id": "SCRIPT_PERF_10",
+          "name": "尾声",
+          "category": "Performance",
+          "state": "Draft",
+          "description": "游戏尾声",
+          "assetName": "Epilogue"
+        },
+        "SCRIPT_LIFE_16": {
+          "id": "SCRIPT_LIFE_16",
+          "name": "邦邦罗闪现",
+          "category": "Lifecycle",
+          "state": "Draft",
+          "description": "控制邦邦罗（闪现）的生命周期",
+          "lifecycleType": "Node",
+          "assetName": "NpcFlash"
         }
       }
-    },
-    "triggers": {
-      "triggers": {}
     },
     "stageTree": {
       "rootId": "STAGE_1",
@@ -541,19 +576,6 @@
             "type": "Script",
             "scriptId": "SCRIPT_PERF_4",
             "parameters": []
-          },
-          "unlockCondition": {
-            "type": "COMPARISON",
-            "operator": "==",
-            "left": {
-              "type": "VARIABLE_REF",
-              "variableId": "VAR_1",
-              "variableScope": "Global"
-            },
-            "right": {
-              "type": "LITERAL",
-              "value": 3
-            }
           }
         },
         "STAGE_6": {
@@ -576,12 +598,12 @@
             "type": "COMPARISON",
             "operator": ">=",
             "left": {
-              "type": "VARIABLE_REF",
+              "type": "VariableRef",
               "variableId": "VAR_2",
-              "variableScope": "Global"
+              "scope": "Global"
             },
             "right": {
-              "type": "LITERAL",
+              "type": "Constant",
               "value": 1
             }
           }
@@ -592,6 +614,7 @@
           "description": "牛老师遭遇了停电，但是主电力系统坏了，需要启用备用电机",
           "parentId": "STAGE_3",
           "childrenIds": [
+            "STAGE_9",
             "STAGE_5",
             "STAGE_6"
           ],
@@ -599,7 +622,7 @@
           "localVariables": {},
           "eventListeners": [],
           "isExpanded": false,
-          "assetName": "PowerOutageAndDieselSearch",
+          "assetName": "PowerOutageFindDiesel",
           "unlockTriggers": [
             {
               "type": "Always",
@@ -607,20 +630,20 @@
               "scriptId": ""
             }
           ],
+          "lifecycleScriptId": "SCRIPT_LIFE_4",
           "unlockCondition": {
             "type": "COMPARISON",
             "operator": "==",
             "left": {
-              "type": "VARIABLE_REF",
+              "type": "VariableRef",
               "variableId": "VAR_1",
-              "variableScope": "Global"
+              "scope": "Global"
             },
             "right": {
-              "type": "LITERAL",
+              "type": "Constant",
               "value": 3
             }
-          },
-          "lifecycleScriptId": "SCRIPT_LIFE_4"
+          }
         },
         "STAGE_8": {
           "id": "STAGE_8",
@@ -642,14 +665,30 @@
             "type": "COMPARISON",
             "operator": "==",
             "left": {
-              "type": "VARIABLE_REF",
+              "type": "VariableRef",
               "variableId": "VAR_3",
-              "variableScope": "Global"
+              "scope": "Global"
             },
             "right": {
-              "type": "LITERAL",
+              "type": "Constant",
               "value": true
             }
+          }
+        },
+        "STAGE_9": {
+          "id": "STAGE_9",
+          "name": "New Stage",
+          "description": "",
+          "parentId": "STAGE_7",
+          "childrenIds": [],
+          "isInitial": false,
+          "localVariables": {},
+          "eventListeners": [],
+          "isExpanded": false,
+          "unlockTriggers": [],
+          "unlockCondition": {
+            "type": "SCRIPT_REF",
+            "scriptId": "SCRIPT_COND_1"
           }
         }
       }
@@ -744,7 +783,8 @@
         "localVariables": {},
         "eventListeners": [],
         "displayOrder": 0,
-        "assetName": "NpcMysteriouslyAppears"
+        "assetName": "NpcMysteriouslyAppears",
+        "lifecycleScriptId": "SCRIPT_LIFE_16"
       },
       "NODE_9": {
         "id": "NODE_9",
@@ -872,7 +912,8 @@
               "x": 446,
               "y": 318
             },
-            "eventListeners": []
+            "eventListeners": [],
+            "assetName": "UntriggeredDialogue"
           },
           "STATE_2": {
             "id": "STATE_2",
@@ -882,7 +923,8 @@
               "x": 749,
               "y": 317
             },
-            "eventListeners": []
+            "eventListeners": [],
+            "assetName": "DialogComplete"
           }
         },
         "transitions": {
@@ -930,7 +972,8 @@
               "x": 200,
               "y": 150
             },
-            "eventListeners": []
+            "eventListeners": [],
+            "assetName": "NotTriggered"
           },
           "STATE_4": {
             "id": "STATE_4",
@@ -940,7 +983,8 @@
               "x": 600,
               "y": 150
             },
-            "eventListeners": []
+            "eventListeners": [],
+            "assetName": "Triggered"
           }
         },
         "transitions": {
@@ -1074,8 +1118,8 @@
             "name": "Trigger",
             "triggers": [
               {
-                "type": "OnEvent",
-                "eventId": "EVENT_6"
+                "type": "HandledByScript",
+                "eventId": "EVENT_1"
               }
             ],
             "parameterModifiers": [
@@ -1178,7 +1222,7 @@
             "description": "Initial state: Waiting for trigger",
             "position": {
               "x": 200,
-              "y": 150
+              "y": 149
             },
             "eventListeners": []
           },
@@ -1277,12 +1321,12 @@
               "type": "COMPARISON",
               "operator": "==",
               "left": {
-                "type": "VARIABLE_REF",
+                "type": "VariableRef",
                 "variableId": "VAR_1",
-                "variableScope": "Global"
+                "scope": "Global"
               },
               "right": {
-                "type": "LITERAL",
+                "type": "Constant",
                 "value": 3
               }
             }
@@ -1301,7 +1345,7 @@
             "description": "Initial state: Waiting for trigger",
             "position": {
               "x": 200,
-              "y": 150
+              "y": 149
             },
             "eventListeners": []
           },
@@ -1471,9 +1515,17 @@
             "fromSide": "right",
             "toSide": "left",
             "condition": {
-              "type": "VARIABLE_REF",
-              "variableId": "STAGE_5_STAGEVAR_2",
-              "variableScope": "StageLocal"
+              "type": "COMPARISON",
+              "operator": "==",
+              "left": {
+                "type": "VariableRef",
+                "variableId": "STAGE_5_STAGEVAR_2",
+                "scope": "StageLocal"
+              },
+              "right": {
+                "type": "Constant",
+                "value": true
+              }
             },
             "priority": 0,
             "triggers": [
@@ -1839,12 +1891,12 @@
               "type": "COMPARISON",
               "operator": ">=",
               "left": {
-                "type": "VARIABLE_REF",
+                "type": "VariableRef",
                 "variableId": "VAR_2",
-                "variableScope": "Global"
+                "scope": "Global"
               },
               "right": {
-                "type": "LITERAL",
+                "type": "Constant",
                 "value": 3
               }
             },
@@ -1953,10 +2005,30 @@
             "assetName": "PlayerEscape",
             "description": "State after being triggered",
             "position": {
-              "x": 510,
+              "x": 507,
               "y": 149
             },
             "eventListeners": []
+          },
+          "STATE_32": {
+            "id": "STATE_32",
+            "name": "玩家未逃离",
+            "position": {
+              "x": 506,
+              "y": 283
+            },
+            "eventListeners": [],
+            "assetName": "PlayerNotEscaped"
+          },
+          "STATE_33": {
+            "id": "STATE_33",
+            "name": "游戏结束",
+            "position": {
+              "x": 878,
+              "y": 148
+            },
+            "eventListeners": [],
+            "assetName": "GameOver"
           }
         },
         "transitions": {
@@ -1970,6 +2042,88 @@
               {
                 "type": "OnEvent",
                 "eventId": "EVENT_13"
+              }
+            ],
+            "parameterModifiers": [
+              {
+                "targetVariableId": "VAR_4",
+                "targetScope": "Global",
+                "operation": "Set",
+                "source": {
+                  "type": "Constant",
+                  "value": true
+                }
+              }
+            ]
+          },
+          "TRANS_17": {
+            "id": "TRANS_17",
+            "name": "未逃离",
+            "fromStateId": "STATE_30",
+            "toStateId": "STATE_32",
+            "fromSide": "right",
+            "toSide": "left",
+            "condition": {
+              "type": "LITERAL",
+              "value": true
+            },
+            "priority": 0,
+            "triggers": [
+              {
+                "type": "CustomScript",
+                "scriptId": "SCRIPT_TRIG_2"
+              }
+            ],
+            "parameterModifiers": [
+              {
+                "targetVariableId": "VAR_4",
+                "targetScope": "Global",
+                "operation": "Set",
+                "source": {
+                  "type": "Constant",
+                  "value": ""
+                }
+              }
+            ]
+          },
+          "TRANS_18": {
+            "id": "TRANS_18",
+            "name": "结束演出",
+            "fromStateId": "STATE_31",
+            "toStateId": "STATE_33",
+            "fromSide": "right",
+            "toSide": "left",
+            "condition": {
+              "type": "LITERAL",
+              "value": true
+            },
+            "priority": 0,
+            "triggers": [
+              {
+                "type": "Always"
+              }
+            ],
+            "parameterModifiers": [],
+            "presentation": {
+              "type": "Graph",
+              "graphId": "GRAPH_2"
+            }
+          },
+          "TRANS_19": {
+            "id": "TRANS_19",
+            "name": "结束演出",
+            "fromStateId": "STATE_32",
+            "toStateId": "STATE_33",
+            "fromSide": "right",
+            "toSide": "left",
+            "condition": {
+              "type": "LITERAL",
+              "value": true
+            },
+            "priority": 0,
+            "triggers": [
+              {
+                "type": "Always"
               }
             ],
             "parameterModifiers": [],
@@ -2011,8 +2165,8 @@
             "name": "主角出发",
             "type": "PresentationNode",
             "position": {
-              "x": 909,
-              "y": 317
+              "x": 910,
+              "y": 316
             },
             "nextIds": [],
             "presentation": {
@@ -2048,11 +2202,11 @@
             "name": "玩家逃离",
             "type": "PresentationNode",
             "position": {
-              "x": 464,
-              "y": 350
+              "x": 380,
+              "y": 364
             },
             "nextIds": [
-              "PNODE_2"
+              "PNODE_3"
             ],
             "presentation": {
               "type": "Script",
@@ -2065,14 +2219,69 @@
             "name": "回忆录",
             "type": "PresentationNode",
             "position": {
-              "x": 760,
-              "y": 351
+              "x": 931,
+              "y": 249
             },
-            "nextIds": [],
+            "nextIds": [
+              "PNODE_4"
+            ],
             "presentation": {
               "type": "Script",
               "scriptId": "SCRIPT_PERF_9",
               "parameters": []
+            }
+          },
+          "PNODE_3": {
+            "id": "PNODE_3",
+            "name": "玩家是否逃离",
+            "type": "Branch",
+            "position": {
+              "x": 650,
+              "y": 365
+            },
+            "nextIds": [
+              "PNODE_2",
+              "PNODE_4"
+            ],
+            "condition": {
+              "type": "COMPARISON",
+              "operator": "==",
+              "left": {
+                "type": "VariableRef",
+                "variableId": "VAR_4",
+                "scope": "Global"
+              },
+              "right": {
+                "type": "Constant",
+                "value": true
+              }
+            }
+          },
+          "PNODE_4": {
+            "id": "PNODE_4",
+            "name": "尾声",
+            "type": "PresentationNode",
+            "position": {
+              "x": 1208,
+              "y": 367
+            },
+            "nextIds": [],
+            "presentation": {
+              "type": "Script",
+              "scriptId": "SCRIPT_PERF_10",
+              "parameters": [
+                {
+                  "id": "param-1767809950629-d4fc22",
+                  "paramName": "PlayerEscaped",
+                  "kind": "Variable",
+                  "source": {
+                    "type": "VariableRef",
+                    "variableId": "VAR_4",
+                    "scope": "Global"
+                  },
+                  "description": "玩家是否成功逃离"
+                }
+              ]
             }
           }
         },
@@ -2083,7 +2292,7 @@
   "editorState": {
     "panelSizes": {
       "explorerWidth": 280,
-      "inspectorWidth": 416,
+      "inspectorWidth": 485,
       "stagesHeight": 55
     },
     "stageExpanded": {
@@ -2091,7 +2300,7 @@
       "STAGE_3": true,
       "STAGE_7": true
     },
-    "currentStageId": "STAGE_8",
+    "currentStageId": "STAGE_9",
     "currentNodeId": null,
     "currentGraphId": null,
     "view": "EDITOR"

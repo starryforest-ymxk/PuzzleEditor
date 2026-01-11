@@ -52,6 +52,54 @@ export const isProjectAction = (action: Action): action is ProjectAction => {
     return projectActionTypes.includes(action.type);
 };
 
+// ========== Helper Functions ==========
+
+/**
+ * 助手函数：更新父节点下的一组子节点的初始状态
+ * 约束：父节点的第一个子节点必须是 Initial Stage，且没有解锁条件；其他子节点非 Initial。
+ * 返回更新后的 stages 对象（如果不需更新则返回原对象）
+ */
+const updateInitialStatusByParent = (
+    stages: Record<string, StageNode>,
+    parentId: StageId
+): Record<string, StageNode> => {
+    const parent = stages[parentId];
+    if (!parent || parent.childrenIds.length === 0) return stages;
+
+    let hasChanges = false;
+    const newStages = { ...stages };
+
+    // 遍历所有子节点
+    parent.childrenIds.forEach((childId, index) => {
+        const child = newStages[childId];
+        if (!child) return;
+
+        if (index === 0) {
+            // 第一个子节点：必须是 isInitial=true，且无解锁条件
+            if (!child.isInitial || (child.unlockTriggers && child.unlockTriggers.length > 0) || child.unlockCondition) {
+                newStages[childId] = {
+                    ...child,
+                    isInitial: true,
+                    unlockTriggers: [],
+                    unlockCondition: undefined
+                };
+                hasChanges = true;
+            }
+        } else {
+            // 其他子节点：必须是 isInitial=false
+            if (child.isInitial) {
+                newStages[childId] = {
+                    ...child,
+                    isInitial: false
+                };
+                hasChanges = true;
+            }
+        }
+    });
+
+    return hasChanges ? newStages : stages;
+};
+
 // ========== Project Reducer ==========
 export const projectReducer = (state: EditorState, action: ProjectAction): EditorState => {
     switch (action.type) {
@@ -99,17 +147,21 @@ export const projectReducer = (state: EditorState, action: ProjectAction): Edito
                 newChildrenIds.push(stage.id);
             }
 
+            const intermediateStages = {
+                ...state.project.stageTree.stages,
+                [parentId]: { ...parent, childrenIds: newChildrenIds },
+                [stage.id]: { ...stage, parentId }
+            };
+
+            const finalStages = updateInitialStatusByParent(intermediateStages, parentId);
+
             return {
                 ...state,
                 project: {
                     ...state.project,
                     stageTree: {
                         ...state.project.stageTree,
-                        stages: {
-                            ...state.project.stageTree.stages,
-                            [parentId]: { ...parent, childrenIds: newChildrenIds },
-                            [stage.id]: { ...stage, parentId }
-                        }
+                        stages: finalStages
                     }
                 }
             };
@@ -149,11 +201,15 @@ export const projectReducer = (state: EditorState, action: ProjectAction): Edito
 
             // 更新父节点的 childrenIds
             const parentStage = newStages[stage.parentId];
+            let finalStages = newStages;
+
             if (parentStage) {
                 newStages[stage.parentId] = {
                     ...parentStage,
                     childrenIds: parentStage.childrenIds.filter(id => id !== stageId)
                 };
+                // 更新父节点的子节点初始状态
+                finalStages = updateInitialStatusByParent(newStages, stage.parentId);
             }
 
             // 创建新的 nodes 对象，移除所有待删除的 PuzzleNode
@@ -183,7 +239,7 @@ export const projectReducer = (state: EditorState, action: ProjectAction): Edito
                     ...state.project,
                     stageTree: {
                         ...state.project.stageTree,
-                        stages: newStages
+                        stages: finalStages
                     },
                     nodes: newNodes,
                     stateMachines: newStateMachines
@@ -207,6 +263,13 @@ export const projectReducer = (state: EditorState, action: ProjectAction): Edito
             const stage = state.project.stageTree.stages[stageId];
             if (!stage) return state;
 
+            // 确保 Initial Stage 没有任何解锁条件
+            const updates = { ...data };
+            if (updates.isInitial) {
+                updates.unlockTriggers = [];
+                updates.unlockCondition = undefined;
+            }
+
             return {
                 ...state,
                 project: {
@@ -215,7 +278,7 @@ export const projectReducer = (state: EditorState, action: ProjectAction): Edito
                         ...state.project.stageTree,
                         stages: {
                             ...state.project.stageTree.stages,
-                            [stageId]: { ...stage, ...data }
+                            [stageId]: { ...stage, ...updates }
                         }
                     }
                 }
@@ -239,16 +302,20 @@ export const projectReducer = (state: EditorState, action: ProjectAction): Edito
             newChildrenIds.splice(oldIndex, 1);
             newChildrenIds.splice(newIndex, 0, stageId);
 
+            const intermediateStages = {
+                ...state.project.stageTree.stages,
+                [stage.parentId]: { ...parent, childrenIds: newChildrenIds }
+            };
+
+            const finalStages = updateInitialStatusByParent(intermediateStages, stage.parentId);
+
             return {
                 ...state,
                 project: {
                     ...state.project,
                     stageTree: {
                         ...state.project.stageTree,
-                        stages: {
-                            ...state.project.stageTree.stages,
-                            [stage.parentId]: { ...parent, childrenIds: newChildrenIds }
-                        }
+                        stages: finalStages
                     }
                 }
             };
@@ -275,18 +342,24 @@ export const projectReducer = (state: EditorState, action: ProjectAction): Edito
                 newChildrenIds.push(stageId);
             }
 
+            const intermediateStages = {
+                ...state.project.stageTree.stages,
+                [stageId]: { ...stage, parentId: newParentId },
+                [oldParent.id]: { ...oldParent, childrenIds: oldChildrenIds },
+                [newParentId]: { ...newParent, childrenIds: newChildrenIds }
+            };
+
+            // 同时检查旧父节点（首节点可能变化）和新父节点
+            let finalStages = updateInitialStatusByParent(intermediateStages, oldParent.id);
+            finalStages = updateInitialStatusByParent(finalStages, newParentId);
+
             return {
                 ...state,
                 project: {
                     ...state.project,
                     stageTree: {
                         ...state.project.stageTree,
-                        stages: {
-                            ...state.project.stageTree.stages,
-                            [stageId]: { ...stage, parentId: newParentId },
-                            [oldParent.id]: { ...oldParent, childrenIds: oldChildrenIds },
-                            [newParentId]: { ...newParent, childrenIds: newChildrenIds }
-                        }
+                        stages: finalStages
                     }
                 }
             };

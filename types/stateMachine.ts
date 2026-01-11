@@ -56,7 +56,7 @@ export type TriggerConfig =
  * 支持变量比较、逻辑组合和自定义脚本
  */
 export interface ConditionExpression {
-  type: 'AND' | 'OR' | 'NOT' | 'COMPARISON' | 'LITERAL' | 'SCRIPT_REF';
+  type: 'And' | 'Or' | 'Not' | 'Comparison' | 'Literal' | 'ScriptRef';
 
   // 逻辑运算 (AND/OR)
   children?: ConditionExpression[];

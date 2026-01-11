@@ -65,20 +65,51 @@ graph TB
 
 ---
 
-## 3. 顶层 JSON Manifest 结构
+## 3. 顶层 JSON 结构
+
+本项目定义了两种文件格式（详见 `types/project.ts`）：
+
+### 3.1 导出包 (Export Bundle)
+**运行时使用的精简格式** (`.json`)，`data` 字段包含游戏运行所需的所有业务数据。
 
 ```json
 {
+  "fileType": "puzzle-export",
   "manifestVersion": "1.0.0",
   "exportedAt": "2025-12-09T00:00:00.000Z",
-  "project": {
-    "meta": { "...": "..." },
+  "projectName": "MyPuzzleProject",
+  "projectVersion": "1.0.0",
+  "data": {
     "blackboard": { "globalVariables": {}, "events": {} },
     "scripts": { "version": "1.0.0", "scripts": {} },
     "stageTree": { "rootId": "stage-root", "stages": {} },
     "nodes": {},
     "stateMachines": {},
     "presentationGraphs": {}
+  }
+}
+```
+
+### 3.2 项目文件 (Project File)
+**编辑器使用的完整存档** (`.puzzle.json`)，包含编辑器 UI 状态和完整元数据。
+
+```json
+{
+  "fileType": "puzzle-project",
+  "editorVersion": "1.0.0",
+  "savedAt": "2025-12-09T00:00:00.000Z",
+  "project": {
+    "meta": { "...": "..." },
+    "blackboard": { "...": "..." },
+    "scripts": { "...": "..." },
+    "stageTree": { "...": "..." },
+    "nodes": {},
+    "stateMachines": {},
+    "presentationGraphs": {}
+  },
+  "editorState": {
+    "panelSizes": { "...": "..." },
+    "currentStageId": "..."
   }
 }
 ```
