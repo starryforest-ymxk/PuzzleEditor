@@ -1,21 +1,24 @@
 /**
  * utils/validation/rules/validateNames.ts
- * 校验资源名称是否存在和重复
+ * 校验资源名称是否存在、重复以及格式合法性
  * 
  * 重点校验 assetName (资源名称)，用于生成代码时的标识符
  * - 缺失 assetName -> Warning
  * - 重复 assetName -> Error
+ * - 格式非法 (Invalid Format) -> Error (New)
  * 
  * 注意：Name (显示名称) 由前端 UI 保护，不在此处校验
  */
 
 import { ValidationResult } from '../../../store/types';
 import { ProjectData } from '../../../types/project';
+import { ASSET_NAME_REGEX } from '../../assetNameValidation';
 
 /**
  * Helper to validate asset names (Resource Name)
  * - Warning if assetName is missing
  * - Error if assetName is duplicated
+ * - Error if assetName has invalid format
  */
 function validateAssetNames(
     results: ValidationResult[],
@@ -42,13 +45,26 @@ function validateAssetNames(
         }
 
         const assetName = item.assetName.trim();
+
+        // 2. Check Format (New Strict Check)
+        if (!ASSET_NAME_REGEX.test(assetName)) {
+            results.push({
+                id: `err-${objectType.toLowerCase()}-invalid-name-fmt-${item.id}`,
+                level: 'error',
+                message: `${humanType} resource name "${assetName}" is invalid. Must match /^[a-zA-Z_][a-zA-Z0-9_]*$/.`,
+                objectType: objectType,
+                objectId: item.id,
+                location: `${locationPrefix}${humanType}: [${item.id}] ${item.name}`
+            });
+        }
+
         if (!nameMap.has(assetName)) {
             nameMap.set(assetName, []);
         }
         nameMap.get(assetName)?.push(item);
     });
 
-    // 2. Check Duplicates
+    // 3. Check Duplicates
     nameMap.forEach((duplicates, assetName) => {
         if (duplicates.length > 1) {
             duplicates.forEach(item => {

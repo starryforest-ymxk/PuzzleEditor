@@ -5,6 +5,7 @@ import { VariableDefinition } from '../../../types/blackboard';
 import { ResourceSelect, ResourceOption } from '../ResourceSelect';
 import { VariableSelector } from '../VariableSelector';
 import { ValueSourceEditor } from '../ValueSourceEditor';
+import { isValidAssetName } from '../../../utils/assetNameValidation';
 
 interface ScriptBindingSectionProps {
     binding: PresentationBinding & { type: 'Script' };
@@ -29,7 +30,214 @@ const getDefaultValueByType = (type: VariableType) => {
     }
 };
 
-// �ݳ��ű������������ű�ѡ��������б༭
+// 参数行组件，独立管理 paramName 的本地状态以支持“编辑后校验/回退”逻辑
+const ScriptParameterRow: React.FC<{
+    param: ParameterBinding;
+    idx: number;
+    readOnly: boolean;
+    upsertParam: (targetId: string, updater: (prev: ParameterBinding) => ParameterBinding) => void;
+    removeParam: (targetId: string) => void;
+    variables: VariableDefinition[];
+    syncTempType: (param: ParameterBinding, nextType: VariableType) => ParameterBinding;
+}> = ({ param, idx, readOnly, upsertParam, removeParam, variables, syncTempType }) => {
+    const key = param.id || `param-${idx}`;
+    const isTemp = param.kind === 'Temporary';
+    const tempVar = param.tempVariable;
+
+    // 本地状态用于输入框
+    const [localName, setLocalName] = React.useState(param.paramName || '');
+
+    // 当 props 更新时同步本地状态
+    React.useEffect(() => {
+        setLocalName(param.paramName || '');
+    }, [param.paramName]);
+
+    const handleBlur = () => {
+        if (!localName) {
+            // 如果清空，回退
+            setLocalName(param.paramName || '');
+            return;
+        }
+        if (localName === param.paramName) return;
+
+        if (isValidAssetName(localName)) {
+            // 合法：提交更新
+            if (isTemp) {
+                upsertParam(key, (prev) => {
+                    const base = prev.tempVariable
+                        ? { ...prev.tempVariable }
+                        : { id: genId('tempvar'), name: localName, type: 'string' as VariableType, description: '' };
+                    return {
+                        ...prev,
+                        paramName: localName,
+                        kind: 'Temporary',
+                        tempVariable: { ...base, name: localName }
+                    };
+                });
+            } else {
+                upsertParam(key, (prev) => ({ ...prev, paramName: localName }));
+            }
+        } else {
+            // 非法：回退
+            setLocalName(param.paramName || '');
+        }
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter') {
+            (e.target as HTMLInputElement).blur();
+        }
+    };
+
+    if (!isTemp) {
+        return (
+            <div key={key} style={{ padding: '10px', border: '1px solid #333', borderRadius: '4px', background: '#18181b', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
+                    <input
+                        value={localName}
+                        onChange={(e) => setLocalName(e.target.value)}
+                        onBlur={handleBlur}
+                        onKeyDown={handleKeyDown}
+                        placeholder="Target param name"
+                        disabled={readOnly}
+                        style={{ flex: 1, minWidth: 0, background: '#222', border: '1px solid #444', color: isValidAssetName(localName) ? '#eee' : '#f87171', padding: '6px 8px', borderRadius: '4px', fontSize: '12px', height: CONTROL_HEIGHT, boxSizing: 'border-box' }}
+                    />
+                    <button
+                        className="btn-ghost"
+                        onClick={() => removeParam(key)}
+                        disabled={readOnly}
+                        style={{ fontSize: '12px', color: '#f97316', height: CONTROL_HEIGHT, padding: '0 12px', boxSizing: 'border-box', display: 'flex', alignItems: 'center', ...noWrapText }}
+                    >
+                        Remove
+                    </button>
+                </div>
+
+                <div style={{ display: 'flex', gap: '8px', minWidth: 0 }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: '10px', color: '#888', marginBottom: '4px', ...noWrapText }}>Variable</div>
+                        <VariableSelector
+                            value={param.source.type === 'VariableRef' ? param.source.variableId : ''}
+                            variables={variables}
+                            onChange={(id, scope) => {
+                                const nextSource: ValueSource = { type: 'VariableRef', variableId: id, scope };
+                                upsertParam(key, (prev) => ({ ...prev, kind: 'Variable', source: nextSource }));
+                            }}
+                            placeholder="Select variable"
+                            height={CONTROL_HEIGHT}
+                        />
+                    </div>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <label style={{ fontSize: '10px', color: '#888', ...noWrapText }}>Description</label>
+                    <input
+                        value={param.description || ''}
+                        onChange={(e) => upsertParam(key, (prev) => ({ ...prev, description: e.target.value }))}
+                        placeholder="Optional description"
+                        disabled={readOnly}
+                        style={{ background: '#222', border: '1px solid #444', color: '#eee', padding: '6px 8px', borderRadius: '4px', fontSize: '12px', height: CONTROL_HEIGHT, boxSizing: 'border-box' }}
+                    />
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div key={key} style={{ padding: '12px', border: '1px solid #3a3a3d', borderRadius: '4px', background: '#151518', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
+                <input
+                    value={localName}
+                    onChange={(e) => setLocalName(e.target.value)}
+                    onBlur={handleBlur}
+                    onKeyDown={handleKeyDown}
+                    placeholder="Target param name"
+                    disabled={readOnly}
+                    style={{ flex: 1, minWidth: 0, background: '#222', border: '1px solid #444', color: isValidAssetName(localName) ? '#eee' : '#f87171', padding: '4px 8px', borderRadius: '4px', fontSize: '12px', height: CONTROL_HEIGHT, boxSizing: 'border-box', display: 'flex', alignItems: 'center' }}
+                />
+                <button
+                    className="btn-ghost"
+                    onClick={() => removeParam(key)}
+                    disabled={readOnly}
+                    style={{ fontSize: '12px', color: '#f97316', height: CONTROL_HEIGHT, padding: '0 12px', boxSizing: 'border-box', display: 'flex', alignItems: 'center', ...noWrapText }}
+                >
+                    Remove
+                </button>
+            </div>
+
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'nowrap' }}>
+                <div style={{ flex: '1 1 50%', minWidth: 0, display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <label style={{ fontSize: '10px', color: '#888', ...noWrapText }}>Type</label>
+                    <select
+                        value={tempVar?.type || 'string'}
+                        onChange={(e) => upsertParam(key, (prev) => syncTempType(prev, e.target.value as VariableType))}
+                        disabled={readOnly}
+                        style={{ background: '#222', color: '#eee', border: '1px solid #444', padding: '0 8px', borderRadius: '4px', fontSize: '12px', height: CONTROL_HEIGHT, boxSizing: 'border-box', lineHeight: `${CONTROL_HEIGHT - 2}px`, width: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                    >
+                        <option value="string">String</option>
+                        <option value="integer">Integer</option>
+                        <option value="float">Float</option>
+                        <option value="boolean">Boolean</option>
+                    </select>
+                </div>
+
+                <div style={{ flex: '1 1 50%', minWidth: 0, display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <label style={{ fontSize: '10px', color: '#888', ...noWrapText }}>Value Source Type</label>
+                    <select
+                        value={param.source.type}
+                        onChange={(e) => {
+                            const nextType = e.target.value as ValueSource['type'];
+                            const currentType: VariableType = tempVar?.type || 'string';
+                            const nextSource: ValueSource = nextType === 'Constant'
+                                ? { type: 'Constant', value: getDefaultValueByType(currentType) }
+                                : { type: 'VariableRef', variableId: '', scope: 'Global' };
+                            upsertParam(key, (prev) => ({ ...prev, kind: 'Temporary', source: nextSource }));
+                        }}
+                        disabled={readOnly}
+                        style={{ background: '#222', color: '#eee', border: '1px solid #444', padding: '0 8px', borderRadius: '4px', fontSize: '12px', height: CONTROL_HEIGHT, boxSizing: 'border-box', lineHeight: `${CONTROL_HEIGHT - 2}px`, width: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                    >
+                        <option value="Constant">Constant</option>
+                        <option value="VariableRef">Variable Ref</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label style={{ fontSize: '10px', color: '#888', ...noWrapText }}>Value</label>
+                <ValueSourceEditor
+                    source={param.source}
+                    onChange={(src) => upsertParam(key, (prev) => ({ ...prev, kind: 'Temporary', source: src }))}
+                    variables={variables}
+                    valueType={tempVar?.type as any}
+                    allowedTypes={tempVar?.type ? [tempVar.type] : undefined}
+                    height={CONTROL_HEIGHT}
+                    hideTypeSelect
+                />
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <label style={{ fontSize: '10px', color: '#888', ...noWrapText }}>Description</label>
+                <input
+                    value={tempVar?.description || ''}
+                    onChange={(e) => upsertParam(key, (prev) => ({
+                        ...prev,
+                        kind: 'Temporary',
+                        tempVariable: {
+                            id: prev.tempVariable?.id || genId('tempvar'),
+                            name: prev.paramName || prev.tempVariable?.name || 'Temporary',
+                            type: prev.tempVariable?.type || 'string',
+                            description: e.target.value
+                        }
+                    }))}
+                    placeholder="Optional description"
+                    disabled={readOnly}
+                    style={{ background: '#222', border: '1px solid #444', color: '#eee', padding: '6px 8px', borderRadius: '4px', fontSize: '12px', height: CONTROL_HEIGHT, boxSizing: 'border-box' }}
+                />
+            </div>
+        </div>
+    );
+};
+
+// 演出脚本绑定区，包含脚本选择与参数行编辑
 export const ScriptBindingSection: React.FC<ScriptBindingSectionProps> = ({
     binding,
     onChange,
@@ -144,165 +352,18 @@ export const ScriptBindingSection: React.FC<ScriptBindingSectionProps> = ({
                     <div style={{ fontSize: '11px', color: '#666', fontStyle: 'italic', ...noWrapText }}>No parameters added.</div>
                 )}
 
-                {normalizedParams.map((param, idx) => {
-                    const key = param.id || `param-${idx}`;
-                    const isTemp = param.kind === 'Temporary';
-                    const tempVar = param.tempVariable;
-
-                    if (!isTemp) {
-                        return (
-                            <div key={key} style={{ padding: '10px', border: '1px solid #333', borderRadius: '4px', background: '#18181b', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
-                                    <input
-                                        value={param.paramName || ''}
-                                        onChange={(e) => upsertParam(key, (prev) => ({ ...prev, paramName: e.target.value }))}
-                                        placeholder="Target param name"
-                                        disabled={readOnly}
-                                        style={{ flex: 1, minWidth: 0, background: '#222', border: '1px solid #444', color: '#eee', padding: '6px 8px', borderRadius: '4px', fontSize: '12px', height: CONTROL_HEIGHT, boxSizing: 'border-box' }}
-                                    />
-                                    <button
-                                        className="btn-ghost"
-                                        onClick={() => removeParam(key)}
-                                        disabled={readOnly}
-                                        style={{ fontSize: '12px', color: '#f97316', height: CONTROL_HEIGHT, padding: '0 12px', boxSizing: 'border-box', display: 'flex', alignItems: 'center', ...noWrapText }}
-                                    >
-                                        Remove
-                                    </button>
-                                </div>
-
-                                <div style={{ display: 'flex', gap: '8px', minWidth: 0 }}>
-                                    <div style={{ flex: 1, minWidth: 0 }}>
-                                        <div style={{ fontSize: '10px', color: '#888', marginBottom: '4px', ...noWrapText }}>Variable</div>
-                                        <VariableSelector
-                                            value={param.source.type === 'VariableRef' ? param.source.variableId : ''}
-                                            variables={variables}
-                                            onChange={(id, scope) => {
-                                                const nextSource: ValueSource = { type: 'VariableRef', variableId: id, scope };
-                                                upsertParam(key, (prev) => ({ ...prev, kind: 'Variable', source: nextSource }));
-                                            }}
-                                            placeholder="Select variable"
-                                            height={CONTROL_HEIGHT}
-                                        />
-                                    </div>
-                                </div>
-
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                    <label style={{ fontSize: '10px', color: '#888', ...noWrapText }}>Description</label>
-                                    <input
-                                        value={param.description || ''}
-                                        onChange={(e) => upsertParam(key, (prev) => ({ ...prev, description: e.target.value }))}
-                                        placeholder="Optional description"
-                                        disabled={readOnly}
-                                        style={{ background: '#222', border: '1px solid #444', color: '#eee', padding: '6px 8px', borderRadius: '4px', fontSize: '12px', height: CONTROL_HEIGHT, boxSizing: 'border-box' }}
-                                    />
-                                </div>
-                            </div>
-                        );
-                    }
-
-                    return (
-                        <div key={key} style={{ padding: '12px', border: '1px solid #3a3a3d', borderRadius: '4px', background: '#151518', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
-                                <input
-                                    value={param.paramName || ''}
-                                    onChange={(e) => upsertParam(key, (prev) => {
-                                        const nextName = e.target.value;
-                                        const base = prev.tempVariable
-                                            ? { ...prev.tempVariable }
-                                            : { id: genId('tempvar'), name: nextName, type: 'string' as VariableType, description: '' };
-                                        return {
-                                            ...prev,
-                                            paramName: nextName,
-                                            kind: 'Temporary',
-                                            tempVariable: { ...base, name: nextName }
-                                        };
-                                    })}
-                                    placeholder="Target param name"
-                                    disabled={readOnly}
-                                    style={{ flex: 1, minWidth: 0, background: '#222', border: '1px solid #444', color: '#eee', padding: '4px 8px', borderRadius: '4px', fontSize: '12px', height: CONTROL_HEIGHT, boxSizing: 'border-box', display: 'flex', alignItems: 'center' }}
-                                />
-                                <button
-                                    className="btn-ghost"
-                                    onClick={() => removeParam(key)}
-                                    disabled={readOnly}
-                                    style={{ fontSize: '12px', color: '#f97316', height: CONTROL_HEIGHT, padding: '0 12px', boxSizing: 'border-box', display: 'flex', alignItems: 'center', ...noWrapText }}
-                                >
-                                    Remove
-                                </button>
-                            </div>
-
-                            <div style={{ display: 'flex', gap: '8px', flexWrap: 'nowrap' }}>
-                                <div style={{ flex: '1 1 50%', minWidth: 0, display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                    <label style={{ fontSize: '10px', color: '#888', ...noWrapText }}>Type</label>
-                                    <select
-                                        value={tempVar?.type || 'string'}
-                                        onChange={(e) => upsertParam(key, (prev) => syncTempType(prev, e.target.value as VariableType))}
-                                        disabled={readOnly}
-                                        style={{ background: '#222', color: '#eee', border: '1px solid #444', padding: '0 8px', borderRadius: '4px', fontSize: '12px', height: CONTROL_HEIGHT, boxSizing: 'border-box', lineHeight: `${CONTROL_HEIGHT - 2}px`, width: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
-                                    >
-                                        <option value="string">String</option>
-                                        <option value="integer">Integer</option>
-                                        <option value="float">Float</option>
-                                        <option value="boolean">Boolean</option>
-                                    </select>
-                                </div>
-
-                                <div style={{ flex: '1 1 50%', minWidth: 0, display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                    <label style={{ fontSize: '10px', color: '#888', ...noWrapText }}>Value Source Type</label>
-                                    <select
-                                        value={param.source.type}
-                                        onChange={(e) => {
-                                            const nextType = e.target.value as ValueSource['type'];
-                                            const currentType: VariableType = tempVar?.type || 'string';
-                                            const nextSource: ValueSource = nextType === 'Constant'
-                                                ? { type: 'Constant', value: getDefaultValueByType(currentType) }
-                                                : { type: 'VariableRef', variableId: '', scope: 'Global' };
-                                            upsertParam(key, (prev) => ({ ...prev, kind: 'Temporary', source: nextSource }));
-                                        }}
-                                        disabled={readOnly}
-                                        style={{ background: '#222', color: '#eee', border: '1px solid #444', padding: '0 8px', borderRadius: '4px', fontSize: '12px', height: CONTROL_HEIGHT, boxSizing: 'border-box', lineHeight: `${CONTROL_HEIGHT - 2}px`, width: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
-                                    >
-                                        <option value="Constant">Constant</option>
-                                        <option value="VariableRef">Variable Ref</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                <label style={{ fontSize: '10px', color: '#888', ...noWrapText }}>Value</label>
-                                <ValueSourceEditor
-                                    source={param.source}
-                                    onChange={(src) => upsertParam(key, (prev) => ({ ...prev, kind: 'Temporary', source: src }))}
-                                    variables={variables}
-                                    valueType={tempVar?.type as any}
-                                    allowedTypes={tempVar?.type ? [tempVar.type] : undefined}
-                                    height={CONTROL_HEIGHT}
-                                    hideTypeSelect
-                                />
-                            </div>
-
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                <label style={{ fontSize: '10px', color: '#888', ...noWrapText }}>Description</label>
-                                <input
-                                    value={tempVar?.description || ''}
-                                    onChange={(e) => upsertParam(key, (prev) => ({
-                                        ...prev,
-                                        kind: 'Temporary',
-                                        tempVariable: {
-                                            id: prev.tempVariable?.id || genId('tempvar'),
-                                            name: prev.paramName || prev.tempVariable?.name || 'Temporary',
-                                            type: prev.tempVariable?.type || 'string',
-                                            description: e.target.value
-                                        }
-                                    }))}
-                                    placeholder="Optional description"
-                                    disabled={readOnly}
-                                    style={{ background: '#222', border: '1px solid #444', color: '#eee', padding: '6px 8px', borderRadius: '4px', fontSize: '12px', height: CONTROL_HEIGHT, boxSizing: 'border-box' }}
-                                />
-                            </div>
-                        </div>
-                    );
-                })}
+                {normalizedParams.map((param, idx) => (
+                    <ScriptParameterRow
+                        key={param.id || `param-${idx}`}
+                        param={param}
+                        idx={idx}
+                        readOnly={readOnly}
+                        upsertParam={upsertParam}
+                        removeParam={removeParam}
+                        variables={variables}
+                        syncTempType={syncTempType}
+                    />
+                ))}
 
                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'nowrap' }}>
                     <button
