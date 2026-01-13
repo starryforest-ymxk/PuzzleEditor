@@ -570,6 +570,25 @@ html {
   stroke-width: 2px;
 }
 
+/* Edge Endpoint Handles (HTML div) - 端点拖拽手柄 */
+.handle {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background-color: #666;
+  border: 2px solid #333;
+  border-radius: 50%;
+  cursor: grab;
+  transform: translate(-50%, -50%);
+  transition: background-color 0.15s, border-color 0.15s, transform 0.1s;
+}
+
+.handle:hover {
+  background-color: var(--accent-color);
+  border-color: #fff;
+  transform: translate(-50%, -50%) scale(1.2);
+}
+
 /* Message Stack */
 .message-stack-dropdown {
   position: absolute;

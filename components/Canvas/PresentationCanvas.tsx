@@ -70,7 +70,7 @@ export const PresentationCanvas: React.FC<Props> = ({ graph, ownerNodeId, readOn
     const isBoxSelecting = useRef(false);
 
     // ========== 将 nextIds 转换为虚拟边 ==========
-    const edges = useMemo(() => presentationNodesToEdges(graph.nodes), [graph.nodes]);
+    const edges = useMemo(() => presentationNodesToEdges(graph.nodes, graph.edgeProperties), [graph.nodes, graph.edgeProperties]);
 
     const multiSelectIds = ui.multiSelectPresentationNodeIds || [];
 
@@ -142,7 +142,7 @@ export const PresentationCanvas: React.FC<Props> = ({ graph, ownerNodeId, readOn
                 payload: { graphId: graph.id, fromNodeId: sourceId, toNodeId: targetId }
             });
         },
-        onLinkUpdate: (edgeId, handle, newTargetId) => {
+        onLinkUpdate: (edgeId, handle, newTargetId, side) => {
             // 解析虚拟边ID获取源节点和连接索引
             const parsed = parseVirtualEdgeId(edgeId);
             if (!parsed) return;
@@ -154,12 +154,25 @@ export const PresentationCanvas: React.FC<Props> = ({ graph, ownerNodeId, readOn
             const oldTargetId = fromNode.nextIds[index];
             if (!oldTargetId) return;
 
+            // 构造边属性查找键（仅用于读取当前属性进行对比）
+            const edgeKey = `${fromNodeId}->${oldTargetId}`;
+
             if (handle === 'target') {
-                // 修改目标端点：删除旧连接 + 创建新连接
-                if (newTargetId === oldTargetId) return; // 目标没变
+                // 修改目标端点
+                if (newTargetId === oldTargetId) {
+                    // 目标节点没变，检查是否有方向变化
+                    if (side && side !== graph.edgeProperties?.[edgeKey]?.toSide) {
+                        dispatch({
+                            type: 'UPDATE_EDGE_PROPERTIES',
+                            payload: { graphId: graph.id, fromNodeId, toNodeId: oldTargetId, toSide: side }
+                        });
+                    }
+                    return;
+                }
                 if (newTargetId === fromNodeId) return; // 避免自连接
                 if (fromNode.nextIds.includes(newTargetId)) return; // 避免重复连接
 
+                // 连接改变：先删除旧连接，再创建新连接 (同时携带方向信息)
                 dispatch({
                     type: 'UNLINK_PRESENTATION_NODES',
                     payload: { graphId: graph.id, fromNodeId, toNodeId: oldTargetId }
@@ -168,9 +181,26 @@ export const PresentationCanvas: React.FC<Props> = ({ graph, ownerNodeId, readOn
                     type: 'LINK_PRESENTATION_NODES',
                     payload: { graphId: graph.id, fromNodeId, toNodeId: newTargetId }
                 });
+                // 如果有方向信息，更新新边的属性
+                if (side) {
+                    dispatch({
+                        type: 'UPDATE_EDGE_PROPERTIES',
+                        payload: { graphId: graph.id, fromNodeId, toNodeId: newTargetId, toSide: side }
+                    });
+                }
             } else {
-                // 修改源端点：删除旧连接 + 从新源创建连接
-                if (newTargetId === fromNodeId) return; // 源没变
+                // 修改源端点
+                if (newTargetId === fromNodeId) {
+                    // 源节点没变，检查是否有方向变化
+                    if (side && side !== graph.edgeProperties?.[edgeKey]?.fromSide) {
+                        dispatch({
+                            type: 'UPDATE_EDGE_PROPERTIES',
+                            payload: { graphId: graph.id, fromNodeId, toNodeId: oldTargetId, fromSide: side }
+                        });
+                    }
+                    return;
+                }
+
                 if (newTargetId === oldTargetId) return; // 避免自连接
                 const newSourceNode = graph.nodes[newTargetId];
                 if (newSourceNode?.nextIds.includes(oldTargetId)) return; // 避免重复连接
@@ -183,6 +213,13 @@ export const PresentationCanvas: React.FC<Props> = ({ graph, ownerNodeId, readOn
                     type: 'LINK_PRESENTATION_NODES',
                     payload: { graphId: graph.id, fromNodeId: newTargetId, toNodeId: oldTargetId }
                 });
+                // 如果有方向信息，更新新边的属性
+                if (side) {
+                    dispatch({
+                        type: 'UPDATE_EDGE_PROPERTIES',
+                        payload: { graphId: graph.id, fromNodeId: newTargetId, toNodeId: oldTargetId, fromSide: side }
+                    });
+                }
             }
         },
         onLinkDelete: (edgeId) => {
@@ -766,6 +803,10 @@ export const PresentationCanvas: React.FC<Props> = ({ graph, ownerNodeId, readOn
                             const toNode = toNodeId ? graph.nodes[toNodeId] : null;
                             if (!toNode) return null;
 
+                            // 获取现有边属性以保持固定端的方向
+                            const edgeKey = `${fromNodeId}->${toNodeId}`;
+                            const edgeProps = graph.edgeProperties?.[edgeKey];
+
                             const nodeWidth = PRESENTATION_NODE_DIMENSIONS.width;
                             const nodeHeight = PRESENTATION_NODE_DIMENSIONS.height;
                             const mouseOrSnap = activeSnapPoint || mousePos;
@@ -776,16 +817,16 @@ export const PresentationCanvas: React.FC<Props> = ({ graph, ownerNodeId, readOn
                             let toSide: any;
 
                             if (modifyingTransition.handle === 'target') {
-                                // 拖拽目标端点
+                                // 拖拽目标端点：源端点保持不变（优先使用现有属性）
                                 const sourcePos = getNodeDisplayPosition(fromNodeId, fromNode.position);
-                                fromSide = Geom.getClosestSide(sourcePos, nodeWidth, nodeHeight, mouseOrSnap);
+                                fromSide = edgeProps?.fromSide || Geom.getClosestSide(sourcePos, nodeWidth, nodeHeight, mouseOrSnap);
                                 p1 = Geom.getNodeAnchor(sourcePos, nodeWidth, nodeHeight, fromSide);
                                 p2 = mouseOrSnap;
                                 toSide = activeSnapPoint?.side || Geom.getNaturalEnteringSide(p1, p2);
                             } else {
-                                // 拖拽源端点
+                                // 拖拽源端点：目标端点保持不变（优先使用现有属性）
                                 const targetPos = getNodeDisplayPosition(toNodeId, toNode.position);
-                                toSide = Geom.getClosestSide(targetPos, nodeWidth, nodeHeight, mouseOrSnap);
+                                toSide = edgeProps?.toSide || Geom.getClosestSide(targetPos, nodeWidth, nodeHeight, mouseOrSnap);
                                 p2 = Geom.getNodeAnchor(targetPos, nodeWidth, nodeHeight, toSide);
                                 p1 = mouseOrSnap;
                                 fromSide = activeSnapPoint?.side || Geom.getClosestSide(

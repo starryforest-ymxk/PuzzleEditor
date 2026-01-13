@@ -12,6 +12,7 @@ import { validateNames } from './rules/validateNames';
 import { validateStructure } from './rules/validateStructure';
 import { validateReferences } from './rules/validateReferences';
 import { validateVariables } from './rules/validateVariables';
+import { validateLifecycleUnique } from './rules/validateLifecycleUnique';
 
 /**
  * 校验规则实现
@@ -43,6 +44,9 @@ export const validateProject = (project: ProjectData): ValidationResult[] => {
 
     // 4. Variable Validation (Global & Local)
     results = results.concat(validateVariables(project));
+
+    // 5. Unique Lifecycle Script Check (ERROR if reused)
+    results = results.concat(validateLifecycleUnique(project));
 
     return results;
 };

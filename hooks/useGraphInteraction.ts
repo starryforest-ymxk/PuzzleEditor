@@ -270,7 +270,7 @@ export const useGraphInteraction = ({
             window.removeEventListener('mousemove', handleWindowMouseMove, { capture: true } as any);
             window.removeEventListener('mouseup', handleWindowMouseUp, { capture: true } as any);
         };
-        }, [draggingNodeId, linkingState, modifyingTransition, dragOffset, activeSnapPoint, boxSelectRect, isDraggingMultiple, onLinkDelete, nodeWidth, nodeHeight]);
+    }, [draggingNodeId, linkingState, modifyingTransition, dragOffset, activeSnapPoint, boxSelectRect, isDraggingMultiple, onLinkDelete, nodeWidth, nodeHeight]);
 
     // === 获取节点显示位置（拖拽时使用临时位置）===
     const getNodeDisplayPosition = (nodeId: string, actualPos: { x: number, y: number }) => {
