@@ -264,8 +264,7 @@ export const PresentationCanvas: React.FC<Props> = ({ graph, ownerNodeId, readOn
             }
             dispatch({ type: 'SET_MULTI_SELECT_PRESENTATION_NODES', payload: selectedIds });
         },
-        // 传入演出图节点尺寸，修复吸附点偏移问题
-        nodeDimensions: PRESENTATION_NODE_DIMENSIONS
+
     });
 
     // 将虚拟边转换为剪线 Hook 需要的格式
