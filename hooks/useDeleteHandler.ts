@@ -11,7 +11,7 @@
 
 import { useCallback } from 'react';
 import { useEditorState, useEditorDispatch } from '../store/context';
-import { hasStageContent } from '../utils/stageTreeUtils';
+import { hasStageContent, getStageNodeIds } from '../utils/stageTreeUtils';
 import { findGlobalVariableReferences } from '../utils/validation/globalVariableReferences';
 import { findScriptReferences } from '../utils/validation/scriptReferences';
 import { findEventReferences } from '../utils/validation/eventReferences';
@@ -212,11 +212,31 @@ export function useDeleteHandler() {
         if (isImplemented) {
             dispatch({ type: 'SOFT_DELETE_EVENT', payload: { id: eventId } });
             pushMessage('warning', `Marked event "${event.name}" for delete.`);
-        } else {
-            dispatch({ type: 'APPLY_DELETE_EVENT', payload: { id: eventId } });
             pushMessage('info', `Deleted event "${event.name}".`);
         }
     }, [project, dispatch, pushMessage]);
+
+    // ========== Node 删除 ==========
+    const deleteNode = useCallback((nodeId: string) => {
+        const node = project.nodes[nodeId];
+        if (!node) return;
+
+        const stage = project.stageTree.stages[node.stageId];
+        const stageNodeIds = getStageNodeIds(project.nodes, node.stageId);
+        const siblingCount = stageNodeIds.length - 1;
+
+        dispatch({
+            type: 'SET_CONFIRM_DIALOG',
+            payload: {
+                isOpen: true,
+                title: 'Delete Puzzle Node',
+                message: `Are you sure you want to delete "${node.name}"? This will also remove its state machine. This action cannot be undone.`,
+                confirmAction: { type: 'DELETE_PUZZLE_NODE', payload: { nodeId } },
+                danger: true,
+                references: undefined // Explicitly clear references
+            }
+        });
+    }, [project.nodes, project.stageTree.stages, dispatch]);
 
     // ========== Presentation Graph 删除 ==========
     const deletePresentationGraph = useCallback((graphId: string) => {
@@ -301,15 +321,17 @@ export function useDeleteHandler() {
                 deleteEvent(id);
                 break;
             case 'PRESENTATION_GRAPH':
-                // 在演出图画布中点击空白处会选中 PRESENTATION_GRAPH，此时按 Delete 不应删除整个演出图
-                // 演出图的删除应该通过 Explorer 面板或右键菜单进行，而非快捷键
-                // 因此这里不执行任何操作
+                // Blackboard 视图下允许通过快捷键删除演出图
+                if (ui.view === 'BLACKBOARD') {
+                    deletePresentationGraph(id);
+                }
+                // Editor 视图下不执行任何操作（防止误删）
                 break;
             // Canvas Elements (Direct Delete)
             case 'NODE':
-                // 在 FSM 画布中点击空白处会选中 NODE，此时按 Delete 不应删除整个 PuzzleNode
-                // PuzzleNode 的删除应该通过 Explorer 面板或右键菜单进行，而非快捷键
-                // 因此这里不执行任何操作
+                // 现在 FSM 画布背景点击不再设置为 NODE，因此这里的 NODE 选中必定来自 Explorer 或其他明确操作
+                // 允许删除
+                deleteNode(id);
                 break;
             case 'STATE':
                 if (contextId) {
@@ -339,6 +361,7 @@ export function useDeleteHandler() {
         deleteScript,
         deleteEvent,
         deletePresentationGraph,
+        deleteNode,
         deleteSelection
     };
 }

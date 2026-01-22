@@ -150,8 +150,21 @@ export const Inspector: React.FC<InspectorProps> = ({ readOnly = false }) => {
 
   // 渲染内容
   const renderContent = () => {
-    // --- 空选中状态 ---
+    // --- 空选中状态 (与 Fallback) ---
     if (ui.selection.type === 'NONE') {
+      // Fallback: 如果处于编辑器视图且有当前节点，显示该节点的 Inspector
+      // 但 Selection 保持为 NONE，确保 Delete 快捷键不触发删除
+
+      // 1. 优先检查当前演出图 (Presentation Graph Editor)
+      if (ui.currentGraphId) {
+        return <PresentationGraphInspector graphId={ui.currentGraphId} readOnly={readOnly} />;
+      }
+
+      // 2. 其次检查当前节点 (FSM Editor)
+      if (ui.view === 'EDITOR' && ui.currentNodeId) {
+        return <NodeInspector nodeId={ui.currentNodeId} readOnly={readOnly} />;
+      }
+
       return (
         <div className="empty-state">
           <div style={{ marginBottom: '8px', fontSize: '24px', opacity: 0.2 }}>ⓘ</div>

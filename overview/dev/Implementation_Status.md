@@ -135,10 +135,16 @@ utils/              11+ 个工具文件
 - 参数绑定与修改器配置
 - 触发器编辑
 - 统一的删除保护逻辑与样式 (Refined)
+- 智能属性面板 (Inspector Fallback: FSM & Presentation Node)
+- PuzzleNode 快捷键删除修复 (Fixed Action Type & Simplified Confirmation Dialog - Fixed Redux State Retention)
+- 智能属性面板 (Inspector Fallback Mechanism)
+- PuzzleNode 快捷键删除修复 (Fixed Action Type & Added Confirmation Dialog)
 
 ? Blackboard 管理：
 - 全局变量/事件/脚本浏览
 - 按状态/类型筛选
+- 按状态/类型筛选
+- 快捷键删除支持 (Presentation Graphs now deletable in Blackboard view)
 - 软删除确认流程
 - 资源拖拽排序（Drag-and-Drop Reordering）
 

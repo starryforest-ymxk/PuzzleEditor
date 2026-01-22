@@ -228,7 +228,8 @@ export const StateMachineCanvas = ({ node, readOnly = false }: Props) => {
                 (ui.selection.type === 'STATE' || ui.selection.type === 'TRANSITION');
             // 只有当选中不在当前 Node 上下文中时，才默认选中 Node
             if (!isSelectionInCurrentContext) {
-                dispatch({ type: 'SELECT_OBJECT', payload: { type: 'NODE', id: node.id } });
+                // If selection is not in context, clear it instead of selecting NODE
+                dispatch({ type: 'SELECT_OBJECT', payload: { type: 'NONE' } });
             }
         }
     }, [node.id, dispatch, ui.selection]);
@@ -291,7 +292,7 @@ export const StateMachineCanvas = ({ node, readOnly = false }: Props) => {
         if (isBoxSelecting.current) return;
 
         if (pendingCanvasSelect.current) {
-            dispatch({ type: 'SELECT_OBJECT', payload: { type: 'NODE', id: node.id } });
+            dispatch({ type: 'SELECT_OBJECT', payload: { type: 'NONE' } });
             pendingCanvasSelect.current = false;
             return;
         }
@@ -301,7 +302,7 @@ export const StateMachineCanvas = ({ node, readOnly = false }: Props) => {
             const dx = Math.abs(e.clientX - blankClickStart.current.x);
             const dy = Math.abs(e.clientY - blankClickStart.current.y);
             if (dx <= CLICK_THRESHOLD && dy <= CLICK_THRESHOLD) {
-                dispatch({ type: 'SELECT_OBJECT', payload: { type: 'NODE', id: node.id } });
+                dispatch({ type: 'SELECT_OBJECT', payload: { type: 'NONE' } });
             }
             blankClickStart.current = null;
         }

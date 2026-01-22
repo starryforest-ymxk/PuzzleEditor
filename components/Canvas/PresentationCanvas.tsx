@@ -399,12 +399,8 @@ export const PresentationCanvas: React.FC<Props> = ({ graph, ownerNodeId, readOn
             const dx = Math.abs(e.clientX - blankClickStart.current.x);
             const dy = Math.abs(e.clientY - blankClickStart.current.y);
             if (dx <= CLICK_THRESHOLD && dy <= CLICK_THRESHOLD) {
-                // 如果有 ownerNodeId，选中父级 PuzzleNode；否则选中 PRESENTATION_GRAPH 本身
-                if (ownerNodeId) {
-                    dispatch({ type: 'SELECT_OBJECT', payload: { type: 'NODE', id: ownerNodeId } });
-                } else {
-                    dispatch({ type: 'SELECT_OBJECT', payload: { type: 'PRESENTATION_GRAPH', id: graph.id } });
-                }
+                // 点击空白处：选中空对象 (Fallback 将由 Inspector 处理显示当前图属性)
+                dispatch({ type: 'SELECT_OBJECT', payload: { type: 'NONE', id: null } });
             }
             blankClickStart.current = null;
         }
