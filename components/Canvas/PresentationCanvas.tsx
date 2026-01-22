@@ -109,6 +109,7 @@ export const PresentationCanvas: React.FC<Props> = ({ graph, ownerNodeId, readOn
     } = useGraphInteraction({
         getNodes: () => graph.nodes,
         getContentOffset: getLocalCoordinates,
+        nodeDimensions: PRESENTATION_NODE_DIMENSIONS,
         onNodeMove: (nodeId, pos) => {
             dispatch({
                 type: 'UPDATE_PRESENTATION_NODE',
@@ -130,7 +131,7 @@ export const PresentationCanvas: React.FC<Props> = ({ graph, ownerNodeId, readOn
                 }
             });
         },
-        onLinkComplete: (sourceId, targetId) => {
+        onLinkComplete: (sourceId, targetId, options) => {
             // 避免重复连接
             const sourceNode = graph.nodes[sourceId];
             if (sourceNode?.nextIds.includes(targetId)) return;
@@ -141,6 +142,20 @@ export const PresentationCanvas: React.FC<Props> = ({ graph, ownerNodeId, readOn
                 type: 'LINK_PRESENTATION_NODES',
                 payload: { graphId: graph.id, fromNodeId: sourceId, toNodeId: targetId }
             });
+
+            // 如果有吸附点信息，保存边属性
+            if (options?.sourceSide || options?.targetSide) {
+                dispatch({
+                    type: 'UPDATE_EDGE_PROPERTIES',
+                    payload: {
+                        graphId: graph.id,
+                        fromNodeId: sourceId,
+                        toNodeId: targetId,
+                        fromSide: options.sourceSide,
+                        toSide: options.targetSide
+                    }
+                });
+            }
         },
         onLinkUpdate: (edgeId, handle, newTargetId, side) => {
             // 解析虚拟边ID获取源节点和连接索引
@@ -240,6 +255,13 @@ export const PresentationCanvas: React.FC<Props> = ({ graph, ownerNodeId, readOn
             });
         },
         onBoxSelectEnd: (selectedIds) => {
+            // 修复：先设置 contextId（会清空多选），再设置多选列表
+            if (selectedIds.length > 0) {
+                dispatch({
+                    type: 'SELECT_OBJECT',
+                    payload: { type: 'PRESENTATION_NODE', id: selectedIds[0], contextId: graph.id }
+                });
+            }
             dispatch({ type: 'SET_MULTI_SELECT_PRESENTATION_NODES', payload: selectedIds });
         },
         // 传入演出图节点尺寸，修复吸附点偏移问题

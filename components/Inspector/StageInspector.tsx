@@ -178,18 +178,16 @@ export const StageInspector: React.FC<StageInspectorProps> = ({ stageId, readOnl
                 {/* 删除按钮 */}
                 {canDelete && !readOnly && (
                     <button
+                        className="btn-icon btn-icon--danger"
                         onClick={handleRequestDelete}
+                        disabled={ui.view === 'EDITOR' && ui.currentNodeId && project.nodes[ui.currentNodeId]?.stageId === stageId}
                         style={{
-                            background: 'transparent',
-                            border: 'none',
-                            color: 'var(--text-secondary)',
-                            cursor: 'pointer',
-                            padding: '4px',
-                            borderRadius: '4px',
-                            display: 'flex',
-                            alignItems: 'center'
+                            opacity: (ui.view === 'EDITOR' && ui.currentNodeId && project.nodes[ui.currentNodeId]?.stageId === stageId) ? 0.5 : 1,
+                            cursor: (ui.view === 'EDITOR' && ui.currentNodeId && project.nodes[ui.currentNodeId]?.stageId === stageId) ? 'not-allowed' : 'pointer'
                         }}
-                        title="Delete Stage"
+                        title={(ui.view === 'EDITOR' && ui.currentNodeId && project.nodes[ui.currentNodeId]?.stageId === stageId)
+                            ? "Cannot delete stage while editing its content"
+                            : "Delete Stage"}
                     >
                         <Trash2 size={16} />
                     </button>

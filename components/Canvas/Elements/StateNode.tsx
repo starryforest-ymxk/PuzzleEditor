@@ -56,7 +56,7 @@ export const StateNode = React.memo(({
         if (isMultiSelected) {
             shadows.push(`0 0 0 ${baseOffset + spread}px #4fc1ff`); // 框选时的蓝色边框
         } else if (isSelected) {
-            shadows.push(`0 0 0 ${baseOffset + spread}px var(--selection-border)`);
+            shadows.push(`0 0 0 ${baseOffset + spread}px #4fc1ff`); // 单选也使用蓝色边框
         } else if (isContextTarget) {
             shadows.push(`0 0 0 ${baseOffset + spread}px var(--accent-warning)`);
         }

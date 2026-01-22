@@ -98,9 +98,9 @@ export const GraphNode: React.FC<GraphNodeProps> = React.memo(({
         const spread = 2; // 选中框宽度
 
         if (isMultiSelected) {
-            shadows.push(`0 0 0 ${baseOffset + spread}px #f472b6`);
+            shadows.push(`0 0 0 ${baseOffset + spread}px #f472b6`); // 框选时的粉色边框
         } else if (isSelected) {
-            shadows.push(`0 0 0 ${baseOffset + spread}px var(--selection-border)`);
+            shadows.push(`0 0 0 ${baseOffset + spread}px #f472b6`); // 单选也使用粉色边框
         } else if (isContextTarget) {
             shadows.push(`0 0 0 ${baseOffset + spread}px var(--accent-warning)`);
         }

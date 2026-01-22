@@ -167,6 +167,13 @@ export const StateMachineCanvas = ({ node, readOnly = false }: Props) => {
             dispatch({ type: 'DELETE_TRANSITION', payload: { fsmId: fsm.id, transitionId: transId } });
         },
         onBoxSelectEnd: (selectedIds) => {
+            // 修复：先设置 contextId（会清空多选），再设置多选列表
+            if (selectedIds.length > 0) {
+                dispatch({
+                    type: 'SELECT_OBJECT',
+                    payload: { type: 'STATE', id: selectedIds[0], contextId: node.id }
+                });
+            }
             dispatch({ type: 'SET_MULTI_SELECT_STATES', payload: selectedIds });
             isBoxSelecting.current = false;
             pendingCanvasSelect.current = false;

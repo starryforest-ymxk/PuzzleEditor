@@ -27,7 +27,7 @@ interface PresentationGraphInspectorProps {
 
 // ========== 主组件 ==========
 export const PresentationGraphInspector: React.FC<PresentationGraphInspectorProps> = ({ graphId, readOnly = false }) => {
-    const { project } = useEditorState();
+    const { project, ui } = useEditorState();
     const dispatch = useEditorDispatch();
 
     const graph = project.presentationGraphs[graphId];
@@ -172,12 +172,19 @@ export const PresentationGraphInspector: React.FC<PresentationGraphInspectorProp
                             <Layers size={12} style={{ marginRight: '4px' }} />
                             PRESENTATION GRAPH
                         </div>
-                        {/* 操作按钮 */}
+                        {/* 操作按钮 - 在演出图画布编辑模式下禁用当前正在编辑的演出图删除功能 */}
                         {!readOnly && (
                             <button
                                 className="btn-icon btn-icon--danger"
                                 onClick={handleDelete}
-                                title="Delete this graph"
+                                disabled={ui.view === 'EDITOR' && ui.currentGraphId === graphId}
+                                style={{
+                                    opacity: (ui.view === 'EDITOR' && ui.currentGraphId === graphId) ? 0.5 : 1,
+                                    cursor: (ui.view === 'EDITOR' && ui.currentGraphId === graphId) ? 'not-allowed' : 'pointer'
+                                }}
+                                title={(ui.view === 'EDITOR' && ui.currentGraphId === graphId)
+                                    ? "Cannot delete graph while editing"
+                                    : "Delete this graph"}
                             >
                                 <Trash2 size={14} />
                             </button>

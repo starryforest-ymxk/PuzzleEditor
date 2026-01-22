@@ -138,18 +138,16 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({ nodeId, readOnly =
                 </div>
                 {!readOnly && (
                     <button
+                        className="btn-icon btn-icon--danger"
                         onClick={handleRequestDelete}
+                        disabled={ui.view === 'EDITOR' && ui.currentNodeId === node.id}
                         style={{
-                            background: 'transparent',
-                            border: 'none',
-                            color: 'var(--text-secondary)',
-                            cursor: 'pointer',
-                            padding: '4px',
-                            borderRadius: '4px',
-                            display: 'flex',
-                            alignItems: 'center'
+                            opacity: (ui.view === 'EDITOR' && ui.currentNodeId === node.id) ? 0.5 : 1,
+                            cursor: (ui.view === 'EDITOR' && ui.currentNodeId === node.id) ? 'not-allowed' : 'pointer'
                         }}
-                        title="Delete Puzzle Node"
+                        title={(ui.view === 'EDITOR' && ui.currentNodeId === node.id)
+                            ? "Cannot delete node while editing FSM"
+                            : "Delete Puzzle Node"}
                     >
                         <Trash2 size={16} />
                     </button>

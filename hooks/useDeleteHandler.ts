@@ -49,7 +49,8 @@ export function useDeleteHandler() {
                     title: 'Delete Stage',
                     message: `Are you sure you want to delete "${stage.name}"? This will also delete all child content. This action cannot be undone.`,
                     confirmAction: { type: 'DELETE_STAGE', payload: { stageId } },
-                    danger: true
+                    danger: true,
+                    references: undefined  // 显式清空
                 }
             });
         } else {
@@ -76,7 +77,8 @@ export function useDeleteHandler() {
                     title: 'Apply Delete (Irreversible)',
                     message: 'This variable is already marked for delete. Applying delete will permanently remove it. This action cannot be undone.',
                     confirmAction: { type: 'APPLY_DELETE_GLOBAL_VARIABLE', payload: { id: variableId } },
-                    danger: true
+                    danger: true,
+                    references: undefined  // 显式清空
                 }
             });
             return;
@@ -130,7 +132,8 @@ export function useDeleteHandler() {
                     title: 'Apply Delete (Irreversible)',
                     message: 'This script is already marked for delete. Applying delete will permanently remove it. This action cannot be undone.',
                     confirmAction: { type: 'APPLY_DELETE_SCRIPT', payload: { id: scriptId } },
-                    danger: true
+                    danger: true,
+                    references: undefined  // 显式清空
                 }
             });
             return;
@@ -181,7 +184,8 @@ export function useDeleteHandler() {
                     title: 'Apply Delete (Irreversible)',
                     message: 'This event is already marked for delete. Applying delete will permanently remove it. This action cannot be undone.',
                     confirmAction: { type: 'APPLY_DELETE_EVENT', payload: { id: eventId } },
-                    danger: true
+                    danger: true,
+                    references: undefined  // 显式清空
                 }
             });
             return;
@@ -216,7 +220,10 @@ export function useDeleteHandler() {
 
     // ========== Presentation Graph 删除 ==========
     const deletePresentationGraph = useCallback((graphId: string) => {
-        // Presentation Graph 暂时没有状态概念，直接引用检查
+        const graph = project.presentationGraphs[graphId];
+        if (!graph) return;
+
+        // Presentation Graph 引用检查
         const refs = findPresentationGraphReferences(project, graphId);
 
         if (refs.length > 0) {
@@ -226,15 +233,25 @@ export function useDeleteHandler() {
                 payload: {
                     isOpen: true,
                     title: 'Delete Presentation Graph',
-                    message: `This graph is referenced by ${refs.length} PlayGraph nodes. Delete anyway?`,
+                    message: `This graph "${graph.name}" is referenced by ${refs.length} PlayGraph nodes. Delete anyway?`,
                     confirmAction: { type: 'DELETE_PRESENTATION_GRAPH', payload: { graphId } },
                     danger: true,
                     references: refStrings
                 }
             });
         } else {
-            // 这里假设 ProjectSlice 中有 DELETE_PRESENTATION_GRAPH
-            dispatch({ type: 'DELETE_PRESENTATION_GRAPH', payload: { graphId } });
+            // 没有引用也需要二次确认
+            dispatch({
+                type: 'SET_CONFIRM_DIALOG',
+                payload: {
+                    isOpen: true,
+                    title: 'Delete Presentation Graph',
+                    message: `Are you sure you want to delete presentation graph "${graph.name}"?`,
+                    confirmAction: { type: 'DELETE_PRESENTATION_GRAPH', payload: { graphId } },
+                    danger: true,
+                    references: undefined  // 显式清空，避免显示旧的引用列表
+                }
+            });
         }
     }, [project, dispatch]);
 
@@ -284,11 +301,15 @@ export function useDeleteHandler() {
                 deleteEvent(id);
                 break;
             case 'PRESENTATION_GRAPH':
-                deletePresentationGraph(id);
+                // 在演出图画布中点击空白处会选中 PRESENTATION_GRAPH，此时按 Delete 不应删除整个演出图
+                // 演出图的删除应该通过 Explorer 面板或右键菜单进行，而非快捷键
+                // 因此这里不执行任何操作
                 break;
             // Canvas Elements (Direct Delete)
             case 'NODE':
-                dispatch({ type: 'DELETE_PUZZLE_NODE', payload: { nodeId: id } });
+                // 在 FSM 画布中点击空白处会选中 NODE，此时按 Delete 不应删除整个 PuzzleNode
+                // PuzzleNode 的删除应该通过 Explorer 面板或右键菜单进行，而非快捷键
+                // 因此这里不执行任何操作
                 break;
             case 'STATE':
                 if (contextId) {

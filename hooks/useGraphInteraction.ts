@@ -214,8 +214,8 @@ export const useGraphInteraction = ({
                 const sourceSide = sourceNode
                     ? Geom.getClosestSide(
                         sourceNode.position,
-                        Geom.STATE_WIDTH,
-                        Geom.STATE_ESTIMATED_HEIGHT,
+                        nodeWidth,
+                        nodeHeight,
                         activeSnapPoint ? { x: activeSnapPoint.x, y: activeSnapPoint.y } : pos
                     )
                     : undefined;
