@@ -271,7 +271,6 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({ nodeId, readOnly =
                 <ConfirmDialog
                     title="Delete Puzzle Node"
                     message={`Are you sure you want to delete "${deleteConfirm.nodeName}"? This will also remove its state machine. This action cannot be undone.`}
-                    message={`Are you sure you want to delete "${deleteConfirm.nodeName}"? This will also remove its state machine. This action cannot be undone.`}
                     // references removed as per request
                     confirmText="Delete"
                     cancelText="Cancel"
