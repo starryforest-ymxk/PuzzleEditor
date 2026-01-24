@@ -296,7 +296,7 @@ export const NodeExplorer: React.FC = () => {
                     onDragLeave={handleDragLeave}
                     onDrop={handleDrop}
                 >
-                    <span style={{ marginRight: '8px', color: 'var(--text-secondary)', display: 'flex' }}>
+                    <span style={{ marginRight: '8px', color: isSelected ? 'inherit' : 'var(--text-secondary)', display: 'flex' }}>
                         <FileCode size={14} />
                     </span>
 
