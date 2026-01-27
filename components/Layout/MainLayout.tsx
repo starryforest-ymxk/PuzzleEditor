@@ -11,6 +11,7 @@ import { GlobalKeyboardShortcuts } from './GlobalKeyboardShortcuts';
 import { useEditorDispatch, useEditorState } from '../../store/context';
 import { BlackboardPanel } from '../Blackboard/BlackboardPanel';
 import { useAppStartup } from '../../hooks/useAppStartup';
+import { useFileWatcher } from '../../hooks/useFileWatcher';
 import { ValidationPanel } from './ValidationPanel';
 import { Footer } from './Footer';
 import GlobalConfirmDialog from './GlobalConfirmDialog';
@@ -26,6 +27,9 @@ export const MainLayout = () => {
 
   // Handle application startup logic
   useAppStartup();
+
+  // Handle external file watcher (Sync resource states)
+  useFileWatcher();
 
   const { ui } = useEditorState();
   const { panelSizes } = ui;

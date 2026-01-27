@@ -6,9 +6,13 @@ import { app, BrowserWindow, ipcMain, Menu, nativeTheme } from 'electron';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
 import { registerIpcHandlers } from './ipc/handlers.js';
+import { fileWatcherService } from './ipc/watcherService.js';
 // ESM 模式下获取 __dirname
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+// 禁用 Autofill 相关功能，防止 DevTools 报错
+// 错误原因：Electron 缺少 Chrome 的 Autofill 组件，但 DevTools 尝试调用
+app.commandLine.appendSwitch('disable-features', 'Autofill,AutofillServerCommunication');
 // 开发环境判断
 const isDev = !app.isPackaged;
 // 主窗口实例
@@ -26,11 +30,11 @@ function createWindow() {
         icon: path.join(__dirname, '../public/icon.png'),
         webPreferences: {
             // 预加载脚本路径
-            preload: path.join(__dirname, 'preload.js'),
+            preload: path.join(__dirname, 'preload.mjs'),
             // 安全设置
             nodeIntegration: false,
             contextIsolation: true,
-            sandbox: false, // 禁用沙盒以允许 preload 脚本正常工作
+            sandbox: false, // 禁用沙盒以确保 preload 脚本正确加载
         },
         // 窗口样式
         frame: true,
@@ -42,6 +46,12 @@ function createWindow() {
     // 窗口准备好后显示，避免白屏闪烁
     mainWindow.once('ready-to-show', () => {
         mainWindow?.show();
+    });
+    // 屏蔽 DevTools Autofill 协议警告（不影响功能，仅减少噪音）
+    mainWindow.webContents.on('console-message', (_, __, message) => {
+        if (message.includes('Autofill.enable') || message.includes('Autofill.setAddresses')) {
+            return;
+        }
     });
     // 加载应用内容
     if (isDev) {
@@ -57,7 +67,10 @@ function createWindow() {
     // 窗口关闭处理
     mainWindow.on('closed', () => {
         mainWindow = null;
+        fileWatcherService.setMainWindow(null); // 清理引用
     });
+    // 注入窗口实例到文件监听服务
+    fileWatcherService.setMainWindow(mainWindow);
 }
 /**
  * 应用初始化

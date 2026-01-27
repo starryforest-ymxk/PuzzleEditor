@@ -29,7 +29,9 @@ export type ProjectAction =
     // PuzzleNode CRUD 操作 (P4-T03)
     | { type: 'ADD_PUZZLE_NODE'; payload: { stageId: StageId; node: PuzzleNode; stateMachine: StateMachine } }
     | { type: 'DELETE_PUZZLE_NODE'; payload: { nodeId: PuzzleNodeId } }
-    | { type: 'REORDER_PUZZLE_NODES'; payload: { stageId: StageId; nodeIds: PuzzleNodeId[] } };
+    | { type: 'REORDER_PUZZLE_NODES'; payload: { stageId: StageId; nodeIds: PuzzleNodeId[] } }
+    // 外部分件同步 (P4-T06)
+    | { type: 'SYNC_RESOURCE_STATES'; payload: import('../../types/project').ProjectData };
 
 // ========== 类型守卫：判断是否为 Project Action ==========
 export const isProjectAction = (action: Action): action is ProjectAction => {
@@ -47,7 +49,8 @@ export const isProjectAction = (action: Action): action is ProjectAction => {
         // PuzzleNode CRUD (P4-T03)
         'ADD_PUZZLE_NODE',
         'DELETE_PUZZLE_NODE',
-        'REORDER_PUZZLE_NODES'
+        'REORDER_PUZZLE_NODES',
+        'SYNC_RESOURCE_STATES'
     ];
     return projectActionTypes.includes(action.type);
 };
@@ -534,6 +537,127 @@ export const projectReducer = (state: EditorState, action: ProjectAction): Edito
                 project: {
                     ...state.project,
                     nodes: updatedNodes
+                }
+            };
+        }
+
+        // 同步外部资源状态 (P4-T06)
+        case 'SYNC_RESOURCE_STATES': {
+            const externalData = action.payload; // ProjectData
+            const currentProject = state.project;
+
+            // 1. 同步脚本状态
+            const newScripts = { ...currentProject.scripts.scripts };
+            let hasChanges = false;
+            Object.keys(externalData.scripts.scripts).forEach((id) => {
+                const scriptId = id as import('../../types/common').ScriptId;
+                if (newScripts[scriptId] && newScripts[scriptId].state !== externalData.scripts.scripts[scriptId].state) {
+                    newScripts[scriptId] = {
+                        ...newScripts[scriptId],
+                        state: externalData.scripts.scripts[scriptId].state
+                    };
+                    hasChanges = true;
+                }
+            });
+
+            // 2. 同步全局变量状态
+            const newGlobalVars = { ...currentProject.blackboard.globalVariables };
+            Object.keys(externalData.blackboard.globalVariables).forEach((id) => {
+                const varId = id as VariableId;
+                if (newGlobalVars[varId] && newGlobalVars[varId].state !== externalData.blackboard.globalVariables[varId].state) {
+                    newGlobalVars[varId] = {
+                        ...newGlobalVars[varId],
+                        state: externalData.blackboard.globalVariables[varId].state
+                    };
+                    hasChanges = true;
+                }
+            });
+
+            // 3. 同步全局事件状态
+            const newEvents = { ...currentProject.blackboard.events };
+            Object.keys(externalData.blackboard.events).forEach((id) => {
+                const evtId = id as import('../../types/common').EventId;
+                if (newEvents[evtId] && newEvents[evtId].state !== externalData.blackboard.events[evtId].state) {
+                    newEvents[evtId] = {
+                        ...newEvents[evtId],
+                        state: externalData.blackboard.events[evtId].state
+                    };
+                    hasChanges = true;
+                }
+            });
+
+            // 4. 同步 Stage 局部变量状态
+            const newStages = { ...currentProject.stageTree.stages };
+            Object.keys(externalData.stageTree.stages).forEach((sId) => {
+                const stageId = sId as StageId;
+                const externalStage = externalData.stageTree.stages[stageId];
+                const localStage = newStages[stageId];
+
+                if (externalStage && localStage && externalStage.localVariables) {
+                    const newLocalVars = { ...localStage.localVariables };
+                    let stageChanged = false;
+
+                    Object.keys(externalStage.localVariables).forEach((vId) => {
+                        const varId = vId as VariableId;
+                        if (newLocalVars[varId] && newLocalVars[varId].state !== externalStage.localVariables[varId].state) {
+                            newLocalVars[varId] = {
+                                ...newLocalVars[varId],
+                                state: externalStage.localVariables[varId].state
+                            };
+                            stageChanged = true;
+                            hasChanges = true;
+                        }
+                    });
+
+                    if (stageChanged) {
+                        newStages[stageId] = { ...localStage, localVariables: newLocalVars };
+                    }
+                }
+            });
+
+            // 5. 同步 Node 局部变量状态
+            const newNodes = { ...currentProject.nodes };
+            Object.keys(externalData.nodes).forEach((nId) => {
+                const nodeId = nId as PuzzleNodeId;
+                const externalNode = externalData.nodes[nodeId];
+                const localNode = newNodes[nodeId];
+
+                if (externalNode && localNode && externalNode.localVariables) {
+                    const newLocalVars = { ...localNode.localVariables };
+                    let nodeChanged = false;
+
+                    Object.keys(externalNode.localVariables).forEach((vId) => {
+                        const varId = vId as VariableId;
+                        if (newLocalVars[varId] && newLocalVars[varId].state !== externalNode.localVariables[varId].state) {
+                            newLocalVars[varId] = {
+                                ...newLocalVars[varId],
+                                state: externalNode.localVariables[varId].state
+                            };
+                            nodeChanged = true;
+                            hasChanges = true;
+                        }
+                    });
+
+                    if (nodeChanged) {
+                        newNodes[nodeId] = { ...localNode, localVariables: newLocalVars };
+                    }
+                }
+            });
+
+            if (!hasChanges) return state;
+
+            return {
+                ...state,
+                project: {
+                    ...state.project,
+                    scripts: { ...state.project.scripts, scripts: newScripts },
+                    blackboard: {
+                        ...state.project.blackboard,
+                        globalVariables: newGlobalVars,
+                        events: newEvents
+                    },
+                    stageTree: { ...state.project.stageTree, stages: newStages },
+                    nodes: newNodes
                 }
             };
         }

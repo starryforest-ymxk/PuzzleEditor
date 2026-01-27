@@ -54,15 +54,18 @@ export function useProjectActions() {
             return;
         }
 
+        // 统一时间戳，确保 savedAt 和 updatedAt 一致
+        const now = new Date().toISOString();
+
         // 构建完整项目文件（包含编辑器状态）
         const projectFile: ProjectFile = {
             fileType: 'puzzle-project',
             editorVersion: EDITOR_VERSION,
-            savedAt: new Date().toISOString(),
+            savedAt: now,
             project: {
                 meta: {
                     ...project.meta,
-                    updatedAt: new Date().toISOString()
+                    updatedAt: now
                 },
                 blackboard: project.blackboard,
                 scripts: project.scripts,
@@ -88,6 +91,8 @@ export function useProjectActions() {
         if (isElectron() && runtime.currentProjectPath) {
             const result = await writeProject(runtime.currentProjectPath, jsonStr);
             if (result.success) {
+                // 同步更新 Redux 中的 updatedAt（不触发 isDirty）
+                dispatch({ type: 'SYNC_UPDATED_AT', payload: now });
                 dispatch({ type: 'MARK_CLEAN' });
                 pushMessage('info', `Project saved to ${runtime.currentProjectPath}`);
             } else {
@@ -108,6 +113,8 @@ export function useProjectActions() {
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
 
+        // 同步更新 Redux 中的 updatedAt（不触发 isDirty）
+        dispatch({ type: 'SYNC_UPDATED_AT', payload: now });
         dispatch({ type: 'MARK_CLEAN' });
         pushMessage('info', 'Project saved successfully');
     }, [project, ui, runtime, dispatch, pushMessage]);

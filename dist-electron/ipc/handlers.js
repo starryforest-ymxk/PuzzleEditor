@@ -6,6 +6,7 @@ import { dialog, shell } from 'electron';
 import { IPC_CHANNELS } from '../types.js';
 import { preferencesService } from './preferencesService.js';
 import { fileService } from './fileService.js';
+import { fileWatcherService } from './watcherService.js';
 /**
  * 注册所有 IPC 处理器
  * @param ipcMain Electron IpcMain 实例
@@ -51,6 +52,8 @@ export function registerIpcHandlers(ipcMain) {
     ipcMain.handle(IPC_CHANNELS.PROJECT_READ, async (_, filePath) => {
         try {
             const content = await fileService.readFile(filePath);
+            // 启动文件监听
+            fileWatcherService.startWatching(filePath);
             return { success: true, data: content };
         }
         catch (error) {
@@ -61,13 +64,20 @@ export function registerIpcHandlers(ipcMain) {
     });
     /**
      * 写入项目文件
+     * 写入前暂停文件监听，避免触发自身的变更事件
      */
     ipcMain.handle(IPC_CHANNELS.PROJECT_WRITE, async (_, filePath, data) => {
         try {
+            // 暂停监听，防止自身写入触发文件变更事件
+            fileWatcherService.pauseWatching();
             await fileService.writeFile(filePath, data);
+            // 写入完成后恢复监听（内部有延迟以确保事件被忽略）
+            fileWatcherService.resumeWatching();
             return { success: true };
         }
         catch (error) {
+            // 出错也要恢复监听
+            fileWatcherService.resumeWatching();
             const message = error instanceof Error ? error.message : 'Unknown error';
             console.error('Failed to write project:', message);
             return { success: false, error: message };
@@ -93,6 +103,8 @@ export function registerIpcHandlers(ipcMain) {
     ipcMain.handle(IPC_CHANNELS.PROJECT_CREATE, async (_, params) => {
         try {
             const result = await fileService.createProject(params);
+            // 启动文件监听
+            fileWatcherService.startWatching(result.path);
             return { success: true, data: result };
         }
         catch (error) {

@@ -223,6 +223,23 @@ export async function showInExplorer(filePath: string): Promise<void> {
 }
 
 // ============================================================================
+// 事件监听 API
+// ============================================================================
+
+/**
+ * 监听项目文件变更
+ * @param callback 变更回调
+ * @returns 取消监听函数
+ */
+export function onProjectFileChanged(callback: (event: import('@/electron/types').FileChangedEvent) => void): () => void {
+    const api = getAPI();
+    if (!api) {
+        return () => { };
+    }
+    return api.onProjectFileChanged(callback);
+}
+
+// ============================================================================
 // 导出类型
 // ============================================================================
 
@@ -232,6 +249,7 @@ export type {
     CreateProjectResult,
     IPCResult,
     FileDialogResult,
-    RecentProject
+    RecentProject,
+    FileChangedEvent
 } from '@/electron/types';
 

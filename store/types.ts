@@ -281,6 +281,8 @@ export type Action =
   | { type: 'SET_PANEL_SIZES'; payload: Partial<{ explorerWidth: number; inspectorWidth: number; stagesHeight: number }> }
   // Project Meta Actions (P4-T06)
   | { type: 'UPDATE_PROJECT_META'; payload: Partial<ProjectMeta> }
+  | { type: 'SYNC_RESOURCE_STATES'; payload: import('../types/project').ProjectData }
+  | { type: 'SYNC_UPDATED_AT'; payload: string }  // 同步时间戳（保存后调用，不触发 isDirty）
   | { type: 'RESET_PROJECT' }
   | { type: 'MARK_CLEAN' }
   | { type: 'SET_VALIDATION_RESULTS'; payload: ValidationResult[] }

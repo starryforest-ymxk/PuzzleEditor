@@ -29,4 +29,6 @@ export const IPC_CHANNELS = {
     // 文件操作相关
     FILE_EXISTS: 'file:exists',
     FILE_SHOW_IN_EXPLORER: 'file:show-in-explorer',
+    // 文件监听
+    PROJECT_FILE_CHANGED: 'project:file-changed',
 };

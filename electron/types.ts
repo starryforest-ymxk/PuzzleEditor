@@ -95,7 +95,15 @@ export const IPC_CHANNELS = {
     // 文件操作相关
     FILE_EXISTS: 'file:exists',
     FILE_SHOW_IN_EXPLORER: 'file:show-in-explorer',
+
+    // 文件监听
+    PROJECT_FILE_CHANGED: 'project:file-changed',
 } as const;
+
+export interface FileChangedEvent {
+    path: string;
+    type: 'change' | 'unlink';
+}
 
 // ============================================================================
 // IPC 操作结果类型
@@ -171,6 +179,9 @@ export interface ElectronAPI {
     // 文件操作
     fileExists: (path: string) => Promise<boolean>;
     showInExplorer: (path: string) => Promise<void>;
+
+    // 事件监听
+    onProjectFileChanged: (callback: (event: FileChangedEvent) => void) => () => void;
 }
 
 // ============================================================================
