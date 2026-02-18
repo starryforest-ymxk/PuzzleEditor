@@ -16,16 +16,14 @@ import React, { useState, useMemo, useCallback } from 'react';
 import { useEditorState, useEditorDispatch } from '../../store/context';
 import type { ScriptDefinition } from '../../types/manifest';
 import type { ScriptCategory } from '../../types/common';
-import type { MessageLevel } from '../../store/types';
-import { Trash2, RotateCcw, ExternalLink } from 'lucide-react';
 import { findScriptReferences } from '../../utils/validation/scriptReferences';
-import type { ReferenceNavigationContext } from '../../utils/validation/globalVariableReferences';
+import { ReferenceListSection } from './ReferenceListSection';
+import { ResourceActionButtons } from './ResourceActionButtons';
 
 import { InspectorWarning } from './InspectorInfo';
-import { isValidAssetName } from '../../utils/assetNameValidation';
 import { AssetNameAutoFillButton } from './AssetNameAutoFillButton';
-import { useAutoTranslateAssetName } from '../../hooks/useAutoTranslateAssetName';
 import { useDeleteHandler } from '../../hooks/useDeleteHandler';
+import { useInspectorNameFields } from '../../hooks/useInspectorNameFields';
 
 // ========== Props 类型定义 ==========
 interface ScriptInspectorProps {
@@ -57,31 +55,10 @@ export const ScriptInspector: React.FC<ScriptInspectorProps> = ({ scriptId, read
     const dispatch = useEditorDispatch();
 
     const script = project.scripts.scripts[scriptId];
-    if (!script) return <div className="empty-state">Script not found</div>;
 
-    const categoryColor = categoryColors[script.category] || '#c586c0';
-    const categoryLabel = categoryLabels[script.category] || script.category.toUpperCase();
-    const isMarkedForDelete = script.state === 'MarkedForDelete';
-
-    // ========== 本地编辑状态（用于失焦校验） ==========
-    const [localName, setLocalName] = useState(script.name);
-    const [localAssetName, setLocalAssetName] = useState(script.assetName || '');
-    const [localDescription, setLocalDescription] = useState(script.description || '');
-
-    // ========== 引用计算 ==========
-    const references = useMemo(() => {
-        return findScriptReferences(project, scriptId);
-    }, [project, scriptId]);
-
-    const referenceLocations = useMemo(() => references.map(r => r.location), [references]);
-
-    // ========== 消息推送 ==========
-    const pushMessage = (level: MessageLevel, text: string) => {
-        dispatch({
-            type: 'ADD_MESSAGE',
-            payload: { id: `msg-${Date.now()}`, level, text, timestamp: new Date().toISOString() }
-        });
-    };
+    const categoryColor = script ? categoryColors[script.category] || '#c586c0' : '#c586c0';
+    const categoryLabel = script ? categoryLabels[script.category] || script.category.toUpperCase() : '';
+    const isMarkedForDelete = script?.state === 'MarkedForDelete';
 
     // ========== 更新脚本属性 ==========
     const handleUpdate = useCallback((updates: Partial<ScriptDefinition>) => {
@@ -90,53 +67,44 @@ export const ScriptInspector: React.FC<ScriptInspectorProps> = ({ scriptId, read
         }
     }, [readOnly, isMarkedForDelete, dispatch, scriptId]);
 
-    // ========== 同步本地状态 ==========
-    React.useEffect(() => {
-        setLocalName(script.name);
-        setLocalAssetName(script.assetName || '');
-        setLocalDescription(script.description || '');
-    }, [script.name, script.assetName, script.description]);
+    // ========== 本地编辑状态（用于失焦校验） ==========
+    const [localDescription, setLocalDescription] = useState(script?.description || '');
 
-    // 自动翻译 Hook
-    const triggerAutoTranslate = useAutoTranslateAssetName({
-        currentAssetName: script.assetName,
-        onAssetNameFill: (value) => {
-            setLocalAssetName(value);
-            handleUpdate({ assetName: value });
-        }
+    // 统一名称编辑 Hook（不允许空名称）
+    const {
+        localName, setLocalName,
+        localAssetName, setLocalAssetName,
+        handleNameBlur, handleAssetNameBlur, triggerAutoTranslate
+    } = useInspectorNameFields({
+        entity: script || null,
+        onUpdate: handleUpdate,
+        allowEmptyName: false,
     });
 
-    // ========== 失焦校验处理函数 ==========
-    const handleNameBlur = async () => {
-        const trimmed = localName.trim();
-        if (!trimmed) {
-            setLocalName(script.name);
-        } else if (trimmed !== script.name) {
-            handleUpdate({ name: trimmed });
-        }
-        // 自动翻译
-        await triggerAutoTranslate(trimmed);
-    };
+    // ========== 引用计算 ==========
+    const references = useMemo(() => {
+        return findScriptReferences(project, scriptId);
+    }, [project, scriptId]);
 
-    const handleAssetNameBlur = () => {
-        const trimmed = localAssetName.trim();
-        if (!isValidAssetName(trimmed)) {
-            setLocalAssetName(script.assetName || '');
-        } else if (trimmed !== (script.assetName || '')) {
-            handleUpdate({ assetName: trimmed || undefined });
-        }
-    };
+    const referenceLocations = useMemo(() => references.map(r => r.location), [references]);
+
+    // ========== 同步 description 本地状态 ==========
+    React.useEffect(() => {
+        setLocalDescription(script?.description || '');
+    }, [script?.description]);
 
     const handleDescriptionBlur = () => {
-        if (localDescription !== (script.description || '')) {
+        if (localDescription !== (script?.description || '')) {
             handleUpdate({ description: localDescription });
         }
     };
 
+    if (!script) return <div className="empty-state">Script not found</div>;
+
     // ========== 删除逻辑（与 VariableInspector 一致） ==========
 
     // ========== 删除逻辑 (使用 unified hook) ==========
-    const { deleteScript } = useDeleteHandler();
+    const { deleteScript, restoreResource } = useDeleteHandler();
 
     /**
      * 删除按钮点击处理
@@ -152,73 +120,13 @@ export const ScriptInspector: React.FC<ScriptInspectorProps> = ({ scriptId, read
      */
     const handleRestore = () => {
         if (readOnly || script.state !== 'MarkedForDelete') return;
-        dispatch({ type: 'UPDATE_SCRIPT', payload: { id: scriptId, data: { state: 'Implemented' } } });
-        pushMessage('info', `Restored script "${script.name}" to Implemented state.`);
+        restoreResource('SCRIPT', scriptId, script.name);
     };
 
     // 是否可编辑（MarkedForDelete 状态下不可编辑）
     const canEdit = !readOnly && !isMarkedForDelete;
 
-    // ========== 点击引用项导航 ==========
-    const handleReferenceClick = useCallback((navContext?: ReferenceNavigationContext) => {
-        if (!navContext) return;
 
-        const { targetType, stageId, nodeId, stateId, transitionId, graphId, presentationNodeId } = navContext;
-
-        switch (targetType) {
-            case 'STAGE':
-                // 导航到 Stage 并选中
-                if (stageId) {
-                    dispatch({ type: 'NAVIGATE_TO', payload: { stageId, nodeId: null, graphId: null } });
-                    dispatch({ type: 'SELECT_OBJECT', payload: { type: 'STAGE', id: stageId } });
-                }
-                break;
-
-            case 'NODE':
-                if (nodeId) {
-                    const node = project.nodes[nodeId];
-                    if (node) {
-                        dispatch({ type: 'NAVIGATE_TO', payload: { stageId: node.stageId, nodeId, graphId: null } });
-                        dispatch({ type: 'SELECT_OBJECT', payload: { type: 'NODE', id: nodeId, contextId: nodeId } });
-                    }
-                }
-                break;
-
-            case 'STATE':
-                if (nodeId && stateId) {
-                    const node = project.nodes[nodeId];
-                    if (node) {
-                        dispatch({ type: 'NAVIGATE_TO', payload: { stageId: node.stageId, nodeId, graphId: null } });
-                        dispatch({ type: 'SELECT_OBJECT', payload: { type: 'STATE', id: stateId, contextId: nodeId } });
-                    }
-                }
-                break;
-
-            case 'TRANSITION':
-                if (nodeId && transitionId) {
-                    const node = project.nodes[nodeId];
-                    if (node) {
-                        dispatch({ type: 'NAVIGATE_TO', payload: { stageId: node.stageId, nodeId, graphId: null } });
-                        dispatch({ type: 'SELECT_OBJECT', payload: { type: 'TRANSITION', id: transitionId, contextId: nodeId } });
-                    }
-                }
-                break;
-
-            case 'PRESENTATION_GRAPH':
-                if (graphId) {
-                    dispatch({ type: 'NAVIGATE_TO', payload: { graphId } });
-                    dispatch({ type: 'SELECT_OBJECT', payload: { type: 'PRESENTATION_GRAPH', id: graphId } });
-                }
-                break;
-
-            case 'PRESENTATION_NODE':
-                if (graphId && presentationNodeId) {
-                    dispatch({ type: 'NAVIGATE_TO', payload: { graphId } });
-                    dispatch({ type: 'SELECT_OBJECT', payload: { type: 'PRESENTATION_NODE', id: presentationNodeId, contextId: graphId } });
-                }
-                break;
-        }
-    }, [project.nodes, dispatch]);
 
     return (
         <>
@@ -231,38 +139,12 @@ export const ScriptInspector: React.FC<ScriptInspectorProps> = ({ scriptId, read
                         </div>
                         {/* 操作按钮 */}
                         {!readOnly && (
-                            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                                {isMarkedForDelete ? (
-                                    <>
-                                        {/* MarkedForDelete 状态：显示 Restore 和 Delete 按钮 */}
-                                        <button
-                                            className="btn-xs-restore"
-                                            onClick={handleRestore}
-                                            title="Restore to Implemented state"
-                                        >
-                                            <RotateCcw size={10} style={{ marginRight: '2px' }} />
-                                            Restore
-                                        </button>
-                                        <button
-                                            className="btn-xs-delete"
-                                            onClick={handleDelete}
-                                            title="Permanently delete this script"
-                                        >
-                                            <Trash2 size={10} style={{ marginRight: '2px' }} />
-                                            Delete
-                                        </button>
-                                    </>
-                                ) : (
-                                    // 非 MarkedForDelete 状态：显示删除按钮
-                                    <button
-                                        className="btn-icon btn-icon--danger"
-                                        onClick={handleDelete}
-                                        title="Delete"
-                                    >
-                                        <Trash2 size={14} />
-                                    </button>
-                                )}
-                            </div>
+                            <ResourceActionButtons
+                                isMarkedForDelete={isMarkedForDelete}
+                                onDelete={handleDelete}
+                                onRestore={handleRestore}
+                                resourceLabel="script"
+                            />
                         )}
                     </div>
                     {!readOnly ? (
@@ -377,47 +259,7 @@ export const ScriptInspector: React.FC<ScriptInspectorProps> = ({ scriptId, read
                 </div>
 
                 {/* References Section - 引用追踪区块 */}
-                <div className="inspector-section" style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-                    <div className="inspector-section-title">
-                        References ({references.length})
-                    </div>
-                    {references.length > 0 ? (
-                        <div style={{
-                            fontSize: '12px',
-                            color: 'var(--text-secondary)',
-                            flex: 1,
-                            overflowY: 'auto'
-                        }}>
-                            {references.map((ref, idx) => (
-                                <div
-                                    key={idx}
-                                    className={ref.navContext ? 'inspector-reference-item inspector-reference-item--clickable' : 'inspector-reference-item'}
-                                    style={{
-                                        padding: '4px 0',
-                                        borderBottom: idx < references.length - 1 ? '1px solid var(--border-secondary)' : 'none',
-                                        cursor: ref.navContext ? 'pointer' : 'default',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '4px'
-                                    }}
-                                    onClick={() => handleReferenceClick(ref.navContext)}
-                                    title={ref.navContext ? 'Click to navigate to this reference' : undefined}
-                                >
-                                    <span style={{ flex: 1 }}>{ref.location}</span>
-                                    {ref.navContext && (
-                                        <ExternalLink size={12} style={{ opacity: 0.6, flexShrink: 0 }} />
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                    ) : (
-                        <div className="inspector-reference-placeholder">
-                            <div className="inspector-reference-placeholder__desc">
-                                No references found in this project.
-                            </div>
-                        </div>
-                    )}
-                </div>
+                <ReferenceListSection references={references} />
             </div>
 
 

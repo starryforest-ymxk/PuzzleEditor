@@ -26,18 +26,17 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useEditorState, useEditorDispatch } from '../../store/context';
 import type { VariableDefinition } from '../../types/blackboard';
 import type { VariableType } from '../../types/common';
-import type { MessageLevel } from '../../store/types';
 import type { StageNode } from '../../types/stage';
 import type { PuzzleNode } from '../../types/puzzleNode';
-import { Trash2, RotateCcw, ExternalLink } from 'lucide-react';
 import { InspectorWarning } from './InspectorInfo';
-import { findGlobalVariableReferences, VariableReferenceInfo, ReferenceNavigationContext } from '../../utils/validation/globalVariableReferences';
+import { ResourceActionButtons } from './ResourceActionButtons';
+import { findGlobalVariableReferences, VariableReferenceInfo } from '../../utils/validation/globalVariableReferences';
+import { ReferenceListSection } from './ReferenceListSection';
 import { findNodeVariableReferences } from '../../utils/variableReferences';
 import { findStageVariableReferences } from '../../utils/validation/stageVariableReferences';
-import { isValidAssetName } from '../../utils/assetNameValidation';
-import { useAutoTranslateAssetName } from '../../hooks/useAutoTranslateAssetName';
 import { AssetNameAutoFillButton } from './AssetNameAutoFillButton';
 import { useDeleteHandler } from '../../hooks/useDeleteHandler';
+import { useInspectorNameFields } from '../../hooks/useInspectorNameFields';
 
 // ========== Props 类型定义 ==========
 interface VariableInspectorProps {
@@ -138,11 +137,27 @@ export const VariableInspector: React.FC<VariableInspectorProps> = ({ variableId
     // 全局变量可编辑，但 MarkedForDelete 状态下不可编辑
     const canEdit = isGlobal && !readOnly && !isMarkedForDelete;
 
-    // ========== 本地编辑状态（用于失焦校验） ==========
-    const [localName, setLocalName] = useState(variable.name);
-    const [localAssetName, setLocalAssetName] = useState(variable.assetName || '');
+    // ========== 本地编辑状态 ==========
     const [localValue, setLocalValue] = useState<any>(variable.value);
     const [localDescription, setLocalDescription] = useState(variable.description || '');
+
+    // 更新变量属性（直接派发）
+    const handleUpdate = useCallback((updates: Partial<VariableDefinition>) => {
+        if (isGlobal && !isMarkedForDelete) {
+            dispatch({ type: 'UPDATE_GLOBAL_VARIABLE', payload: { id: variableId, data: updates } });
+        }
+    }, [isGlobal, isMarkedForDelete, dispatch, variableId]);
+
+    // 统一名称编辑 Hook（不允许空名称）
+    const {
+        localName, setLocalName,
+        localAssetName, setLocalAssetName,
+        handleNameBlur, handleAssetNameBlur, triggerAutoTranslate
+    } = useInspectorNameFields({
+        entity: variable,
+        onUpdate: handleUpdate,
+        allowEmptyName: false,
+    });
 
     // ========== 变量引用检查（支持全局和局部变量） ==========
     const references = useMemo((): VariableReferenceInfo[] => {
@@ -161,162 +176,13 @@ export const VariableInspector: React.FC<VariableInspectorProps> = ({ variableId
 
     const referenceLocations = useMemo(() => references.map(r => r.location), [references]);
 
-    /**
-     * 点击引用项时导航到对应的编辑器界面并选中目标对象
-     * 根据 navContext 中的目标类型进行不同的导航操作
-     * 参考 BlackboardPanel 的 handleDoubleClickLocalVariable 模式：
-     * 使用两次 dispatch，先导航再选中，确保视图切换后选中状态正确应用
-     */
-    const handleReferenceClick = useCallback((navContext?: ReferenceNavigationContext) => {
-        if (!navContext) return;
 
-        const { targetType, stageId, nodeId, stateId, transitionId, graphId, presentationNodeId } = navContext;
 
-        switch (targetType) {
-            case 'STAGE':
-                // 导航到 Stage 并选中
-                if (stageId) {
-                    dispatch({
-                        type: 'NAVIGATE_TO',
-                        payload: {
-                            stageId,
-                            nodeId: null,
-                            graphId: null
-                        }
-                    });
-                    dispatch({
-                        type: 'SELECT_OBJECT',
-                        payload: { type: 'STAGE', id: stageId }
-                    });
-                }
-                break;
-
-            case 'NODE':
-                // 导航到 Node 的 FSM Canvas 并选中 Node
-                if (nodeId) {
-                    const node = project.nodes[nodeId];
-                    if (node) {
-                        // 先导航到目标位置
-                        dispatch({
-                            type: 'NAVIGATE_TO',
-                            payload: {
-                                stageId: node.stageId,
-                                nodeId,
-                                graphId: null
-                            }
-                        });
-                        // 再选中目标对象
-                        dispatch({
-                            type: 'SELECT_OBJECT',
-                            payload: { type: 'NODE', id: nodeId, contextId: nodeId }
-                        });
-                    }
-                }
-                break;
-
-            case 'STATE':
-                // 导航到 Node 的 FSM Canvas 并选中 State
-                if (nodeId && stateId) {
-                    const node = project.nodes[nodeId];
-                    if (node) {
-                        dispatch({
-                            type: 'NAVIGATE_TO',
-                            payload: {
-                                stageId: node.stageId,
-                                nodeId,
-                                graphId: null
-                            }
-                        });
-                        dispatch({
-                            type: 'SELECT_OBJECT',
-                            payload: { type: 'STATE', id: stateId, contextId: nodeId }
-                        });
-                    }
-                }
-                break;
-
-            case 'TRANSITION':
-                // 导航到 Node 的 FSM Canvas 并选中 Transition
-                if (nodeId && transitionId) {
-                    const node = project.nodes[nodeId];
-                    if (node) {
-                        dispatch({
-                            type: 'NAVIGATE_TO',
-                            payload: {
-                                stageId: node.stageId,
-                                nodeId,
-                                graphId: null
-                            }
-                        });
-                        dispatch({
-                            type: 'SELECT_OBJECT',
-                            payload: { type: 'TRANSITION', id: transitionId, contextId: nodeId }
-                        });
-                    }
-                }
-                break;
-
-            case 'PRESENTATION_GRAPH':
-                // 导航到演出图
-                if (graphId) {
-                    dispatch({
-                        type: 'NAVIGATE_TO',
-                        payload: { graphId }
-                    });
-                    dispatch({
-                        type: 'SELECT_OBJECT',
-                        payload: { type: 'PRESENTATION_GRAPH', id: graphId }
-                    });
-                }
-                break;
-
-            case 'PRESENTATION_NODE':
-                // 导航到演出图并选中演出节点
-                if (graphId && presentationNodeId) {
-                    dispatch({
-                        type: 'NAVIGATE_TO',
-                        payload: { graphId }
-                    });
-                    dispatch({
-                        type: 'SELECT_OBJECT',
-                        payload: { type: 'PRESENTATION_NODE', id: presentationNodeId, contextId: graphId }
-                    });
-                }
-                break;
-        }
-    }, [project.nodes, dispatch]);
-
-    // 当 variable 变化时同步本地状态
+    // 当 variable 变化时同步 localValue 和 localDescription
     useEffect(() => {
-        setLocalName(variable.name);
-        setLocalAssetName(variable.assetName || '');
         setLocalValue(variable.value);
         setLocalDescription(variable.description || '');
-    }, [variable.name, variable.assetName, variable.value, variable.description]);
-
-    // 推送消息到全局消息堆栈
-    const pushMessage = (level: MessageLevel, text: string) => {
-        dispatch({
-            type: 'ADD_MESSAGE',
-            payload: { id: `msg-${Date.now()}`, level, text, timestamp: new Date().toISOString() }
-        });
-    };
-
-    // 更新变量属性（直接派发）
-    const handleUpdate = useCallback((updates: Partial<VariableDefinition>) => {
-        if (isGlobal && !isMarkedForDelete) {
-            dispatch({ type: 'UPDATE_GLOBAL_VARIABLE', payload: { id: variableId, data: updates } });
-        }
-    }, [isGlobal, isMarkedForDelete, dispatch, variableId]);
-
-    // 自动翻译 Hook
-    const triggerAutoTranslate = useAutoTranslateAssetName({
-        currentAssetName: variable.assetName,
-        onAssetNameFill: (value) => {
-            setLocalAssetName(value);
-            handleUpdate({ assetName: value });
-        }
-    });
+    }, [variable.value, variable.description]);
 
     // ========== 删除逻辑（与 LocalVariableEditor 同步） ==========
 
@@ -327,7 +193,7 @@ export const VariableInspector: React.FC<VariableInspectorProps> = ({ variableId
      * - delete: Draft -> 物理删除
      */
     // ========== 删除逻辑 (使用 unified hook) ==========
-    const { deleteGlobalVariable } = useDeleteHandler();
+    const { deleteGlobalVariable, restoreResource } = useDeleteHandler();
 
     /**
      * 删除按钮点击处理
@@ -343,34 +209,7 @@ export const VariableInspector: React.FC<VariableInspectorProps> = ({ variableId
      */
     const handleRestore = () => {
         if (!isGlobal || variable.state !== 'MarkedForDelete') return;
-        dispatch({ type: 'UPDATE_GLOBAL_VARIABLE', payload: { id: variableId, data: { state: 'Implemented' } } });
-        pushMessage('info', `Restored global variable "${variable.name}" to Implemented state.`);
-    };
-
-    // ========== 失焦校验处理函数 ==========
-
-    // 名称失焦：非空校验
-    const handleNameBlur = async () => {
-        const trimmed = localName.trim();
-        if (!trimmed) {
-            // 回退到原值
-            setLocalName(variable.name);
-        } else if (trimmed !== variable.name) {
-            handleUpdate({ name: trimmed });
-        }
-        // 自动翻译
-        await triggerAutoTranslate(trimmed);
-    };
-
-    // 资产名失焦：校验变量名命名规则
-    const handleAssetNameBlur = () => {
-        const trimmed = localAssetName.trim();
-        if (!isValidAssetName(trimmed)) {
-            // 校验失败，回退到原值
-            setLocalAssetName(variable.assetName || '');
-        } else if (trimmed !== (variable.assetName || '')) {
-            handleUpdate({ assetName: trimmed || undefined });
-        }
+        restoreResource('GLOBAL_VARIABLE', variableId, variable.name);
     };
 
     // 数值类型失焦：有效性校验
@@ -480,37 +319,12 @@ export const VariableInspector: React.FC<VariableInspectorProps> = ({ variableId
                         </div>
                         {/* 全局变量操作按钮 */}
                         {isGlobal && !readOnly && (
-                            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                                {isMarkedForDelete ? (
-                                    <>
-                                        {/* MarkedForDelete 状态：显示 Restore 和 Delete 按钮 */}
-                                        <button
-                                            className="btn-xs-restore"
-                                            onClick={handleRestore}
-                                            title="Restore to Implemented state"
-                                        >
-                                            <RotateCcw size={10} style={{ marginRight: '2px' }} />
-                                            Restore
-                                        </button>
-                                        <button
-                                            className="btn-xs-delete"
-                                            onClick={handleDelete}
-                                            title="Permanently delete this variable"
-                                        >
-                                            <Trash2 size={10} style={{ marginRight: '2px' }} />
-                                            Delete
-                                        </button>
-                                    </>
-                                ) : (
-                                    <button
-                                        className="btn-icon btn-icon--danger"
-                                        onClick={handleDelete}
-                                        title="Delete"
-                                    >
-                                        <Trash2 size={14} />
-                                    </button>
-                                )}
-                            </div>
+                            <ResourceActionButtons
+                                isMarkedForDelete={isMarkedForDelete}
+                                onDelete={handleDelete}
+                                onRestore={handleRestore}
+                                resourceLabel="variable"
+                            />
                         )}
                     </div>
                     {canEdit ? (
@@ -658,48 +472,13 @@ export const VariableInspector: React.FC<VariableInspectorProps> = ({ variableId
                 )}
 
                 {/* References Section - 引用追踪区域 */}
-                <div className="inspector-section" style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-                    <div className="inspector-section-title">References ({references.length})</div>
-                    {references.length > 0 ? (
-                        <div style={{
-                            fontSize: '12px',
-                            color: 'var(--text-secondary)',
-                            flex: 1,
-                            overflowY: 'auto'
-                        }}>
-                            {references.map((ref, idx) => (
-                                <div
-                                    key={idx}
-                                    className={ref.navContext ? 'inspector-reference-item inspector-reference-item--clickable' : 'inspector-reference-item'}
-                                    style={{
-                                        padding: '4px 0',
-                                        borderBottom: idx < references.length - 1 ? '1px solid var(--border-secondary)' : 'none',
-                                        cursor: ref.navContext ? 'pointer' : 'default',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '4px'
-                                    }}
-                                    onClick={() => ref.navContext && handleReferenceClick(ref.navContext)}
-                                    title={ref.navContext ? 'Click to navigate to this reference' : undefined}
-                                >
-                                    <span style={{ flex: 1 }}>{ref.location}</span>
-                                    {ref.navContext && (
-                                        <ExternalLink size={12} style={{ opacity: 0.6, flexShrink: 0 }} />
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                    ) : (
-                        <div className="inspector-reference-placeholder">
-                            <div className="inspector-reference-placeholder__desc">
-                                {variableScope === 'Stage'
-                                    ? 'Reference tracking for Stage local variables is not yet supported.'
-                                    : 'No references found in this project.'
-                                }
-                            </div>
-                        </div>
-                    )}
-                </div>
+                <ReferenceListSection
+                    references={references}
+                    emptyMessage={variableScope === 'Stage'
+                        ? 'Reference tracking for Stage local variables is not yet supported.'
+                        : 'No references found in this project.'
+                    }
+                />
             </div>
 
 

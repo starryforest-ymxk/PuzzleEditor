@@ -8,8 +8,9 @@ import type { StageNode } from '../../types/stage';
 import type { PuzzleNode } from '../../types/puzzleNode';
 import type { StateMachine } from '../../types/stateMachine';
 import type { ScriptDefinition } from '../../types/manifest';
-import type { PresentationGraph } from '../../types/presentation';
 import { Trash2 } from 'lucide-react';
+import { filterActiveResources } from '../../utils/resourceFilters';
+import { buildScriptOptionsByCategory, buildGraphOptions } from '../../utils/resourceOptions';
 
 interface Props {
     graphId: string;
@@ -88,19 +89,15 @@ export const PresentationNodeInspector = ({ graphId, nodeId, readOnly = false }:
         }
     };
 
-    const scriptList = Object.values<ScriptDefinition>(project.scripts.scripts || {});
-    const performanceScriptList = scriptList.filter(s => s.category === 'Performance');
+    const scriptDefs = project.scripts.scripts || {};
 
     // Presentation binding options
-    const performanceScriptOptions = useMemo(() => performanceScriptList.map(s => ({ id: s.id, name: s.name, state: s.state, description: s.description })), [performanceScriptList]);
+    const performanceScriptOptions = useMemo(() => buildScriptOptionsByCategory(scriptDefs, 'Performance'), [scriptDefs]);
 
     // Filter scripts for Condition category
-    const conditionScriptOptions = useMemo(() => scriptList
-        .filter(s => s.category === 'Condition')
-        .map(s => ({ id: s.id, name: s.name, state: s.state, description: s.description })), [scriptList]);
+    const conditionScriptOptions = useMemo(() => buildScriptOptionsByCategory(scriptDefs, 'Condition'), [scriptDefs]);
 
-    const graphOptions = useMemo(() => Object.values<PresentationGraph>(project.presentationGraphs || {}).filter(g => g.id !== graphId).map(g => ({ id: g.id, name: g.name, state: 'Draft' as const, description: g.description })), [project.presentationGraphs, graphId]);
-    const scriptDefs = project.scripts.scripts || {};
+    const graphOptions = useMemo(() => buildGraphOptions(project.presentationGraphs || {}, graphId), [project.presentationGraphs, graphId]);
 
     // 依据推断到的作用域收集可见变量，并过滤已标记删除
     const visibleVars: VariableDefinition[] = useMemo(() => {
@@ -109,7 +106,7 @@ export const PresentationNodeInspector = ({ graphId, nodeId, readOnly = false }:
             resolvedScope.stageId,
             resolvedScope.nodeId
         );
-        return vars.all.filter(v => v.state !== 'MarkedForDelete');
+        return filterActiveResources(vars.all);
     }, [project, resolvedScope]);
 
     // 删除节点

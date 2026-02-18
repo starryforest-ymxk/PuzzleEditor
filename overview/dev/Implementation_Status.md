@@ -1,6 +1,6 @@
 # 项目实现状态（Implementation Status）
 
-> **版本**: 1.0.0-alpha | **更新时间**: 2025-12-20 | **快照时间**: v1.0.0-alpha 发布时
+> **版本**: 1.0.0-alpha | **更新时间**: 2025-07-17 | **快照时间**: P1/P2 代码复用重构完成
 
 ---
 
@@ -46,13 +46,13 @@ components/
   ├─ Explorer/      2 个文件
   ├─ Canvas/        ~8 个文件
   │  └─ Elements/   7 个文件
-  ├─ Inspector/     ~33 个文件
-  │  ├─ condition/  多个子组件
+  ├─ Inspector/     ~32 个文件（合并 ConfirmDialog 后减少 1 个）
+  │  ├─ condition/  多个子组件（已移除重复 ConfirmDialog）
   │  ├─ localVariable/  2 个文件
   │  └─ presentation/   2 个文件
   └─ Blackboard/    9 个文件
-hooks/              5 个自定义 Hooks
-utils/              11+ 个工具文件
+hooks/              4 个自定义 Hooks（合并 useKeyboardShortcuts 后减少 1 个）
+utils/              13+ 个工具文件（新增 referenceNavigation、resourceFilters）
 ```
 
 ### 2.2 核心模块行数估算
@@ -166,6 +166,30 @@ utils/              11+ 个工具文件
 - FSM 拓扑校验（环检测、孤岛检测）
 - 变量引用检查
 - 全局消息堆栈（info/warning/error）
+
+---
+
+## 4.5 代码复用重构（P1/P2）
+
+✅ **P1-1: 提取 navigateToReference 工具函数**
+- 新增 `utils/referenceNavigation.ts`，集中处理 6 种 targetType 的引用导航逻辑
+- 替换了 5 个 Inspector 文件中 ~392 行重复的 switch-case 代码：
+  - VariableInspector、ScriptInspector、EventInspector、PresentationGraphInspector、LocalVariableEditor
+- 每个文件的 `handleReferenceClick` 从 50-120 行缩减为 2-3 行
+
+✅ **P1-2: 合并重复 ConfirmDialog 组件**
+- 删除 `components/Inspector/condition/ConfirmDialog.tsx`（104 行）
+- ConditionEditor 改用共享的 `components/Inspector/ConfirmDialog.tsx`
+- 从 `condition/index.ts` 中移除无用的 re-export
+
+✅ **P2-1: 合并键盘快捷键 Hook**
+- 删除 `hooks/useKeyboardShortcuts.ts`（98 行）
+- StateMachineCanvas 改用 `hooks/useGraphKeyboardShortcuts.ts`（参数适配）
+- 两个 Hook 功能完全重叠：Escape 清除多选、Ctrl 切线模式、Shift 连线键
+
+✅ **P2-2: 提取 MarkedForDelete 过滤工具函数**
+- 新增 `utils/resourceFilters.ts`，导出 `filterActiveResources<T>()` 和 `filterActiveOrSelected<T>()`
+- 替换了 9 个文件共 10 处的内联 `.filter(v => v.state !== 'MarkedForDelete')` 调用
 
 ---
 

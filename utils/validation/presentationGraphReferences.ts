@@ -8,15 +8,7 @@ import { PuzzleNode } from '../../types/puzzleNode';
 import { StageNode } from '../../types/stage';
 import { PresentationBinding } from '../../types/common';
 import { ReferenceNavigationContext, VariableReferenceInfo } from './globalVariableReferences';
-
-// 定义函数所需的最小项目数据结构
-interface ProjectLike {
-    nodes: Record<string, PuzzleNode>;
-    stateMachines?: Record<string, StateMachine>;
-    stageTree: {
-        stages: Record<string, StageNode>;
-    };
-}
+import { ProjectLike } from './types';
 
 /**
  * 检查演出绑定是否引用了指定的演出图

@@ -19,6 +19,7 @@ import { normalizeProjectForStore } from '../utils/projectNormalizer';
 import { createEmptyProject } from '../utils/projectFactory';
 import { ExportBundle, ProjectFile } from '../types/project';
 import { UiMessage } from '../store/types';
+import { usePushMessage } from './usePushMessage';
 import { isElectron, saveFileDialog, exportProject as electronExportProject, writeProject, readProject } from '@/src/electron/api';
 import { validateProject } from '../utils/validation/validator';
 
@@ -33,14 +34,8 @@ export function useProjectActions() {
     const { project, ui, runtime } = useEditorState();
     const dispatch = useEditorDispatch();
 
-    // ========== 消息推送工具 ==========
-    const pushMessage = useCallback((level: UiMessage['level'], text: string) => {
-        const id = `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-        dispatch({
-            type: 'ADD_MESSAGE',
-            payload: { id, level, text, timestamp: new Date().toISOString() }
-        });
-    }, [dispatch]);
+    // 消息推送（复用共享 Hook）
+    const pushMessage = usePushMessage();
 
     // ========== 保存项目 (.puzzle.json) ==========
     /**

@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { VariableDefinition } from '../../types/blackboard';
 import type { VariableType } from '../../types/common';
-import type { MessageLevel } from '../../store/types';
+import { usePushMessage } from '../../hooks/usePushMessage';
 import { useEditorDispatch, useEditorState } from '../../store/context';
 import { withScope } from '../../utils/variableScope';
 import { findNodeVariableReferences } from '../../utils/variableReferences';
@@ -10,6 +10,7 @@ import { generateResourceId } from '../../utils/resourceIdGenerator';
 import { ConfirmDialog } from './ConfirmDialog';
 import { LocalVariableCard } from './localVariable/LocalVariableCard';
 import type { VariableReferenceInfo, ReferenceNavigationContext } from '../../utils/validation/globalVariableReferences';
+import { navigateToReference } from '../../utils/referenceNavigation';
 
 export type LocalVariableOwner = 'node' | 'stage';
 
@@ -99,106 +100,9 @@ export const LocalVariableEditor: React.FC<LocalVariableEditorProps> = ({
      * 参考 BlackboardPanel 的 handleDoubleClickLocalVariable 模式：
      * 使用两次 dispatch，先导航再选中，确保视图切换后选中状态正确应用
      */
+    // 点击引用项导航（委托给公共工具函数）
     const handleReferenceClick = useCallback((navContext: ReferenceNavigationContext) => {
-        const { targetType, stageId, nodeId, stateId, transitionId, graphId, presentationNodeId } = navContext;
-
-        switch (targetType) {
-            case 'STAGE':
-                // 导航到 Stage 并选中
-                if (stageId) {
-                    dispatch({ type: 'NAVIGATE_TO', payload: { stageId, nodeId: null, graphId: null } });
-                    dispatch({ type: 'SELECT_OBJECT', payload: { type: 'STAGE', id: stageId } });
-                }
-                break;
-
-            case 'NODE':
-                if (nodeId) {
-                    const node = project.nodes[nodeId];
-                    if (node) {
-                        // 先导航到目标位置
-                        dispatch({
-                            type: 'NAVIGATE_TO',
-                            payload: {
-                                stageId: node.stageId,
-                                nodeId,
-                                graphId: null
-                            }
-                        });
-                        // 再选中目标对象
-                        dispatch({
-                            type: 'SELECT_OBJECT',
-                            payload: { type: 'NODE', id: nodeId, contextId: nodeId }
-                        });
-                    }
-                }
-                break;
-
-            case 'STATE':
-                if (nodeId && stateId) {
-                    const node = project.nodes[nodeId];
-                    if (node) {
-                        dispatch({
-                            type: 'NAVIGATE_TO',
-                            payload: {
-                                stageId: node.stageId,
-                                nodeId,
-                                graphId: null
-                            }
-                        });
-                        dispatch({
-                            type: 'SELECT_OBJECT',
-                            payload: { type: 'STATE', id: stateId, contextId: nodeId }
-                        });
-                    }
-                }
-                break;
-
-            case 'TRANSITION':
-                if (nodeId && transitionId) {
-                    const node = project.nodes[nodeId];
-                    if (node) {
-                        dispatch({
-                            type: 'NAVIGATE_TO',
-                            payload: {
-                                stageId: node.stageId,
-                                nodeId,
-                                graphId: null
-                            }
-                        });
-                        dispatch({
-                            type: 'SELECT_OBJECT',
-                            payload: { type: 'TRANSITION', id: transitionId, contextId: nodeId }
-                        });
-                    }
-                }
-                break;
-
-            case 'PRESENTATION_GRAPH':
-                if (graphId) {
-                    dispatch({
-                        type: 'NAVIGATE_TO',
-                        payload: { graphId }
-                    });
-                    dispatch({
-                        type: 'SELECT_OBJECT',
-                        payload: { type: 'PRESENTATION_GRAPH', id: graphId }
-                    });
-                }
-                break;
-
-            case 'PRESENTATION_NODE':
-                if (graphId && presentationNodeId) {
-                    dispatch({
-                        type: 'NAVIGATE_TO',
-                        payload: { graphId }
-                    });
-                    dispatch({
-                        type: 'SELECT_OBJECT',
-                        payload: { type: 'PRESENTATION_NODE', id: presentationNodeId, contextId: graphId }
-                    });
-                }
-                break;
-        }
+        navigateToReference(dispatch, project.nodes, navContext);
     }, [project.nodes, dispatch]);
 
     // 同步已存在的值，用于数值失焦时回退
@@ -212,12 +116,8 @@ export const LocalVariableEditor: React.FC<LocalVariableEditorProps> = ({
         });
     }, [vars]);
 
-    const pushMessage = (level: MessageLevel, text: string) => {
-        dispatch({
-            type: 'ADD_MESSAGE',
-            payload: { id: `msg-${Date.now()}`, level, text, timestamp: new Date().toISOString() }
-        });
-    };
+    // 消息推送（复用共享 Hook）
+    const pushMessage = usePushMessage();
 
     const hasNameConflict = (name: string, excludeId?: string) =>
         vars.some(v => v.id !== excludeId && v.name.trim().toLowerCase() === name.trim().toLowerCase());

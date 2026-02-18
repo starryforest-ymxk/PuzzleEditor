@@ -9,7 +9,6 @@ export { ConditionEditor } from './ConditionEditor';
 export { LeafConditionEditor } from './LeafConditionEditor';
 export { LogicModeButton } from './LogicModeButton';
 export { AddDropdown } from './AddDropdown';
-export { ConfirmDialog } from './ConfirmDialog';
 
 // 样式常量
 export { BLOCK_STYLES, getBlockStyle, COLORS } from './conditionStyles';

@@ -1,39 +1,63 @@
-# P4-T03 PuzzleNode Inspector ±à¼­Éè¼Æ
+# P4-T03 PuzzleNode Inspector ï¿½à¼­ï¿½ï¿½ï¿½
 
-## ÈÎÎñÄ¿±êÓëÔ¼Êø
-- ¿ª·Å PuzzleNode Inspector µÄ»ù´¡±à¼­ÄÜÁ¦£ºÖ§³ÖÉ¾³ý½Úµã£¨¶à½Úµã³¡¾°µ¯´°È·ÈÏ£©¡¢±à¼­ Name Óë Description¡£
-- ¸´ÓÃÒÑÓÐÉúÃüÖÜÆÚ½Å±¾°ó¶¨¡¢ÊÂ¼þ¼àÌý¡¢²ÎÊýÐÞ¸ÄÅäÖÃµÄ±à¼­ÄÜÁ¦£¬±£³Ö UI ÎÄ°¸ÎªÓ¢ÎÄ¡£
-- É¾³ý²Ù×÷¸´ÓÃÒÑÊµÏÖµÄÈ·ÈÏµ¯´°×é¼þ£¬×ñÑ­¡°¶à½ÚµãÊ±ÌáÊ¾£¬µ¥½Úµã¿ÉÖ±½ÓÉ¾³ý¡±¹æÔò¡£
-- ÖØÒª´úÂë±£ÁôÖÐÎÄ×¢ÊÍ£»×ñÑ­ÏÖÓÐ Inspector UI ÑùÊ½£¬¶ÁÐ´ÊÜ `readOnly` ¿ØÖÆ¡£
+## ï¿½ï¿½ï¿½ï¿½Ä¿ï¿½ï¿½ï¿½ï¿½Ô¼ï¿½ï¿½
+- ï¿½ï¿½ï¿½ï¿½ PuzzleNode Inspector ï¿½Ä»ï¿½ï¿½ï¿½ï¿½à¼­ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö§ï¿½ï¿½É¾ï¿½ï¿½ï¿½Úµã£¨ï¿½ï¿½Úµã³¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È·ï¿½Ï£ï¿½ï¿½ï¿½ï¿½à¼­ Name ï¿½ï¿½ Descriptionï¿½ï¿½
+- ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú½Å±ï¿½ï¿½ó¶¨¡ï¿½ï¿½Â¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Þ¸ï¿½ï¿½ï¿½ï¿½ÃµÄ±à¼­ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ UI ï¿½Ä°ï¿½ÎªÓ¢ï¿½Ä¡ï¿½
+- É¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Êµï¿½Öµï¿½È·ï¿½Ïµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ñ­ï¿½ï¿½ï¿½ï¿½Úµï¿½Ê±ï¿½ï¿½Ê¾ï¿½ï¿½ï¿½ï¿½ï¿½Úµï¿½ï¿½Ö±ï¿½ï¿½É¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+- ï¿½ï¿½Òªï¿½ï¿½ï¿½ë±£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×¢ï¿½Í£ï¿½ï¿½ï¿½Ñ­ï¿½ï¿½ï¿½ï¿½ Inspector UI ï¿½ï¿½Ê½ï¿½ï¿½ï¿½ï¿½Ð´ï¿½ï¿½ `readOnly` ï¿½ï¿½ï¿½Æ¡ï¿½
 
-## Ïà¹Ø UX Flow ÕªÒª
-- ²Î¿¼ UX_Flow 4.4£¨PuzzleNode Ñ¡ÖÐ Inspector£©£ºHeader Õ¹Ê¾ÀàÐÍ±êÇ©ÓëÃû³Æ£¬Basic Info Õ¹Ê¾ ID/Type/Description£»Lifecycle Script ÏÂÀ­Ñ¡Ôñ£»Event Listeners ÁÐ±í£»Local Variables ¹ÜÀí¡£
-- µ¥»÷½Úµã¿¨Æ¬ºó Inspector ¸üÐÂ£¬ËùÓÐÏÔÊ¾ÎÄ°¸Ê¹ÓÃÓ¢ÎÄ¡£
+## ï¿½ï¿½ï¿½ UX Flow ÕªÒª
+- ï¿½Î¿ï¿½ UX_Flow 4.4ï¿½ï¿½PuzzleNode Ñ¡ï¿½ï¿½ Inspectorï¿½ï¿½ï¿½ï¿½Header Õ¹Ê¾ï¿½ï¿½ï¿½Í±ï¿½Ç©ï¿½ï¿½ï¿½ï¿½ï¿½Æ£ï¿½Basic Info Õ¹Ê¾ ID/Type/Descriptionï¿½ï¿½Lifecycle Script ï¿½ï¿½ï¿½ï¿½Ñ¡ï¿½ï¿½Event Listeners ï¿½Ð±ï¿½ï¿½ï¿½Local Variables ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+- ï¿½ï¿½ï¿½ï¿½ï¿½Úµã¿¨Æ¬ï¿½ï¿½ Inspector ï¿½ï¿½ï¿½Â£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¾ï¿½Ä°ï¿½Ê¹ï¿½ï¿½Ó¢ï¿½Ä¡ï¿½
 
-## ¼¼ÊõÉè¼Æ
-- **Êý¾ÝÀ´Ô´Óë¶¯×÷**£º
-  - Ê¹ÓÃ `project.nodes[nodeId]` ×÷Îªµ¥ÌåÊý¾ÝÔ´£¬¸üÐÂÍ¨¹ý `UPDATE_NODE` action£¨`name`¡¢`description`¡¢`lifecycleScriptId`¡¢`eventListeners` µÈ£©¡£
-  - É¾³ý½ÚµãÅÉ·¢ `DELETE_PUZZLE_NODE`£¬Reducer ÒÑ¸ºÔðÇåÀí¹ØÁª FSM ÒÔ¼° UI Ñ¡ÔñÌ¬»ØÍË¡£
-- **¿É¼û±äÁ¿ÊÕ¼¯**£ºÑØÓÃ `collectVisibleVariables` ¼ÆËã Scope£¨Stage + Node£©£¬¹ýÂËµô `MarkedForDelete`¡£
-- **UI/½»»¥**£º
-  1) **Header + Delete**£ºÊ¹ÓÃÓë Stage Inspector ÏàÍ¬µÄ header ÑùÊ½¼° `Trash2` Í¼±ê°´Å¥£»`readOnly` Ê±Òþ²ØÉ¾³ý°´Å¥¡£
-     - Í³¼Æµ±Ç° Stage ÏÂµÄ PuzzleNode ÊýÁ¿£¨`getStageNodeIds`£©£¬ÊýÁ¿ > 1 Ê±µã»÷É¾³ýµ¯³ö ConfirmDialog£¬ÏÔÊ¾½ÚµãÃûÓë Stage ÃûÌáÊ¾£»ÊýÁ¿ = 1 Ê±Ö±½ÓÉ¾³ý¡£
-  2) **Basic Info**£º
-     - ID Ö»¶Á¡¢Type Ö»¶Á£»Name/Description Ê¹ÓÃ `search-input` ÑùÊ½ÊäÈë¿Ø¼þ£¬¿É±à¼­£¬`readOnly` Ê±½µ¼¶Îª´¿ÎÄ±¾¡£
-  3) **Lifecycle Script**£º±£Áô ResourceSelect£¬±£³Ö warn-on-marked-delete Âß¼­£¬¿ÉÇå¿Õ¡£
-  4) **Event Listeners**£ºÑØÓÃ `EventListenersEditor`£¬Ö¸Ïò `UPDATE_NODE` ½á¹û¡£
-  5) **Local Variables**£º¼ÌÐøÊ¹ÓÃ `LocalVariableEditor`£¬¶ÁÐ´ÄÜÁ¦ÓÉ `readOnly` ¿ØÖÆ¡£
-- **ÎÄ°¸Óë¿ÉÓÃÐÔ**£ºµ¯´°¡¢Õ¼Î»·ûµÈÈ«²¿Ê¹ÓÃÓ¢ÎÄ£»É¾³ýÈ·ÈÏÁÐ³ö stage ÄÚ½ÚµãÊýÁ¿ÌáÊ¾²»¿É³·Ïú¡£
+## ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+- **ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô´ï¿½ë¶¯ï¿½ï¿½**ï¿½ï¿½
+  - Ê¹ï¿½ï¿½ `project.nodes[nodeId]` ï¿½ï¿½Îªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¨ï¿½ï¿½ `UPDATE_NODE` actionï¿½ï¿½`name`ï¿½ï¿½`description`ï¿½ï¿½`lifecycleScriptId`ï¿½ï¿½`eventListeners` ï¿½È£ï¿½ï¿½ï¿½
+  - É¾ï¿½ï¿½ï¿½Úµï¿½ï¿½É·ï¿½ `DELETE_PUZZLE_NODE`ï¿½ï¿½Reducer ï¿½Ñ¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ FSM ï¿½Ô¼ï¿½ UI Ñ¡ï¿½ï¿½Ì¬ï¿½ï¿½ï¿½Ë¡ï¿½
+- **ï¿½É¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Õ¼ï¿½**ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ `collectVisibleVariables` ï¿½ï¿½ï¿½ï¿½ Scopeï¿½ï¿½Stage + Nodeï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ëµï¿½ `MarkedForDelete`ï¿½ï¿½
+- **UI/ï¿½ï¿½ï¿½ï¿½**ï¿½ï¿½
+  1) **Header + Delete**ï¿½ï¿½Ê¹ï¿½ï¿½ï¿½ï¿½ Stage Inspector ï¿½ï¿½Í¬ï¿½ï¿½ header ï¿½ï¿½Ê½ï¿½ï¿½ `Trash2` Í¼ï¿½ê°´Å¥ï¿½ï¿½`readOnly` Ê±ï¿½ï¿½ï¿½ï¿½É¾ï¿½ï¿½ï¿½ï¿½Å¥ï¿½ï¿½
+     - Í³ï¿½Æµï¿½Ç° Stage ï¿½Âµï¿½ PuzzleNode ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½`getStageNodeIds`ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ > 1 Ê±ï¿½ï¿½ï¿½É¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ConfirmDialogï¿½ï¿½ï¿½ï¿½Ê¾ï¿½Úµï¿½ï¿½ï¿½ï¿½ï¿½ Stage ï¿½ï¿½ï¿½ï¿½Ê¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ = 1 Ê±Ö±ï¿½ï¿½É¾ï¿½ï¿½ï¿½ï¿½
+  2) **Basic Info**ï¿½ï¿½
+     - ID Ö»ï¿½ï¿½ï¿½ï¿½Type Ö»ï¿½ï¿½ï¿½ï¿½Name/Description Ê¹ï¿½ï¿½ `search-input` ï¿½ï¿½Ê½ï¿½ï¿½ï¿½ï¿½Ø¼ï¿½ï¿½ï¿½ï¿½É±à¼­ï¿½ï¿½`readOnly` Ê±ï¿½ï¿½ï¿½ï¿½Îªï¿½ï¿½ï¿½Ä±ï¿½ï¿½ï¿½
+  3) **Lifecycle Script**ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ResourceSelectï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ warn-on-marked-delete ï¿½ß¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Õ¡ï¿½
+  4) **Event Listeners**ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ `EventListenersEditor`ï¿½ï¿½Ö¸ï¿½ï¿½ `UPDATE_NODE` ï¿½ï¿½ï¿½ï¿½ï¿½
+  5) **Local Variables**ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¹ï¿½ï¿½ `LocalVariableEditor`ï¿½ï¿½ï¿½ï¿½Ð´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ `readOnly` ï¿½ï¿½ï¿½Æ¡ï¿½
+- **ï¿½Ä°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½**ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Õ¼Î»ï¿½ï¿½ï¿½ï¿½È«ï¿½ï¿½Ê¹ï¿½ï¿½Ó¢ï¿½Ä£ï¿½É¾ï¿½ï¿½È·ï¿½ï¿½ï¿½Ð³ï¿½ stage ï¿½Ú½Úµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¾ï¿½ï¿½ï¿½É³ï¿½ï¿½ï¿½ï¿½ï¿½
 
-## ²âÊÔÓÃÀý£¨¼Æ»®£©
-1) ±à¼­ Name/Description£ºÊäÈëºóÇÐ»»Ñ¡ÖÐÔÙ·µ»Ø£¬ÎÄ±¾±£³Ö¸üÐÂ¡£
-2) É¾³ý½öÓÐµ¥¸ö½ÚµãµÄ Stage£ºµã»÷É¾³ýÖ±½ÓÒÆ³ý½Úµã²¢»ØÍËÑ¡Ôñµ½ËùÊô Stage¡£
-3) Stage ÏÂ´æÔÚ¶à¸ö½Úµã£ºµã»÷É¾³ýµ¯´°³öÏÖ£¬È·ÈÏºó½ÚµãÓë FSM ±»ÒÆ³ý£¬È¡Ïû²»»áÐÞ¸ÄÊý¾Ý¡£
-4) Lifecycle Script Ñ¡Ôñ/Çå¿Õ£ºÑ¡ÔñÒ»Ïîºó×´Ì¬¸üÐÂ£¬Çå¿Õ°´Å¥Õý³££»±ê¼ÇÉ¾³ýµÄ½Å±¾ÏÔÊ¾¾¯¸æ¡£
-5) readOnly Ä£Ê½£ºÊäÈë¿ò¡¢É¾³ý°´Å¥²»¿É²Ù×÷£¬Event/Variable ÇøÓò½ûÓÃ¡£
+## ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ»ï¿½ï¿½ï¿½
+1) ï¿½à¼­ Name/Descriptionï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð»ï¿½Ñ¡ï¿½ï¿½ï¿½Ù·ï¿½ï¿½Ø£ï¿½ï¿½Ä±ï¿½ï¿½ï¿½ï¿½Ö¸ï¿½ï¿½Â¡ï¿½
+2) É¾ï¿½ï¿½ï¿½ï¿½ï¿½Ðµï¿½ï¿½ï¿½ï¿½Úµï¿½ï¿½ Stageï¿½ï¿½ï¿½ï¿½ï¿½É¾ï¿½ï¿½Ö±ï¿½ï¿½ï¿½Æ³ï¿½ï¿½Úµã²¢ï¿½ï¿½ï¿½ï¿½Ñ¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Stageï¿½ï¿½
+3) Stage ï¿½Â´ï¿½ï¿½Ú¶ï¿½ï¿½ï¿½Úµã£ºï¿½ï¿½ï¿½É¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö£ï¿½È·ï¿½Ïºï¿½Úµï¿½ï¿½ï¿½ FSM ï¿½ï¿½ï¿½Æ³ï¿½ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Þ¸ï¿½ï¿½ï¿½ï¿½Ý¡ï¿½
+4) Lifecycle Script Ñ¡ï¿½ï¿½/ï¿½ï¿½Õ£ï¿½Ñ¡ï¿½ï¿½Ò»ï¿½ï¿½ï¿½×´Ì¬ï¿½ï¿½ï¿½Â£ï¿½ï¿½ï¿½Õ°ï¿½Å¥ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É¾ï¿½ï¿½ï¿½Ä½Å±ï¿½ï¿½ï¿½Ê¾ï¿½ï¿½ï¿½æ¡£
+5) readOnly Ä£Ê½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É¾ï¿½ï¿½ï¿½ï¿½Å¥ï¿½ï¿½ï¿½É²ï¿½ï¿½ï¿½ï¿½ï¿½Event/Variable ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã¡ï¿½
 
 ## ÊµÊ©×´Ì¬
-- ÒÑ°´·½°¸¸üÐÂ NodeInspector£º¿ª·Å Name/Description ±à¼­£¬Ìí¼ÓÉ¾³ý°´Å¥Óë¶à½ÚµãÈ·ÈÏµ¯´°£¬ÑØÓÃÉúÃüÖÜÆÚ½Å±¾/ÊÂ¼þ¼àÌý/¾Ö²¿±äÁ¿±à¼­ÄÜÁ¦²¢Í³Ò» Inspector ÑùÊ½¡£
-- ÒÆ³ý PuzzleNode Type ×Ö¶Î£ºÊý¾ÝÓë Inspector Basic Info ¾ù²»ÔÙÕ¹Ê¾/Ê¹ÓÃ¡£
-- Nodes Ãæ°åÓÒ¼üÉ¾³ýµ¯´°²¹³ä Reference Preview£¨Stage Ãû³Æ¡¢Í¬¼¶½Úµã¼ÆÊý£©£¬Óë Inspector É¾³ýÐÐÎª±£³ÖÒ»ÖÂ¡£
-- ²âÊÔ£º±¾µØÎ´ÔËÐÐä¯ÀÀÆ÷ÑéÖ¤£¬ÐèÔÚÊµ¼ÊÒ³ÃæÖÐÊÖ¶¯ÑéÖ¤¡°É¾³ýÈ·ÈÏ¡±¡°×Ö¶Î±à¼­¡±¡°readOnly¡±½ûÓÃµÈ³¡¾°¡£
+- ï¿½Ñ°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ NodeInspectorï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Name/Description ï¿½à¼­ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É¾ï¿½ï¿½ï¿½ï¿½Å¥ï¿½ï¿½ï¿½Úµï¿½È·ï¿½Ïµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú½Å±ï¿½/ï¿½Â¼ï¿½ï¿½ï¿½ï¿½ï¿½/ï¿½Ö²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½à¼­ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í³Ò» Inspector ï¿½ï¿½Ê½ï¿½ï¿½
+- ï¿½Æ³ï¿½ PuzzleNode Type ï¿½Ö¶Î£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Inspector Basic Info ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Õ¹Ê¾/Ê¹ï¿½Ã¡ï¿½
+- Nodes ï¿½ï¿½ï¿½ï¿½Ò¼ï¿½É¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Reference Previewï¿½ï¿½Stage ï¿½ï¿½ï¿½Æ¡ï¿½Í¬ï¿½ï¿½ï¿½Úµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Inspector É¾ï¿½ï¿½ï¿½ï¿½Îªï¿½ï¿½ï¿½ï¿½Ò»ï¿½Â¡ï¿½
+- ï¿½ï¿½ï¿½Ô£ï¿½ï¿½ï¿½ï¿½ï¿½Î´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¤ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Êµï¿½ï¿½Ò³ï¿½ï¿½ï¿½ï¿½ï¿½Ö¶ï¿½ï¿½ï¿½Ö¤ï¿½ï¿½É¾ï¿½ï¿½È·ï¿½Ï¡ï¿½ï¿½ï¿½ï¿½Ö¶Î±à¼­ï¿½ï¿½ï¿½ï¿½readOnlyï¿½ï¿½ï¿½ï¿½ï¿½ÃµÈ³ï¿½ï¿½ï¿½ï¿½ï¿½
+
+---
+
+## 2026-02-19 Node åˆ é™¤æµç¨‹ç»Ÿä¸€è¡¥å……
+
+### æœ¬æ¬¡ç›®æ ‡
+- å°† PuzzleNode åˆ é™¤å…¥å£ç»Ÿä¸€åˆ°åŒä¸€æ¡ä¸šåŠ¡æµç¨‹ï¼Œé¿å… Explorer / StageOverview / Inspector / å¿«æ·é”®å‡ºçŽ°ç¡®è®¤å¼¹çª—æ ·å¼æˆ–è¡Œä¸ºåˆ†å‰ã€‚
+
+### æŠ€æœ¯å®žçŽ°
+- Explorer å³é”®åˆ é™¤æ”¹ä¸ºè°ƒç”¨ `useDeleteHandler.deleteNode`ï¼Œç§»é™¤ç»„ä»¶å†…æœ¬åœ° `deleteConfirm` çŠ¶æ€ä¸Žæœ¬åœ° `ConfirmDialog`ã€‚
+- StageOverview å³é”®åˆ é™¤ä¸­ï¼Œ`NODE` åˆ†æ”¯æ”¹ä¸ºè°ƒç”¨ `useDeleteHandler.deleteNode`ï¼›ä¿ç•™ `STAGE` åˆ†æ”¯åŽŸæœ‰æœ¬åœ°ç¡®è®¤é€»è¾‘ã€‚
+- NodeInspector åˆ é™¤æŒ‰é’®æ”¹ä¸ºè°ƒç”¨ `useDeleteHandler.deleteNode`ï¼Œç§»é™¤ç»„ä»¶å†…æœ¬åœ° `deleteConfirm` ä¸Žæœ¬åœ° `ConfirmDialog`ã€‚
+- å¿«æ·é”®åˆ é™¤æœ¬æ¥å·²é€šè¿‡ `useDeleteHandler.deleteSelection -> deleteNode` è¿›å…¥ç»Ÿä¸€æµç¨‹ï¼Œæœ¬æ¬¡æ— éœ€æ”¹åŠ¨ã€‚
+
+### ç»Ÿä¸€åŽçš„è¡Œä¸º
+- å››ä¸ªå…¥å£ï¼ˆExplorer å³é”® / ä¸»é¢æ¿å³é”® / Inspector æŒ‰é’® / Delete å¿«æ·é”®ï¼‰å‡é€šè¿‡ `useDeleteHandler.deleteNode` è§¦å‘ `SET_CONFIRM_DIALOG`ã€‚
+- ç¡®è®¤å¼¹çª—ç»Ÿä¸€ç”± `GlobalConfirmDialog` æ¸²æŸ“å’Œæäº¤ `DELETE_PUZZLE_NODE`ã€‚
+- æœ€ç»ˆåˆ é™¤ä»ç”± `projectSlice` çš„ `DELETE_PUZZLE_NODE` åˆ†æ”¯ç»Ÿä¸€æ‰§è¡Œï¼ˆåŒæ—¶æ¸…ç†å…³è” FSM ä¸Ž UI é€‰ä¸­æ€ï¼‰ã€‚
+
+### éªŒè¯ç»“æžœ
+- å·²å¯¹ä»¥ä¸‹æ–‡ä»¶æ‰§è¡Œé™æ€é”™è¯¯æ£€æŸ¥ï¼Œå‡æ— æ–°å¢žé”™è¯¯ï¼š
+  - `components/Explorer/NodeExplorer.tsx`
+  - `components/Canvas/StageOverview.tsx`
+  - `components/Inspector/NodeInspector.tsx`

@@ -13,8 +13,10 @@ import { createNodeWithStateMachine, createTriggerNodeWithStateMachine, getMaxDi
 import { useEditorState, useEditorDispatch } from '../../store/context';
 import { PuzzleNode } from '../../types/puzzleNode';
 import { StageId } from '../../types/common';
-import { Folder, Box, FileCode, Plus, ChevronDown } from 'lucide-react';
+import { Folder, Box, FileCode, Plus, ChevronDown, ExternalLink, Trash2 } from 'lucide-react';
 import { createDefaultStage } from '../../utils/stageTreeUtils';
+import { useDeleteHandler } from '../../hooks/useDeleteHandler';
+import { navigateAndSelect } from '../../utils/referenceNavigation';
 
 interface StageOverviewProps {
     stageId: string;
@@ -102,6 +104,7 @@ const NodeCreationMenu: React.FC<NodeCreationMenuProps> = ({ onCreate }) => {
 export const StageOverview: React.FC<StageOverviewProps> = ({ stageId }) => {
     const { project, ui } = useEditorState();
     const dispatch = useEditorDispatch();
+    const { deleteNode, deleteStage } = useDeleteHandler();
 
     const stage = project.stageTree.stages[stageId];
     if (!stage) return <div className="empty-state">Stage not found</div>;
@@ -124,14 +127,6 @@ export const StageOverview: React.FC<StageOverviewProps> = ({ stageId }) => {
         y: number;
         type: 'STAGE' | 'NODE';
         id: string;
-    } | null>(null);
-
-    // 删除确认弹窗状态
-    const [deleteConfirm, setDeleteConfirm] = React.useState<{
-        type: 'STAGE' | 'NODE';
-        id: string;
-        name: string;
-        references: string[];
     } | null>(null);
 
     // 关闭菜单
@@ -170,14 +165,15 @@ export const StageOverview: React.FC<StageOverviewProps> = ({ stageId }) => {
 
     const handleNodeDoubleClick = (e: React.MouseEvent, nodeId: string) => {
         e.stopPropagation();
-        dispatch({ type: 'NAVIGATE_TO', payload: { nodeId } });
-        dispatch({ type: 'SELECT_OBJECT', payload: { type: 'NODE', id: nodeId } });
+        navigateAndSelect(dispatch, { nodeId }, { type: 'NODE', id: nodeId });
     };
 
     const handleStageDoubleClick = (e: React.MouseEvent, targetStageId: string) => {
         e.stopPropagation();
-        dispatch({ type: 'NAVIGATE_TO', payload: { stageId: targetStageId, nodeId: null } });
-        dispatch({ type: 'SELECT_OBJECT', payload: { type: 'STAGE', id: targetStageId } });
+        navigateAndSelect(dispatch,
+            { stageId: targetStageId, nodeId: null },
+            { type: 'STAGE', id: targetStageId }
+        );
     };
 
     // ========== 事件处理：创建 ==========
@@ -223,11 +219,15 @@ export const StageOverview: React.FC<StageOverviewProps> = ({ stageId }) => {
     const handleOpenItem = () => {
         if (!contextMenu) return;
         if (contextMenu.type === 'STAGE') {
-            dispatch({ type: 'NAVIGATE_TO', payload: { stageId: contextMenu.id, nodeId: null } });
-            dispatch({ type: 'SELECT_OBJECT', payload: { type: 'STAGE', id: contextMenu.id } });
+            navigateAndSelect(dispatch,
+                { stageId: contextMenu.id, nodeId: null },
+                { type: 'STAGE', id: contextMenu.id }
+            );
         } else {
-            dispatch({ type: 'NAVIGATE_TO', payload: { nodeId: contextMenu.id } });
-            dispatch({ type: 'SELECT_OBJECT', payload: { type: 'NODE', id: contextMenu.id } });
+            navigateAndSelect(dispatch,
+                { nodeId: contextMenu.id },
+                { type: 'NODE', id: contextMenu.id }
+            );
         }
         setContextMenu(null);
     };
@@ -236,39 +236,13 @@ export const StageOverview: React.FC<StageOverviewProps> = ({ stageId }) => {
         if (!contextMenu) return;
 
         if (contextMenu.type === 'STAGE') {
-            const s = project.stageTree.stages[contextMenu.id];
-            // 计算引用或子内容
-            const refs: string[] = [];
-            if (s.childrenIds.length > 0) refs.push(`${s.childrenIds.length} sub-stages`);
-            const nodesInStage = (Object.values(project.nodes) as PuzzleNode[]).filter(n => n.stageId === contextMenu.id);
-            if (nodesInStage.length > 0) refs.push(`${nodesInStage.length} nodes`);
-
-            setDeleteConfirm({
-                type: 'STAGE',
-                id: contextMenu.id,
-                name: s.name,
-                references: refs
-            });
+            // Stage 删除统一走全局删除流程与全局确认弹窗
+            deleteStage(contextMenu.id);
         } else {
-            const n = project.nodes[contextMenu.id];
-            setDeleteConfirm({
-                type: 'NODE',
-                id: contextMenu.id,
-                name: n.name,
-                references: ['Associated State Machine']
-            });
+            // Node 删除统一走全局删除流程与全局确认弹窗
+            deleteNode(contextMenu.id);
         }
         setContextMenu(null);
-    };
-
-    const handleConfirmDelete = () => {
-        if (!deleteConfirm) return;
-        if (deleteConfirm.type === 'STAGE') {
-            dispatch({ type: 'DELETE_STAGE', payload: { stageId: deleteConfirm.id as StageId } });
-        } else {
-            dispatch({ type: 'DELETE_PUZZLE_NODE', payload: { nodeId: deleteConfirm.id } });
-        }
-        setDeleteConfirm(null);
     };
 
     // ========== 渲染：卡片 ==========
@@ -466,87 +440,16 @@ export const StageOverview: React.FC<StageOverviewProps> = ({ stageId }) => {
                         minWidth: '120px'
                     }}
                     onClick={(e) => e.stopPropagation()}
+                    onMouseDown={(e) => e.stopPropagation()}
                 >
                     <div className="menu-item" onClick={handleOpenItem}>
+                        <ExternalLink size={14} style={{ marginRight: '8px' }} />
                         Open {contextMenu.type === 'STAGE' ? 'Stage' : 'Node'}
                     </div>
                     <div className="menu-divider" />
                     <div className="menu-item menu-item-danger" onClick={handleDeleteItem}>
+                        <Trash2 size={14} style={{ marginRight: '8px' }} />
                         Delete
-                    </div>
-                </div>
-            )}
-
-            {/* Delete Confirmation */}
-            {deleteConfirm && (
-                <div style={{
-                    position: 'fixed',
-                    top: 0, left: 0, right: 0, bottom: 0,
-                    background: 'rgba(0,0,0,0.6)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 2000
-                }}
-                    onClick={(e) => e.stopPropagation()}
-                >
-                    <div style={{
-                        background: 'var(--bg-panel)',
-                        border: '1px solid var(--border-color)',
-                        borderRadius: '8px',
-                        padding: '24px',
-                        width: '400px',
-                        maxWidth: '90%'
-                    }}>
-                        <h3 style={{ marginTop: 0, color: 'var(--text-primary)' }}>Delete {deleteConfirm.type === 'STAGE' ? 'Stage' : 'Node'}</h3>
-                        <p style={{ color: 'var(--text-secondary)' }}>
-                            Are you sure you want to delete "{deleteConfirm.name}"? This action cannot be undone.
-                        </p>
-                        {deleteConfirm.references.length > 0 && (
-                            <div style={{
-                                background: 'rgba(255,0,0,0.1)',
-                                padding: '12px',
-                                borderRadius: '4px',
-                                marginBottom: '16px',
-                                color: 'var(--text-secondary)',
-                                fontSize: '12px'
-                            }}>
-                                <strong>Contains:</strong>
-                                <ul style={{ margin: '8px 0 0 0', paddingLeft: '20px' }}>
-                                    {deleteConfirm.references.map((ref, i) => (
-                                        <li key={i}>{ref}</li>
-                                    ))}
-                                </ul>
-                            </div>
-                        )}
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '24px' }}>
-                            <button
-                                onClick={() => setDeleteConfirm(null)}
-                                style={{
-                                    padding: '6px 16px',
-                                    borderRadius: '4px',
-                                    border: '1px solid var(--border-color)',
-                                    background: 'transparent',
-                                    color: 'var(--text-primary)',
-                                    cursor: 'pointer'
-                                }}
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={handleConfirmDelete}
-                                style={{
-                                    padding: '6px 16px',
-                                    borderRadius: '4px',
-                                    border: 'none',
-                                    background: 'var(--error-color)',
-                                    color: 'white',
-                                    cursor: 'pointer'
-                                }}
-                            >
-                                Delete
-                            </button>
-                        </div>
                     </div>
                 </div>
             )}

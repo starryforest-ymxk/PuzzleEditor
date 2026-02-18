@@ -5,9 +5,9 @@
 
 import { PresentationGraph, PresentationNode } from '../../types/presentation';
 import { PresentationBinding } from '../../types/common';
-import { ConditionExpression } from '../../types/stateMachine';
 import { EditorState, ValidationResult } from '../../store/types';
 import { FsmValidationIssue } from './fsmValidation';
+import { checkConditionScriptReferences } from './conditionChecker';
 
 /** 
  * 演出节点校验结果 
@@ -55,7 +55,18 @@ export function checkPresentationNodeValidation(
 
     // 4. 检查 Condition 中的 Script Ref (对于 Branch 节点)
     if (node.condition) {
-        checkConditionScriptRefs(node.condition, editorState, issues);
+        checkConditionScriptReferences(
+            node.condition,
+            editorState.project.scripts?.scripts || {},
+            (scriptId, status) => {
+                issues.push({
+                    type: 'error',
+                    message: `Condition references ${status === 'Deleted' ? 'deleted' : 'missing'} script: ${scriptId}`,
+                    resourceType: 'script',
+                    resourceId: scriptId
+                });
+            }
+        );
     }
 
     return {
@@ -65,46 +76,7 @@ export function checkPresentationNodeValidation(
     };
 }
 
-/**
- * 递归检查条件表达式中的脚本引用
- */
-function checkConditionScriptRefs(
-    condition: ConditionExpression,
-    state: EditorState,
-    issues: FsmValidationIssue[]
-): void {
-    const project = state.project;
-
-    // 检查 ScriptRef
-    if (condition.type === 'ScriptRef' && condition.scriptId) {
-        const script = project.scripts?.scripts[condition.scriptId];
-        if (!script) {
-            issues.push({
-                type: 'error',
-                message: `Condition references missing script: ${condition.scriptId}`,
-                resourceType: 'script',
-                resourceId: condition.scriptId
-            });
-        } else if (script.state === 'MarkedForDelete') {
-            issues.push({
-                type: 'error',
-                message: `Condition references deleted script: ${condition.scriptId}`,
-                resourceType: 'script',
-                resourceId: condition.scriptId
-            });
-        }
-    }
-
-    // 递归检查子节点
-    if (condition.children) {
-        condition.children.forEach(child => checkConditionScriptRefs(child, state, issues));
-    }
-
-    // 递归检查操作数 (Not)
-    if (condition.operand) {
-        checkConditionScriptRefs(condition.operand, state, issues);
-    }
-}
+// checkConditionScriptRefs 已提取为公共函数 checkConditionScriptReferences（见 conditionChecker.ts）
 
 /**
  * 检查演出绑定中的资源引用 (复用逻辑简化版)

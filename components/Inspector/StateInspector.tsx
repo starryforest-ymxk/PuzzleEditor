@@ -1,17 +1,14 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useCallback } from 'react';
 import { useEditorState, useEditorDispatch } from '../../store/context';
-import { collectVisibleVariables } from '../../utils/variableScope';
 import { EventListener } from '../../types/common';
 import { EventListenersEditor } from './EventListenersEditor';
 import { ResourceSelect } from './ResourceSelect';
-import type { PuzzleNode } from '../../types/puzzleNode';
-import type { EventDefinition } from '../../types/blackboard';
-import type { ScriptDefinition } from '../../types/manifest';
+import { buildEventOptions, buildScriptOptions, buildScriptOptionsByCategory } from '../../utils/resourceOptions';
 import { InspectorWarning } from './InspectorInfo';
 import { AssetNameAutoFillButton } from './AssetNameAutoFillButton';
-import { isValidAssetName } from '../../utils/assetNameValidation';
-import { useAutoTranslateAssetName } from '../../hooks/useAutoTranslateAssetName';
 import { Trash2 } from 'lucide-react';
+import { useInspectorNameFields } from '../../hooks/useInspectorNameFields';
+import { useFsmVisibleVariables } from '../../hooks/useFsmVisibleVariables';
 
 interface Props {
     fsmId: string;
@@ -31,95 +28,45 @@ export const StateInspector = ({ fsmId, stateId, readOnly = false }: Props) => {
     const fsm = project.stateMachines[fsmId];
     const state = fsm ? fsm.states[stateId] : null;
 
-    if (!state) return <div className="empty-state">State not found</div>;
-
-    // 本地编辑状态（用于失焦校验）
-    const [localAssetName, setLocalAssetName] = React.useState('');
-    const [localName, setLocalName] = React.useState('');
-
-    // 同步本地状态
-    React.useEffect(() => {
-        setLocalAssetName(state.assetName || '');
-        setLocalName(state.name || '');
-    }, [state.assetName, state.name]);
-
-    // 自动翻译 Hook
-    const triggerAutoTranslate = useAutoTranslateAssetName({
-        currentAssetName: state.assetName,
-        onAssetNameFill: (value) => {
-            setLocalAssetName(value);
-            handleChange('assetName', value);
-        }
-    });
-
-    // Name 失焦处理
-    const handleNameBlur = async () => {
-        const trimmed = localName.trim();
-        if (trimmed !== state.name) {
-            handleChange('name', trimmed);
-        }
-        await triggerAutoTranslate(trimmed);
-    };
-
-    // AssetName 失焦校验
-    const handleAssetNameBlur = () => {
-        const trimmed = localAssetName.trim();
-        if (!isValidAssetName(trimmed)) {
-            // 校验失败，恢复原值
-            setLocalAssetName(state.assetName || '');
-            return;
-        }
-        if (trimmed !== (state.assetName || '')) {
-            handleChange('assetName', trimmed || undefined);
-        }
-    };
-
     // 更新状态属性
-    const handleChange = (field: string, value: any) => {
+    const handleChange = useCallback((field: string, value: any) => {
         dispatch({
             type: 'UPDATE_STATE',
             payload: {
                 fsmId,
-                stateId: state.id,
+                stateId,
                 data: { [field]: value }
             }
         });
-    };
+    }, [dispatch, fsmId, stateId]);
+
+    // 统一名称编辑 Hook（允许空名称）
+    const {
+        localName, setLocalName,
+        localAssetName, setLocalAssetName,
+        handleNameBlur, handleAssetNameBlur, triggerAutoTranslate
+    } = useInspectorNameFields({
+        entity: state,
+        onUpdate: (updates) => {
+            Object.entries(updates).forEach(([key, val]) => handleChange(key, val));
+        },
+        allowEmptyName: true,
+    });
+
+    // 查找所属节点并收集可见变量（Hook 必须在条件返回前调用）
+    const { visibleVars } = useFsmVisibleVariables(fsmId);
+
+    if (!state) return <div className="empty-state">State not found</div>;
 
     const isInitial = fsm.initialStateId === state.id;
 
-    // 获取所属节点和可见变量
-    const owningNode = useMemo(() => Object.values<PuzzleNode>(project.nodes).find(n => n.stateMachineId === fsmId) || null, [project.nodes, fsmId]);
-    const visibleVars = useMemo(() => {
-        const vars = collectVisibleVariables(stateTree, owningNode?.stageId, owningNode?.id);
-        return vars.all.filter(v => v.state !== 'MarkedForDelete');
-    }, [stateTree, owningNode]);
-
     // 事件和脚本选项
-    const eventOptions = useMemo(() => Object.values<EventDefinition>(project.blackboard.events).map(e => ({
-        id: e.id,
-        name: e.name,
-        state: e.state,
-        description: e.description
-    })), [project.blackboard.events]);
+    const eventOptions = useMemo(() => buildEventOptions(project.blackboard.events), [project.blackboard.events]);
 
     const scriptRecords = project.scripts.scripts;
-    const scriptOptions = useMemo(() => Object.values<ScriptDefinition>(scriptRecords).map(s => ({
-        id: s.id,
-        name: s.name,
-        state: s.state,
-        description: s.description
-    })), [scriptRecords]);
+    const scriptOptions = useMemo(() => buildScriptOptions(scriptRecords), [scriptRecords]);
 
-    const lifecycleScriptOptions = useMemo(() => Object.values<ScriptDefinition>(scriptRecords)
-        .filter(s => s.category === 'Lifecycle' && (!s.lifecycleType || s.lifecycleType === 'State'))
-        .map(s => ({
-            id: s.id,
-            name: s.name,
-            state: s.state,
-            category: s.category,
-            description: s.description
-        })), [scriptRecords]);
+    const lifecycleScriptOptions = useMemo(() => buildScriptOptionsByCategory(scriptRecords, 'Lifecycle', 'State'), [scriptRecords]);
 
     // 设置为初始状态
     const handleSetInitial = () => {

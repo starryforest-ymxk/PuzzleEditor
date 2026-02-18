@@ -11,6 +11,7 @@ import type { State, Transition, ConditionExpression, TriggerConfig } from '../.
 import type { ParameterModifier, EventListener, PresentationBinding, ValueSource, ResourceState } from '../../types/common';
 import type { VariableDefinition } from '../../types/blackboard';
 import type { EditorState } from '../../store/types';
+import { checkConditionScriptReferences } from './conditionChecker';
 
 // ========== 校验结果类型 ==========
 
@@ -158,6 +159,8 @@ function checkValueSource(
 
 /**
  * 检查条件表达式中的资源引用
+ * 脚本引用检查委托给公共函数 checkConditionScriptReferences，
+ * FSM 独有的 Comparison/ValueSource 检查在此处理。
  */
 function checkConditionExpression(
   condition: ConditionExpression | undefined,
@@ -167,33 +170,27 @@ function checkConditionExpression(
 ): void {
   if (!condition) return;
 
-  // 检查脚本引用
-  if (condition.type === 'ScriptRef' && condition.scriptId) {
-    const status = getScriptValidationStatus(state, condition.scriptId);
-    if (status === 'Deleted') {
+  // 公共逻辑：检查脚本引用（ScriptRef 节点）
+  checkConditionScriptReferences(
+    condition,
+    state.project.scripts?.scripts || {},
+    (scriptId, status) => {
       issues.push({
         type: 'error',
-        message: `Condition references deleted script: ${condition.scriptId}`,
+        message: `Condition references ${status === 'Deleted' ? 'deleted' : 'missing'} script: ${scriptId}`,
         resourceType: 'script',
-        resourceId: condition.scriptId
-      });
-    } else if (status === 'Missing') {
-      issues.push({
-        type: 'error',
-        message: `Condition references missing script: ${condition.scriptId}`,
-        resourceType: 'script',
-        resourceId: condition.scriptId
+        resourceId: scriptId
       });
     }
-  }
+  );
 
-  // 检查比较表达式的左右操作数 (ValueSource)
+  // FSM 独有：检查比较表达式的左右操作数 (ValueSource)
   if (condition.type === 'Comparison') {
     checkValueSource(condition.left, state, nodeId, issues);
     checkValueSource(condition.right, state, nodeId, issues);
   }
 
-  // 递归检查逻辑组合的子节点
+  // 递归检查逻辑组合的子节点（仍需递归以覆盖 Comparison 子树中的 ValueSource）
   if ((condition.type === 'And' || condition.type === 'Or') && condition.children) {
     condition.children.forEach(child => checkConditionExpression(child, state, nodeId, issues));
   }

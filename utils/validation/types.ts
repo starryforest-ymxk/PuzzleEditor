@@ -3,6 +3,26 @@
  * 统一校验类型定义 - 定义通用的校验结果、问题和校验器接口
  */
 
+import { StateMachine } from '../../types/stateMachine';
+import { PresentationGraph } from '../../types/presentation';
+import { PuzzleNode } from '../../types/puzzleNode';
+import { StageNode } from '../../types/stage';
+
+// ========== 项目数据最小接口 ==========
+
+/**
+ * 统一的项目数据最小接口，供引用追踪和校验函数使用
+ * 取所有使用场景的字段并集，可选字段保证向后兼容
+ */
+export interface ProjectLike {
+    nodes: Record<string, PuzzleNode>;
+    stateMachines?: Record<string, StateMachine>;
+    presentationGraphs?: Record<string, PresentationGraph>;
+    stageTree: {
+        stages: Record<string, StageNode>;
+    };
+}
+
 // ========== 校验严重级别 ==========
 
 /**

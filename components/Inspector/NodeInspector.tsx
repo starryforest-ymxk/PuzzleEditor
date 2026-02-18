@@ -4,22 +4,20 @@
  * 从 Inspector.tsx 拆分而来，负责展示和编辑 PuzzleNode 属性
  */
 
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { useEditorState, useEditorDispatch } from '../../store/context';
 import { LocalVariableEditor } from './LocalVariableEditor';
 import { EventListenersEditor } from './EventListenersEditor';
 import { ResourceSelect } from './ResourceSelect';
 import { collectVisibleVariables } from '../../utils/variableScope';
-import { getStageNodeIds } from '../../utils/stageTreeUtils';
-import type { ScriptDefinition } from '../../types/manifest';
-import type { EventDefinition } from '../../types/blackboard';
 import type { PuzzleNode } from '../../types/puzzleNode';
-import { ConfirmDialog } from './ConfirmDialog';
+import { buildEventOptions, buildScriptOptions, buildScriptOptionsByCategory } from '../../utils/resourceOptions';
 import { InspectorWarning } from './InspectorInfo';
 import { AssetNameAutoFillButton } from './AssetNameAutoFillButton';
-import { isValidAssetName } from '../../utils/assetNameValidation';
-import { useAutoTranslateAssetName } from '../../hooks/useAutoTranslateAssetName';
 import { Trash2 } from 'lucide-react';
+import { filterActiveResources } from '../../utils/resourceFilters';
+import { useDeleteHandler } from '../../hooks/useDeleteHandler';
+import { useInspectorNameFields } from '../../hooks/useInspectorNameFields';
 
 interface NodeInspectorProps {
     nodeId: string;
@@ -29,104 +27,47 @@ interface NodeInspectorProps {
 export const NodeInspector: React.FC<NodeInspectorProps> = ({ nodeId, readOnly = false }) => {
     const { project, ui } = useEditorState();
     const dispatch = useEditorDispatch();
-
-    // 删除确认弹窗状态
-    const [deleteConfirm, setDeleteConfirm] = useState<{ nodeName: string; stageName?: string; siblingCount: number } | null>(null);
-
-    // 本地编辑状态（用于失焦校验）
-    const [localAssetName, setLocalAssetName] = useState('');
-    const [localName, setLocalName] = useState('');
-
+    const { deleteNode } = useDeleteHandler();
 
     // 预先获取脚本、事件选项
     const scriptDefs = project.scripts.scripts || {};
-    const scriptOptions = Object.values<ScriptDefinition>(scriptDefs).map(s => ({ id: s.id, name: s.name, state: s.state, description: s.description }));
-    const lifecycleScriptOptions = Object.values<ScriptDefinition>(scriptDefs)
-        .filter(s => s.category === 'Lifecycle' && (!s.lifecycleType || s.lifecycleType === 'Node'))
-        .map(s => ({
-            id: s.id,
-            name: s.name,
-            state: s.state,
-            category: s.category,
-            description: s.description
-        }));
-    const eventOptions = Object.values<EventDefinition>(project.blackboard.events || {}).map(e => ({
-        id: e.id,
-        name: e.name,
-        state: e.state,
-        description: e.description
-    }));
+    const scriptOptions = buildScriptOptions(scriptDefs);
+    const lifecycleScriptOptions = buildScriptOptionsByCategory(scriptDefs, 'Lifecycle', 'Node');
+    const eventOptions = buildEventOptions(project.blackboard.events || {});
 
     const node = project.nodes[nodeId];
-    if (!node) return <div className="empty-state">Node not found</div>;
-
-    const stage = project.stageTree.stages[node.stageId];
-
-    // 统计当前 Stage 下的节点数量（用于删除确认逻辑）
-    const stageNodeIds = useMemo(() => getStageNodeIds(project.nodes, node.stageId), [project.nodes, node.stageId]);
-    const stageNodeCount = stageNodeIds.length;
 
     // 节点字段更新帮助函数
     const updateNode = useCallback((partial: Partial<PuzzleNode>) => {
         if (readOnly) return;
-        dispatch({ type: 'UPDATE_NODE', payload: { nodeId: node.id, data: partial } });
-    }, [dispatch, node.id, readOnly]);
+        dispatch({ type: 'UPDATE_NODE', payload: { nodeId, data: partial } });
+    }, [dispatch, nodeId, readOnly]);
 
-    // 同步本地状态
-    React.useEffect(() => {
-        setLocalAssetName(node.assetName || '');
-        setLocalName(node.name || '');
-    }, [node.assetName, node.name]);
-
-    // 自动翻译 Hook
-    const triggerAutoTranslate = useAutoTranslateAssetName({
-        currentAssetName: node.assetName,
-        onAssetNameFill: (value) => {
-            setLocalAssetName(value);
-            updateNode({ assetName: value });
-        }
+    // 统一名称编辑 Hook（允许空名称）
+    const {
+        localName, setLocalName,
+        localAssetName, setLocalAssetName,
+        handleNameBlur, handleAssetNameBlur, triggerAutoTranslate
+    } = useInspectorNameFields({
+        entity: node || null,
+        onUpdate: updateNode,
+        allowEmptyName: true,
     });
 
-    // Name 失焦处理：更新名称并触发自动翻译
-    const handleNameBlur = async () => {
-        const trimmed = localName.trim();
-        if (trimmed !== node.name) {
-            updateNode({ name: trimmed });
-        }
-        // 触发自动翻译
-        await triggerAutoTranslate(trimmed);
-    };
+    if (!node) return <div className="empty-state">Node not found</div>;
 
-    // AssetName 失焦校验
-    const handleAssetNameBlur = () => {
-        const trimmed = localAssetName.trim();
-        if (!isValidAssetName(trimmed)) {
-            // 校验失败，恢复原值
-            setLocalAssetName(node.assetName || '');
-            return;
-        }
-        if (trimmed !== (node.assetName || '')) {
-            updateNode({ assetName: trimmed || undefined });
-        }
-    };
-
-    // 请求删除节点；统一弹窗确认，避免首个节点被直接删除
+    // 请求删除节点：统一委托给全局删除逻辑和全局确认弹窗
     const handleRequestDelete = useCallback(() => {
         if (readOnly) return;
-        setDeleteConfirm({ nodeName: node.name, stageName: stage?.name, siblingCount: stageNodeCount - 1 });
-    }, [node.name, stage?.name, stageNodeCount, readOnly]);
-
-    const handleConfirmDelete = useCallback(() => {
-        dispatch({ type: 'DELETE_PUZZLE_NODE', payload: { nodeId: node.id } });
-        setDeleteConfirm(null);
-    }, [dispatch, node.id]);
+        deleteNode(node.id);
+    }, [readOnly, deleteNode, node.id]);
 
     // 计算当前可见变量
-    const visibleVars = collectVisibleVariables(
+    const visibleVars = filterActiveResources(collectVisibleVariables(
         { project, ui: { selection: ui.selection, multiSelectStateIds: [] }, history: { past: [], future: [] } } as any,
         node.stageId,
         node.id
-    ).all.filter(v => v.state !== 'MarkedForDelete');
+    ).all);
 
     return (
         <div>
@@ -266,18 +207,6 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({ nodeId, readOnly =
                     />
                 </div>
             </div>
-
-            {deleteConfirm && (
-                <ConfirmDialog
-                    title="Delete Puzzle Node"
-                    message={`Are you sure you want to delete "${deleteConfirm.nodeName}"? This will also remove its state machine. This action cannot be undone.`}
-                    // references removed as per request
-                    confirmText="Delete"
-                    cancelText="Cancel"
-                    onConfirm={handleConfirmDelete}
-                    onCancel={() => setDeleteConfirm(null)}
-                />
-            )}
         </div>
     );
 };

@@ -10,14 +10,13 @@
  * 注意：演出图没有 Draft/Implemented/MarkedForDelete 状态
  */
 
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useMemo, useCallback } from 'react';
 import { useEditorState, useEditorDispatch } from '../../store/context';
 import type { PresentationGraph } from '../../types/presentation';
-import type { MessageLevel } from '../../store/types';
-import { Trash2, ExternalLink, Layers } from 'lucide-react';
+import { Trash2, Layers } from 'lucide-react';
 import { findPresentationGraphReferences } from '../../utils/validation/presentationGraphReferences';
-import type { ReferenceNavigationContext } from '../../utils/validation/globalVariableReferences';
-import { ConfirmDialog } from './ConfirmDialog';
+import { ReferenceListSection } from './ReferenceListSection';
+import { useDeleteHandler } from '../../hooks/useDeleteHandler';
 
 // ========== Props 类型定义 ==========
 interface PresentationGraphInspectorProps {
@@ -35,24 +34,13 @@ export const PresentationGraphInspector: React.FC<PresentationGraphInspectorProp
 
     const nodeCount = Object.keys(graph.nodes || {}).length;
 
-    // ========== 确认对话框状态 ==========
-    const [confirmDialog, setConfirmDialog] = useState<{
-        title: string;
-        message: string;
-    } | null>(null);
+    // 统一删除逻辑 Hook
+    const { deletePresentationGraph } = useDeleteHandler();
 
     // ========== 引用计算 ==========
     const references = useMemo(() => {
         return findPresentationGraphReferences(project, graphId);
     }, [project, graphId]);
-
-    // ========== 消息推送 ==========
-    const pushMessage = (level: MessageLevel, text: string) => {
-        dispatch({
-            type: 'ADD_MESSAGE',
-            payload: { id: `msg-${Date.now()}`, level, text, timestamp: new Date().toISOString() }
-        });
-    };
 
     // ========== 更新演出图属性 ==========
     const handleUpdate = useCallback((updates: Partial<PresentationGraph>) => {
@@ -61,104 +49,19 @@ export const PresentationGraphInspector: React.FC<PresentationGraphInspectorProp
         }
     }, [readOnly, dispatch, graphId]);
 
-    // ========== 删除逻辑 ==========
-
-    /**
-     * 执行删除操作
-     */
-    const applyDelete = () => {
-        dispatch({ type: 'DELETE_PRESENTATION_GRAPH', payload: { graphId } });
-        pushMessage(
-            references.length > 0 ? 'warning' : 'info',
-            `Deleted presentation graph "${graph.name}".`
-        );
-        setConfirmDialog(null);
-    };
+    // ========== 删除逻辑（委托给 useDeleteHandler 统一处理） ==========
 
     /**
      * 删除按钮点击处理
-     * 如果有节点则弹窗确认
+     * 委托给 useDeleteHandler.deletePresentationGraph，统一处理引用检查和确认弹窗
      */
     const handleDelete = () => {
         if (readOnly) return;
-
-        // 有节点：弹窗确认
-        if (nodeCount > 0) {
-            setConfirmDialog({
-                title: 'Delete Presentation Graph',
-                message: `Graph "${graph.name}" contains ${nodeCount} node(s). Are you sure you want to delete it?`
-            });
-            return;
-        }
-
-        // 无节点：直接删除
-        applyDelete();
+        // 在编辑器中编辑当前图时不允许删除（与按钮 disabled 状态一致）
+        if (ui.view === 'EDITOR' && ui.currentGraphId === graphId) return;
+        deletePresentationGraph(graphId);
     };
 
-    /**
-     * 确认对话框确认按钮处理
-     */
-    const handleConfirmDelete = () => {
-        if (!confirmDialog) return;
-        applyDelete();
-    };
-
-    // ========== 点击引用项导航 ==========
-    const handleReferenceClick = useCallback((navContext?: ReferenceNavigationContext) => {
-        if (!navContext) return;
-
-        const { targetType, stageId, nodeId, stateId, transitionId, graphId: targetGraphId, presentationNodeId } = navContext;
-
-        switch (targetType) {
-            case 'STAGE':
-                // 导航到 Stage 并选中
-                if (stageId) {
-                    dispatch({
-                        type: 'NAVIGATE_TO',
-                        payload: { stageId, nodeId: null, graphId: null }
-                    });
-                    dispatch({
-                        type: 'SELECT_OBJECT',
-                        payload: { type: 'STAGE', id: stageId }
-                    });
-                }
-                break;
-
-            case 'STATE':
-                if (nodeId && stateId) {
-                    const node = project.nodes[nodeId];
-                    if (node) {
-                        dispatch({ type: 'NAVIGATE_TO', payload: { stageId: node.stageId, nodeId, graphId: null } });
-                        dispatch({ type: 'SELECT_OBJECT', payload: { type: 'STATE', id: stateId, contextId: nodeId } });
-                    }
-                }
-                break;
-
-            case 'TRANSITION':
-                if (nodeId && transitionId) {
-                    const node = project.nodes[nodeId];
-                    if (node) {
-                        dispatch({ type: 'NAVIGATE_TO', payload: { stageId: node.stageId, nodeId, graphId: null } });
-                        dispatch({ type: 'SELECT_OBJECT', payload: { type: 'TRANSITION', id: transitionId, contextId: nodeId } });
-                    }
-                }
-                break;
-
-            case 'PRESENTATION_NODE':
-                // 导航到演出图并选中演出节点
-                if (targetGraphId && presentationNodeId) {
-                    dispatch({
-                        type: 'NAVIGATE_TO',
-                        payload: { graphId: targetGraphId }
-                    });
-                    dispatch({
-                        type: 'SELECT_OBJECT',
-                        payload: { type: 'PRESENTATION_NODE', id: presentationNodeId, contextId: targetGraphId }
-                    });
-                }
-                break;
-        }
-    }, [project.nodes, dispatch]);
 
 
 
@@ -287,59 +190,9 @@ export const PresentationGraphInspector: React.FC<PresentationGraphInspectorProp
                 </div>
 
                 {/* References Section - 引用追踪区块 */}
-                <div className="inspector-section" style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-                    <div className="inspector-section-title">
-                        References ({references.length})
-                    </div>
-                    {references.length > 0 ? (
-                        <div style={{
-                            fontSize: '12px',
-                            color: 'var(--text-secondary)',
-                            flex: 1,
-                            overflowY: 'auto'
-                        }}>
-                            {references.map((ref, idx) => (
-                                <div
-                                    key={idx}
-                                    className={ref.navContext ? 'inspector-reference-item inspector-reference-item--clickable' : 'inspector-reference-item'}
-                                    style={{
-                                        padding: '4px 0',
-                                        borderBottom: idx < references.length - 1 ? '1px solid var(--border-secondary)' : 'none',
-                                        cursor: ref.navContext ? 'pointer' : 'default',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '4px'
-                                    }}
-                                    onClick={() => handleReferenceClick(ref.navContext)}
-                                    title={ref.navContext ? 'Click to navigate to this reference' : undefined}
-                                >
-                                    <span style={{ flex: 1 }}>{ref.location}</span>
-                                    {ref.navContext && (
-                                        <ExternalLink size={12} style={{ opacity: 0.6, flexShrink: 0 }} />
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                    ) : (
-                        <div className="inspector-reference-placeholder">
-                            <div className="inspector-reference-placeholder__desc">
-                                No references found in this project.
-                            </div>
-                        </div>
-                    )}
-                </div>
+                <ReferenceListSection references={references} />
             </div>
 
-            {/* Confirm Dialog - 确认对话框 */}
-            {confirmDialog && (
-                <ConfirmDialog
-                    title={confirmDialog.title}
-                    message={confirmDialog.message}
-                    confirmText="Delete"
-                    onCancel={() => setConfirmDialog(null)}
-                    onConfirm={handleConfirmDelete}
-                />
-            )}
         </>
     );
 };

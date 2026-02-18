@@ -9,6 +9,7 @@
 
 import React from 'react';
 import { ResourceState } from '../../types/common';
+import { filterActiveOrSelected } from '../../utils/resourceFilters';
 
 export interface ResourceOption {
   id: string;
@@ -52,7 +53,7 @@ export const ResourceSelect: React.FC<Props> = ({
 }) => {
   const selected = options.find(opt => opt.id === value);
   // 默认隐藏已标记删除的选项，若当前值已被标记则仅保留当前值以便提示
-  const visibleOptions = options.filter(opt => opt.state !== 'MarkedForDelete' || opt.id === value);
+  const visibleOptions = filterActiveOrSelected<ResourceOption>(options, value);
   const isSelectedDeleted = selected?.state === 'MarkedForDelete';
   const optionStyle: React.CSSProperties = { padding: '6px 8px', height: height, lineHeight: `${height * 0.6}px` };
 

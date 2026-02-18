@@ -361,3 +361,20 @@ export function buildExistingIds(
         transitionIds
     };
 }
+
+// ========== 查询工具函数 ==========
+
+/**
+ * 根据状态机 ID 查找所属的 PuzzleNode
+ * 遍历所有节点，查找 stateMachineId 匹配的节点
+ * 
+ * @param nodes - 节点集合
+ * @param fsmId - 状态机 ID
+ * @returns 匹配的 PuzzleNode，未找到返回 undefined
+ */
+export function findNodeByFsmId(
+    nodes: Record<string, PuzzleNode>,
+    fsmId: string
+): PuzzleNode | undefined {
+    return Object.values<PuzzleNode>(nodes).find(n => n.stateMachineId === fsmId);
+}

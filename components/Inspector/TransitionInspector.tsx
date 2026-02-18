@@ -2,17 +2,15 @@ import React, { useMemo } from 'react';
 import { useEditorState, useEditorDispatch } from '../../store/context';
 import { ConditionEditor } from './ConditionEditor';
 import { TriggerConfig } from '../../types/stateMachine';
-import { collectVisibleVariables } from '../../utils/variableScope';
 import { ParameterModifier } from '../../types/common';
 import { ResourceSelect, ResourceDetailsCard } from './ResourceSelect';
 import { ParameterModifierEditor } from './ParameterModifierEditor';
 import { PresentationBindingEditor } from './PresentationBindingEditor';
 import { TriggerEditor } from './TriggerEditor';
-import type { PuzzleNode } from '../../types/puzzleNode';
-import type { EventDefinition } from '../../types/blackboard';
-import type { ScriptDefinition } from '../../types/manifest';
-import type { PresentationGraph } from '../../types/presentation';
+import { buildEventOptions, buildScriptOptionsByCategory, buildGraphOptions } from '../../utils/resourceOptions';
 import { Trash2 } from 'lucide-react';
+import { filterActiveOrSelected } from '../../utils/resourceFilters';
+import { useFsmVisibleVariables } from '../../hooks/useFsmVisibleVariables';
 
 interface Props {
     fsmId: string;
@@ -38,49 +36,23 @@ export const TransitionInspector = ({ fsmId, transitionId, readOnly = false }: P
     const fsm = project.stateMachines[fsmId];
     const trans = fsm ? fsm.transitions[transitionId] : null;
 
-    // 查找所属 PuzzleNode
-    const owningNode = useMemo(() => {
-        return Object.values<PuzzleNode>(project.nodes).find(n => n.stateMachineId === fsmId) || null;
-    }, [project.nodes, fsmId]);
-
-    // 可见变量（过滤已标记删除的）
-    const visibleVars = useMemo(() => {
-        const vars = collectVisibleVariables(state, owningNode?.stageId, owningNode?.id);
-        return vars.all.filter(v => v.state !== 'MarkedForDelete');
-    }, [state, owningNode]);
+    // 查找所属节点并收集可见变量
+    const { visibleVars } = useFsmVisibleVariables(fsmId);
 
     // 事件和脚本选项
-    const eventOptions = useMemo(() => Object.values<EventDefinition>(project.blackboard.events).map(e => ({
-        id: e.id,
-        name: e.name,
-        state: e.state,
-        description: e.description
-    })), [project.blackboard.events]);
+    const eventOptions = useMemo(() => buildEventOptions(project.blackboard.events), [project.blackboard.events]);
 
     const scriptRecords = project.scripts.scripts;
 
-    const triggerScriptOptions = useMemo(() => Object.values<ScriptDefinition>(scriptRecords)
-        .filter(s => s.category === 'Trigger')
-        .map(s => ({
-            id: s.id,
-            name: s.name,
-            state: s.state,
-            category: s.category,
-            description: s.description
-        })), [scriptRecords]);
+    const triggerScriptOptions = useMemo(() => buildScriptOptionsByCategory(scriptRecords, 'Trigger'), [scriptRecords]);
 
-    const conditionScriptOptions = useMemo(() => Object.values<ScriptDefinition>(scriptRecords)
-        .filter(s => s.category === 'Condition')
-        .map(s => ({ id: s.id, name: s.name, state: s.state })), [scriptRecords]);
+    const conditionScriptOptions = useMemo(() => buildScriptOptionsByCategory(scriptRecords, 'Condition'), [scriptRecords]);
 
-    const performanceScriptOptions = useMemo(() => Object.values<ScriptDefinition>(scriptRecords)
-        .filter(s => s.category === 'Performance')
-        .map(s => ({ id: s.id, name: s.name, state: s.state, description: s.description })), [scriptRecords]);
+    const performanceScriptOptions = useMemo(() => buildScriptOptionsByCategory(scriptRecords, 'Performance'), [scriptRecords]);
 
     const scriptDefs = scriptRecords;
 
-    const graphOptions = useMemo(() => Object.values<PresentationGraph>(project.presentationGraphs)
-        .map(g => ({ id: g.id, name: g.name, state: 'Draft' as const, description: g.description })), [project.presentationGraphs]);
+    const graphOptions = useMemo(() => buildGraphOptions(project.presentationGraphs), [project.presentationGraphs]);
 
     if (!trans || !fsm) return <div className="empty-state">Transition not found</div>;
 
@@ -250,7 +222,7 @@ export const TransitionInspector = ({ fsmId, transitionId, readOnly = false }: P
                                         style={{ flex: 1 }}
                                     >
                                         <option value="" disabled hidden>Select event to invoke</option>
-                                        {eventOptions.filter(e => e.state !== 'MarkedForDelete' || e.id === eventId).map(opt => (
+                                        {filterActiveOrSelected<typeof eventOptions[number]>(eventOptions, eventId).map(opt => (
                                             <option key={opt.id} value={opt.id} style={{ color: opt.state === 'MarkedForDelete' ? '#f66' : '#eee' }}>
                                                 {opt.name}{opt.state === 'MarkedForDelete' ? ' [Marked for Delete]' : ''}
                                             </option>

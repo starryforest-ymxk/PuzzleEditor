@@ -7,10 +7,11 @@ import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react'
 import { useEditorState, useEditorDispatch } from '../../store/context';
 import { PuzzleNode } from '../../types/puzzleNode';
 import { FileCode, FilePlus, Edit3, Trash2 } from 'lucide-react';
-import { ConfirmDialog } from '../Inspector/ConfirmDialog';
 import { createNodeWithStateMachine, createTriggerNodeWithStateMachine, getMaxDisplayOrder, buildExistingIds } from '../../utils/puzzleNodeUtils';
+import { navigateAndSelect } from '../../utils/referenceNavigation';
 import { StageId, PuzzleNodeId } from '../../types/common';
 import { ChevronRight } from 'lucide-react';
+import { useDeleteHandler } from '../../hooks/useDeleteHandler';
 
 /** 上下文菜单状态 */
 interface ContextMenuState {
@@ -19,23 +20,15 @@ interface ContextMenuState {
     nodeId: string | null; // null 表示空白区域菜单
 }
 
-/** 删除确认弹窗状态 */
-interface DeleteConfirmState {
-    nodeId: string;
-    nodeName: string;
-    stageName?: string;
-    siblingCount?: number;
-}
-
 export const NodeExplorer: React.FC = () => {
     const { project, ui } = useEditorState();
     const dispatch = useEditorDispatch();
+    const { deleteNode } = useDeleteHandler();
 
     // 右键菜单、编辑、删除状态
     const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
     const [editingNodeId, setEditingNodeId] = useState<string | null>(null);
     const [editingName, setEditingName] = useState<string>('');
-    const [deleteConfirm, setDeleteConfirm] = useState<DeleteConfirmState | null>(null);
     const [dragNodeId, setDragNodeId] = useState<string | null>(null);
     const [dropTargetId, setDropTargetId] = useState<string | null>(null);
     const [dropPosition, setDropPosition] = useState<'before' | 'after' | null>(null);
@@ -82,8 +75,10 @@ export const NodeExplorer: React.FC = () => {
     // ========== 事件：选择 ==========
     const handleSelectNode = useCallback((e: React.MouseEvent, nodeId: string) => {
         e.stopPropagation();
-        dispatch({ type: 'NAVIGATE_TO', payload: { nodeId, graphId: null } });
-        dispatch({ type: 'SELECT_OBJECT', payload: { type: 'NODE', id: nodeId } });
+        navigateAndSelect(dispatch,
+            { nodeId, graphId: null },
+            { type: 'NODE', id: nodeId }
+        );
     }, [dispatch]);
 
     // ========== 事件：右键菜单 ==========
@@ -170,27 +165,10 @@ export const NodeExplorer: React.FC = () => {
             return;
         }
 
-        const stage = project.stageTree.stages[node.stageId];
-        const siblingCount = (Object.values(project.nodes) as PuzzleNode[]).filter(n => n.stageId === node.stageId && n.id !== node.id).length;
-
-        setDeleteConfirm({
-            nodeId: contextMenu.nodeId,
-            nodeName: node.name,
-            stageName: stage?.name,
-            siblingCount
-        });
+        // 统一委托给全局删除逻辑，复用同一确认弹窗流程
+        deleteNode(contextMenu.nodeId);
         setContextMenu(null);
-    }, [contextMenu, project.nodes, project.stageTree.stages]);
-
-    const handleConfirmDelete = useCallback(() => {
-        if (!deleteConfirm) return;
-        dispatch({ type: 'DELETE_PUZZLE_NODE', payload: { nodeId: deleteConfirm.nodeId } });
-        setDeleteConfirm(null);
-    }, [deleteConfirm, dispatch]);
-
-    const handleCancelDelete = useCallback(() => {
-        setDeleteConfirm(null);
-    }, []);
+    }, [contextMenu, project.nodes, deleteNode]);
 
     // ========== 事件：拖拽排序 ==========
     const handleDragStart = useCallback((e: React.DragEvent, nodeId: string) => {
@@ -386,20 +364,6 @@ export const NodeExplorer: React.FC = () => {
                 </div>
             )}
 
-            {deleteConfirm && (
-                <ConfirmDialog
-                    title="Delete Puzzle Node"
-                    message={`Are you sure you want to delete "${deleteConfirm.nodeName}"? This will also delete its State Machine. This action cannot be undone.`}
-                    references={[
-                        deleteConfirm.stageName ? `Stage: ${deleteConfirm.stageName}` : '',
-                        deleteConfirm.siblingCount && deleteConfirm.siblingCount > 0 ? `${deleteConfirm.siblingCount} other node(s) in this stage` : ''
-                    ].filter(Boolean)}
-                    confirmText="Delete"
-                    cancelText="Cancel"
-                    onConfirm={handleConfirmDelete}
-                    onCancel={handleCancelDelete}
-                />
-            )}
         </div>
     );
 };

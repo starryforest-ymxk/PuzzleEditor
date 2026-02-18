@@ -22,6 +22,7 @@ import type { PresentationGraph } from '../../types/presentation';
 import type { StateMachine } from '../../types/stateMachine';
 import type { StageNode } from '../../types/stage';
 import type { PuzzleNode } from '../../types/puzzleNode';
+import { findNodeByFsmId } from '../../utils/puzzleNodeUtils';
 import { Database, Code, Zap, Search, Layers, Plus } from 'lucide-react';
 import { generateVariableId, generateEventId, generateScriptId, generateGraphId } from '../../utils/resourceIdGenerator';
 import { findGlobalVariableReferences } from '../../utils/validation/globalVariableReferences';
@@ -30,6 +31,7 @@ import { findStageVariableReferences } from '../../utils/validation/stageVariabl
 import { findScriptReferences } from '../../utils/validation/scriptReferences';
 import { findEventReferences } from '../../utils/validation/eventReferences';
 import { findPresentationGraphReferences } from '../../utils/validation/presentationGraphReferences';
+import { navigateAndSelect } from '../../utils/referenceNavigation';
 
 // ========== 子组件导入 ===========
 import { SectionHeader } from './SectionHeader';
@@ -318,7 +320,7 @@ export const BlackboardPanel: React.FC = () => {
   const handleSelectFsm = (id: string) => dispatch({ type: 'SELECT_OBJECT', payload: { type: 'FSM', id } });
   const handleOpenFsm = (fsmId: string) => {
     // 查找拥有此 FSM 的节点并导航
-    const ownerNode = Object.values<PuzzleNode>(project.nodes).find(n => n.stateMachineId === fsmId);
+    const ownerNode = findNodeByFsmId(project.nodes, fsmId);
     if (ownerNode) {
       dispatch({ type: 'NAVIGATE_TO', payload: { nodeId: ownerNode.id, stageId: ownerNode.stageId, graphId: null } });
     }
@@ -332,16 +334,18 @@ export const BlackboardPanel: React.FC = () => {
   const handleDoubleClickLocalVariable = (localVar: LocalVarWithScope) => {
     if (localVar.scopeType === 'Stage') {
       // Stage 局部变量：导航到 Stage 并选中
-      dispatch({ type: 'NAVIGATE_TO', payload: { stageId: localVar.scopeId, nodeId: null, graphId: null } });
-      // 选中 Stage
-      dispatch({ type: 'SELECT_OBJECT', payload: { type: 'STAGE', id: localVar.scopeId } });
+      navigateAndSelect(dispatch,
+        { stageId: localVar.scopeId, nodeId: null, graphId: null },
+        { type: 'STAGE', id: localVar.scopeId }
+      );
     } else if (localVar.scopeType === 'Node') {
       // Node 局部变量：查找 Node 所在的 Stage，导航并选中 Node
       const ownerNode = project.nodes[localVar.scopeId];
       if (ownerNode) {
-        dispatch({ type: 'NAVIGATE_TO', payload: { stageId: ownerNode.stageId, nodeId: null, graphId: null } });
-        // 选中 Node
-        dispatch({ type: 'SELECT_OBJECT', payload: { type: 'NODE', id: localVar.scopeId } });
+        navigateAndSelect(dispatch,
+          { stageId: ownerNode.stageId, nodeId: null, graphId: null },
+          { type: 'NODE', id: localVar.scopeId }
+        );
       }
     }
   };

@@ -59,12 +59,12 @@ export async function translateWithOpenAI(
                 messages: [
                     {
                         role: 'system',
-                        content: `You are a translator that converts Chinese names to English variable names.
-Rules:
-1. Use PascalCase format (e.g., DoorLock, GameStart)
-2. Only use letters and underscores, no spaces
-3. Keep it concise but meaningful
-4. Return ONLY the variable name, nothing else`
+                        content: `You are a translator that converts Chinese names to English variable names. 
+                        Rules:
+                        1. Use PascalCase format (e.g., DoorLock, GameStart)
+                        2. Only use letters and underscores, no spaces
+                        3. Keep it concise but meaningful
+                        4. Return ONLY the variable name, nothing else, without any explanation or reasoning process.`
                     },
                     {
                         role: 'user',

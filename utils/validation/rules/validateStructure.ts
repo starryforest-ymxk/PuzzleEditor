@@ -5,6 +5,7 @@
 
 import { ValidationResult } from '../../../store/types';
 import { ProjectData } from '../../../types/project';
+import { findNodeByFsmId } from '../../puzzleNodeUtils';
 
 export const validateStructure = (project: ProjectData): ValidationResult[] => {
     const results: ValidationResult[] = [];
@@ -86,7 +87,7 @@ export const validateStructure = (project: ProjectData): ValidationResult[] => {
         if (stateCount > 0) {
             if (!fsm.initialStateId) {
                 // Find which node uses this FSM for better error context
-                const ownerNode = Object.values(project.nodes).find(n => n.stateMachineId === fsm.id);
+                const ownerNode = findNodeByFsmId(project.nodes, fsm.id);
                 const location = ownerNode ? `Node: ${ownerNode.name}` : `FSM: ${fsm.id}`;
 
                 results.push({
@@ -99,7 +100,7 @@ export const validateStructure = (project: ProjectData): ValidationResult[] => {
                     location: location
                 });
             } else if (!fsm.states[fsm.initialStateId]) {
-                const ownerNode = Object.values(project.nodes).find(n => n.stateMachineId === fsm.id);
+                const ownerNode = findNodeByFsmId(project.nodes, fsm.id);
                 const location = ownerNode ? `Node: ${ownerNode.name}` : `FSM: ${fsm.id}`;
 
                 results.push({
@@ -179,7 +180,7 @@ export const validateStructure = (project: ProjectData): ValidationResult[] => {
         // Check Unreachable States
         Object.values(fsm.states || {}).forEach(state => {
             if (state.id !== fsm.initialStateId && (inDegrees.get(state.id) || 0) === 0) {
-                const ownerNode = Object.values(project.nodes).find(n => n.stateMachineId === fsm.id);
+                const ownerNode = findNodeByFsmId(project.nodes, fsm.id);
                 const location = ownerNode ? `Node: ${ownerNode.name} > State: ${state.name}` : `FSM: ${fsm.id} > State: ${state.name}`;
                 results.push({
                     id: `warn-fsm-unreachable-${fsm.id}-${state.id}`,
@@ -196,7 +197,7 @@ export const validateStructure = (project: ProjectData): ValidationResult[] => {
         Object.values(fsm.transitions || {}).forEach(trans => {
             if (!trans.triggers || trans.triggers.length === 0) {
                 // Try to resolve context for better error message
-                const ownerNode = Object.values(project.nodes).find(n => n.stateMachineId === fsm.id);
+                const ownerNode = findNodeByFsmId(project.nodes, fsm.id);
                 const fromState = fsm.states[trans.fromStateId];
                 const fromStateName = fromState ? fromState.name : trans.fromStateId;
                 const location = ownerNode

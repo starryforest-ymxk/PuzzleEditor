@@ -9,16 +9,7 @@ import { EventListener, ParameterModifier, ValueSource, ParameterBinding, Presen
 import { PresentationGraph } from '../../types/presentation';
 import { PuzzleNode } from '../../types/puzzleNode';
 import { StageNode } from '../../types/stage';
-
-// 定义函数所需的最小项目数据结构（兼容 store.project 和 ProjectData）
-interface ProjectLike {
-  nodes: Record<string, PuzzleNode>;
-  stateMachines?: Record<string, StateMachine>;
-  presentationGraphs?: Record<string, PresentationGraph>;
-  stageTree: {
-    stages: Record<string, StageNode>;
-  };
-}
+import { ProjectLike } from './types';
 
 /**
  * 导航上下文类型，定义引用跳转时的目标

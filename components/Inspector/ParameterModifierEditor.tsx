@@ -3,6 +3,7 @@ import { ParameterModifier, VariableType } from '../../types/common';
 import { VariableDefinition } from '../../types/blackboard';
 import { ValueSourceEditor } from './ValueSourceEditor';
 import { VariableSelector } from './VariableSelector';
+import { filterActiveResources } from '../../utils/resourceFilters';
 
 interface Props {
   modifier: ParameterModifier;
@@ -15,7 +16,7 @@ interface Props {
  */
 export const ParameterModifierEditor: React.FC<Props> = ({ modifier, onChange, variables }) => {
   const availableVariables = useMemo(
-    () => variables.filter(v => v.state !== 'MarkedForDelete'),
+    () => filterActiveResources(variables),
     [variables]
   );
 

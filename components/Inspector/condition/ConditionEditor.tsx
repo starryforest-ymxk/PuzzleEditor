@@ -31,7 +31,7 @@ import {
 import { LeafConditionEditor } from './LeafConditionEditor';
 import { LogicModeButton } from './LogicModeButton';
 import { AddDropdown } from './AddDropdown';
-import { ConfirmDialog } from './ConfirmDialog';
+import { ConfirmDialog } from '../ConfirmDialog';
 import { BLOCK_STYLES, getBlockStyle, COLORS, buttonStyles } from './conditionStyles';
 
 // ==================== 类型定义 ====================

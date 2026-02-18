@@ -2,6 +2,7 @@ import React, { useMemo, useState, useRef, useEffect } from 'react';
 import { Search, X, ChevronDown, Check } from 'lucide-react';
 import { VariableDefinition } from '../../types/blackboard';
 import { VariableScope, VariableType } from '../../types/common';
+import { filterActiveResources } from '../../utils/resourceFilters';
 
 interface Props {
   value: string;
@@ -96,7 +97,7 @@ export const VariableSelector: React.FC<Props> = ({
   }, []);
 
   const selectableVars = useMemo(
-    () => variables.filter(v => v.state !== 'MarkedForDelete'),
+    () => filterActiveResources(variables),
     [variables]
   );
 

@@ -49,3 +49,23 @@
 ## 后续计划
 - P4-T03: PuzzleNode 实体级编辑
 - P4-T04: PresentationGraph 编辑器完善
+
+---
+
+## 2026-02-19 Stage 删除流程统一补充
+
+### 本次调整目标
+- 将 Stage 删除入口统一到 `useDeleteHandler.deleteStage`，复用同一套全局确认弹窗与删除前检查逻辑，避免 StageOverview 与 Explorer / Inspector 行为分叉。
+
+### 代码变更
+- `components/Canvas/StageOverview.tsx`
+	- 右键菜单 `Delete` 在 `STAGE` 分支改为调用 `deleteStage(contextMenu.id)`。
+	- 移除组件内本地 `deleteConfirm` 状态与自绘删除弹窗。
+	- 保留 `NODE` 分支使用统一的 `deleteNode` 逻辑（此前已完成）。
+
+### 统一后的行为
+- Stage 的删除入口（Explorer、Inspector、StageOverview、快捷键删除选中 Stage）均走：
+	- `useDeleteHandler.deleteStage` -> `SET_CONFIRM_DIALOG` -> `GlobalConfirmDialog` -> `DELETE_STAGE`。
+
+### 验证
+- 已对 `components/Canvas/StageOverview.tsx` 进行静态错误检查，无新增错误。

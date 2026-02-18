@@ -15,7 +15,7 @@ import { generateStateId, generateTransitionId } from '../../utils/resourceIdGen
 import { useCanvasNavigation } from '../../hooks/useCanvasNavigation';
 import { useGraphInteraction } from '../../hooks/useGraphInteraction';
 import { useCuttingLine } from '../../hooks/useCuttingLine';
-import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
+import { useGraphKeyboardShortcuts } from '../../hooks/useGraphKeyboardShortcuts';
 import { CanvasContextMenu, ContextMenuState } from './Elements/CanvasContextMenu';
 import { CanvasInfoOverlay, BoxSelectOverlay, SnapPointsLayer, CuttingLineOverlay, ShortcutPanel } from './Elements/CanvasOverlays';
 import { ConnectionArrowMarkers } from './Elements/TempConnectionLine';
@@ -195,15 +195,16 @@ export const StateMachineCanvas = ({ node, readOnly = false }: Props) => {
         readOnly
     });
 
-    // 4. 键盘快捷键
-    useKeyboardShortcuts({
-        fsmId: fsm?.id || '',
-        nodeId: node.id,
-        multiSelectIds,
+    // 4. 键盘快捷键（使用通用图编辑器快捷键 Hook）
+    useGraphKeyboardShortcuts({
+        contextId: node.id,
+        nodeSelectionType: 'STATE',
+        edgeSelectionType: 'TRANSITION',
+        multiSelectIds: multiSelectIds,
         selection: ui.selection,
         readOnly,
-        onDeleteState: (stateId) => dispatch({ type: 'DELETE_STATE', payload: { fsmId: fsm.id, stateId } }),
-        onDeleteTransition: (transId) => dispatch({ type: 'DELETE_TRANSITION', payload: { fsmId: fsm.id, transitionId: transId } }),
+        onDeleteNode: (stateId) => dispatch({ type: 'DELETE_STATE', payload: { fsmId: fsm.id, stateId } }),
+        onDeleteEdge: (transId) => dispatch({ type: 'DELETE_TRANSITION', payload: { fsmId: fsm.id, transitionId: transId } }),
         onClearMultiSelect: () => dispatch({ type: 'SET_MULTI_SELECT_STATES', payload: [] }),
         onSetLineCuttingMode: setIsLineCuttingMode,
         onSetLinkKeyActive: setIsLinkKeyActive

@@ -20,19 +20,14 @@ import type { StageId } from '../types/common';
 import type { VariableDefinition } from '../types/blackboard';
 import type { ScriptDefinition } from '../types/manifest';
 import type { EventDefinition } from '../types/blackboard';
-import type { MessageLevel } from '../store/types';
+import { usePushMessage } from './usePushMessage';
 
 export function useDeleteHandler() {
     const { project, ui } = useEditorState();
     const dispatch = useEditorDispatch();
 
-    // 辅助：推送消息
-    const pushMessage = useCallback((level: MessageLevel, text: string) => {
-        dispatch({
-            type: 'ADD_MESSAGE',
-            payload: { id: `msg-${Date.now()}`, level, text, timestamp: new Date().toISOString() }
-        });
-    }, [dispatch]);
+    // 消息推送（复用共享 Hook）
+    const pushMessage = usePushMessage();
 
     // ========== Stage 删除 ==========
     const deleteStage = useCallback((stageId: string) => {
@@ -210,8 +205,12 @@ export function useDeleteHandler() {
         }
 
         if (isImplemented) {
+            // Implemented + 无引用：软删除，标记为 MarkedForDelete
             dispatch({ type: 'SOFT_DELETE_EVENT', payload: { id: eventId } });
             pushMessage('warning', `Marked event "${event.name}" for delete.`);
+        } else {
+            // Draft + 无引用：直接物理删除
+            dispatch({ type: 'APPLY_DELETE_EVENT', payload: { id: eventId } });
             pushMessage('info', `Deleted event "${event.name}".`);
         }
     }, [project, dispatch, pushMessage]);
@@ -243,37 +242,43 @@ export function useDeleteHandler() {
         const graph = project.presentationGraphs[graphId];
         if (!graph) return;
 
-        // Presentation Graph 引用检查
+        // 演出图引用检查
         const refs = findPresentationGraphReferences(project, graphId);
+        const nodeCount = Object.keys(graph.nodes || {}).length;
 
         if (refs.length > 0) {
+            // 有外部引用：弹窗确认并展示引用列表
             const refStrings = refs.map(r => r.detail ? `${r.location} (${r.detail})` : r.location);
             dispatch({
                 type: 'SET_CONFIRM_DIALOG',
                 payload: {
                     isOpen: true,
                     title: 'Delete Presentation Graph',
-                    message: `This graph "${graph.name}" is referenced by ${refs.length} PlayGraph nodes. Delete anyway?`,
+                    message: `This graph "${graph.name}" is referenced by ${refs.length} PlayGraph node(s). Delete anyway?`,
                     confirmAction: { type: 'DELETE_PRESENTATION_GRAPH', payload: { graphId } },
                     danger: true,
                     references: refStrings
                 }
             });
-        } else {
-            // 没有引用也需要二次确认
+        } else if (nodeCount > 0) {
+            // 无外部引用但包含节点：弹窗确认
             dispatch({
                 type: 'SET_CONFIRM_DIALOG',
                 payload: {
                     isOpen: true,
                     title: 'Delete Presentation Graph',
-                    message: `Are you sure you want to delete presentation graph "${graph.name}"?`,
+                    message: `Graph "${graph.name}" contains ${nodeCount} node(s). Are you sure you want to delete it?`,
                     confirmAction: { type: 'DELETE_PRESENTATION_GRAPH', payload: { graphId } },
                     danger: true,
-                    references: undefined  // 显式清空，避免显示旧的引用列表
+                    references: undefined
                 }
             });
+        } else {
+            // 无引用且无节点：直接删除
+            dispatch({ type: 'DELETE_PRESENTATION_GRAPH', payload: { graphId } });
+            pushMessage('info', `Deleted presentation graph "${graph.name}".`);
         }
-    }, [project, dispatch]);
+    }, [project, dispatch, pushMessage]);
 
     // ========== 通用 Selection 删除 ==========
     const deleteSelection = useCallback(() => {
@@ -355,6 +360,33 @@ export function useDeleteHandler() {
         }
     }, [ui.selection, ui.multiSelectStateIds, ui.multiSelectPresentationNodeIds, deleteStage, deleteGlobalVariable, deleteScript, deleteEvent, deletePresentationGraph, dispatch, project.blackboard.globalVariables, project.nodes]);
 
+    // ========== 通用恢复操作 ==========
+    /**
+     * 将 MarkedForDelete 状态的资源恢复为 Implemented
+     * 适用于 Script / Event / GlobalVariable 三种资源类型
+     */
+    const restoreResource = useCallback((
+        resourceType: 'SCRIPT' | 'EVENT' | 'GLOBAL_VARIABLE',
+        resourceId: string,
+        resourceName: string
+    ) => {
+        const actionTypeMap: Record<string, string> = {
+            'SCRIPT': 'UPDATE_SCRIPT',
+            'EVENT': 'UPDATE_EVENT',
+            'GLOBAL_VARIABLE': 'UPDATE_GLOBAL_VARIABLE',
+        };
+        const labelMap: Record<string, string> = {
+            'SCRIPT': 'script',
+            'EVENT': 'event',
+            'GLOBAL_VARIABLE': 'global variable',
+        };
+        dispatch({
+            type: actionTypeMap[resourceType] as any,
+            payload: { id: resourceId, data: { state: 'Implemented' } }
+        });
+        pushMessage('info', `Restored ${labelMap[resourceType]} "${resourceName}" to Implemented state.`);
+    }, [dispatch, pushMessage]);
+
     return {
         deleteStage,
         deleteGlobalVariable,
@@ -362,6 +394,7 @@ export function useDeleteHandler() {
         deleteEvent,
         deletePresentationGraph,
         deleteNode,
-        deleteSelection
+        deleteSelection,
+        restoreResource
     };
 }

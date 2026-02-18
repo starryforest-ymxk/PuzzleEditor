@@ -25,6 +25,7 @@ import {
     ROW_GAP
 } from './conditionStyles';
 import { InspectorError } from '../InspectorInfo';
+import { filterActiveResources } from '../../../utils/resourceFilters';
 
 interface LeafConditionEditorProps {
     condition: ConditionExpression;
@@ -77,7 +78,7 @@ export const LeafConditionEditor: React.FC<LeafConditionEditorProps> = ({
 
     // 过滤可用变量（排除已标记删除的）
     const availableVars = useMemo(
-        () => variables.filter(v => v.state !== 'MarkedForDelete'),
+        () => filterActiveResources(variables),
         [variables]
     );
 

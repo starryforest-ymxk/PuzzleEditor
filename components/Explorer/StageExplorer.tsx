@@ -16,6 +16,7 @@ import { createDefaultStage } from '../../utils/stageTreeUtils';
 import { StageId } from '../../types/common';
 import { useStageDrag } from '../../hooks/useStageDrag';
 import { useDeleteHandler } from '../../hooks/useDeleteHandler';
+import { navigateAndSelect } from '../../utils/referenceNavigation';
 
 // ========== 类型定义 ==========
 
@@ -118,8 +119,10 @@ export const StageExplorer: React.FC = () => {
     /** 选择 Stage */
     const handleSelect = useCallback((e: React.MouseEvent, id: string) => {
         e.stopPropagation();
-        dispatch({ type: 'NAVIGATE_TO', payload: { stageId: id, nodeId: null, graphId: null } });
-        dispatch({ type: 'SELECT_OBJECT', payload: { type: 'STAGE', id } });
+        navigateAndSelect(dispatch,
+            { stageId: id, nodeId: null, graphId: null },
+            { type: 'STAGE', id }
+        );
     }, [dispatch]);
 
     /** 展开/折叠 Stage */
