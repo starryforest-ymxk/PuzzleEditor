@@ -15,6 +15,7 @@ import { useFileWatcher } from '../../hooks/useFileWatcher';
 import { ValidationPanel } from './ValidationPanel';
 import { Footer } from './Footer';
 import GlobalConfirmDialog from './GlobalConfirmDialog';
+import { useAutoSave } from '../../hooks/useAutoSave';
 
 // Constraints for panel sizes
 const MIN_SIDEBAR_WIDTH = 180;
@@ -30,6 +31,9 @@ export const MainLayout = () => {
 
   // Handle external file watcher (Sync resource states)
   useFileWatcher();
+
+  // 全局自动保存（由 Preferences 控制）
+  useAutoSave();
 
   const { ui } = useEditorState();
   const { panelSizes } = ui;

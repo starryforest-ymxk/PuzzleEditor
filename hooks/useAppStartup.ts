@@ -38,6 +38,17 @@ export const useAppStartup = () => {
                     console.log('Restored translation settings from preferences');
                 }
 
+                // Restore auto-save settings if available
+                if (prefs.autoSave) {
+                    dispatch({
+                        type: 'UPDATE_AUTO_SAVE_SETTINGS',
+                        payload: {
+                            enabled: !!prefs.autoSave.enabled,
+                            intervalMinutes: Math.max(1, Number(prefs.autoSave.intervalMinutes || 1))
+                        }
+                    });
+                }
+
                 // Restore message filters if available
                 if (prefs.messageFilters) {
                     dispatch({

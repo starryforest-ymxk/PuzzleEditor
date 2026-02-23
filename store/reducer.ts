@@ -178,6 +178,18 @@ const internalReducer = (state: EditorState, action: Action): EditorState => {
                 }
             };
 
+        case 'UPDATE_AUTO_SAVE_SETTINGS':
+            return {
+                ...state,
+                settings: {
+                    ...state.settings,
+                    autoSave: {
+                        ...state.settings.autoSave,
+                        ...action.payload
+                    }
+                }
+            };
+
         case 'UPDATE_MESSAGE_FILTERS':
             return {
                 ...state,

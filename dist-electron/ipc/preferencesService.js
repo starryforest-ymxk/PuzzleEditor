@@ -40,6 +40,11 @@ function getDefaultPreferences() {
         translation: {
             provider: 'local',
             openaiModel: 'gpt-4o-mini'
+        },
+        // 自动保存默认关闭，间隔 1 分钟
+        autoSave: {
+            enabled: false,
+            intervalMinutes: 1
         }
     };
 }
@@ -68,12 +73,31 @@ class PreferencesService {
         try {
             const content = await fs.promises.readFile(prefsPath, 'utf-8');
             const prefs = JSON.parse(content);
+            const defaults = getDefaultPreferences();
             // 合并默认值，确保新增字段有默认值
-            this.cachedPreferences = {
-                ...getDefaultPreferences(),
-                ...prefs,
+            const mergedPreferences = {
+                projectsDirectory: prefs.projectsDirectory || defaults.projectsDirectory,
+                exportDirectory: prefs.exportDirectory ?? defaults.exportDirectory,
+                restoreLastProject: prefs.restoreLastProject ?? defaults.restoreLastProject,
+                lastProjectPath: prefs.lastProjectPath ?? defaults.lastProjectPath,
+                recentProjects: Array.isArray(prefs.recentProjects) ? prefs.recentProjects : defaults.recentProjects,
+                translation: {
+                    provider: prefs.translation?.provider ?? defaults.translation?.provider ?? 'local',
+                    openaiApiKey: prefs.translation?.openaiApiKey ?? defaults.translation?.openaiApiKey,
+                    googleApiKey: prefs.translation?.googleApiKey ?? defaults.translation?.googleApiKey,
+                    openaiModel: prefs.translation?.openaiModel ?? defaults.translation?.openaiModel,
+                    openaiBaseUrl: prefs.translation?.openaiBaseUrl ?? defaults.translation?.openaiBaseUrl,
+                    googleBaseUrl: prefs.translation?.googleBaseUrl ?? defaults.translation?.googleBaseUrl,
+                    autoTranslate: prefs.translation?.autoTranslate ?? defaults.translation?.autoTranslate,
+                },
+                messageFilters: prefs.messageFilters ?? defaults.messageFilters,
+                autoSave: {
+                    enabled: prefs.autoSave?.enabled ?? defaults.autoSave?.enabled ?? false,
+                    intervalMinutes: prefs.autoSave?.intervalMinutes ?? defaults.autoSave?.intervalMinutes ?? 1,
+                }
             };
-            return this.cachedPreferences;
+            this.cachedPreferences = mergedPreferences;
+            return mergedPreferences;
         }
         catch (error) {
             // 文件不存在或读取失败，使用默认设置

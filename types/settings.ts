@@ -40,6 +40,16 @@ export interface MessageFilters {
 }
 
 /**
+ * 自动保存设置
+ */
+export interface AutoSaveSettings {
+    /** 是否开启自动保存 */
+    enabled: boolean;
+    /** 触发间隔（分钟） */
+    intervalMinutes: number;
+}
+
+/**
  * 编辑器设置（用户偏好）
  */
 export interface EditorSettings {
@@ -47,6 +57,8 @@ export interface EditorSettings {
     translation: TranslationSettings;
     /** 消息过滤器配置 */
     messageFilters: MessageFilters;
+    /** 自动保存配置 */
+    autoSave: AutoSaveSettings;
 }
 
 /**
@@ -61,5 +73,9 @@ export const DEFAULT_SETTINGS: EditorSettings = {
         info: true,
         warning: true,
         error: true
+    },
+    autoSave: {
+        enabled: false,
+        intervalMinutes: 1
     }
 };

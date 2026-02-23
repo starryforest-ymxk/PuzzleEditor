@@ -85,6 +85,7 @@ interface PreferencePanelProps {
 }
 
 export const PreferencePanel: React.FC<PreferencePanelProps> = ({ onClose }) => {
+    const inElectron = isElectron();
     const [preferences, setPreferences] = useState<UserPreferences | null>(null);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -100,11 +101,14 @@ export const PreferencePanel: React.FC<PreferencePanelProps> = ({ onClose }) => 
     const [openaiBaseUrl, setOpenaiBaseUrl] = useState(settings.translation.openaiBaseUrl || '');
     const [googleBaseUrl, setGoogleBaseUrl] = useState(settings.translation.googleBaseUrl || '');
     const [autoTranslate, setAutoTranslate] = useState(settings.translation.autoTranslate || false);
+    // 自动保存设置：默认 1 分钟
+    const [autoSaveEnabled, setAutoSaveEnabled] = useState(settings.autoSave.enabled);
+    const [autoSaveIntervalMinutes, setAutoSaveIntervalMinutes] = useState(Math.max(1, settings.autoSave.intervalMinutes || 1));
 
     // 加载偏好设置
     useEffect(() => {
         const loadPrefs = async () => {
-            if (!isElectron()) {
+            if (!inElectron) {
                 setError('Preferences are only available in Electron mode');
                 setLoading(false);
                 return;
@@ -124,6 +128,12 @@ export const PreferencePanel: React.FC<PreferencePanelProps> = ({ onClose }) => 
                     setGoogleBaseUrl(result.data.translation.googleBaseUrl || '');
                     setAutoTranslate(result.data.translation.autoTranslate || false);
                 }
+
+                // 从持久化偏好中同步自动保存设置
+                if (result.data.autoSave) {
+                    setAutoSaveEnabled(!!result.data.autoSave.enabled);
+                    setAutoSaveIntervalMinutes(Math.max(1, Number(result.data.autoSave.intervalMinutes || 1)));
+                }
             } else {
                 setError(result.error || 'Failed to load preferences');
             }
@@ -131,7 +141,7 @@ export const PreferencePanel: React.FC<PreferencePanelProps> = ({ onClose }) => 
         };
 
         loadPrefs();
-    }, []);
+    }, [inElectron]);
 
     // 保存偏好设置
     const handleSave = async () => {
@@ -149,8 +159,17 @@ export const PreferencePanel: React.FC<PreferencePanelProps> = ({ onClose }) => 
             }
         });
 
+        // 保存自动保存设置到 Store（用于全局定时器实时生效）
+        dispatch({
+            type: 'UPDATE_AUTO_SAVE_SETTINGS',
+            payload: {
+                enabled: autoSaveEnabled,
+                intervalMinutes: Math.max(1, Number(autoSaveIntervalMinutes || 1))
+            }
+        });
+
         // Electron 模式下保存文件设置
-        if (preferences) {
+        if (inElectron && preferences) {
             setSaving(true);
 
             // 构建完整的偏好设置对象，包含翻译设置
@@ -164,6 +183,10 @@ export const PreferencePanel: React.FC<PreferencePanelProps> = ({ onClose }) => 
                     openaiBaseUrl: openaiBaseUrl.trim() || undefined,
                     googleBaseUrl: googleBaseUrl.trim() || undefined,
                     autoTranslate: autoTranslate
+                },
+                autoSave: {
+                    enabled: autoSaveEnabled,
+                    intervalMinutes: Math.max(1, Number(autoSaveIntervalMinutes || 1))
                 }
             };
 
@@ -216,13 +239,18 @@ export const PreferencePanel: React.FC<PreferencePanelProps> = ({ onClose }) => 
         >
             <div style={{
                 width: '500px',
+                maxWidth: 'calc(100vw - 32px)',
+                maxHeight: '90vh',
                 background: dialogColors.background,
                 border: `1px solid ${dialogColors.border}`,
                 borderRadius: '6px',
                 boxShadow: '0 12px 32px rgba(0,0,0,0.45)',
                 padding: '20px',
                 color: dialogColors.text,
-                fontFamily: 'Inter, "IBM Plex Mono", monospace'
+                fontFamily: 'Inter, "IBM Plex Mono", monospace',
+                display: 'flex',
+                flexDirection: 'column',
+                boxSizing: 'border-box'
             }}>
                 {/* 标题 */}
                 <div style={{
@@ -239,16 +267,18 @@ export const PreferencePanel: React.FC<PreferencePanelProps> = ({ onClose }) => 
                     Preferences
                 </div>
 
-                {loading ? (
-                    <div style={{ textAlign: 'center', padding: '20px', color: dialogColors.muted }}>
-                        Loading preferences...
-                    </div>
-                ) : error && !preferences ? (
-                    <div style={{ textAlign: 'center', padding: '20px', color: '#ef4444' }}>
-                        {error}
-                    </div>
-                ) : preferences && (
-                    <>
+                {/* 内容区：窗口高度不足时启用纵向滚动，保证所有配置项可访问 */}
+                <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', paddingRight: '4px' }}>
+                    {loading ? (
+                        <div style={{ textAlign: 'center', padding: '20px', color: dialogColors.muted }}>
+                            Loading preferences...
+                        </div>
+                    ) : error && !preferences ? (
+                        <div style={{ textAlign: 'center', padding: '20px', color: '#ef4444' }}>
+                            {error}
+                        </div>
+                    ) : preferences && (
+                        <>
                         {/* Projects Directory Card */}
                         <div style={cardStyles.card}>
                             <div style={cardStyles.cardTitle}>Projects Directory</div>
@@ -312,6 +342,71 @@ export const PreferencePanel: React.FC<PreferencePanelProps> = ({ onClose }) => 
                                     transition: 'left 0.2s'
                                 }} />
                             </button>
+                        </div>
+
+                        {/* Auto Save Card */}
+                        <div style={cardStyles.card}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+                                <div>
+                                    <div style={cardStyles.cardTitle}>Auto Save</div>
+                                    <div style={{ ...cardStyles.cardDesc, marginBottom: 0 }}>
+                                        Automatically save current project changes at interval
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => setAutoSaveEnabled(!autoSaveEnabled)}
+                                    style={{
+                                        width: '44px',
+                                        height: '24px',
+                                        borderRadius: '12px',
+                                        border: 'none',
+                                        background: autoSaveEnabled ? dialogColors.success : dialogColors.borderSecondary,
+                                        cursor: 'pointer',
+                                        position: 'relative',
+                                        transition: 'background 0.2s',
+                                        flexShrink: 0
+                                    }}
+                                >
+                                    <div style={{
+                                        width: '18px',
+                                        height: '18px',
+                                        borderRadius: '50%',
+                                        background: '#fff',
+                                        position: 'absolute',
+                                        top: '3px',
+                                        left: autoSaveEnabled ? '23px' : '3px',
+                                        transition: 'left 0.2s'
+                                    }} />
+                                </button>
+                            </div>
+
+                            <div>
+                                <label style={cardStyles.label}>Interval (minutes)</label>
+                                <input
+                                    type="number"
+                                    min={1}
+                                    step={1}
+                                    value={autoSaveIntervalMinutes}
+                                    disabled={!autoSaveEnabled}
+                                    onChange={(e) => {
+                                        const next = Number(e.target.value);
+                                        if (!Number.isFinite(next)) {
+                                            setAutoSaveIntervalMinutes(1);
+                                            return;
+                                        }
+                                        setAutoSaveIntervalMinutes(Math.max(1, Math.floor(next)));
+                                    }}
+                                    style={{
+                                        ...cardStyles.input,
+                                        width: '100%',
+                                        opacity: autoSaveEnabled ? 1 : 0.6,
+                                        cursor: autoSaveEnabled ? 'text' : 'not-allowed'
+                                    }}
+                                />
+                                <div style={{ ...cardStyles.helpText, marginTop: '8px' }}>
+                                    Default interval is 1 minute.
+                                </div>
+                            </div>
                         </div>
 
                         {/* Translation Service Card */}
@@ -496,8 +591,9 @@ export const PreferencePanel: React.FC<PreferencePanelProps> = ({ onClose }) => 
                                 {saving ? 'Saving...' : 'Save Preferences'}
                             </button>
                         </div>
-                    </>
-                )}
+                        </>
+                    )}
+                </div>
             </div>
         </div >
     );

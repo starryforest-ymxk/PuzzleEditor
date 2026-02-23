@@ -6,6 +6,15 @@
 
 ## 1. 总体进度
 
+### 最近更新（2026-02-23）
+
+✅ **Preferences 自动保存功能（新增）**
+- 在 Preferences 面板新增 `Auto Save` 开关与 `Interval (minutes)` 输入（默认 1 分钟）
+- 新增全局自动保存调度 Hook（仅 Electron 生效，且仅在 `isDirty=true` 时触发）
+- 偏好设置持久化新增 `autoSave` 字段，并兼容旧版 `preferences.json` 的默认值合并
+- `Confirm Save` 流程统一改为调用 `saveProject`（不再误调用导出）
+
+
 ### 已完成阶段
 
 ✅ **Phase 1: 基础框架与数据浏览**（完成度: 100%）

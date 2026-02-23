@@ -4,6 +4,7 @@
  */
 
 import { EditorState, Action, Selection, BlackboardViewState, UiMessage } from '../types';
+import { normalizePanelSizes } from '../../utils/panelSizes';
 
 // ========== UI 相关 Actions 类型定义 ==========
 export type UiAction =
@@ -100,14 +101,15 @@ export const uiReducer = (state: EditorState, action: UiAction): EditorState => 
         }
 
         case 'SET_PANEL_SIZES': {
+            const merged = {
+                ...state.ui.panelSizes,
+                ...action.payload
+            };
             return {
                 ...state,
                 ui: {
                     ...state.ui,
-                    panelSizes: {
-                        ...state.ui.panelSizes,
-                        ...action.payload
-                    }
+                    panelSizes: normalizePanelSizes(merged)
                 }
             };
         }

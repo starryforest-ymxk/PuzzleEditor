@@ -33,6 +33,14 @@ export interface TranslationPreferences {
 }
 
 /**
+ * 自动保存偏好配置 (持久化存储)
+ */
+export interface AutoSavePreferences {
+    enabled: boolean;
+    intervalMinutes: number;
+}
+
+/**
  * 用户偏好设置
  * 存储于 %APPDATA%/StarryTree/PuzzleEditor/preferences.json
  */
@@ -61,6 +69,9 @@ export interface UserPreferences {
         warning: boolean;
         error: boolean;
     };
+
+    /** 自动保存配置 */
+    autoSave?: AutoSavePreferences;
 }
 
 // ============================================================================

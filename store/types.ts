@@ -16,7 +16,7 @@ import {
   StateId
 } from '../types/common';
 import { ProjectMeta } from '../types/project';
-import { EditorSettings, DEFAULT_SETTINGS, TranslationSettings } from '../types/settings';
+import { EditorSettings, DEFAULT_SETTINGS, TranslationSettings, AutoSaveSettings } from '../types/settings';
 
 // ========== Undo/Redo 快照数据 ==========
 export interface ProjectContent {
@@ -293,5 +293,6 @@ export type Action =
   | { type: 'SET_PREFERENCES_LOADED'; payload: boolean }
   // Settings Actions (Translation)
   | { type: 'UPDATE_TRANSLATION_SETTINGS'; payload: Partial<TranslationSettings> }
+  | { type: 'UPDATE_AUTO_SAVE_SETTINGS'; payload: Partial<AutoSaveSettings> }
   | { type: 'UPDATE_MESSAGE_FILTERS'; payload: Partial<import('../types/settings').MessageFilters> }
   | { type: 'SET_CONFIRM_DIALOG'; payload: { isOpen: boolean; title?: string; message?: string; confirmAction?: Action; danger?: boolean; references?: string[] } };

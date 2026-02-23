@@ -140,7 +140,7 @@ export const Header = () => {
     },
 
     onConfirmSave: () => {
-      exportProject();
+      saveProject();
       const nextAction = (dialog as any).nextAction;
       setDialog({ type: 'none' });
 
@@ -166,7 +166,7 @@ export const Header = () => {
     },
 
     onClose: () => setDialog({ type: 'none' })
-  }), [dispatch, pushMessage, exportProject, doLoadFile, dialog, saveProject]);
+  }), [dispatch, pushMessage, doLoadFile, dialog, saveProject]);
 
   return (
     <div className="app-header" style={{ position: 'relative', zIndex: 50 }}>

@@ -22,6 +22,7 @@ import { UiMessage } from '../store/types';
 import { usePushMessage } from './usePushMessage';
 import { isElectron, saveFileDialog, exportProject as electronExportProject, writeProject, readProject } from '@/src/electron/api';
 import { validateProject } from '../utils/validation/validator';
+import { normalizePanelSizes } from '../utils/panelSizes';
 
 // 编辑器版本号 - 集中管理
 export const EDITOR_VERSION = '1.0.0';
@@ -43,10 +44,14 @@ export function useProjectActions() {
      * - Electron 环境：直接写入文件系统
      * - 浏览器环境：触发下载
      */
-    const saveProject = useCallback(async () => {
+    const saveProject = useCallback(async (options?: { silent?: boolean }) => {
+        const silent = !!options?.silent;
+
         if (!project.isLoaded) {
-            pushMessage('warning', 'No project loaded to save');
-            return;
+            if (!silent) {
+                pushMessage('warning', 'No project loaded to save');
+            }
+            return false;
         }
 
         // 统一时间戳，确保 savedAt 和 updatedAt 一致
@@ -89,11 +94,14 @@ export function useProjectActions() {
                 // 同步更新 Redux 中的 updatedAt（不触发 isDirty）
                 dispatch({ type: 'SYNC_UPDATED_AT', payload: now });
                 dispatch({ type: 'MARK_CLEAN' });
-                pushMessage('info', `Project saved to ${runtime.currentProjectPath}`);
+                if (!silent) {
+                    pushMessage('info', `Project saved to ${runtime.currentProjectPath}`);
+                }
+                return true;
             } else {
                 pushMessage('error', `Failed to save project: ${result.error}`);
+                return false;
             }
-            return;
         }
 
         // 浏览器环境或新项目：触发下载
@@ -111,7 +119,10 @@ export function useProjectActions() {
         // 同步更新 Redux 中的 updatedAt（不触发 isDirty）
         dispatch({ type: 'SYNC_UPDATED_AT', payload: now });
         dispatch({ type: 'MARK_CLEAN' });
-        pushMessage('info', 'Project saved successfully');
+        if (!silent) {
+            pushMessage('info', 'Project saved successfully');
+        }
+        return true;
     }, [project, ui, runtime, dispatch, pushMessage]);
 
     // ========== 导出项目（精简运行时数据）==========
@@ -302,7 +313,7 @@ export function useProjectActions() {
                 },
                 editorState: {
                     // 默认编辑器状态
-                    panelSizes: { explorerWidth: 280, inspectorWidth: 300, stagesHeight: 200 },
+                    panelSizes: normalizePanelSizes({ explorerWidth: 280, inspectorWidth: 300, stagesHeight: 55 }),
                     stageExpanded: {},
                     currentStageId: newProject.stageTree.rootId || null,
                     currentNodeId: null,
@@ -395,7 +406,7 @@ export function useProjectActions() {
             // 如果是 ProjectFile 格式，恢复编辑器 UI 状态
             if (normalized.editorState) {
                 const es = normalized.editorState;
-                dispatch({ type: 'SET_PANEL_SIZES', payload: es.panelSizes });
+                dispatch({ type: 'SET_PANEL_SIZES', payload: normalizePanelSizes(es.panelSizes) });
                 // 恢复阶段树展开状态
                 Object.entries(es.stageExpanded).forEach(([id, expanded]) => {
                     dispatch({ type: 'SET_STAGE_EXPANDED', payload: { id, expanded } });
