@@ -51,8 +51,17 @@ function checkVariableId(
     if (scope === 'Global') {
         variable = project.blackboard.globalVariables[variableId];
     } else if (scope === 'StageLocal') {
-        if (context.stage && context.stage.localVariables) {
-            variable = context.stage.localVariables[variableId];
+        // 向上遍历祖先 Stage 链查找变量（与 collectVisibleVariables 保持一致）
+        if (context.stage) {
+            let currentStage = context.stage;
+            while (currentStage) {
+                if (currentStage.localVariables && currentStage.localVariables[variableId]) {
+                    variable = currentStage.localVariables[variableId];
+                    break;
+                }
+                // 沿父链向上查找
+                currentStage = currentStage.parentId ? project.stageTree.stages[currentStage.parentId] : undefined!;
+            }
         }
     } else if (scope === 'NodeLocal') {
         if (context.node && context.node.localVariables) {
