@@ -166,7 +166,7 @@ export const StageExplorer: React.FC = () => {
         dispatch({ type: 'SELECT_OBJECT', payload: { type: 'STAGE', id: newStage.id } });
         dispatch({ type: 'NAVIGATE_TO', payload: { stageId: newStage.id, nodeId: null, graphId: null } });
         setContextMenu(null);
-    }, [contextMenu, project.stageTree.rootId, dispatch]);
+    }, [contextMenu, project.stageTree.stages, project.stageTree.rootId, dispatch]);
 
     /** 创建同级 Stage */
     const handleCreateSiblingStage = useCallback(() => {

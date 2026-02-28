@@ -186,7 +186,7 @@ export const StageOverview: React.FC<StageOverviewProps> = ({ stageId }) => {
         dispatch({ type: 'ADD_STAGE', payload: { parentId: stageId as StageId, stage: newStage } });
         dispatch({ type: 'SET_STAGE_EXPANDED', payload: { id: stageId, expanded: true } });
         dispatch({ type: 'SELECT_OBJECT', payload: { type: 'STAGE', id: newStage.id } });
-    }, [stageId, dispatch]);
+    }, [stageId, project.stageTree.stages, dispatch]);
 
     /** 创建 PuzzleNode */
     const handleCreateNode = useCallback((e: React.MouseEvent | null, type: 'EMPTY' | 'TRIGGER' = 'EMPTY') => {

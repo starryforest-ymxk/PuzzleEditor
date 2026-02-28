@@ -137,6 +137,9 @@ export const projectReducer = (state: EditorState, action: ProjectAction): Edito
             const parent = state.project.stageTree.stages[parentId];
             if (!parent) return state;
 
+            // 防重复：快速连续点击时闭包快照可能生成相同 ID，若已存在则跳过
+            if (state.project.stageTree.stages[stage.id]) return state;
+
             // 计算插入位置
             let newChildrenIds = [...parent.childrenIds];
             if (afterStageId) {
