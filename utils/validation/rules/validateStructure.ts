@@ -234,7 +234,18 @@ export const validateStructure = (project: ProjectData): ValidationResult[] => {
         const ownerNode = findNodeByFsmId(project.nodes, fsm.id);
         const fsmLocation = ownerNode ? `Node: ${ownerNode.name}` : `FSM: ${fsm.id}`;
 
-        // #19: FSM has no states（跳过空 FSM，仅当有状态时继续后续校验）
+        // #19: FSM has no states
+        if (stateCount === 0) {
+            results.push({
+                id: `err-fsm-no-states-${fsm.id}`,
+                level: 'error',
+                message: `State Machine has no states.`,
+                objectType: 'NODE',
+                objectId: ownerNode?.id || fsm.id,
+                contextId: fsm.id,
+                location: fsmLocation
+            });
+        }
 
         if (stateCount > 0) {
             // #20: FSM 缺少 initialStateId
