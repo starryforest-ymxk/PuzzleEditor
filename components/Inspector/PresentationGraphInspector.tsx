@@ -30,9 +30,8 @@ export const PresentationGraphInspector: React.FC<PresentationGraphInspectorProp
     const dispatch = useEditorDispatch();
 
     const graph = project.presentationGraphs[graphId];
-    if (!graph) return <div className="empty-state">Presentation Graph not found</div>;
 
-    const nodeCount = Object.keys(graph.nodes || {}).length;
+    const nodeCount = Object.keys(graph?.nodes || {}).length;
 
     // 统一删除逻辑 Hook
     const { deletePresentationGraph } = useDeleteHandler();
@@ -48,6 +47,9 @@ export const PresentationGraphInspector: React.FC<PresentationGraphInspectorProp
             dispatch({ type: 'UPDATE_PRESENTATION_GRAPH', payload: { graphId, data: updates } });
         }
     }, [readOnly, dispatch, graphId]);
+
+    // 所有 hooks 执行完毕后才能条件 return（React hooks 规则）
+    if (!graph) return <div className="empty-state">Presentation Graph not found</div>;
 
     // ========== 删除逻辑（委托给 useDeleteHandler 统一处理） ==========
 

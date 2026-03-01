@@ -54,20 +54,25 @@ export const NodeInspector: React.FC<NodeInspectorProps> = ({ nodeId, readOnly =
         allowEmptyName: true,
     });
 
-    if (!node) return <div className="empty-state">Node not found</div>;
-
     // 请求删除节点：统一委托给全局删除逻辑和全局确认弹窗
     const handleRequestDelete = useCallback(() => {
         if (readOnly) return;
-        deleteNode(node.id);
-    }, [readOnly, deleteNode, node.id]);
+        if (node) deleteNode(node.id);
+    }, [readOnly, deleteNode, node]);
 
     // 计算当前可见变量
-    const visibleVars = filterActiveResources(collectVisibleVariables(
-        { project, ui: { selection: ui.selection, multiSelectStateIds: [] }, history: { past: [], future: [] } } as any,
-        node.stageId,
-        node.id
-    ).all);
+    const visibleVars = useMemo(() => {
+        if (!node) return [];
+        return filterActiveResources(collectVisibleVariables(
+            { project, ui: { selection: ui.selection, multiSelectStateIds: [] }, history: { past: [], future: [] } } as any,
+            node.stageId,
+            node.id
+        ).all);
+    }, [node, project, ui.selection]);
+
+    // 所有 hooks 执行完毕后才能条件 return（React hooks 规则）
+    if (!node) return <div className="empty-state">Node not found</div>;
+
 
     return (
         <div>

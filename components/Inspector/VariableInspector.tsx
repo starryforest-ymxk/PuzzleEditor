@@ -127,19 +127,16 @@ export const VariableInspector: React.FC<VariableInspectorProps> = ({ variableId
         }
     }
 
-    // 变量未找到的空状态
-    if (!variable) {
-        return <div className="empty-state">Variable not found</div>;
-    }
+    // 注意：不在此处提前 return，因为后续还有 hooks 需要执行（React hooks 规则）
 
     const isGlobal = variableScope === 'Global';
-    const isMarkedForDelete = variable.state === 'MarkedForDelete';
+    const isMarkedForDelete = variable?.state === 'MarkedForDelete';
     // 全局变量可编辑，但 MarkedForDelete 状态下不可编辑
-    const canEdit = isGlobal && !readOnly && !isMarkedForDelete;
+    const canEdit = isGlobal && !readOnly && !isMarkedForDelete && !!variable;
 
     // ========== 本地编辑状态 ==========
-    const [localValue, setLocalValue] = useState<any>(variable.value);
-    const [localDescription, setLocalDescription] = useState(variable.description || '');
+    const [localValue, setLocalValue] = useState<any>(variable?.value);
+    const [localDescription, setLocalDescription] = useState(variable?.description || '');
 
     // 更新变量属性（直接派发）
     const handleUpdate = useCallback((updates: Partial<VariableDefinition>) => {
@@ -154,7 +151,7 @@ export const VariableInspector: React.FC<VariableInspectorProps> = ({ variableId
         localAssetName, setLocalAssetName,
         handleNameBlur, handleAssetNameBlur, triggerAutoTranslate
     } = useInspectorNameFields({
-        entity: variable,
+        entity: variable || null,
         onUpdate: handleUpdate,
         allowEmptyName: false,
     });
@@ -180,9 +177,9 @@ export const VariableInspector: React.FC<VariableInspectorProps> = ({ variableId
 
     // 当 variable 变化时同步 localValue 和 localDescription
     useEffect(() => {
-        setLocalValue(variable.value);
-        setLocalDescription(variable.description || '');
-    }, [variable.value, variable.description]);
+        setLocalValue(variable?.value);
+        setLocalDescription(variable?.description || '');
+    }, [variable?.value, variable?.description]);
 
     // ========== 删除逻辑（与 LocalVariableEditor 同步） ==========
 
@@ -194,6 +191,11 @@ export const VariableInspector: React.FC<VariableInspectorProps> = ({ variableId
      */
     // ========== 删除逻辑 (使用 unified hook) ==========
     const { deleteGlobalVariable, restoreResource } = useDeleteHandler();
+
+    // 变量未找到的空状态（所有 hooks 执行完毕后才能 return）
+    if (!variable) {
+        return <div className="empty-state">Variable not found</div>;
+    }
 
     /**
      * 删除按钮点击处理

@@ -81,6 +81,9 @@ export const ScriptInspector: React.FC<ScriptInspectorProps> = ({ scriptId, read
         allowEmptyName: false,
     });
 
+    // ========== 删除逻辑 (使用 unified hook，必须在条件 return 之前) ==========
+    const { deleteScript, restoreResource } = useDeleteHandler();
+
     // ========== 引用计算 ==========
     const references = useMemo(() => {
         return findScriptReferences(project, scriptId);
@@ -102,9 +105,6 @@ export const ScriptInspector: React.FC<ScriptInspectorProps> = ({ scriptId, read
     if (!script) return <div className="empty-state">Script not found</div>;
 
     // ========== 删除逻辑（与 VariableInspector 一致） ==========
-
-    // ========== 删除逻辑 (使用 unified hook) ==========
-    const { deleteScript, restoreResource } = useDeleteHandler();
 
     /**
      * 删除按钮点击处理

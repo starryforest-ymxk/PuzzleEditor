@@ -61,7 +61,7 @@ export const PresentationNodeInspector = ({ graphId, nodeId, readOnly = false }:
         return { stageId, nodeId: nodeIdCtx };
     }, [project, graphId]);
 
-    if (!node) return <div className="empty-state">Node not found</div>;
+    // 注意：不在此处提前 return，因为后续还有 hooks 需要执行（React hooks 规则）
 
     const handleChange = (field: string, value: any) => {
         dispatch({
@@ -108,6 +108,9 @@ export const PresentationNodeInspector = ({ graphId, nodeId, readOnly = false }:
         );
         return filterActiveResources(vars.all);
     }, [project, resolvedScope]);
+
+    // 所有 hooks 执行完毕后才能条件 return（React hooks 规则）
+    if (!node) return <div className="empty-state">Node not found</div>;
 
     // 删除节点
     const handleDelete = () => {

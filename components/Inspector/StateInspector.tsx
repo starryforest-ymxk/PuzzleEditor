@@ -56,9 +56,9 @@ export const StateInspector = ({ fsmId, stateId, readOnly = false }: Props) => {
     // 查找所属节点并收集可见变量（Hook 必须在条件返回前调用）
     const { visibleVars } = useFsmVisibleVariables(fsmId);
 
-    if (!state) return <div className="empty-state">State not found</div>;
 
-    const isInitial = fsm.initialStateId === state.id;
+
+    const isInitial = fsm?.initialStateId === state?.id;
 
     // 事件和脚本选项
     const eventOptions = useMemo(() => buildEventOptions(project.blackboard.events), [project.blackboard.events]);
@@ -67,6 +67,9 @@ export const StateInspector = ({ fsmId, stateId, readOnly = false }: Props) => {
     const scriptOptions = useMemo(() => buildScriptOptions(scriptRecords), [scriptRecords]);
 
     const lifecycleScriptOptions = useMemo(() => buildScriptOptionsByCategory(scriptRecords, 'Lifecycle', 'State'), [scriptRecords]);
+
+    // 所有 hooks 执行完毕后才能条件 return（React hooks 规则）
+    if (!state || !fsm) return <div className="empty-state">State not found</div>;
 
     // 设置为初始状态
     const handleSetInitial = () => {
