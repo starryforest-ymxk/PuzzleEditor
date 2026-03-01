@@ -34,8 +34,8 @@ function validateAssetNames(
         // 允许空值，但给出警告
         if (!item.assetName || item.assetName.trim() === '') {
             results.push({
-                id: `warn-${objectType.toLowerCase()}-no-asset-name-${item.id}`,
-                level: 'warning',
+                id: `err-${objectType.toLowerCase()}-no-asset-name-${item.id}`,
+                level: 'error',
                 message: `${humanType} has no resource name (assetName).`,
                 objectType: objectType,
                 objectId: item.id,
