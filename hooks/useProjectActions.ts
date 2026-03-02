@@ -190,9 +190,28 @@ export function useProjectActions() {
             const defaultPath = project.meta.exportPath || '';
             const result = await saveFileDialog(defaultPath, defaultFileName);
             if (result && !result.canceled && result.filePath) {
-                const exportResult = await electronExportProject(result.filePath, jsonStr);
+                let filePath = result.filePath;
+
+                // 校验文件后缀：导出文件必须以 .export.json 结尾
+                if (!filePath.toLowerCase().endsWith('.export.json')) {
+                    // 如果用户选择了 .puzzle.json 文件，阻止覆盖并报错
+                    if (filePath.toLowerCase().endsWith('.puzzle.json')) {
+                        pushMessage('error', `Export blocked: "${filePath}" is a project file (.puzzle.json). Please use .export.json extension for exports.`);
+                        return;
+                    }
+                    // 其他后缀：自动修正为 .export.json
+                    if (filePath.toLowerCase().endsWith('.json')) {
+                        // 移除 .json 后缀，用 .export.json 替代
+                        filePath = filePath.slice(0, -5) + '.export.json';
+                    } else {
+                        filePath += '.export.json';
+                    }
+                    pushMessage('warning', `File extension corrected to .export.json: ${filePath}`);
+                }
+
+                const exportResult = await electronExportProject(filePath, jsonStr);
                 if (exportResult.success) {
-                    pushMessage('info', `Project exported to ${result.filePath}`);
+                    pushMessage('info', `Project exported to ${filePath}`);
                 } else {
                     pushMessage('error', `Export failed: ${exportResult.error}`);
                 }

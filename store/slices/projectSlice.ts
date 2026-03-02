@@ -549,10 +549,16 @@ export const projectReducer = (state: EditorState, action: ProjectAction): Edito
             const externalData = action.payload; // ProjectData
             const currentProject = state.project;
 
+            // 安全防护：外部数据结构不完整时跳过同步
+            if (!externalData || !externalData.scripts?.scripts || !externalData.blackboard) {
+                console.warn('[SYNC_RESOURCE_STATES] Invalid external data structure, skipping sync.');
+                return state;
+            }
+
             // 1. 同步脚本状态
             const newScripts = { ...currentProject.scripts.scripts };
             let hasChanges = false;
-            Object.keys(externalData.scripts.scripts).forEach((id) => {
+            Object.keys(externalData.scripts.scripts || {}).forEach((id) => {
                 const scriptId = id as import('../../types/common').ScriptId;
                 if (newScripts[scriptId] && newScripts[scriptId].state !== externalData.scripts.scripts[scriptId].state) {
                     newScripts[scriptId] = {
@@ -565,7 +571,7 @@ export const projectReducer = (state: EditorState, action: ProjectAction): Edito
 
             // 2. 同步全局变量状态
             const newGlobalVars = { ...currentProject.blackboard.globalVariables };
-            Object.keys(externalData.blackboard.globalVariables).forEach((id) => {
+            Object.keys(externalData.blackboard?.globalVariables || {}).forEach((id) => {
                 const varId = id as VariableId;
                 if (newGlobalVars[varId] && newGlobalVars[varId].state !== externalData.blackboard.globalVariables[varId].state) {
                     newGlobalVars[varId] = {
@@ -578,7 +584,7 @@ export const projectReducer = (state: EditorState, action: ProjectAction): Edito
 
             // 3. 同步全局事件状态
             const newEvents = { ...currentProject.blackboard.events };
-            Object.keys(externalData.blackboard.events).forEach((id) => {
+            Object.keys(externalData.blackboard?.events || {}).forEach((id) => {
                 const evtId = id as import('../../types/common').EventId;
                 if (newEvents[evtId] && newEvents[evtId].state !== externalData.blackboard.events[evtId].state) {
                     newEvents[evtId] = {
@@ -591,7 +597,7 @@ export const projectReducer = (state: EditorState, action: ProjectAction): Edito
 
             // 4. 同步 Stage 局部变量状态
             const newStages = { ...currentProject.stageTree.stages };
-            Object.keys(externalData.stageTree.stages).forEach((sId) => {
+            Object.keys(externalData.stageTree?.stages || {}).forEach((sId) => {
                 const stageId = sId as StageId;
                 const externalStage = externalData.stageTree.stages[stageId];
                 const localStage = newStages[stageId];
@@ -620,7 +626,7 @@ export const projectReducer = (state: EditorState, action: ProjectAction): Edito
 
             // 5. 同步 Node 局部变量状态
             const newNodes = { ...currentProject.nodes };
-            Object.keys(externalData.nodes).forEach((nId) => {
+            Object.keys(externalData.nodes || {}).forEach((nId) => {
                 const nodeId = nId as PuzzleNodeId;
                 const externalNode = externalData.nodes[nodeId];
                 const localNode = newNodes[nodeId];

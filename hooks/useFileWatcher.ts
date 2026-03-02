@@ -27,6 +27,12 @@ export const useFileWatcher = () => {
                         // 解析项目文件
                         const projectFile = JSON.parse(result.data) as ProjectFile;
 
+                        // 安全防护：验证数据结构完整性
+                        if (!projectFile?.project?.scripts?.scripts || !projectFile?.project?.blackboard) {
+                            console.warn('[useFileWatcher] Invalid project data structure in file, skipping sync.');
+                            return;
+                        }
+
                         // 1. 同步资源状态 (仅合并状态字段)
                         dispatch({
                             type: 'SYNC_RESOURCE_STATES',
