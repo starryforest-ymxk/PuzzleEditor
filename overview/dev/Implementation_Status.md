@@ -6,7 +6,19 @@
 
 ## 1. 总体进度
 
-### 最近更新（2026-02-23）
+### 最近更新（2026-03-04）
+
+✅ **导出数据规范化（Export Data Normalization）**
+- 新增 `utils/exportNormalizer.ts`，在导出前对数据深拷贝 + 清洗
+- 值类型规范化：boolean/integer/float/string 值按声明类型强制修正
+- 剥离 UI 专用字段：`isExpanded`、`displayOrder`、`position`（State/PresentationNode）、`fromSide`/`toSide`、`edgeProperties`
+- 剥离 ParameterBinding 前端辅助字段：`id`、`kind`、`description`
+- ConditionExpression 递归规范化（Literal.value 确保为 boolean、Comparison 补齐 operator）
+- 数值字段规范化：`Transition.priority` 确保非负整数、`PresentationNode.duration` 确保正数
+- 导出入口 `useProjectActions.ts` 已集成 `normalizeForExport()`
+- 设计文档：`overview/dev/ExportNormalizer_Design.md`
+
+### 历史更新（2026-02-23）
 
 ✅ **Preferences 自动保存功能（新增）**
 - 在 Preferences 面板新增 `Auto Save` 开关与 `Interval (minutes)` 输入（默认 1 分钟）

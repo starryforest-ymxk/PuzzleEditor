@@ -23,6 +23,7 @@ import { usePushMessage } from './usePushMessage';
 import { isElectron, saveFileDialog, exportProject as electronExportProject, writeProject, readProject } from '@/src/electron/api';
 import { validateProject } from '../utils/validation/validator';
 import { normalizePanelSizes } from '../utils/panelSizes';
+import { normalizeForExport } from '../utils/exportNormalizer';
 
 // 编辑器版本号 - 集中管理
 export const EDITOR_VERSION = '1.0.0';
@@ -156,20 +157,14 @@ export function useProjectActions() {
         }
 
         // 精简导出：仅包含游戏引擎需要的运行时数据
+        // 通过 normalizeForExport 进行深拷贝 + 清洗：修正值类型、剥离 UI 字段
         const exportBundle: ExportBundle = {
             fileType: 'puzzle-export',
             manifestVersion: '1.0.0',
             exportedAt: new Date().toISOString(),
             projectName: project.meta.name,
             projectVersion: project.meta.version,
-            data: {
-                blackboard: project.blackboard,
-                scripts: project.scripts,
-                stageTree: project.stageTree,
-                nodes: project.nodes,
-                stateMachines: project.stateMachines,
-                presentationGraphs: project.presentationGraphs
-            }
+            data: normalizeForExport(project)
         };
 
         const jsonStr = JSON.stringify(exportBundle, null, 2);
