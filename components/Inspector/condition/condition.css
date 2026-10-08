@@ -1,0 +1,125 @@
+/* 逻辑颜色沿用 conditionStyles，固定布局和状态样式在此集中维护。 */
+.condition-empty-root {
+  padding: 12px;
+  border: 1px dashed var(--panel-header-bg);
+  border-radius: 6px;
+  background: var(--condition-bg);
+}
+.condition-empty-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.condition-empty-inner {
+  padding: 16px;
+}
+.condition-empty-text {
+  color: var(--border-color);
+  font-size: 12px;
+  font-style: italic;
+}
+.condition-group {
+  margin-top: 0;
+  border-radius: 0 4px 4px 0;
+  font-size: 12px;
+  position: relative;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+.condition-group-header {
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+  min-width: 0;
+  overflow: hidden;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+.condition-group-header-collapsed {
+  border-bottom: none;
+}
+.condition-collapse {
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 10px;
+  padding: 2px;
+  transition: transform 0.15s;
+  flex-shrink: 0;
+}
+.condition-collapse-arrow {
+  display: inline-block;
+  transition: transform 0.15s;
+}
+.condition-collapse-arrow-collapsed {
+  transform: rotate(-90deg);
+}
+.condition-group-drag {
+  color: var(--border-color);
+  font-size: 12px;
+  user-select: none;
+  flex-shrink: 0;
+  cursor: default;
+}
+.condition-group-drag[draggable='true'] {
+  cursor: grab;
+}
+.condition-group-modes {
+  display: flex;
+  gap: 4px;
+  min-width: 0;
+  flex-shrink: 1;
+}
+.condition-group-count {
+  font-size: 11px;
+  color: var(--text-dim);
+  font-style: italic;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.condition-group-delete {
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  padding: 4px;
+  transition: color 0.2s;
+}
+.condition-group-delete:hover {
+  color: var(--accent-error);
+}
+.condition-children {
+  padding: 8px 12px;
+}
+.condition-children-empty {
+  padding: 0 12px;
+}
+.condition-child-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.condition-child {
+  position: relative;
+  border-radius: 4px;
+  transition:
+    background 0.15s,
+    opacity 0.15s;
+}
+.condition-child-dragging {
+  opacity: 0.5;
+}
+.condition-child-drop {
+  background: rgba(59, 130, 246, 0.15);
+}
+.condition-add-row {
+  margin-top: 8px;
+  display: flex;
+  justify-content: flex-end;
+}

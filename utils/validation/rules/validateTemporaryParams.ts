@@ -10,7 +10,7 @@
  * #61: Temporary param 类型冲突（同名参数在不同位置声明了不同类型）
  */
 
-import { ValidationResult } from '../../../store/types';
+import type { ValidationResult } from '../../../types/validation';
 import { ProjectData } from '../../../types/project';
 import { PresentationBinding, ParameterBinding, VariableType } from '../../../types/common';
 import { ASSET_NAME_REGEX } from '../../assetNameValidation';

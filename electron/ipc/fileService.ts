@@ -5,6 +5,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
+import { randomUUID } from 'crypto';
 import { CreateProjectParams, CreateProjectResult } from '../types.js';
 import { preferencesService } from './preferencesService.js';
 
@@ -37,11 +38,18 @@ class FileService {
      * @param filePath 文件路径
      * @param content 文件内容
      */
-    async writeFile(filePath: string, content: string): Promise<void> {
+    async writeFile(filePath: string, content: string, options?: { exclusive?: boolean }): Promise<void> {
         const dir = path.dirname(filePath);
         await ensureDirectoryExists(dir);
-        await fs.promises.writeFile(filePath, content, 'utf-8');
-        console.log('File written to:', filePath);
+        // 同目录完整写入临时文件后替换；失败不截断原文件，新建以排他链接防止覆盖。
+        const temporary = path.join(dir, `.${path.basename(filePath)}.${randomUUID()}.tmp`);
+        try {
+            await fs.promises.writeFile(temporary, content, { encoding: 'utf-8', flag: 'wx' });
+            if (options?.exclusive) await fs.promises.link(temporary, filePath);
+            else await fs.promises.rename(temporary, filePath);
+        } finally {
+            await fs.promises.unlink(temporary).catch(() => undefined);
+        }
     }
 
     /**
@@ -129,7 +137,7 @@ class FileService {
 
         // 写入项目文件
         const content = JSON.stringify(projectData, null, 2);
-        await this.writeFile(projectPath, content);
+        await this.writeFile(projectPath, content, { exclusive: true });
 
         // 更新最近项目列表
         await preferencesService.updateRecentProjects(projectPath, name);

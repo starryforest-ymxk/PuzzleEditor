@@ -1,29 +1,29 @@
 /**
  * utils/stageDrag.ts
- * Stages Ãæ°åÍÏ×§µÄ¡°´¿¼ÆËã¡±¹¤¾ßº¯Êı¡£
+ * Stages é¢æ¿æ‹–æ‹½çš„â€œçº¯è®¡ç®—â€å·¥å…·å‡½æ•°ã€‚
  *
- * Éè¼ÆÄ¿±ê£¨ÖĞÎÄ×¢ÊÍËµÃ÷ÒâÍ¼£©£º
- * - ÈÃ useStageDrag Ö»¸ºÔğÊÂ¼ş±àÅÅÓë dispatch
- * - °Ñ¿ÉÔ¤²â/¿É²âÊÔµÄ¼ÆËãÂß¼­¼¯ÖĞµ½ utils£¨²»ÒÀÀµ DOM£¬²»×ö dispatch£©
+ * è®¾è®¡ç›®æ ‡ï¼ˆä¸­æ–‡æ³¨é‡Šè¯´æ˜æ„å›¾ï¼‰ï¼š
+ * - è®© useStageDrag åªè´Ÿè´£äº‹ä»¶ç¼–æ’ä¸ dispatch
+ * - æŠŠå¯é¢„æµ‹/å¯æµ‹è¯•çš„è®¡ç®—é€»è¾‘é›†ä¸­åˆ° utilsï¼ˆä¸ä¾èµ– DOMï¼Œä¸åš dispatchï¼‰
  */
 
 import { StageId } from '../types/common';
 import { StageTreeData } from '../types/stage';
 
-/** ½ÚµãĞĞ·ÅÖÃÒâÍ¼£¨¶şÌ¬£© */
+/** èŠ‚ç‚¹è¡Œæ”¾ç½®æ„å›¾ï¼ˆäºŒæ€ï¼‰ */
 export type RowDropIntent = 'between' | 'inside';
 
-/** ½ÚµãĞĞ between µÄ±ßÔµ£¨¾ö¶¨²åÈëÔÚÄ¿±êÇ°/ºó£© */
+/** èŠ‚ç‚¹è¡Œ between çš„è¾¹ç¼˜ï¼ˆå†³å®šæ’å…¥åœ¨ç›®æ ‡å‰/åï¼‰ */
 export type RowDropEdge = 'top' | 'bottom';
 
-/** ¿Õ°×ÇøÖ¸Ê¾ÏßÕ¹Ê¾Ä£Ê½ */
+/** ç©ºç™½åŒºæŒ‡ç¤ºçº¿å±•ç¤ºæ¨¡å¼ */
 export type DropIndicatorMode = 'indented' | 'full-width';
 
 /**
- * ¼ÆËã½ÚµãĞĞÍÏ×§Ô¤ÀÀ£¨¶şÌ¬£©¡£
- * - ÉÏ 25%£ºbetween/top
- * - ÖĞ¼ä£ºinside
- * - ÏÂ 25%£ºbetween/bottom
+ * è®¡ç®—èŠ‚ç‚¹è¡Œæ‹–æ‹½é¢„è§ˆï¼ˆäºŒæ€ï¼‰ã€‚
+ * - ä¸Š 25%ï¼šbetween/top
+ * - ä¸­é—´ï¼šinside
+ * - ä¸‹ 25%ï¼šbetween/bottom
  */
 export function calculateRowDropPreview(
   y: number,
@@ -35,9 +35,9 @@ export function calculateRowDropPreview(
 }
 
 /**
- * ¼ÆËã between(top/bottom) µÄ²åÈë index¡£
+ * è®¡ç®— between(top/bottom) çš„æ’å…¥ indexã€‚
  *
- * ¹Ø¼üµã£ºÍ¬Ò»¸¸½ÚµãÅÅĞòÊ±£¬ĞèÒª¿¼ÂÇ¡°ÏÈÒÆ³ı dragged£¬ÔÙ²åÈë¡±µÄË÷ÒıÆ«ÒÆ¡£
+ * å…³é”®ç‚¹ï¼šåŒä¸€çˆ¶èŠ‚ç‚¹æ’åºæ—¶ï¼Œéœ€è¦è€ƒè™‘â€œå…ˆç§»é™¤ draggedï¼Œå†æ’å…¥â€çš„ç´¢å¼•åç§»ã€‚
  */
 export function calculateBetweenInsertIndex(params: {
   edge: RowDropEdge;
@@ -48,7 +48,7 @@ export function calculateBetweenInsertIndex(params: {
 
   let insertIndex = edge === 'top' ? targetIndex : targetIndex + 1;
 
-  // Í¬¸¸ reorder£ºÈç¹û dragged ÔÚ target Ç°Ãæ£¬ÒÆ³ıºó targetIndex »á -1¡£
+  // åŒçˆ¶ reorderï¼šå¦‚æœ dragged åœ¨ target å‰é¢ï¼Œç§»é™¤å targetIndex ä¼š -1ã€‚
   if (draggedIndex !== -1 && draggedIndex < targetIndex) {
     insertIndex = edge === 'top' ? targetIndex - 1 : targetIndex;
   }
@@ -57,8 +57,8 @@ export function calculateBetweenInsertIndex(params: {
 }
 
 /**
- * »ñÈ¡Ä³¸ö Stage µ½ Root µÄÂ·¾¶£¨Root -> ... -> stageId£©¡£
- * Ö»Ê¹ÓÃÊı¾İ½á¹¹£¬²»ÒÀÀµ UI Õ¹¿ª×´Ì¬¡£
+ * è·å–æŸä¸ª Stage åˆ° Root çš„è·¯å¾„ï¼ˆRoot -> ... -> stageIdï¼‰ã€‚
+ * åªä½¿ç”¨æ•°æ®ç»“æ„ï¼Œä¸ä¾èµ– UI å±•å¼€çŠ¶æ€ã€‚
  */
 export function getStagePathFromRoot(stageTree: StageTreeData, stageId: StageId): StageId[] {
   const path: StageId[] = [];
@@ -69,7 +69,7 @@ export function getStagePathFromRoot(stageTree: StageTreeData, stageId: StageId)
     if (visited.has(current)) break;
     visited.add(current);
     path.push(current);
-    const node = stageTree.stages[current];
+    const node: import('../types/stage').StageNode | undefined = stageTree.stages[current];
     current = (node?.parentId as StageId | null) ?? null;
   }
 
@@ -78,8 +78,8 @@ export function getStagePathFromRoot(stageTree: StageTreeData, stageId: StageId)
 }
 
 /**
- * ¿Õ°×ÇøÓòºòÑ¡¸¸½Úµã£ºRoot -> ... -> parent(lastVisible)
- * ×¢Òâ£º²»°üº¬ lastVisible ×Ô¼ºÕâÒ»²ã¡£
+ * ç©ºç™½åŒºåŸŸå€™é€‰çˆ¶èŠ‚ç‚¹ï¼šRoot -> ... -> parent(lastVisible)
+ * æ³¨æ„ï¼šä¸åŒ…å« lastVisible è‡ªå·±è¿™ä¸€å±‚ã€‚
  */
 export function getCandidateParentsForEmptyDrop(stageTree: StageTreeData, lastVisibleId: StageId): StageId[] {
   const path = getStagePathFromRoot(stageTree, lastVisibleId);
@@ -88,8 +88,8 @@ export function getCandidateParentsForEmptyDrop(stageTree: StageTreeData, lastVi
 }
 
 /**
- * ¿Õ°×ÇøÓòÀëÉ¢µµÎ»£º¸ù¾İ relativeY + ÈİÆ÷¸ß¶È£¬¼ÆËã¡°Æ«ºÃµµÎ»¡±¡£
- * Ó³Éä¹æÔò£ºÔ½¿¿ÏÂÔ½Ç³£¨level Ô½Ğ¡£©¡£
+ * ç©ºç™½åŒºåŸŸç¦»æ•£æ¡£ä½ï¼šæ ¹æ® relativeY + å®¹å™¨é«˜åº¦ï¼Œè®¡ç®—â€œåå¥½æ¡£ä½â€ã€‚
+ * æ˜ å°„è§„åˆ™ï¼šè¶Šé ä¸‹è¶Šæµ…ï¼ˆlevel è¶Šå°ï¼‰ã€‚
  */
 export function calculatePreferredEmptyDropLevel(params: {
   candidateCount: number;
@@ -101,7 +101,7 @@ export function calculatePreferredEmptyDropLevel(params: {
   const n = Math.max(1, candidateCount);
   const clampedY = Math.max(0, Math.min(height, relativeY));
 
-  // ÈÃÇáÎ¢ÉÏÏÂÒÆ¶¯¼´¿ÉÇĞ»»µµÎ»£ºbandHeight Ô¼ 8~12px£¬²¢ÓÃËÄÉáÎåÈëÎü¸½¡£
+  // è®©è½»å¾®ä¸Šä¸‹ç§»åŠ¨å³å¯åˆ‡æ¢æ¡£ä½ï¼šbandHeight çº¦ 8~12pxï¼Œå¹¶ç”¨å››èˆäº”å…¥å¸é™„ã€‚
   const bandHeight = Math.max(8, Math.min(12, height / n));
   const rawIndex = Math.round(clampedY / bandHeight);
   const idx = Math.max(0, Math.min(candidateCount - 1, rawIndex));
@@ -110,8 +110,8 @@ export function calculatePreferredEmptyDropLevel(params: {
 }
 
 /**
- * µ±Æ«ºÃµµÎ»·Ç·¨Ê±£¬ÏòÉÏÏÂÑ°ÕÒ×î½üµÄºÏ·¨µµÎ»¡£
- * ·µ»Ø£ººÏ·¨ level »ò null£¨È«²¿·Ç·¨£©¡£
+ * å½“åå¥½æ¡£ä½éæ³•æ—¶ï¼Œå‘ä¸Šä¸‹å¯»æ‰¾æœ€è¿‘çš„åˆæ³•æ¡£ä½ã€‚
+ * è¿”å›ï¼šåˆæ³• level æˆ– nullï¼ˆå…¨éƒ¨éæ³•ï¼‰ã€‚
  */
 export function pickNearestValidLevel(params: {
   preferredLevel: number;
@@ -120,7 +120,7 @@ export function pickNearestValidLevel(params: {
 }): number | null {
   const { preferredLevel, candidateCount, isLevelValid } = params;
 
-  let level = preferredLevel;
+  const level = preferredLevel;
   if (isLevelValid(level)) return level;
 
   for (let delta = 1; delta < candidateCount; delta += 1) {
@@ -134,8 +134,8 @@ export function pickNearestValidLevel(params: {
 }
 
 /**
- * °Ñ¿Õ°×ÇøÓòµµÎ» level Ó³ÉäÎªÖ¸Ê¾ÏßÑùÊ½²ÎÊı£¨left/mode£©¡£
- * Óë StageExplorer µÄËõ½ø¹æÔò±£³ÖÒ»ÖÂ£ºpaddingLeft = depth * 16 + 8¡£
+ * æŠŠç©ºç™½åŒºåŸŸæ¡£ä½ level æ˜ å°„ä¸ºæŒ‡ç¤ºçº¿æ ·å¼å‚æ•°ï¼ˆleft/modeï¼‰ã€‚
+ * ä¸ StageExplorer çš„ç¼©è¿›è§„åˆ™ä¿æŒä¸€è‡´ï¼špaddingLeft = depth * 16 + 8ã€‚
  */
 export function getEmptyIndicatorStyle(params: {
   level: number;

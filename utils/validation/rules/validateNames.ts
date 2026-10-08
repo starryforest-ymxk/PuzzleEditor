@@ -10,7 +10,7 @@
  * 注意：Name (显示名称) 由前端 UI 保护，不在此处校验
  */
 
-import { ValidationResult } from '../../../store/types';
+import type { ValidationResult } from '../../../types/validation';
 import { ProjectData } from '../../../types/project';
 import { ASSET_NAME_REGEX } from '../../assetNameValidation';
 

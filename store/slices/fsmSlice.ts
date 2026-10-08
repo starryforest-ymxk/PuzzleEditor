@@ -3,27 +3,14 @@
  * 处理所有与状态机状态(State)和转移(Transition)相关的操作
  */
 
+import { isActionForDomain, type ActionForDomain } from '../actionPolicy';
 import { EditorState, Action } from '../types';
-import { StateMachine, State, Transition } from '../../types/stateMachine';
 
 // ========== FSM 相关 Actions 类型定义 ==========
-export type FsmAction =
-    | { type: 'ADD_STATE'; payload: { fsmId: string; state: State } }
-    | { type: 'DELETE_STATE'; payload: { fsmId: string; stateId: string } }
-    | { type: 'UPDATE_STATE'; payload: { fsmId: string; stateId: string; data: Partial<State> } }
-    | { type: 'UPDATE_FSM'; payload: { fsmId: string; data: Partial<StateMachine> } }
-    | { type: 'ADD_TRANSITION'; payload: { fsmId: string; transition: Transition } }
-    | { type: 'DELETE_TRANSITION'; payload: { fsmId: string; transitionId: string } }
-    | { type: 'UPDATE_TRANSITION'; payload: { fsmId: string; transitionId: string; data: Partial<Transition> } };
+export type FsmAction = ActionForDomain<'fsm'>;
 
 // ========== 类型守卫：判断是否为 FSM Action ==========
-export const isFsmAction = (action: Action): action is FsmAction => {
-    const fsmActionTypes = [
-        'ADD_STATE', 'DELETE_STATE', 'UPDATE_STATE',
-        'UPDATE_FSM', 'ADD_TRANSITION', 'DELETE_TRANSITION', 'UPDATE_TRANSITION'
-    ];
-    return fsmActionTypes.includes(action.type);
-};
+export const isFsmAction = (action: Action): action is FsmAction => isActionForDomain(action, 'fsm');
 
 // ========== FSM Reducer ==========
 export const fsmReducer = (state: EditorState, action: FsmAction): EditorState => {

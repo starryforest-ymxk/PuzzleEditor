@@ -3,57 +3,17 @@
  * 处理与项目数据相关的基础操作：Stage 树更新、Node 更新、Stage CRUD
  */
 
+import { isActionForDomain, type ActionForDomain } from '../actionPolicy';
 import { EditorState, Action } from '../types';
-import { StageTreeData, StageNode } from '../../types/stage';
-import { PuzzleNode } from '../../types/puzzleNode';
-import { StateMachine } from '../../types/stateMachine';
-import { VariableDefinition } from '../../types/blackboard';
-import { StageId, VariableId, PuzzleNodeId, StateMachineId } from '../../types/common';
+import { StageNode } from '../../types/stage';
+import { StageId, VariableId, PuzzleNodeId } from '../../types/common';
 import { getDescendantStageIds, getStageNodeIds } from '../../utils/stageTreeUtils';
 
 // ========== Project 相关 Actions 类型定义 ==========
-export type ProjectAction =
-    // 原有的整树更新和节点更新
-    | { type: 'UPDATE_STAGE_TREE'; payload: StageTreeData }
-    | { type: 'UPDATE_NODE'; payload: { nodeId: string; data: Partial<PuzzleNode> } }
-    // Stage CRUD 操作
-    | { type: 'ADD_STAGE'; payload: { parentId: StageId; afterStageId?: StageId; stage: StageNode } }
-    | { type: 'DELETE_STAGE'; payload: { stageId: StageId } }
-    | { type: 'UPDATE_STAGE'; payload: { stageId: StageId; data: Partial<StageNode> } }
-    | { type: 'REORDER_STAGE'; payload: { stageId: StageId; newIndex: number } }
-    | { type: 'MOVE_STAGE'; payload: { stageId: StageId; newParentId: StageId; insertIndex?: number } }
-    // Stage Local Variable 操作
-    | { type: 'ADD_STAGE_VARIABLE'; payload: { stageId: StageId; variable: VariableDefinition } }
-    | { type: 'UPDATE_STAGE_VARIABLE'; payload: { stageId: StageId; varId: VariableId; data: Partial<VariableDefinition> } }
-    | { type: 'DELETE_STAGE_VARIABLE'; payload: { stageId: StageId; varId: VariableId } }
-    // PuzzleNode CRUD 操作 (P4-T03)
-    | { type: 'ADD_PUZZLE_NODE'; payload: { stageId: StageId; node: PuzzleNode; stateMachine: StateMachine } }
-    | { type: 'DELETE_PUZZLE_NODE'; payload: { nodeId: PuzzleNodeId } }
-    | { type: 'REORDER_PUZZLE_NODES'; payload: { stageId: StageId; nodeIds: PuzzleNodeId[] } }
-    // 外部分件同步 (P4-T06)
-    | { type: 'SYNC_RESOURCE_STATES'; payload: import('../../types/project').ProjectData };
+export type ProjectAction = ActionForDomain<'project'>;
 
 // ========== 类型守卫：判断是否为 Project Action ==========
-export const isProjectAction = (action: Action): action is ProjectAction => {
-    const projectActionTypes = [
-        'UPDATE_STAGE_TREE',
-        'UPDATE_NODE',
-        'ADD_STAGE',
-        'DELETE_STAGE',
-        'UPDATE_STAGE',
-        'REORDER_STAGE',
-        'MOVE_STAGE',
-        'ADD_STAGE_VARIABLE',
-        'UPDATE_STAGE_VARIABLE',
-        'DELETE_STAGE_VARIABLE',
-        // PuzzleNode CRUD (P4-T03)
-        'ADD_PUZZLE_NODE',
-        'DELETE_PUZZLE_NODE',
-        'REORDER_PUZZLE_NODES',
-        'SYNC_RESOURCE_STATES'
-    ];
-    return projectActionTypes.includes(action.type);
-};
+export const isProjectAction = (action: Action): action is ProjectAction => isActionForDomain(action, 'project');
 
 // ========== Helper Functions ==========
 
@@ -141,7 +101,7 @@ export const projectReducer = (state: EditorState, action: ProjectAction): Edito
             if (state.project.stageTree.stages[stage.id]) return state;
 
             // 计算插入位置
-            let newChildrenIds = [...parent.childrenIds];
+            const newChildrenIds = [...parent.childrenIds];
             if (afterStageId) {
                 const afterIndex = newChildrenIds.indexOf(afterStageId);
                 if (afterIndex !== -1) {
@@ -434,7 +394,7 @@ export const projectReducer = (state: EditorState, action: ProjectAction): Edito
             const stage = state.project.stageTree.stages[stageId];
             if (!stage || !stage.localVariables?.[varId]) return state;
 
-            const { [varId]: removed, ...remainingVars } = stage.localVariables;
+            const { [varId]: _removed, ...remainingVars } = stage.localVariables;
 
             return {
                 ...state,
@@ -488,7 +448,7 @@ export const projectReducer = (state: EditorState, action: ProjectAction): Edito
             const fsmId = node.stateMachineId;
 
             // 创建新的 nodes 对象，移除目标节点
-            const { [nodeId]: removedNode, ...remainingNodes } = state.project.nodes;
+            const { [nodeId]: _removedNode, ...remainingNodes } = state.project.nodes;
 
             // 创建新的 stateMachines 对象，移除关联的 FSM
             const newStateMachines = { ...state.project.stateMachines };

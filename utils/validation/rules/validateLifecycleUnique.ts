@@ -4,7 +4,7 @@
  * 规则：同一个生命周期脚本只能被一个对象（Stage/Node/State）绑定
  */
 
-import { ValidationResult } from '../../../store/types';
+import type { ValidationResult } from '../../../types/validation';
 import { ProjectData } from '../../../types/project';
 
 interface UsageLocation {
@@ -70,7 +70,7 @@ export const validateLifecycleUnique = (project: ProjectData): ValidationResult[
                     id: `err-lifecycle-dup-${usage.objectType.toLowerCase()}-${usage.objectId}-${scriptId}`,
                     level: 'error',
                     message: `Lifecycle script "${scriptName}" is reused in multiple locations (${usages.length}). It must be unique.\nUsed in: ${locations}`,
-                    objectType: usage.objectType as any,
+                    objectType: usage.objectType,
                     objectId: usage.objectId,
                     location: usage.location
                 });

@@ -28,7 +28,7 @@ export interface ProjectMeta {
   id: ProjectId;
   name: string;
   description?: string;
-  version: string;          // 数据版本号
+  version: string;          // 用户可编辑的项目版本，不作为文件 Schema 的兼容判据
   createdAt: string;        // ISO8601 格式
   updatedAt: string;        // ISO8601 格式
   exportFileName?: string;  // 自定义导出文件名 (默认: <项目名>.export.json)
@@ -87,7 +87,7 @@ export interface EditorUIState {
 export interface ProjectFile {
   /** 文件格式标识 */
   fileType: 'puzzle-project';
-  /** 编辑器版本 */
+  /** 生产文件的编辑器版本；文件兼容性仍需检查实际结构 */
   editorVersion: string;
   /** 保存时间 */
   savedAt: string;
@@ -105,7 +105,7 @@ export interface ProjectFile {
 export interface ExportBundle {
   /** 文件格式标识 */
   fileType: 'puzzle-export';
-  /** 数据版本号 */
+  /** 运行时文件格式版本；当前导入边界支持 1.0.0 */
   manifestVersion: string;
   /** 导出时间 */
   exportedAt: string;

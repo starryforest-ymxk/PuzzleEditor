@@ -5,7 +5,7 @@
 
 import type { VariableType } from '../../types/common';
 import type { ValidationResult, ValidationIssue } from './types';
-import { createResult, createIssue, createValidResult } from './types';
+import { createResult, createIssue } from './types';
 
 // ========== 错误代码常量 ==========
 
@@ -86,14 +86,14 @@ export function hasNameConflict(
  * @returns 校验结果
  */
 export function validateVariableValue(
-    value: any,
+    value: unknown,
     type: VariableType
 ): ValidationResult {
     const issues: ValidationIssue[] = [];
 
     switch (type) {
         case 'integer': {
-            const parsed = parseInt(value, 10);
+            const parsed = parseInt(String(value), 10);
             if (Number.isNaN(parsed)) {
                 issues.push(createIssue(
                     'error',
@@ -104,7 +104,7 @@ export function validateVariableValue(
             break;
         }
         case 'float': {
-            const parsed = parseFloat(value);
+            const parsed = parseFloat(String(value));
             if (Number.isNaN(parsed)) {
                 issues.push(createIssue(
                     'error',
@@ -137,7 +137,7 @@ export function validateVariableValue(
  * @param type 变量类型
  * @returns 对应类型的默认值
  */
-export function getDefaultValueByType(type: VariableType): any {
+export function getDefaultValueByType(type: VariableType): import('../../types/json').VariableValue {
     switch (type) {
         case 'integer': return 0;
         case 'float': return 0.0;
@@ -153,10 +153,10 @@ export function getDefaultValueByType(type: VariableType): any {
  * @param raw 原始输入值
  * @returns 规范化后的值
  */
-export function normalizeValueByType(type: VariableType, raw: any): any {
+export function normalizeValueByType(type: VariableType, raw: unknown): import('../../types/json').VariableValue {
     switch (type) {
-        case 'integer': return parseInt(raw, 10) || 0;
-        case 'float': return parseFloat(raw) || 0;
+        case 'integer': return parseInt(String(raw), 10) || 0;
+        case 'float': return parseFloat(String(raw)) || 0;
         case 'boolean': return raw === true || raw === 'true';
         case 'string':
         default: return String(raw ?? '');

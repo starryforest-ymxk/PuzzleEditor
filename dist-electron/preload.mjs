@@ -8,6 +8,17 @@ import { IPC_CHANNELS, } from './types.js';
  * 暴露给渲染进程的 API 实现
  */
 const electronAPI = {
+    // 先安装监听再报告就绪，防止主进程请求落在订阅空隙。
+    onWindowCloseRequested: (callback) => {
+        const listener = (_, requestId) => callback(requestId);
+        ipcRenderer.on(IPC_CHANNELS.WINDOW_CLOSE_REQUESTED, listener);
+        ipcRenderer.send(IPC_CHANNELS.WINDOW_CLOSE_READY, true);
+        return () => {
+            ipcRenderer.removeListener(IPC_CHANNELS.WINDOW_CLOSE_REQUESTED, listener);
+            ipcRenderer.send(IPC_CHANNELS.WINDOW_CLOSE_READY, false);
+        };
+    },
+    resolveWindowClose: (requestId, allow) => ipcRenderer.invoke(IPC_CHANNELS.WINDOW_CLOSE_RESOLVE, requestId, allow),
     // ========================================================================
     // 偏好设置相关
     // ========================================================================
@@ -38,8 +49,11 @@ const electronAPI = {
      * @param filePath 项目文件路径
      * @param data 项目数据 (JSON 字符串)
      */
-    writeProject: (filePath, data) => {
-        return ipcRenderer.invoke(IPC_CHANNELS.PROJECT_WRITE, filePath, data);
+    writeProject: (filePath, data, options) => {
+        return ipcRenderer.invoke(IPC_CHANNELS.PROJECT_WRITE, filePath, data, options);
+    },
+    activateProject: (filePath, name) => {
+        return ipcRenderer.invoke(IPC_CHANNELS.PROJECT_ACTIVATE, filePath, name);
     },
     /**
      * 导出项目文件
@@ -100,8 +114,8 @@ const electronAPI = {
      * @param defaultPath 默认目录路径
      * @param defaultFileName 默认文件名
      */
-    saveFileDialog: (defaultPath, defaultFileName) => {
-        return ipcRenderer.invoke(IPC_CHANNELS.DIALOG_SAVE_FILE, defaultPath, defaultFileName);
+    saveFileDialog: (defaultPath, defaultFileName, kind) => {
+        return ipcRenderer.invoke(IPC_CHANNELS.DIALOG_SAVE_FILE, defaultPath, defaultFileName, kind);
     },
     // ========================================================================
     // 文件操作相关

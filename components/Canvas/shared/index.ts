@@ -10,5 +10,9 @@ export { GraphEdge, GraphEdgeControls } from './GraphEdge';
 export type { GraphEdgeProps, GraphEdgeControlsProps } from './GraphEdge';
 
 export { GraphContextMenu } from './GraphContextMenu';
-export type { GraphContextMenuState, GraphContextMenuProps, GraphMenuItem, GraphMenuElement } from './GraphContextMenu';
-
+export type {
+  GraphContextMenuState,
+  GraphContextMenuProps,
+  GraphMenuItem,
+  GraphMenuElement,
+} from './GraphContextMenu';

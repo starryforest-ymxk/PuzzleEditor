@@ -1,0 +1,2075 @@
+{
+  "fileType": "puzzle-export",
+  "manifestVersion": "1.0.0",
+  "exportedAt": "2025-12-22T18:11:10.115Z",
+  "projectName": "Bubble Horror",
+  "projectVersion": "1.0.0",
+  "data": {
+    "blackboard": {
+      "globalVariables": {
+        "VAR_1": {
+          "id": "VAR_1",
+          "name": "被关闭的泡泡出口数量",
+          "type": "integer",
+          "value": 0,
+          "state": "Draft",
+          "description": "牛老师已发现的泡泡出口",
+          "scope": "Global",
+          "assetName": "ClosedBubbleEmitterCount",
+          "displayOrder": 0
+        },
+        "VAR_2": {
+          "id": "VAR_2",
+          "name": "柴油数量",
+          "type": "integer",
+          "value": 0,
+          "state": "Draft",
+          "description": "牛老师找到的柴油数量",
+          "scope": "Global",
+          "assetName": "GasolineQuantity",
+          "displayOrder": 1
+        },
+        "VAR_3": {
+          "id": "VAR_3",
+          "name": "启动柴油发电机",
+          "type": "boolean",
+          "value": false,
+          "state": "Draft",
+          "description": "牛老师启动了发电机",
+          "scope": "Global",
+          "assetName": "StartDieselGenerator",
+          "displayOrder": 2
+        }
+      },
+      "events": {
+        "EVENT_1": {
+          "id": "EVENT_1",
+          "name": "Meet 邦邦罗",
+          "state": "Draft",
+          "description": "",
+          "assetName": "Meet_Npc",
+          "displayOrder": 0
+        },
+        "EVENT_3": {
+          "id": "EVENT_3",
+          "name": "进入房屋",
+          "state": "Draft",
+          "description": "牛老师进入房间时触发",
+          "assetName": "Enter_House",
+          "displayOrder": 1
+        },
+        "EVENT_8": {
+          "id": "EVENT_8",
+          "name": "触发邦邦罗闪现",
+          "state": "Draft",
+          "description": "",
+          "assetName": "TriggerNpcFlash",
+          "displayOrder": 2
+        },
+        "EVENT_9": {
+          "id": "EVENT_9",
+          "name": "尝试开启电闸",
+          "state": "Draft",
+          "description": "牛老师开启电闸，尝试恢复电力",
+          "assetName": "TurnOnCircuitBreaker",
+          "displayOrder": 3
+        },
+        "EVENT_10": {
+          "id": "EVENT_10",
+          "name": "再次关闭水龙头",
+          "state": "Draft",
+          "description": "",
+          "assetName": "CloseTapAgain",
+          "displayOrder": 4
+        },
+        "EVENT_11": {
+          "id": "EVENT_11",
+          "name": "玩家死亡",
+          "state": "Draft",
+          "description": "",
+          "assetName": "PlayerDeath",
+          "displayOrder": 5
+        },
+        "EVENT_12": {
+          "id": "EVENT_12",
+          "name": "启动柴油发电机",
+          "state": "Draft",
+          "description": "",
+          "assetName": "StartDieselGenerator",
+          "displayOrder": 6
+        },
+        "EVENT_13": {
+          "id": "EVENT_13",
+          "name": "玩家逃离",
+          "state": "Draft",
+          "description": "玩家逃离大宅\n",
+          "assetName": "PlayerEscape",
+          "displayOrder": 7
+        }
+      }
+    },
+    "scripts": {
+      "version": "1.0.0",
+      "scripts": {
+        "SCRIPT_PERF_1": {
+          "id": "SCRIPT_PERF_1",
+          "name": "开端-接电话",
+          "category": "Performance",
+          "state": "Draft",
+          "description": "",
+          "displayOrder": 0
+        },
+        "SCRIPT_PERF_2": {
+          "id": "SCRIPT_PERF_2",
+          "name": "开端-主角出发",
+          "category": "Performance",
+          "state": "Draft",
+          "description": "",
+          "displayOrder": 1
+        },
+        "SCRIPT_PERF_3": {
+          "id": "SCRIPT_PERF_3",
+          "name": "邦邦罗对话",
+          "category": "Performance",
+          "state": "Draft",
+          "description": "",
+          "displayOrder": 2
+        },
+        "SCRIPT_LIFE_1": {
+          "id": "SCRIPT_LIFE_1",
+          "name": "发射泡泡状态",
+          "category": "Lifecycle",
+          "state": "Draft",
+          "description": "",
+          "lifecycleType": "State",
+          "assetName": "BubbleEmitingState",
+          "displayOrder": 0
+        },
+        "SCRIPT_LIFE_2": {
+          "id": "SCRIPT_LIFE_2",
+          "name": "找泡泡阶段",
+          "category": "Lifecycle",
+          "state": "Draft",
+          "description": "牛老师找泡泡的阶段，负责对应的氛围渲染以及音乐控制",
+          "lifecycleType": "Stage",
+          "assetName": "Stage_FindingBubble",
+          "displayOrder": 0
+        },
+        "SCRIPT_PERF_4": {
+          "id": "SCRIPT_PERF_4",
+          "name": "停电演出",
+          "category": "Performance",
+          "state": "Draft",
+          "description": "在牛老师找到三个泡泡来源以后，房间突然停电了，过了一会，房间一楼传来了一阵奇怪的声响",
+          "assetName": "PowerOutagePerformance",
+          "displayOrder": 3
+        },
+        "SCRIPT_PERF_5": {
+          "id": "SCRIPT_PERF_5",
+          "name": "邦邦罗闪现演出",
+          "category": "Performance",
+          "state": "Draft",
+          "description": "",
+          "assetName": "NpcFlashPerformance",
+          "displayOrder": 4
+        },
+        "SCRIPT_PERF_6": {
+          "id": "SCRIPT_PERF_6",
+          "name": "电闸开启后又断电",
+          "category": "Performance",
+          "state": "Draft",
+          "description": "电闸打开以后短暂恢复电力后又断电",
+          "assetName": "CircuitBreakerRestart",
+          "displayOrder": 5
+        },
+        "SCRIPT_LIFE_3": {
+          "id": "SCRIPT_LIFE_3",
+          "name": "柴油",
+          "category": "Lifecycle",
+          "state": "Draft",
+          "description": "柴油生命周期脚本，需要手动触发状态转移\n",
+          "lifecycleType": "Node",
+          "assetName": "DieselFuel",
+          "displayOrder": 5
+        },
+        "SCRIPT_LIFE_4": {
+          "id": "SCRIPT_LIFE_4",
+          "name": "停电找柴油阶段",
+          "category": "Lifecycle",
+          "state": "Draft",
+          "description": "牛老师遭遇停电找柴油阶段，负责对应的氛围渲染以及音乐控制",
+          "lifecycleType": "Stage",
+          "assetName": "Stage_PowerOutageDieselPhase",
+          "displayOrder": 1
+        },
+        "SCRIPT_LIFE_6": {
+          "id": "SCRIPT_LIFE_6",
+          "name": "怪物",
+          "category": "Lifecycle",
+          "state": "Draft",
+          "description": "控制怪物的生命周期",
+          "lifecycleType": "Node",
+          "assetName": "Monster",
+          "displayOrder": 6
+        },
+        "SCRIPT_COND_1": {
+          "id": "SCRIPT_COND_1",
+          "name": "触发怪物的自定义条件",
+          "category": "Condition",
+          "state": "Draft",
+          "description": "触发怪物的自定义条件脚本",
+          "assetName": "TriggerMonsterCustomCondition"
+        },
+        "SCRIPT_TRIG_1": {
+          "id": "SCRIPT_TRIG_1",
+          "name": "怪物出现的自定义触发器",
+          "category": "Trigger",
+          "state": "Draft",
+          "description": "用于触发怪物出现",
+          "assetName": "MonsterSpawnCustomTrigger"
+        },
+        "SCRIPT_LIFE_7": {
+          "id": "SCRIPT_LIFE_7",
+          "name": "怪物未出现",
+          "category": "Lifecycle",
+          "state": "Draft",
+          "description": "",
+          "lifecycleType": "State",
+          "assetName": "MonsterNotAppeared",
+          "displayOrder": 1
+        },
+        "SCRIPT_LIFE_8": {
+          "id": "SCRIPT_LIFE_8",
+          "name": "怪物游走",
+          "category": "Lifecycle",
+          "state": "Draft",
+          "description": "",
+          "lifecycleType": "State",
+          "assetName": "MonsterWander",
+          "displayOrder": 2
+        },
+        "SCRIPT_LIFE_9": {
+          "id": "SCRIPT_LIFE_9",
+          "name": "怪物追逐",
+          "category": "Lifecycle",
+          "state": "Draft",
+          "description": "",
+          "lifecycleType": "State",
+          "assetName": "MonsterChase",
+          "displayOrder": 3
+        },
+        "SCRIPT_PERF_7": {
+          "id": "SCRIPT_PERF_7",
+          "name": "被怪物追上-玩家死亡演出",
+          "category": "Performance",
+          "state": "Draft",
+          "description": "",
+          "assetName": "MonsterChasePlayerDeath",
+          "displayOrder": 6
+        },
+        "SCRIPT_LIFE_10": {
+          "id": "SCRIPT_LIFE_10",
+          "name": "柴油发电机",
+          "category": "Lifecycle",
+          "state": "Draft",
+          "description": "备用电源（柴油发电机）的生命周期\n",
+          "lifecycleType": "Node",
+          "assetName": "DieselGenerator",
+          "displayOrder": 7
+        },
+        "SCRIPT_LIFE_11": {
+          "id": "SCRIPT_LIFE_11",
+          "name": "失踪人员传单",
+          "category": "Lifecycle",
+          "state": "Draft",
+          "description": "失踪人员传单的生命周期\n",
+          "lifecycleType": "Node",
+          "assetName": "MissingPersonFlyer",
+          "displayOrder": 1
+        },
+        "SCRIPT_LIFE_12": {
+          "id": "SCRIPT_LIFE_12",
+          "name": "泡泡发射器",
+          "category": "Lifecycle",
+          "state": "Draft",
+          "description": "泡泡发射器的生命周期",
+          "lifecycleType": "Node",
+          "assetName": "BubbleLauncher",
+          "displayOrder": 2
+        },
+        "SCRIPT_LIFE_13": {
+          "id": "SCRIPT_LIFE_13",
+          "name": "采购单",
+          "category": "Lifecycle",
+          "state": "Draft",
+          "description": "采购单的生命周期",
+          "lifecycleType": "Node",
+          "assetName": "PurchaseOrder",
+          "displayOrder": 3
+        },
+        "SCRIPT_LIFE_14": {
+          "id": "SCRIPT_LIFE_14",
+          "name": "地下室门",
+          "category": "Lifecycle",
+          "state": "Draft",
+          "description": "地下室门的生命周期",
+          "lifecycleType": "Node",
+          "assetName": "BasementDoor",
+          "displayOrder": 4
+        },
+        "SCRIPT_PERF_8": {
+          "id": "SCRIPT_PERF_8",
+          "name": "玩家逃离演出",
+          "category": "Performance",
+          "state": "Draft",
+          "description": "玩家逃离时的演出",
+          "assetName": "PlayerEscapePerformance",
+          "displayOrder": 7
+        },
+        "SCRIPT_PERF_9": {
+          "id": "SCRIPT_PERF_9",
+          "name": "回忆录",
+          "category": "Performance",
+          "state": "Draft",
+          "description": "玩家回忆录以及后话",
+          "assetName": "Memoir",
+          "displayOrder": 8
+        },
+        "SCRIPT_LIFE_15": {
+          "id": "SCRIPT_LIFE_15",
+          "name": "房屋大门",
+          "category": "Lifecycle",
+          "state": "Draft",
+          "description": "房屋大门生命周期",
+          "lifecycleType": "Node",
+          "assetName": "HouseDoor",
+          "displayOrder": 0
+        }
+      }
+    },
+    "triggers": {
+      "triggers": {}
+    },
+    "stageTree": {
+      "rootId": "STAGE_1",
+      "stages": {
+        "STAGE_1": {
+          "id": "STAGE_1",
+          "name": "Root",
+          "description": "Project root stage",
+          "parentId": null,
+          "childrenIds": [
+            "STAGE_2",
+            "STAGE_3",
+            "STAGE_8"
+          ],
+          "localVariables": {},
+          "eventListeners": [],
+          "isExpanded": true,
+          "assetName": "RootStage"
+        },
+        "STAGE_2": {
+          "id": "STAGE_2",
+          "name": "初遇异常",
+          "description": "社区警员牛老师在接受到一通报警电话说家里有很多不知道哪里出现的泡泡，牛老师决定前去调查",
+          "parentId": "STAGE_1",
+          "childrenIds": [],
+          "isInitial": false,
+          "localVariables": {
+            "STAGE_2_STAGEVAR_1": {
+              "id": "STAGE_2_STAGEVAR_1",
+              "name": "邦邦罗对话完成",
+              "type": "boolean",
+              "value": false,
+              "state": "Draft",
+              "scope": "StageLocal",
+              "assetName": "Npc_Dialogue_Finished",
+              "description": "",
+              "displayOrder": 1
+            },
+            "STAGE_2_STAGEVAR_2": {
+              "id": "STAGE_2_STAGEVAR_2",
+              "name": "发现失踪人员传单",
+              "type": "boolean",
+              "value": false,
+              "state": "Draft",
+              "scope": "StageLocal",
+              "assetName": "Found_Missing_Person_Flyers",
+              "displayOrder": 0
+            }
+          },
+          "eventListeners": [],
+          "isExpanded": false,
+          "onEnterPresentation": {
+            "type": "Graph",
+            "graphId": "GRAPH_1"
+          },
+          "assetName": "FirstEncounterException"
+        },
+        "STAGE_3": {
+          "id": "STAGE_3",
+          "name": "进入房屋",
+          "description": "牛老师进入了报警女主人的房屋，但是没有看见报警人",
+          "parentId": "STAGE_1",
+          "childrenIds": [
+            "STAGE_4",
+            "STAGE_7"
+          ],
+          "isInitial": false,
+          "localVariables": {
+            "STAGE_3_STAGEVAR_1": {
+              "id": "STAGE_3_STAGEVAR_1",
+              "name": "地下室的门锁着",
+              "type": "boolean",
+              "value": false,
+              "state": "Draft",
+              "scope": "StageLocal",
+              "assetName": "BasementDoorWasLocked",
+              "displayOrder": 0
+            },
+            "STAGE_3_STAGEVAR_2": {
+              "id": "STAGE_3_STAGEVAR_2",
+              "name": "发现采购单",
+              "type": "boolean",
+              "value": false,
+              "state": "Draft",
+              "scope": "StageLocal",
+              "assetName": "PurchaseOrderFound",
+              "displayOrder": 1
+            }
+          },
+          "eventListeners": [],
+          "isExpanded": false,
+          "unlockTriggers": [
+            {
+              "type": "OnEvent",
+              "eventId": "EVENT_3"
+            }
+          ],
+          "assetName": "EnterHouse"
+        },
+        "STAGE_4": {
+          "id": "STAGE_4",
+          "name": "关闭泡泡来源",
+          "description": "牛老师发现了房间里的泡泡，准备去看看泡泡从哪里出来的",
+          "parentId": "STAGE_3",
+          "childrenIds": [],
+          "isInitial": false,
+          "localVariables": {
+            "STAGE_4_STAGEVAR_1": {
+              "id": "STAGE_4_STAGEVAR_1",
+              "name": "洗衣机泡泡被关闭",
+              "type": "boolean",
+              "value": false,
+              "state": "Draft",
+              "scope": "StageLocal",
+              "assetName": "LaundryBubbleClosed",
+              "displayOrder": 1
+            },
+            "STAGE_4_STAGEVAR_2": {
+              "id": "STAGE_4_STAGEVAR_2",
+              "name": "马桶泡泡被关闭",
+              "type": "boolean",
+              "value": false,
+              "state": "Draft",
+              "scope": "StageLocal",
+              "assetName": "ToiletBubbleClosed",
+              "displayOrder": 0
+            },
+            "STAGE_4_STAGEVAR_3": {
+              "id": "STAGE_4_STAGEVAR_3",
+              "name": "水龙头泡泡被关闭",
+              "type": "boolean",
+              "value": false,
+              "state": "Draft",
+              "scope": "StageLocal",
+              "assetName": "TapBubbleClosed",
+              "displayOrder": 2
+            }
+          },
+          "eventListeners": [],
+          "isExpanded": false,
+          "assetName": "CloseBubbleEmitter",
+          "lifecycleScriptId": "SCRIPT_LIFE_2"
+        },
+        "STAGE_5": {
+          "id": "STAGE_5",
+          "name": "遭遇停电",
+          "description": "牛老师在关闭完几个泡泡出口以后，遭遇了停电，还听到了一声异响，牛老师决定去看看是什么声音",
+          "parentId": "STAGE_7",
+          "childrenIds": [],
+          "isInitial": false,
+          "localVariables": {
+            "STAGE_5_STAGEVAR_1": {
+              "id": "STAGE_5_STAGEVAR_1",
+              "name": "邦邦罗闪现",
+              "type": "boolean",
+              "value": false,
+              "state": "Draft",
+              "scope": "StageLocal",
+              "assetName": "NpcFlashed",
+              "displayOrder": 0
+            },
+            "STAGE_5_STAGEVAR_2": {
+              "id": "STAGE_5_STAGEVAR_2",
+              "name": "电闸重启",
+              "type": "boolean",
+              "value": false,
+              "state": "Draft",
+              "scope": "StageLocal",
+              "assetName": "PowerSwitchRestart",
+              "displayOrder": 1
+            }
+          },
+          "eventListeners": [],
+          "isExpanded": false,
+          "unlockTriggers": [
+            {
+              "type": "Always"
+            }
+          ],
+          "assetName": "PowerOutage",
+          "onEnterPresentation": {
+            "type": "Script",
+            "scriptId": "SCRIPT_PERF_4",
+            "parameters": []
+          },
+          "unlockCondition": {
+            "type": "COMPARISON",
+            "operator": "==",
+            "left": {
+              "type": "VARIABLE_REF",
+              "variableId": "VAR_1",
+              "variableScope": "Global"
+            },
+            "right": {
+              "type": "LITERAL",
+              "value": 3
+            }
+          }
+        },
+        "STAGE_6": {
+          "id": "STAGE_6",
+          "name": "寻找柴油",
+          "description": "房屋电力系统坏了，牛老师需要寻找前不久购买的柴油来恢复备用电机",
+          "parentId": "STAGE_7",
+          "childrenIds": [],
+          "isInitial": false,
+          "localVariables": {},
+          "eventListeners": [],
+          "isExpanded": false,
+          "assetName": "FindGasoline",
+          "unlockTriggers": [
+            {
+              "type": "Always"
+            }
+          ],
+          "unlockCondition": {
+            "type": "COMPARISON",
+            "operator": ">=",
+            "left": {
+              "type": "VARIABLE_REF",
+              "variableId": "VAR_2",
+              "variableScope": "Global"
+            },
+            "right": {
+              "type": "LITERAL",
+              "value": 1
+            }
+          }
+        },
+        "STAGE_7": {
+          "id": "STAGE_7",
+          "name": "遭遇停电+寻找柴油",
+          "description": "牛老师遭遇了停电，但是主电力系统坏了，需要启用备用电机",
+          "parentId": "STAGE_3",
+          "childrenIds": [
+            "STAGE_5",
+            "STAGE_6"
+          ],
+          "isInitial": false,
+          "localVariables": {},
+          "eventListeners": [],
+          "isExpanded": false,
+          "assetName": "PowerOutageAndDieselSearch",
+          "unlockTriggers": [
+            {
+              "type": "Always",
+              "eventId": "",
+              "scriptId": ""
+            }
+          ],
+          "unlockCondition": {
+            "type": "COMPARISON",
+            "operator": "==",
+            "left": {
+              "type": "VARIABLE_REF",
+              "variableId": "VAR_1",
+              "variableScope": "Global"
+            },
+            "right": {
+              "type": "LITERAL",
+              "value": 3
+            }
+          },
+          "lifecycleScriptId": "SCRIPT_LIFE_4"
+        },
+        "STAGE_8": {
+          "id": "STAGE_8",
+          "name": "开启电源",
+          "description": "牛老师开启电源，准备逃离大宅",
+          "parentId": "STAGE_1",
+          "childrenIds": [],
+          "isInitial": false,
+          "localVariables": {},
+          "eventListeners": [],
+          "isExpanded": false,
+          "assetName": "PowerOn",
+          "unlockTriggers": [
+            {
+              "type": "Always"
+            }
+          ],
+          "unlockCondition": {
+            "type": "COMPARISON",
+            "operator": "==",
+            "left": {
+              "type": "VARIABLE_REF",
+              "variableId": "VAR_3",
+              "variableScope": "Global"
+            },
+            "right": {
+              "type": "LITERAL",
+              "value": true
+            }
+          }
+        }
+      }
+    },
+    "nodes": {
+      "NODE_1": {
+        "id": "NODE_1",
+        "name": "邦邦罗的对话",
+        "description": "邦邦罗是当地科学站的一名研究员，他告诉牛老师最近科学站监测到了一些不寻常的电磁信号，所以来附近调查",
+        "stageId": "STAGE_2",
+        "stateMachineId": "FSM_1",
+        "localVariables": {},
+        "eventListeners": [],
+        "displayOrder": 0,
+        "assetName": "ChatWithNPC"
+      },
+      "NODE_2": {
+        "id": "NODE_2",
+        "name": "发现失踪人员传单",
+        "description": "牛老师发现了一些失踪人员的传单",
+        "stageId": "STAGE_2",
+        "stateMachineId": "FSM_2",
+        "localVariables": {},
+        "eventListeners": [],
+        "displayOrder": 1,
+        "assetName": "Found_Flayers",
+        "lifecycleScriptId": "SCRIPT_LIFE_11"
+      },
+      "NODE_3": {
+        "id": "NODE_3",
+        "name": "洗衣机冒泡泡",
+        "description": "牛老师发现洗衣机里有泡泡冒出来，牛老师关闭洗衣机",
+        "stageId": "STAGE_4",
+        "stateMachineId": "FSM_3",
+        "localVariables": {},
+        "eventListeners": [],
+        "displayOrder": 0,
+        "assetName": "LaundryBubble"
+      },
+      "NODE_4": {
+        "id": "NODE_4",
+        "name": "马桶冒泡泡",
+        "description": "牛老师发现马桶有泡泡冒出来，牛老师关闭马桶",
+        "stageId": "STAGE_4",
+        "stateMachineId": "FSM_4",
+        "localVariables": {},
+        "eventListeners": [],
+        "displayOrder": 1,
+        "assetName": "ToiletBubble"
+      },
+      "NODE_5": {
+        "id": "NODE_5",
+        "name": "水龙头冒泡泡",
+        "description": "牛老师发现水龙头有泡泡冒出来，牛老师关闭水龙头",
+        "stageId": "STAGE_4",
+        "stateMachineId": "FSM_5",
+        "localVariables": {},
+        "eventListeners": [],
+        "displayOrder": 2,
+        "assetName": "TapBubble"
+      },
+      "NODE_6": {
+        "id": "NODE_6",
+        "name": "发现采购单",
+        "description": "牛老师发现房屋的采购单，有备用发电机、几桶汽油",
+        "stageId": "STAGE_3",
+        "stateMachineId": "FSM_6",
+        "localVariables": {},
+        "eventListeners": [],
+        "displayOrder": 0,
+        "assetName": "PurchaseOrderDiscovered",
+        "lifecycleScriptId": "SCRIPT_LIFE_13"
+      },
+      "NODE_7": {
+        "id": "NODE_7",
+        "name": "前往地下室的门",
+        "description": "前往地下室的门是锁着的",
+        "stageId": "STAGE_3",
+        "stateMachineId": "FSM_7",
+        "localVariables": {},
+        "eventListeners": [],
+        "displayOrder": 1,
+        "assetName": "BasementDoor",
+        "lifecycleScriptId": "SCRIPT_LIFE_14"
+      },
+      "NODE_8": {
+        "id": "NODE_8",
+        "name": "邦邦罗神秘闪现",
+        "description": "在走廊上,触发邦邦罗的神秘闪现",
+        "stageId": "STAGE_5",
+        "stateMachineId": "FSM_8",
+        "localVariables": {},
+        "eventListeners": [],
+        "displayOrder": 0,
+        "assetName": "NpcMysteriouslyAppears"
+      },
+      "NODE_9": {
+        "id": "NODE_9",
+        "name": "电闸开关",
+        "description": "地下室的门打开了（不知道被谁撞开了），里面有一个电闸开关",
+        "stageId": "STAGE_5",
+        "stateMachineId": "FSM_9",
+        "localVariables": {},
+        "eventListeners": [],
+        "displayOrder": 1,
+        "assetName": "PowerSwitch"
+      },
+      "NODE_10": {
+        "id": "NODE_10",
+        "name": "冒泡泡的洗手池",
+        "description": "洗手池又开始冒泡泡，水龙头不知道为什么又打开了",
+        "stageId": "STAGE_5",
+        "stateMachineId": "FSM_10",
+        "localVariables": {},
+        "eventListeners": [],
+        "displayOrder": 2,
+        "assetName": "BubbleBathSink"
+      },
+      "NODE_11": {
+        "id": "NODE_11",
+        "name": "柴油1",
+        "description": "牛老师找到柴油1",
+        "stageId": "STAGE_7",
+        "stateMachineId": "FSM_11",
+        "localVariables": {},
+        "eventListeners": [],
+        "displayOrder": 0,
+        "assetName": "Diesel1",
+        "lifecycleScriptId": "SCRIPT_LIFE_3"
+      },
+      "NODE_12": {
+        "id": "NODE_12",
+        "name": "柴油2",
+        "description": "牛老师找到柴油2",
+        "stageId": "STAGE_7",
+        "stateMachineId": "FSM_12",
+        "localVariables": {},
+        "eventListeners": [],
+        "displayOrder": 1,
+        "assetName": "Diesel2",
+        "lifecycleScriptId": "SCRIPT_LIFE_3"
+      },
+      "NODE_13": {
+        "id": "NODE_13",
+        "name": "柴油3",
+        "description": "牛老师找到柴油3",
+        "stageId": "STAGE_7",
+        "stateMachineId": "FSM_13",
+        "localVariables": {},
+        "eventListeners": [],
+        "displayOrder": 2,
+        "assetName": "Diesel3",
+        "lifecycleScriptId": "SCRIPT_LIFE_3"
+      },
+      "NODE_14": {
+        "id": "NODE_14",
+        "name": "怪物出现",
+        "description": "怪物出现",
+        "stageId": "STAGE_6",
+        "stateMachineId": "FSM_14",
+        "localVariables": {},
+        "eventListeners": [
+          {
+            "eventId": "EVENT_11",
+            "action": {
+              "type": "InvokeScript"
+            }
+          }
+        ],
+        "displayOrder": 0,
+        "assetName": "MonsterAppear",
+        "lifecycleScriptId": "SCRIPT_LIFE_6"
+      },
+      "NODE_15": {
+        "id": "NODE_15",
+        "name": "柴油发电机",
+        "description": "收集到了足够的汽油，开启柴油发电机",
+        "stageId": "STAGE_6",
+        "stateMachineId": "FSM_15",
+        "localVariables": {},
+        "eventListeners": [],
+        "displayOrder": 1,
+        "assetName": "DieselGenerator",
+        "lifecycleScriptId": "SCRIPT_LIFE_10"
+      },
+      "NODE_16": {
+        "id": "NODE_16",
+        "name": "房屋大门",
+        "description": "控制房屋大门的开闭状态",
+        "stageId": "STAGE_1",
+        "stateMachineId": "FSM_16",
+        "localVariables": {},
+        "eventListeners": [],
+        "displayOrder": 0,
+        "assetName": "HouseDoor",
+        "lifecycleScriptId": "SCRIPT_LIFE_15"
+      },
+      "NODE_17": {
+        "id": "NODE_17",
+        "name": "玩家逃离",
+        "description": "",
+        "stageId": "STAGE_8",
+        "stateMachineId": "FSM_17",
+        "localVariables": {},
+        "eventListeners": [],
+        "displayOrder": 0,
+        "assetName": "PlayerEscape"
+      }
+    },
+    "stateMachines": {
+      "FSM_1": {
+        "id": "FSM_1",
+        "initialStateId": "STATE_1",
+        "states": {
+          "STATE_1": {
+            "id": "STATE_1",
+            "name": "对话未触发",
+            "description": "Initial state: Waiting for trigger",
+            "position": {
+              "x": 446,
+              "y": 318
+            },
+            "eventListeners": []
+          },
+          "STATE_2": {
+            "id": "STATE_2",
+            "name": "对话完成",
+            "description": "State after being triggered",
+            "position": {
+              "x": 749,
+              "y": 317
+            },
+            "eventListeners": []
+          }
+        },
+        "transitions": {
+          "TRANS_1": {
+            "id": "TRANS_1",
+            "fromStateId": "STATE_1",
+            "toStateId": "STATE_2",
+            "priority": 0,
+            "name": "触发对话",
+            "triggers": [
+              {
+                "type": "OnEvent",
+                "eventId": "EVENT_1"
+              }
+            ],
+            "parameterModifiers": [
+              {
+                "targetVariableId": "STAGE_2_STAGEVAR_1",
+                "targetScope": "StageLocal",
+                "operation": "Set",
+                "source": {
+                  "type": "Constant",
+                  "value": true
+                }
+              }
+            ],
+            "presentation": {
+              "type": "Script",
+              "scriptId": "SCRIPT_PERF_3",
+              "parameters": []
+            }
+          }
+        },
+        "displayOrder": 0
+      },
+      "FSM_2": {
+        "id": "FSM_2",
+        "initialStateId": "STATE_3",
+        "states": {
+          "STATE_3": {
+            "id": "STATE_3",
+            "name": "Not triggered",
+            "description": "Initial state: Waiting for trigger",
+            "position": {
+              "x": 200,
+              "y": 150
+            },
+            "eventListeners": []
+          },
+          "STATE_4": {
+            "id": "STATE_4",
+            "name": "Triggered",
+            "description": "State after being triggered",
+            "position": {
+              "x": 600,
+              "y": 150
+            },
+            "eventListeners": []
+          }
+        },
+        "transitions": {
+          "TRANS_2": {
+            "id": "TRANS_2",
+            "fromStateId": "STATE_3",
+            "toStateId": "STATE_4",
+            "priority": 0,
+            "name": "发现传单",
+            "triggers": [
+              {
+                "type": "HandledByScript",
+                "eventId": "EVENT_2",
+                "scriptId": ""
+              }
+            ],
+            "parameterModifiers": [
+              {
+                "targetVariableId": "STAGE_2_STAGEVAR_2",
+                "targetScope": "StageLocal",
+                "operation": "Set",
+                "source": {
+                  "type": "Constant",
+                  "value": true
+                }
+              }
+            ]
+          }
+        },
+        "displayOrder": 8
+      },
+      "FSM_3": {
+        "id": "FSM_3",
+        "initialStateId": "STATE_5",
+        "states": {
+          "STATE_5": {
+            "id": "STATE_5",
+            "name": "Not triggered",
+            "description": "Initial state: Waiting for trigger",
+            "position": {
+              "x": 200,
+              "y": 149
+            },
+            "eventListeners": [],
+            "lifecycleScriptId": "SCRIPT_LIFE_1",
+            "assetName": "NotTriggered"
+          },
+          "STATE_6": {
+            "id": "STATE_6",
+            "name": "Triggered",
+            "description": "State after being triggered",
+            "position": {
+              "x": 503,
+              "y": 149
+            },
+            "eventListeners": [],
+            "assetName": "Triggered"
+          }
+        },
+        "transitions": {
+          "TRANS_3": {
+            "id": "TRANS_3",
+            "fromStateId": "STATE_5",
+            "toStateId": "STATE_6",
+            "priority": 0,
+            "name": "Trigger",
+            "triggers": [
+              {
+                "type": "HandledByScript",
+                "eventId": "EVENT_4"
+              }
+            ],
+            "parameterModifiers": [
+              {
+                "targetVariableId": "STAGE_4_STAGEVAR_1",
+                "targetScope": "StageLocal",
+                "operation": "Set",
+                "source": {
+                  "type": "Constant",
+                  "value": true
+                }
+              },
+              {
+                "targetVariableId": "VAR_1",
+                "targetScope": "Global",
+                "operation": "Add",
+                "source": {
+                  "type": "Constant",
+                  "value": 1
+                }
+              }
+            ]
+          }
+        },
+        "displayOrder": 9
+      },
+      "FSM_4": {
+        "id": "FSM_4",
+        "initialStateId": "STATE_7",
+        "states": {
+          "STATE_7": {
+            "id": "STATE_7",
+            "name": "Not triggered",
+            "description": "Initial state: Waiting for trigger",
+            "position": {
+              "x": 200,
+              "y": 150
+            },
+            "eventListeners": [],
+            "lifecycleScriptId": "SCRIPT_LIFE_1",
+            "assetName": "NotTriggered"
+          },
+          "STATE_8": {
+            "id": "STATE_8",
+            "name": "Triggered",
+            "description": "State after being triggered",
+            "position": {
+              "x": 512,
+              "y": 152
+            },
+            "eventListeners": [],
+            "assetName": "Triggered"
+          }
+        },
+        "transitions": {
+          "TRANS_4": {
+            "id": "TRANS_4",
+            "fromStateId": "STATE_7",
+            "toStateId": "STATE_8",
+            "priority": 0,
+            "name": "Trigger",
+            "triggers": [
+              {
+                "type": "OnEvent",
+                "eventId": "EVENT_6"
+              }
+            ],
+            "parameterModifiers": [
+              {
+                "targetVariableId": "STAGE_4_STAGEVAR_2",
+                "targetScope": "StageLocal",
+                "operation": "Set",
+                "source": {
+                  "type": "Constant",
+                  "value": true
+                }
+              },
+              {
+                "targetVariableId": "VAR_1",
+                "targetScope": "Global",
+                "operation": "Add",
+                "source": {
+                  "type": "Constant",
+                  "value": 1
+                }
+              }
+            ]
+          }
+        },
+        "displayOrder": 10
+      },
+      "FSM_5": {
+        "id": "FSM_5",
+        "initialStateId": "STATE_9",
+        "states": {
+          "STATE_9": {
+            "id": "STATE_9",
+            "name": "Not triggered",
+            "description": "Initial state: Waiting for trigger",
+            "position": {
+              "x": 200,
+              "y": 150
+            },
+            "eventListeners": [],
+            "lifecycleScriptId": "SCRIPT_LIFE_1",
+            "assetName": "NotTriggered"
+          },
+          "STATE_10": {
+            "id": "STATE_10",
+            "name": "Triggered",
+            "description": "State after being triggered",
+            "position": {
+              "x": 546,
+              "y": 150
+            },
+            "eventListeners": [],
+            "assetName": "Triggered"
+          }
+        },
+        "transitions": {
+          "TRANS_5": {
+            "id": "TRANS_5",
+            "fromStateId": "STATE_9",
+            "toStateId": "STATE_10",
+            "priority": 0,
+            "name": "Trigger",
+            "triggers": [
+              {
+                "type": "HandledByScript",
+                "eventId": "EVENT_5"
+              }
+            ],
+            "parameterModifiers": [
+              {
+                "targetVariableId": "STAGE_4_STAGEVAR_3",
+                "targetScope": "StageLocal",
+                "operation": "Set",
+                "source": {
+                  "type": "Constant",
+                  "value": true
+                }
+              },
+              {
+                "targetVariableId": "VAR_1",
+                "targetScope": "Global",
+                "operation": "Add",
+                "source": {
+                  "type": "Constant",
+                  "value": 1
+                }
+              }
+            ]
+          }
+        },
+        "displayOrder": 11
+      },
+      "FSM_6": {
+        "id": "FSM_6",
+        "initialStateId": "STATE_11",
+        "states": {
+          "STATE_11": {
+            "id": "STATE_11",
+            "name": "Not triggered",
+            "assetName": "NotTriggered",
+            "description": "Initial state: Waiting for trigger",
+            "position": {
+              "x": 200,
+              "y": 150
+            },
+            "eventListeners": []
+          },
+          "STATE_12": {
+            "id": "STATE_12",
+            "name": "Triggered",
+            "assetName": "Triggered",
+            "description": "State after being triggered",
+            "position": {
+              "x": 600,
+              "y": 150
+            },
+            "eventListeners": []
+          }
+        },
+        "transitions": {
+          "TRANS_6": {
+            "id": "TRANS_6",
+            "fromStateId": "STATE_11",
+            "toStateId": "STATE_12",
+            "priority": 0,
+            "name": "Trigger",
+            "triggers": [
+              {
+                "type": "HandledByScript",
+                "eventId": "EVENT_7"
+              }
+            ],
+            "parameterModifiers": [
+              {
+                "targetVariableId": "STAGE_3_STAGEVAR_2",
+                "targetScope": "StageLocal",
+                "operation": "Set",
+                "source": {
+                  "type": "Constant",
+                  "value": true
+                }
+              }
+            ]
+          }
+        },
+        "displayOrder": 12
+      },
+      "FSM_7": {
+        "id": "FSM_7",
+        "initialStateId": "STATE_13",
+        "states": {
+          "STATE_13": {
+            "id": "STATE_13",
+            "name": "锁着",
+            "assetName": "Locked",
+            "description": "Initial state: Waiting for trigger",
+            "position": {
+              "x": 245,
+              "y": 153
+            },
+            "eventListeners": []
+          },
+          "STATE_14": {
+            "id": "STATE_14",
+            "name": "打开",
+            "assetName": "Open",
+            "description": "State after being triggered",
+            "position": {
+              "x": 599,
+              "y": 156
+            },
+            "eventListeners": []
+          }
+        },
+        "transitions": {
+          "TRANS_7": {
+            "id": "TRANS_7",
+            "fromStateId": "STATE_13",
+            "toStateId": "STATE_14",
+            "priority": 0,
+            "name": "Trigger",
+            "triggers": [
+              {
+                "type": "Always",
+                "eventId": ""
+              }
+            ],
+            "parameterModifiers": [
+              {
+                "targetVariableId": "STAGE_3_STAGEVAR_1",
+                "targetScope": "StageLocal",
+                "operation": "Set",
+                "source": {
+                  "type": "Constant",
+                  "value": true
+                }
+              }
+            ],
+            "condition": {
+              "type": "COMPARISON",
+              "operator": "==",
+              "left": {
+                "type": "VARIABLE_REF",
+                "variableId": "VAR_1",
+                "variableScope": "Global"
+              },
+              "right": {
+                "type": "LITERAL",
+                "value": 3
+              }
+            }
+          }
+        },
+        "displayOrder": 13
+      },
+      "FSM_8": {
+        "id": "FSM_8",
+        "initialStateId": "STATE_15",
+        "states": {
+          "STATE_15": {
+            "id": "STATE_15",
+            "name": "Not triggered",
+            "assetName": "NotTriggered",
+            "description": "Initial state: Waiting for trigger",
+            "position": {
+              "x": 200,
+              "y": 150
+            },
+            "eventListeners": []
+          },
+          "STATE_16": {
+            "id": "STATE_16",
+            "name": "Triggered",
+            "assetName": "Triggered",
+            "description": "State after being triggered",
+            "position": {
+              "x": 600,
+              "y": 150
+            },
+            "eventListeners": []
+          }
+        },
+        "transitions": {
+          "TRANS_8": {
+            "id": "TRANS_8",
+            "fromStateId": "STATE_15",
+            "toStateId": "STATE_16",
+            "priority": 0,
+            "name": "Trigger",
+            "triggers": [
+              {
+                "type": "OnEvent",
+                "eventId": "EVENT_8"
+              }
+            ],
+            "parameterModifiers": [
+              {
+                "targetVariableId": "STAGE_5_STAGEVAR_1",
+                "targetScope": "StageLocal",
+                "operation": "Set",
+                "source": {
+                  "type": "Constant",
+                  "value": true
+                }
+              }
+            ],
+            "presentation": {
+              "type": "Script",
+              "scriptId": "SCRIPT_PERF_5",
+              "parameters": []
+            }
+          }
+        },
+        "displayOrder": 14
+      },
+      "FSM_9": {
+        "id": "FSM_9",
+        "initialStateId": "STATE_17",
+        "states": {
+          "STATE_17": {
+            "id": "STATE_17",
+            "name": "电闸关闭",
+            "assetName": "PowerSwitchOff",
+            "description": "Initial state: Waiting for trigger",
+            "position": {
+              "x": 200,
+              "y": 150
+            },
+            "eventListeners": []
+          },
+          "STATE_18": {
+            "id": "STATE_18",
+            "name": "电闸开启后再次关闭",
+            "assetName": "PowerSwitchCloseAfterOpen",
+            "description": "State after being triggered",
+            "position": {
+              "x": 600,
+              "y": 150
+            },
+            "eventListeners": []
+          }
+        },
+        "transitions": {
+          "TRANS_9": {
+            "id": "TRANS_9",
+            "fromStateId": "STATE_17",
+            "toStateId": "STATE_18",
+            "priority": 0,
+            "name": "Trigger",
+            "triggers": [
+              {
+                "type": "OnEvent",
+                "eventId": "EVENT_9"
+              }
+            ],
+            "parameterModifiers": [
+              {
+                "targetVariableId": "STAGE_5_STAGEVAR_2",
+                "targetScope": "StageLocal",
+                "operation": "Set",
+                "source": {
+                  "type": "Constant",
+                  "value": true
+                }
+              }
+            ],
+            "presentation": {
+              "type": "Script",
+              "scriptId": "SCRIPT_PERF_6",
+              "parameters": []
+            }
+          }
+        },
+        "displayOrder": 15
+      },
+      "FSM_10": {
+        "id": "FSM_10",
+        "initialStateId": "STATE_21",
+        "states": {
+          "STATE_19": {
+            "id": "STATE_19",
+            "name": "冒泡泡状态",
+            "assetName": "BubbleState",
+            "description": "Initial state: Waiting for trigger",
+            "position": {
+              "x": 462,
+              "y": 146
+            },
+            "eventListeners": [],
+            "lifecycleScriptId": "SCRIPT_LIFE_1"
+          },
+          "STATE_20": {
+            "id": "STATE_20",
+            "name": "水龙头被关闭",
+            "assetName": "TapClosed",
+            "description": "水龙头关闭",
+            "position": {
+              "x": 809,
+              "y": 147
+            },
+            "eventListeners": []
+          },
+          "STATE_21": {
+            "id": "STATE_21",
+            "name": "默认",
+            "position": {
+              "x": 123,
+              "y": 147
+            },
+            "eventListeners": [],
+            "assetName": "Default"
+          }
+        },
+        "transitions": {
+          "TRANS_10": {
+            "id": "TRANS_10",
+            "fromStateId": "STATE_19",
+            "toStateId": "STATE_20",
+            "priority": 0,
+            "name": "关闭水龙头",
+            "triggers": [
+              {
+                "type": "OnEvent",
+                "eventId": "EVENT_10"
+              }
+            ],
+            "parameterModifiers": []
+          },
+          "TRANS_11": {
+            "id": "TRANS_11",
+            "name": "Transition",
+            "fromStateId": "STATE_21",
+            "toStateId": "STATE_19",
+            "fromSide": "right",
+            "toSide": "left",
+            "condition": {
+              "type": "VARIABLE_REF",
+              "variableId": "STAGE_5_STAGEVAR_2",
+              "variableScope": "StageLocal"
+            },
+            "priority": 0,
+            "triggers": [
+              {
+                "type": "Always"
+              }
+            ],
+            "parameterModifiers": []
+          }
+        },
+        "displayOrder": 1
+      },
+      "FSM_11": {
+        "id": "FSM_11",
+        "initialStateId": "STATE_22",
+        "states": {
+          "STATE_22": {
+            "id": "STATE_22",
+            "name": "Not triggered",
+            "assetName": "NotTriggered",
+            "description": "Initial state: Waiting for trigger",
+            "position": {
+              "x": 200,
+              "y": 150
+            },
+            "eventListeners": []
+          },
+          "STATE_23": {
+            "id": "STATE_23",
+            "name": "Triggered",
+            "assetName": "Triggered",
+            "description": "State after being triggered",
+            "position": {
+              "x": 600,
+              "y": 150
+            },
+            "eventListeners": []
+          }
+        },
+        "transitions": {
+          "TRANS_12": {
+            "id": "TRANS_12",
+            "fromStateId": "STATE_22",
+            "toStateId": "STATE_23",
+            "priority": 0,
+            "name": "Trigger",
+            "triggers": [
+              {
+                "type": "HandledByScript"
+              }
+            ],
+            "parameterModifiers": [
+              {
+                "targetVariableId": "VAR_2",
+                "targetScope": "Global",
+                "operation": "Add",
+                "source": {
+                  "type": "Constant",
+                  "value": 1
+                }
+              }
+            ]
+          }
+        },
+        "displayOrder": 2
+      },
+      "FSM_12": {
+        "id": "FSM_12",
+        "initialStateId": "STATE_24",
+        "states": {
+          "STATE_24": {
+            "id": "STATE_24",
+            "name": "Not triggered",
+            "assetName": "NotTriggered",
+            "description": "Initial state: Waiting for trigger",
+            "position": {
+              "x": 200,
+              "y": 150
+            },
+            "eventListeners": []
+          },
+          "STATE_25": {
+            "id": "STATE_25",
+            "name": "Triggered",
+            "assetName": "Triggered",
+            "description": "State after being triggered",
+            "position": {
+              "x": 600,
+              "y": 150
+            },
+            "eventListeners": []
+          }
+        },
+        "transitions": {
+          "TRANS_13": {
+            "id": "TRANS_13",
+            "fromStateId": "STATE_24",
+            "toStateId": "STATE_25",
+            "priority": 0,
+            "name": "Trigger",
+            "triggers": [
+              {
+                "type": "HandledByScript"
+              }
+            ],
+            "parameterModifiers": [
+              {
+                "targetVariableId": "VAR_2",
+                "targetScope": "Global",
+                "operation": "Add",
+                "source": {
+                  "type": "Constant",
+                  "value": 1
+                }
+              }
+            ]
+          }
+        },
+        "displayOrder": 3
+      },
+      "FSM_13": {
+        "id": "FSM_13",
+        "initialStateId": "STATE_26",
+        "states": {
+          "STATE_26": {
+            "id": "STATE_26",
+            "name": "Not triggered",
+            "assetName": "NotTriggered",
+            "description": "Initial state: Waiting for trigger",
+            "position": {
+              "x": 200,
+              "y": 150
+            },
+            "eventListeners": []
+          },
+          "STATE_27": {
+            "id": "STATE_27",
+            "name": "Triggered",
+            "assetName": "Triggered",
+            "description": "State after being triggered",
+            "position": {
+              "x": 600,
+              "y": 150
+            },
+            "eventListeners": []
+          }
+        },
+        "transitions": {
+          "TRANS_14": {
+            "id": "TRANS_14",
+            "fromStateId": "STATE_26",
+            "toStateId": "STATE_27",
+            "priority": 0,
+            "name": "Trigger",
+            "triggers": [
+              {
+                "type": "HandledByScript"
+              }
+            ],
+            "parameterModifiers": [
+              {
+                "targetVariableId": "VAR_2",
+                "targetScope": "Global",
+                "operation": "Add",
+                "source": {
+                  "type": "Constant",
+                  "value": 1
+                }
+              }
+            ]
+          }
+        },
+        "displayOrder": 4
+      },
+      "FSM_14": {
+        "id": "FSM_14",
+        "initialStateId": "STATE_1",
+        "states": {
+          "STATE_1": {
+            "id": "STATE_1",
+            "name": "怪物未出现",
+            "position": {
+              "x": 359,
+              "y": 296
+            },
+            "eventListeners": [],
+            "assetName": "MonsterNotSpawned",
+            "lifecycleScriptId": "SCRIPT_LIFE_7"
+          },
+          "STATE_2": {
+            "id": "STATE_2",
+            "name": "怪物游走",
+            "position": {
+              "x": 659,
+              "y": 296
+            },
+            "eventListeners": [],
+            "assetName": "MonsterWander",
+            "lifecycleScriptId": "SCRIPT_LIFE_8"
+          },
+          "STATE_3": {
+            "id": "STATE_3",
+            "name": "怪物追逐",
+            "position": {
+              "x": 952,
+              "y": 293
+            },
+            "eventListeners": [],
+            "assetName": "MonsterChase",
+            "lifecycleScriptId": "SCRIPT_LIFE_9"
+          },
+          "STATE_4": {
+            "id": "STATE_4",
+            "name": "怪物追到玩家",
+            "position": {
+              "x": 1248,
+              "y": 292
+            },
+            "eventListeners": [],
+            "assetName": "MonsterChasePlayer"
+          }
+        },
+        "transitions": {
+          "TRANS_1": {
+            "id": "TRANS_1",
+            "name": "Transition",
+            "fromStateId": "STATE_1",
+            "toStateId": "STATE_2",
+            "fromSide": "right",
+            "toSide": "left",
+            "condition": {
+              "type": "SCRIPT_REF",
+              "scriptId": "SCRIPT_COND_1"
+            },
+            "priority": 0,
+            "triggers": [
+              {
+                "type": "CustomScript",
+                "scriptId": "SCRIPT_TRIG_1"
+              }
+            ],
+            "parameterModifiers": []
+          },
+          "TRANS_2": {
+            "id": "TRANS_2",
+            "name": "Transition",
+            "fromStateId": "STATE_2",
+            "toStateId": "STATE_3",
+            "fromSide": "right",
+            "toSide": "left",
+            "condition": {
+              "type": "LITERAL",
+              "value": true
+            },
+            "priority": 0,
+            "triggers": [
+              {
+                "type": "HandledByScript"
+              }
+            ],
+            "parameterModifiers": []
+          },
+          "TRANS_3": {
+            "id": "TRANS_3",
+            "name": "Transition",
+            "fromStateId": "STATE_3",
+            "toStateId": "STATE_2",
+            "fromSide": "bottom",
+            "toSide": "bottom",
+            "condition": {
+              "type": "LITERAL",
+              "value": true
+            },
+            "priority": 0,
+            "triggers": [
+              {
+                "type": "HandledByScript"
+              }
+            ],
+            "parameterModifiers": []
+          },
+          "TRANS_4": {
+            "id": "TRANS_4",
+            "name": "Transition",
+            "fromStateId": "STATE_3",
+            "toStateId": "STATE_4",
+            "fromSide": "right",
+            "toSide": "left",
+            "condition": {
+              "type": "LITERAL",
+              "value": true
+            },
+            "priority": 0,
+            "triggers": [
+              {
+                "type": "HandledByScript"
+              }
+            ],
+            "parameterModifiers": [],
+            "presentation": {
+              "type": "Script",
+              "scriptId": "SCRIPT_PERF_7",
+              "parameters": []
+            },
+            "invokeEventIds": [
+              "EVENT_11"
+            ]
+          }
+        },
+        "displayOrder": 5
+      },
+      "FSM_15": {
+        "id": "FSM_15",
+        "initialStateId": "STATE_28",
+        "states": {
+          "STATE_28": {
+            "id": "STATE_28",
+            "name": "未启动",
+            "assetName": "NotStarted",
+            "description": "Initial state: Waiting for trigger",
+            "position": {
+              "x": 200,
+              "y": 150
+            },
+            "eventListeners": []
+          },
+          "STATE_29": {
+            "id": "STATE_29",
+            "name": "启动",
+            "assetName": "StartUp",
+            "description": "State after being triggered",
+            "position": {
+              "x": 602,
+              "y": 151
+            },
+            "eventListeners": []
+          }
+        },
+        "transitions": {
+          "TRANS_15": {
+            "id": "TRANS_15",
+            "fromStateId": "STATE_28",
+            "toStateId": "STATE_29",
+            "priority": 0,
+            "name": "Trigger",
+            "triggers": [
+              {
+                "type": "HandledByScript"
+              }
+            ],
+            "parameterModifiers": [
+              {
+                "targetVariableId": "VAR_3",
+                "targetScope": "Global",
+                "operation": "Set",
+                "source": {
+                  "type": "Constant",
+                  "value": true
+                }
+              }
+            ],
+            "condition": {
+              "type": "COMPARISON",
+              "operator": ">=",
+              "left": {
+                "type": "VARIABLE_REF",
+                "variableId": "VAR_2",
+                "variableScope": "Global"
+              },
+              "right": {
+                "type": "LITERAL",
+                "value": 3
+              }
+            },
+            "invokeEventIds": [
+              "EVENT_12"
+            ]
+          }
+        },
+        "displayOrder": 6
+      },
+      "FSM_16": {
+        "id": "FSM_16",
+        "initialStateId": "STATE_1",
+        "states": {
+          "STATE_1": {
+            "id": "STATE_1",
+            "name": "打开",
+            "position": {
+              "x": 352,
+              "y": 372
+            },
+            "eventListeners": [],
+            "assetName": "NotOpened"
+          },
+          "STATE_2": {
+            "id": "STATE_2",
+            "name": "锁上",
+            "position": {
+              "x": 635,
+              "y": 372
+            },
+            "eventListeners": [],
+            "assetName": "LockUp"
+          },
+          "STATE_3": {
+            "id": "STATE_3",
+            "name": "重新解锁",
+            "position": {
+              "x": 924,
+              "y": 372
+            },
+            "eventListeners": [],
+            "assetName": "ReUnlock"
+          }
+        },
+        "transitions": {
+          "TRANS_1": {
+            "id": "TRANS_1",
+            "name": "Transition",
+            "fromStateId": "STATE_1",
+            "toStateId": "STATE_2",
+            "fromSide": "right",
+            "toSide": "left",
+            "condition": {
+              "type": "LITERAL",
+              "value": true
+            },
+            "priority": 0,
+            "triggers": [
+              {
+                "type": "HandledByScript"
+              }
+            ],
+            "parameterModifiers": [],
+            "invokeEventIds": [
+              "EVENT_3"
+            ]
+          },
+          "TRANS_2": {
+            "id": "TRANS_2",
+            "name": "Transition",
+            "fromStateId": "STATE_2",
+            "toStateId": "STATE_3",
+            "fromSide": "right",
+            "toSide": "left",
+            "priority": 0,
+            "triggers": [
+              {
+                "type": "OnEvent",
+                "eventId": "EVENT_12"
+              }
+            ],
+            "parameterModifiers": []
+          }
+        },
+        "displayOrder": 7
+      },
+      "FSM_17": {
+        "id": "FSM_17",
+        "initialStateId": "STATE_30",
+        "states": {
+          "STATE_30": {
+            "id": "STATE_30",
+            "name": "初始状态",
+            "assetName": "InitialState",
+            "description": "Initial state: Waiting for trigger",
+            "position": {
+              "x": 200,
+              "y": 150
+            },
+            "eventListeners": []
+          },
+          "STATE_31": {
+            "id": "STATE_31",
+            "name": "玩家逃离",
+            "assetName": "PlayerEscape",
+            "description": "State after being triggered",
+            "position": {
+              "x": 510,
+              "y": 149
+            },
+            "eventListeners": []
+          }
+        },
+        "transitions": {
+          "TRANS_16": {
+            "id": "TRANS_16",
+            "fromStateId": "STATE_30",
+            "toStateId": "STATE_31",
+            "priority": 0,
+            "name": "逃离",
+            "triggers": [
+              {
+                "type": "OnEvent",
+                "eventId": "EVENT_13"
+              }
+            ],
+            "parameterModifiers": [],
+            "presentation": {
+              "type": "Graph",
+              "graphId": "GRAPH_2"
+            }
+          }
+        },
+        "displayOrder": 16
+      }
+    },
+    "presentationGraphs": {
+      "GRAPH_1": {
+        "id": "GRAPH_1",
+        "name": "游戏开端演出",
+        "description": "",
+        "startNodeId": "PNODE_1",
+        "nodes": {
+          "PNODE_1": {
+            "id": "PNODE_1",
+            "name": "接到电话",
+            "type": "PresentationNode",
+            "position": {
+              "x": 440,
+              "y": 316
+            },
+            "nextIds": [
+              "PNODE_3"
+            ],
+            "presentation": {
+              "type": "Script",
+              "scriptId": "SCRIPT_PERF_1",
+              "parameters": []
+            }
+          },
+          "PNODE_2": {
+            "id": "PNODE_2",
+            "name": "主角出发",
+            "type": "PresentationNode",
+            "position": {
+              "x": 909,
+              "y": 317
+            },
+            "nextIds": [],
+            "presentation": {
+              "type": "Script",
+              "scriptId": "SCRIPT_PERF_2",
+              "parameters": []
+            }
+          },
+          "PNODE_3": {
+            "id": "PNODE_3",
+            "name": "Wait Node",
+            "type": "Wait",
+            "position": {
+              "x": 685,
+              "y": 317
+            },
+            "nextIds": [
+              "PNODE_2"
+            ],
+            "duration": 2
+          }
+        },
+        "displayOrder": 0
+      },
+      "GRAPH_2": {
+        "id": "GRAPH_2",
+        "name": "游戏结束演出",
+        "description": "",
+        "startNodeId": "PNODE_1",
+        "nodes": {
+          "PNODE_1": {
+            "id": "PNODE_1",
+            "name": "玩家逃离",
+            "type": "PresentationNode",
+            "position": {
+              "x": 464,
+              "y": 350
+            },
+            "nextIds": [
+              "PNODE_2"
+            ],
+            "presentation": {
+              "type": "Script",
+              "scriptId": "SCRIPT_PERF_8",
+              "parameters": []
+            }
+          },
+          "PNODE_2": {
+            "id": "PNODE_2",
+            "name": "回忆录",
+            "type": "PresentationNode",
+            "position": {
+              "x": 760,
+              "y": 351
+            },
+            "nextIds": [],
+            "presentation": {
+              "type": "Script",
+              "scriptId": "SCRIPT_PERF_9",
+              "parameters": []
+            }
+          }
+        },
+        "displayOrder": 1
+      }
+    }
+  }
+}

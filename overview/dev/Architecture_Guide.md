@@ -1,7 +1,7 @@
 # 架构指南（Architecture Guide）
 
 > 本文档描述项目的整体架构设计、分层结构与开发规范，用于指导后续阶段的功能实现。  
-> **版本**: 1.2.2 | **更新时间**: 2025-12-22 | **同步至**: AssetName 字段功能完成
+> **版本**: 1.2.11 | **更新时间**: 2026-10-08 | **本次同步**: 六类 UI 重复收敛、单一维护规范与 226 项回归
 
 ---
 
@@ -21,7 +21,7 @@
 ```
 puzzle-editor/
 ├─ types/              # 领域模型类型定义
-│  ├─ identity.ts      # ID/Key 模板字符串类型
+│  ├─ identity.ts      # ID/Key 别名，当前为 string
 │  ├─ common.ts        # ResourceState、ValueSource 等
 │  ├─ project.ts       # 项目顶层结构
 │  ├─ blackboard.ts    # 黑板资源（变量、事件）
@@ -29,12 +29,17 @@ puzzle-editor/
 │  ├─ stage.ts         # 阶段树
 │  ├─ puzzleNode.ts    # 解谜节点
 │  ├─ stateMachine.ts  # 状态机
-│  └─ presentation.ts  # 演出子图
+│  ├─ presentation.ts  # 演出子图
+│  ├─ validation.ts    # 项目诊断条目契约
+│  └─ graphUI.ts       # 图上下文菜单契约
 │
 ├─ store/              # 全局状态管理
-│  ├─ context.tsx      # React Context 定义
+│  ├─ context.ts       # Context / 读取 Hook，开发期保留 Context 身份
+│  ├─ StoreProvider.tsx # 每个 Provider 独立 Store 与项目会话
 │  ├─ types.ts         # Store 状态与 Action 定义
 │  ├─ reducer.ts       # 主 Reducer（含 Undo/Redo）
+│  ├─ commands/        # 由领域意图生成 Action
+│  ├─ navigation/      # 引用/诊断转导航与选择 Action
 │  └─ slices/          # 领域 Reducer 切片
 │     ├─ index.ts      # 统一导出
 │     ├─ fsmSlice.ts
@@ -46,16 +51,20 @@ puzzle-editor/
 │     ├─ uiSlice.ts
 │     └─ runtimeSlice.ts  # Electron 运行时状态
 │
-├─ api/                # 服务层
-│  ├─ types.ts         # API 接口定义
-│  └─ service.ts       # 服务类型导出
+├─ services/           # 应用协调与 IO 服务
+│  ├─ projectSession.ts # 会话、切换保护、串行保存与导出
+│  ├─ projectFiles.ts   # 项目序列化与候选准备
+│  ├─ projectExport.ts  # 运行时导出校验、命名与序列化
+│  ├─ projectPlatform.ts # 注入式桌面/浏览器项目 IO 适配
+│  ├─ autoSaveScheduler.ts # 自动保存调度
+│  └─ translation/     # 网络翻译服务与提供方
 │
-├─ src/electron/       # 渲染进程 Electron API 封装
-│  └─ api.ts           # 统一的 Electron IPC 调用封装
+├─ platform/
+│  └─ electron.ts      # 渲染进程 IPC 封装，不依赖 Store 或 UI
 │
 ├─ electron/           # Electron 主进程代码
 │  ├─ main.ts          # 主进程入口
-│  ├─ preload.ts       # 预加载脚本（暴露 API 到渲染进程）
+│  ├─ preload.mts      # 预加载脚本（暴露 API 到渲染进程）
 │  ├─ types.ts         # Electron 类型定义（IPC 通道、API 接口）
 │  └─ ipc/             # IPC 处理器
 │     ├─ handlers.ts    # 统一注册 IPC 处理器
@@ -64,21 +73,27 @@ puzzle-editor/
 │
 ├─ components/         # UI 组件
 │  ├─ Layout/          # 整体布局（Header, Breadcrumb, Sidebar 等）
+│  ├─ shared/          # Dialog/Menu/Badge/ResourcePreview、主题、控件样式及浮层关闭规则
 │  ├─ Explorer/        # 阶段树/节点浏览
 │  ├─ Canvas/          # 画布编辑器（FSM/Presentation）
-│  │  └─ Elements/     # 画布元素（StateNode, ConnectionLine 等）
+│  │  ├─ Elements/     # 画布元素（StateNode, ConnectionLine 等）
+│  │  ├─ shared/       # 通用图节点、边、框选和菜单
+│  │  └─ presentation/ # 演出节点内容、节点层、边层和手柄
 │  ├─ Inspector/       # 属性面板
 │  │  ├─ condition/    # 条件编辑器组件
 │  │  ├─ localVariable/ # 局部变量子组件
 │  │  └─ presentation/  # 演出绑定子组件
-│  └─ Blackboard/      # 黑板管理
+│  └─ Blackboard/      # 工具栏、四页签、创建菜单与资源卡片
 │
-├─ hooks/              # 自定义 Hooks (5 个)
-│  ├─ useCanvasNavigation.ts    # 画布平移/缩放
-│  ├─ useCuttingLine.ts          # 剪线交互
-│  ├─ useGraphInteraction.ts     # 图形节点交互
-│  ├─ useKeyboardShortcuts.ts    # 全局快捷键
-│  └─ useStateNodeInteraction.ts # 状态节点交互
+├─ hooks/              # 应用协调与可复用交互（列出主要入口）
+│  ├─ useBlackboardData.ts       # 筛选数据与引用统计
+│  ├─ useBlackboardActions.ts    # 黑板创建/选择/导航
+│  ├─ useResourceReorder.ts      # 同组资源重排生命周期
+│  ├─ usePresentationCanvas.ts   # 演出画布手势协调
+│  ├─ useCanvasNavigation.ts    # 画布平移，尚无独立缩放
+│  ├─ useGraphInteraction.ts     # 通用图交互
+│  ├─ useGraphKeyboardShortcuts.ts # 取消选择与模式提示
+│  └─ useProjectActions.ts       # 转发项目会话请求
 │
 ├─ utils/              # 工具函数
 │  ├─ constants.ts          # 常量定义
@@ -86,12 +101,15 @@ puzzle-editor/
 │  ├─ debug.ts              # 调试工具
 │  ├─ resourceLifecycle.ts  # 软删除状态机
 │  ├─ variableScope.ts      # 作用域解析
-│  ├─ variableReferences.ts # 变量引用扫描
+│  ├─ blackboard.ts         # 黑板纯筛选、分组和排序
+│  ├─ blackboardReferences.ts # 按实体汇总五类黑板引用计数
 │  ├─ conditionBuilder.ts   # 条件构造器
 │  ├─ presentation.ts        # 演出节点规范化
-│  ├─ projectNormalizer.ts  # 项目数据规范化
-│  ├─ fsmValidation.ts      # FSM 校验逻辑
-│  └─ validation/           # 校验工具
+│  ├─ presentationGeometry.ts # 演出节点尺寸、锚点与临时曲线
+│  ├─ projectImport/       # unknown 输入识别、领域结构校验与有依据的迁移
+│  ├─ projectNormalizer.ts  # 已校验 ProjectData 的编辑辅助字段恢复
+│  ├─ translation/localDictionary.ts # 本地字典纯转换
+│  └─ validation/           # FSM/演出图等校验与引用扫描
 │
 └─ overview/           # 设计文档
    ├─ Project_Overview.md
@@ -110,59 +128,41 @@ puzzle-editor/
 
 ### 3.1 依赖关系图
 
+```mermaid
+flowchart TD
+  UI[components 视图] --> Hooks[hooks 应用与交互协调]
+  UI --> Store[store 状态 / 命令 / 导航]
+  Hooks --> Store
+  Hooks --> Services[services 会话 / 导出 / 翻译]
+  Services --> Store
+  Services --> Platform[projectPlatform / platform/electron]
+  Store --> Utils[utils 纯计算与校验]
+  Hooks --> Utils
+  Services --> Utils
+  Utils --> Types[types 领域与共享契约]
+  Store --> Types
+  Platform --> IPC[Electron preload / IPC 或浏览器文件 API]
 ```
-┌────────────────────────────────────────────────────────────┐
-│                    components/ (View)                      │
-│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌─────────────┐  │
-│  │ Layout/  │ │ Explorer/│ │Inspector/│ │ Blackboard/ │  │
-│  │ 5 files  │ │ 2 files  │ │ 33 files │ │  9 files    │  │
-│  └──────────┘ └──────────┘ └──────────┘ └─────────────┘  │
-│  ┌──────────────────────────────────────────────────────┐ │
-│  │ Canvas/ - 画布层                                      │ │
-│  │  ├─ StateMachineCanvas.tsx (FSM 编辑器)              │ │
-│  │  ├─ PresentationCanvas.tsx (演出图编辑器)            │ │
-│  │  └─ Elements/ - 可复用画布元素                       │ │
-│  │     ├─ StateNode.tsx (状态节点)                       │ │
-│  │     ├─ ConnectionLine.tsx (连线)                      │ │
-│  │     ├─ TransitionsLayer.tsx (转移层)                  │ │
-│  │     └─ StatesLayer.tsx (状态层)                       │ │
-│  └──────────────────────────────────────────────────────┘ │
-└───────────────────────────┬────────────────────────────────┘
-                            │ dispatch / useEditorState
-┌───────────────────────────▼────────────────────────────────┐
-│                    store/ (State)                          │
-│  Context + Reducer + 7 Slices，管理全局状态，含 Undo/Redo  │
-│  fsmSlice │ presentationSlice │ nodeParamsSlice           │
-│  blackboardSlice │ navigationSlice │ projectSlice │ uiSlice│
-└───────────────────────────┬────────────────────────────────┘
-                            │ 调用 apiService
-┌───────────────────────────▼────────────────────────────────┐
-│                    api/ (Service)                          │
-│        数据 I/O 抽象，Mock/HTTP 可切换                     │
-└───────────────────────────┬────────────────────────────────┘
-                            │
-┌───────────────────────────▼────────────────────────────────┐
-│                    types/ (Domain)                         │
-│         领域模型定义（9 个类型文件），被所有层依赖          │
-└───────────────────────────┬────────────────────────────────┘
-                            │
-┌───────────────────────────▼────────────────────────────────┐
-│             utils/ + hooks/ (Utilities)                    │
-│  utils: 几何/校验/作用域/常量/调试等纯函数                 │
-│  hooks: 5 个自定义 hooks（画布/交互/快捷键）                │
-└────────────────────────────────────────────────────────────┘
-```
+
+箭头表示使用关系。`StoreProvider` 是装配入口，创建 Store 并注入 `ProjectSession` 与平台实现；Reducer/命令/导航保持同步纯逻辑。偏好设置和目录选择等 UI 当前仍可调用 `platform/electron` 包装，完整项目读写与导出必须经过会话服务。未使用的 `api` 和旧 `src/electron` Hook/barrel 已移除。
+
+内部弹窗统一使用 `components/shared/Dialog.tsx` 与 `dialog.css`。未保存、删除、新建、项目设置、偏好组件只提供内容和业务回调；不得再各自维护遮罩、配色表、焦点限制或操作区规格。共同支持 Portal、最上层键盘交互、busy、内容滚动及焦点恢复；确认与表单宽度、危险/警告语义色保留差异。系统选择器和渲染器不可用时的关闭兜底使用原生平台弹窗。后续 UI 维护范围见 [弹窗统一与样式排查](./Dialog_Unification_and_UI_Style_Audit.md)。
+
+全部 UI 修改遵循 [UI 组件与样式维护规范](./UI_Standards.md)。菜单、表单、语义色、提示/预览、标题/卡片、图节点/边标签均只有一个维护入口；业务层只传数据、动作、变体及布局。`theme.css/uiTokens.ts/ui.css` 定义公共规格，StateNode/ResourceDetailsCard 仅适配业务接口。`npm run check` 包含 `check:ui` 与反向探针，防止恢复多份外观。完整迁移和证据见 [实施报告](./UI_Consistency_Implementation.md)。
 
 ### 3.2 依赖规则
 
 | 层级 | 可依赖 | 禁止依赖 |
 |------|--------|----------|
-| `types/` | 无 | 其他任何层 |
-| `utils/` | `types/` | `store/`、`api/`、`components/` |
-| `hooks/` | `types/`、`utils/` | `store/`、`api/`、`components/` |
-| `api/` | `types/` | `store/`、`components/` |
-| `store/` | `types/`、`utils/`、`api/` | `components/` |
-| `components/` | 所有层 | 不能直接调用 `api/` 数据方法 |
+| `types/` | 领域及共享契约 | Store、UI、服务、平台和实现工具 |
+| `utils/` | `types/`、其他纯工具 | React、Store、Hook、服务、平台、Electron、直接浏览器/网络 IO |
+| `store/` 纯逻辑 | `types/`、`utils/` | 组件、文件 IO；Provider/Context 的 React 装配单独处理 |
+| `platform/` | IPC 契约、平台 API | React、Store、Hook、服务、组件 |
+| `services/` | 类型、纯工具、Store 接口、平台适配 | 组件实现 |
+| `hooks/` | React、Store、服务、类型和纯工具 | 组件实现 |
+| `components/` | 视图、Hook、Store、契约和纯工具 | 直接修改状态或绕过会话读写项目 |
+
+ESLint 自动拦截领域/纯工具反向依赖、Store/服务/Hook 对组件的依赖、平台对应用层的依赖；`check:guards` 验证规则会失败。项目 IO 必须经过会话的调用链还由服务测试和代码审查保护。`services/translation` 承担网络请求，本地字典保持在 `utils/translation`。
 
 ---
 
@@ -170,13 +170,25 @@ puzzle-editor/
 
 ### 4.1 状态管理
 
-- **双 Context 模式**：`StateContext` 与 `DispatchContext` 分离，优化渲染。
-- **Undo/Redo**：在主 Reducer 统一处理，采用快照机制。
-- **Action 类型**：统一定义于 `store/types.ts`。
+- **双 Context 模式**：`StateContext` 与 `DispatchContext` 分离；`editorStore.ts` 同步执行 Reducer，由 `useSyncExternalStore` 发布状态，连续操作可读取刚提交的修改。
+- **React 导出边界**：`StoreProvider.tsx` 仅导出组件；`context.ts` 定义读取 Hook、状态/派发/会话 Context。开发期使用 Vite hot.data 保留 Context 身份，避免消费者与 Provider 在热更新过程中引用不同对象；Store/会话仍由每个 Provider 独立创建。
+- **类型边界**：前端和 Electron 均启用 strict。外部 JSON 从 unknown 收窄，领域数据用 JsonValue 保留待校验原值，显式变量编辑返回标量 VariableValue；作用域纯计算只接收 ProjectData。Inspector 使用明确字段或 Partial 领域模型，不构造不完整 EditorState。
+- **Undo/Redo**：主 Reducer 委托 `documentHistory.ts` 管理最多 50 条 `{ content, revision }` 快照。恢复后保留最新保存时间，并清理已失效的 UI 选择和导航。
+- **Action 类型及策略**：类型定义于 `store/types.ts`，领域、是否改内容、历史及只读规则统一登记于 `store/actionPolicy.ts`，使用穷尽映射防止遗漏。只读校验在切片和 Undo/Redo 之前执行。
+- **保存版本**：`document` 仅在内存中保存会话与编辑/保存版本。内容变化推进版本；Undo/Redo 恢复版本；`PROJECT_SAVE_SUCCEEDED` 只确认保存开始时捕获的会话、路径和版本。`isDirty` 由当前版本和保存基线统一派生。
+- **历史边界**：Draft 普通删除和软删除可撤销；永久移除非 Draft 资源，以及实际改变内容的外部资源状态同步，会清空 past/future。无效目标或同值更新不产生版本，也不清除 redo。
+- **项目会话**：每个 Provider 创建一个 `ProjectSession` 并由独立 Context 共享。UI、快捷键、自动保存通过 `useProjectActions` 或 `useProjectSession` 发出请求；不要在组件中回读/写入项目文件或直接切换项目路径。
+- **平台 I/O**：`services/projectPlatform.ts` 包装选择、读取、写入、导出、激活与下载，`projectFiles.ts` 管理序列化且只接收需要的 UI 字段。`ProjectSession` 共用队列协调保存和导出；`projectExport.ts` 处理运行时校验、后缀保护与规范化。下载/导出不确认完整项目保存。
+- **外部数据边界**：`utils/projectImport` 将 JSON 解析为 unknown，由 readers/domain/legacy/index 分别负责收窄、领域结构、历史迁移及封装识别。只认当前工程/运行时格式、有结构证据的原始数据和旧 Manifest；未知重要字段、结构损坏、层级环与超深链拒绝，错误保留字段位置。
+- **候选校验与提交**：`projectFiles.prepareProject` 在候选上运行既有业务校验，结构有效但未完成的工程仍可编辑。INIT_SUCCESS 一次提交内容和问题列表，取消/失败不影响原诊断；运行时/历史数据作为副本另存。外部资源同步也经过相同结构校验，仅合并资源状态。
+- **规范化与修复导航**：`projectNormalizer` 只补齐已校验数据的坐标/参数辅助信息，演出节点与 Reducer 共用规范形态。`store/navigation/validationNavigation.ts` 把诊断解析为导航 Action；引用导航位于同目录。项目诊断条目定义于 `types/validation.ts`，FSM/演出图校验只接收 `ProjectData`。Validate Project、Recheck 与导出复用同一业务校验器。
+- **黑板引用统计**：`buildBlackboardReferenceCounts(ProjectData)` 按实体汇总资源计数，保持原详细查询的作用域和共享图语义。`useBlackboardData` 以 project 身份作本 Hook 缓存；过滤/选择不重扫，内容和历史变化重算。Inspector 位置明细仍用 `find*References`；任何引用语义扩展须同步两者并通过差分测试。
+- **原生关闭保护**：`electron/windowCloseGuard.ts` 拦截窗口 close / 应用 before-quit，经受限 preload / platform 接口交给 `useWindowClose` 与 `ProjectSession.requestClose`。先提交当前字段草稿（包含后台窗口不产生 focusout 的情况），复用保存队列、版本确认与 committing 冻结；只接受当前窗口主框架和请求 ID 的答复。取消退出恢复编辑；主进程不维护另一份 dirty。正常关闭不使用 destroy/exit 强制绕过保护。
+- 详细设计与边界见 [第一批](./Architecture_Repair_Batch1.md)、[第二批](./Architecture_Repair_Batch2.md)、[第三批](./Architecture_Repair_Batch3.md)、[第四批](./Architecture_Repair_Batch4.md)、[第五批](./Architecture_Repair_Batch5.md)、[第六批](./Architecture_Repair_Batch6.md) 和 [关闭保护](./Window_Close_Protection.md)。独立缩放仍待完成。
 
 ### 4.2 领域切片（Slices）
 
-复杂领域逻辑拆分到独立 Slice（共 8 个切片）：
+复杂领域逻辑拆分到独立 Slice（共 9 个切片）：
 
 - **fsmSlice**: 状态机、状态、转移的 CRUD
 - **presentationSlice**: 演出图、节点、连线的 CRUD
@@ -184,12 +196,14 @@ puzzle-editor/
 - **blackboardSlice**: 全局变量、事件、脚本的 CRUD 与软删除
 - **navigationSlice**: 视图切换、面包屑导航
 - **projectSlice**: Stage 树、Node 更新
+- **projectMetaSlice**: 项目元信息编辑与重置
 - **uiSlice**: 选择状态、面板大小、消息堆栈
 - **runtimeSlice**: Electron 运行时状态（当前项目路径、偏好加载状态）
 
 ```ts
 // store/slices/fsmSlice.ts
-export const isFsmAction = (action: Action): action is FsmAction => { ... }
+export type FsmAction = ActionForDomain<'fsm'>;
+export const isFsmAction = (action: Action): action is FsmAction => isActionForDomain(action, 'fsm');
 export const fsmReducer = (state: EditorState, action: FsmAction): EditorState => { ... }
 ```
 
@@ -202,6 +216,7 @@ if (isNodeParamsAction(action)) return nodeParamsReducer(state, action);
 if (isBlackboardAction(action)) return blackboardReducer(state, action);
 if (isNavigationAction(action)) return navigationReducer(state, action);
 if (isProjectAction(action)) return projectReducer(state, action);
+if (isProjectMetaAction(action)) return projectMetaReducer(state, action);
 if (isUiAction(action)) return uiReducer(state, action);
 if (isRuntimeAction(action)) return runtimeReducer(state, action);
 ```
@@ -221,7 +236,7 @@ resolveDeleteAction(current: ResourceState): DeleteResolution
 
 ```ts
 // utils/variableScope.ts
-collectVisibleVariables(state, stageId, nodeId): VisibleVariables
+collectVisibleVariables(project, stageId, nodeId): VisibleVariables
 ```
 
 ---
@@ -230,8 +245,8 @@ collectVisibleVariables(state, stageId, nodeId): VisibleVariables
 
 ### 5.1 类型优先
 
-- 所有新增数据结构必须先在 `types/` 定义。
-- 使用带前缀的 ID 类型（如 `stage-*`、`node-*`）。
+- 领域与跨层契约在 `types/` 定义；局部组件 Props 与服务接口靠近所属模块。
+- ID 当前是 string 别名，新建资源由 `resourceIdGenerator` 生成前缀与计数，不自行解析或截断导入的 ID。
 - 变量引用必须携带 `scope` 字段。
 - **AssetName 字段**：脚本、变量、事件、Stage、PuzzleNode 等资源均支持可选的 `assetName` 属性，用于代码生成。命名规则：字母/下划线开头，只含字母数字下划线。
 
@@ -244,7 +259,7 @@ collectVisibleVariables(state, stageId, nodeId): VisibleVariables
 
 - 组件通过 `useEditorState` 获取状态。
 - 组件通过 `useEditorDispatch` + Action 修改状态。
-- 禁止组件直接修改状态或调用 API。
+- 禁止组件直接修改状态；项目操作经会话 Hook，偏好设置/目录等平台交互使用明确适配接口。
 
 ### 5.4 工具函数
 
@@ -261,13 +276,15 @@ collectVisibleVariables(state, stageId, nodeId): VisibleVariables
 1. 在 `types/` 定义类型接口。
 2. 更新 `types/project.ts` 的 `ProjectData`。
 3. 更新 `store/types.ts` 的 `EditorState` 与 `Action`。
-4. 如需独立处理，创建新的 Slice。
+4. 在 `store/actionPolicy.ts` 登记每个新 Action 的领域、内容、历史与只读规则；如需独立处理，创建新的 Slice，并从策略表派生 Action 类型和守卫。
+5. 为新的内容操作验证 Undo/Redo、保存版本、只读与空操作行为；不要在切片或组件中直接修改 `isDirty`。
 
-### 6.2 添加新的 API 接口
+### 6.2 添加新的 IO 能力
 
-1. 在 `api/types.ts` 扩展 `IApiService`。
-2. 在 `api/mockService.ts` 实现 Mock 版本。
-3. 在 `store/context.tsx` 添加异步 Action 辅助。
+1. 桌面能力在 `electron/types.ts` 定义契约，由主进程处理器、`preload.mts` 与 `platform/electron.ts` 逐层接入。
+2. 项目文件能力扩展 `ProjectPlatform` 并提供浏览器路径；使用注入接口验证失败/取消，不另建无人调用的 Mock/HTTP 服务层。
+3. 在 `services/` 协调校验、快照与错误消息，经 `ProjectSession` 串行提交；Context/Provider 只负责装配。
+4. 网络服务按业务放在 `services/`，纯数据变换留在 `utils/`；覆盖适用的超时/失败与回退路径。
 
 ### 6.3 添加新的编辑视图
 
@@ -279,12 +296,14 @@ collectVisibleVariables(state, stageId, nodeId): VisibleVariables
 
 ## 7. 代码质量与最佳实践
 
-### 7.1 组件拆分原则（Phase 3 改进）
+### 7.1 组件拆分原则
 
-**大型组件拆分**：当组件超过 400 行时，应考虑拆分为子组件：
-- **LocalVariableEditor**: 拆分为 `LocalVariableCard` 和 `VariableValueInput`
-- **PresentationBindingEditor**: 拆分为 `ScriptBindingSection` 和 `GraphBindingSection`
-- 子组件放置在对应的子目录中（`localVariable/`、`presentation/`）
+按数据计算、应用操作、临时交互与展示拆分；文件长度用于发现问题，不以减少行数验收。
+
+- **Blackboard**：主面板组合工具栏与四页签；数据 Hook/纯选择器负责筛选与引用统计，动作 Hook 负责创建与导航，共用重排 Hook 管理同组拖拽。筛选/折叠仅以 Store 为准。
+- **PresentationCanvas**：协调 Hook 管理手势，命令模块生成 typed Action；节点、边、内容、手柄分别渲染，几何参数共用纯工具。
+- **ConditionEditor**：递归组合、组操作 Hook、组头与子列表分离；根级空态和单叶规范化由纯函数处理。
+- 已独立的 `LocalVariableEditor`、脚本/图绑定、叶子条件等保留其职责边界，不为了长度继续拆碎。
 
 **Canvas 元素组件化**：
 - `Canvas/Elements/` 目录包含可复用的画布元素
@@ -293,30 +312,44 @@ collectVisibleVariables(state, stageId, nodeId): VisibleVariables
 
 ### 7.2 样式管理
 
-- **禁止内联样式**：所有样式应提取到 `styles.css`
+- **固定样式复用主题**：第五批已迁移黑板菜单、演出画布和条件组的固定布局/配色到 CSS 与主题变量；动态位置、尺寸、路径和条件层级配色保持明确的 style 接口。其他旧组件随实际维护继续整理。
 - **语义化 CSS 类名**：如 `.trigger-editor-container`、`.trigger-card`
 - **复用全局样式**：画布上下文菜单、连线手柄等使用全局样式
 
 ### 7.3 常量管理
 
-- **统一常量定义**：所有 magic numbers 应定义在 `utils/constants.ts`
+- **常量靠近领域**：跨画布通用尺寸在 `utils/constants.ts`，演出几何在 `utils/presentationGeometry.ts`，只提取有明确含义或共享用途的常量。
 - **避免重复定义**：如 `STATE_NODE` 尺寸由 `constants.ts` 统一定义，`geometry.ts` 引入复用
 - **导出派生常量**：如 `export const STATE_WIDTH = STATE_NODE.WIDTH`
 
 ### 7.4 Hooks 规范
 
-当前项目 Hooks（共 5 个）：
-- `useCanvasNavigation`: 画布平移/缩放交互
+画布相关 Hook 包括：
+
+- `useCanvasNavigation`: 画布平移；独立缩放尚未实现，不能用浏览器页面缩放代替 UX 要求
 - `useCuttingLine`: Ctrl+拖拽剪线交互
 - `useGraphInteraction`: 通用图形节点交互
-- `useKeyboardShortcuts`: 全局快捷键管理
+- `useGraphKeyboardShortcuts`: Escape 取消多选、Ctrl/Shift 模式提示；删除与撤销由 `GlobalKeyboardShortcuts` 统一处理
 - `useStateNodeInteraction`: 状态节点专用交互
+- `usePresentationCanvas`: 演出图临时手势、菜单与选中状态协调
 
 ### 7.5 调试支持
 
 - **debug.ts 工具**：提供统一的日志输出函数
 - **React.memo displayName**：所有 memo 组件必须添加 `displayName` 属性
-- **校验逻辑集中**：FSM 校验统一放置在 `utils/fsmValidation.ts`
+- **校验逻辑集中**：FSM 校验放置在 `utils/validation/fsmValidation.ts`；演出图校验与其他工程规则在同一目录组织。
+
+### 7.6 自动检查
+
+提交前运行 `npm run check`：严格 UTF-8、前端/Electron 类型、ESLint、渐进格式、故意错误拦截和行为回归。另运行 `npm run build`；文件会话相关改动还应运行 `npm run test:electron`。类型/lint 不排除业务源码；领域类型不能反向导入 Store/UI/服务/实现工具，Store 不能导入组件。Hook 不得条件调用，依赖数组按实际闭包列出。
+
+`format:check` / `format` 的清单位于 `scripts/source-files.mjs`，关闭保护补充后覆盖 85 个配置/工具/服务、相关组件及测试文件，不代表全仓库格式统一。反向拦截覆盖 7 项类型、10 项 lint/依赖、3 项编码与 1 项格式错误；累计 206 个回归用例。`test:electron` 包含原 11 项文件会话检查与完整生产页面上的 7 个关闭场景；每个退出场景使用独立进程、项目和偏好目录。详见 [关闭保护验收](./Window_Close_Protection.md)。
+
+### 7.7 性能基准
+
+`tests/performance/fixtures.ts` 生成确定性中/大型项目，`renderer.tsx` 在真实生产 React 组件及 Store 上测量同步提交；`run.mjs` 在隔离、隐藏的 Electron 窗口运行并保存原始结果。使用 `npm run bench -- 标签`；追加 `--legacy` 可运行第五批旧引用 Hook 对照。基准测试工具与旧 Hook 不进入正式应用包。
+
+保持前后夹具和测量入口一致，分开记录首次值、预热样本分布和 GC 堆；不要把同步提交等同于端到端响应/FPS，也不要从小幅未改模块波动推导优化效果。先测再决定是否收窄订阅、建立索引或引入虚拟化。本轮只优化已确认的黑板逐资源重复扫描；设备、规模、预算、原始结果与重跑方式见第六批记录。
 
 ---
 
@@ -324,7 +357,8 @@ collectVisibleVariables(state, stageId, nodeId): VisibleVariables
 
 - [领域模型](./Domain_Model.md) - 数据结构详细定义
 - [交互规范](./Interaction_Guide.md) - 快捷键与交互约定
-- [Phase3 代码审查](./Phase3/P3_Code_Review_3.md) - 最新代码质量评估
+- [当前修复计划](./Architecture_Repair_Plan.md) - 批次状态与后续范围
+- [Phase3 代码审查](./Phase3/P3_Code_Review_3.md) - 历史质量评估
 
 ---
 

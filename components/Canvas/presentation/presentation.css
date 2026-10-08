@@ -1,0 +1,101 @@
+/* 固定布局与颜色集中维护，动态坐标和路径仍由几何模块计算。 */
+.presentation-canvas {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+.presentation-canvas-grid {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: auto;
+  background-color: var(--graph-canvas-bg);
+}
+.presentation-canvas-content {
+  position: relative;
+}
+.presentation-edges {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+  z-index: 0;
+}
+.presentation-preview {
+  fill: none;
+  stroke-width: 2;
+  stroke-dasharray: 5, 5;
+  pointer-events: none;
+}
+.presentation-preview-link {
+  stroke: var(--resource-performance);
+}
+.presentation-preview-modify {
+  stroke: var(--graph-text-muted);
+}
+.presentation-node-content {
+  font-size: 10px;
+  color: var(--graph-text-muted);
+}
+.presentation-branch-content {
+  margin-top: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.presentation-branch-row {
+  display: flex;
+  align-items: center;
+}
+.presentation-branch-true {
+  color: var(--graph-branch-true);
+}
+.presentation-branch-false {
+  color: var(--graph-branch-false);
+}
+.presentation-branch-label {
+  font-weight: bold;
+  min-width: 36px;
+  font-size: 10px;
+}
+.presentation-edge-label {
+  font-weight: bold;
+}
+.presentation-branch-target {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  color: var(--graph-text-secondary);
+}
+.presentation-node-detail {
+  margin-top: 2px;
+}
+.presentation-duration {
+  color: var(--resource-condition);
+}
+.presentation-script {
+  color: var(--resource-performance);
+}
+.presentation-graph {
+  color: var(--graph-reference);
+}
+.presentation-handle {
+  z-index: 31;
+}
+.presentation-snap {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--graph-text-muted);
+  border: 1px solid var(--graph-snap-border);
+  pointer-events: none;
+  z-index: 100;
+}
+.presentation-snap-active {
+  background-color: var(--accent-color);
+}

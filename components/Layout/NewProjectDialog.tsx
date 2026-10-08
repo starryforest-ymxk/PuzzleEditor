@@ -1,275 +1,146 @@
-/**
- * components/Layout/NewProjectDialog.tsx
- * 新建工程弹窗 - 输入项目名称、描述和存放位置
- * 
- * P4-T06: 项目级操作与多工程支持
- */
-
-import React, { useState, useRef, useEffect } from 'react';
+/** 新建项目保留 Session 结果处理，外观与焦点统一使用 Dialog。 */
+import React, { useState, useRef, useEffect, useId } from 'react';
 import { FolderOpen } from 'lucide-react';
-import { isElectron, loadPreferences, openDirectoryDialog } from '@/src/electron/api';
-
-// 弹窗颜色配置（与 ConfirmDialog 保持一致）
-const dialogColors = {
-    overlay: 'rgba(0,0,0,0.55)',
-    background: '#1f1f23',
-    border: '#52525b',
-    borderSecondary: '#3f3f46',
-    text: '#e4e4e7',
-    accent: '#22c55e',  // 使用绿色突出创建按钮
-    muted: '#a1a1aa',
-    panel: '#18181b',
-    inputBg: '#27272a'
-};
+import { isElectron, loadPreferences, openDirectoryDialog } from '@/platform/electron';
+import type { SessionResult } from '../../services/projectSession';
+import { Dialog, DialogButton } from '../shared/Dialog';
 
 interface NewProjectDialogProps {
-    onConfirm: (name: string, description: string, location: string) => void;
-    onCancel: () => void;
+  onConfirm: (name: string, description: string, location: string) => Promise<SessionResult>;
+  onCancel: () => void;
 }
+export const NewProjectDialog: React.FC<NewProjectDialogProps> = ({ onConfirm, onCancel }) => {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const [name, setName] = useState('New Project');
+  const [description, setDescription] = useState('');
+  const [location, setLocation] = useState('');
+  const [defaultLocation, setDefaultLocation] = useState('');
+  const nameInputRef = useRef<HTMLInputElement>(null);
+  const id = useId();
 
-export const NewProjectDialog: React.FC<NewProjectDialogProps> = ({
-    onConfirm,
-    onCancel
-}) => {
-    const [name, setName] = useState('New Project');
-    const [description, setDescription] = useState('');
-    const [location, setLocation] = useState('');
-    const [defaultLocation, setDefaultLocation] = useState('');
-    const nameInputRef = useRef<HTMLInputElement>(null);
-
-    // 加载默认项目目录
-    useEffect(() => {
-        const loadDefaultLocation = async () => {
-            if (isElectron()) {
-                const result = await loadPreferences();
-                if (result.success && result.data) {
-                    setDefaultLocation(result.data.projectsDirectory);
-                }
-            }
-        };
-        loadDefaultLocation();
-    }, []);
-
-    // 自动聚焦并选中名称输入框
-    useEffect(() => {
-        if (nameInputRef.current) {
-            nameInputRef.current.focus();
-            nameInputRef.current.select();
-        }
-    }, []);
-
-    const handleSubmit = () => {
-        if (!name.trim()) return;
-        // 如果 location 为空，使用默认位置
-        const finalLocation = location.trim() || defaultLocation;
-        onConfirm(name.trim(), description.trim(), finalLocation);
+  useEffect(() => {
+    let active = true;
+    if (isElectron())
+      void loadPreferences()
+        .then((result) => {
+          if (active && result.success && result.data)
+            setDefaultLocation(result.data.projectsDirectory);
+        })
+        .catch((error) => {
+          if (active) setError(String(error));
+        });
+    return () => {
+      active = false;
     };
+  }, []);
 
-    const handleKeyDown = (e: React.KeyboardEvent) => {
-        if (e.key === 'Enter' && name.trim()) {
-            handleSubmit();
-        } else if (e.key === 'Escape') {
-            onCancel();
+  const handleSubmit = async () => {
+    if (busy || !name.trim()) return;
+    setBusy(true);
+    setError('');
+    try {
+      const result = await onConfirm(
+        name.trim(),
+        description.trim(),
+        location.trim() || defaultLocation,
+      );
+      if (result.status === 'failed') setError(result.error);
+    } catch (error) {
+      setError(String(error));
+    } finally {
+      setBusy(false);
+    }
+  };
+  const handleSelectLocation = async () => {
+    try {
+      const result = await openDirectoryDialog();
+      if (result && !result.canceled && result.filePath) setLocation(result.filePath);
+    } catch (error) {
+      setError(String(error));
+    }
+  };
+
+  return (
+    <Dialog
+      title="Create New Project"
+      size="form"
+      busy={busy}
+      onClose={onCancel}
+      initialFocusRef={nameInputRef}
+      selectInitial
+      onShortcut={(event) => {
+        // 描述中的 Enter 保持换行，名称与目录保留 Enter 创建。
+        if (event.key === 'Enter' && event.target instanceof HTMLInputElement) {
+          event.preventDefault();
+          void handleSubmit();
         }
-    };
-
-    const handleSelectLocation = async () => {
-        if (isElectron()) {
-            const result = await openDirectoryDialog();
-            if (result && !result.canceled && result.filePath) {
-                setLocation(result.filePath);
-            }
-        }
-    };
-
-    return (
-        <div style={{
-            position: 'fixed',
-            top: 0, left: 0, right: 0, bottom: 0,
-            background: dialogColors.overlay,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 9999
-        }}>
-            <div style={{
-                width: '480px',
-                background: dialogColors.background,
-                border: `1px solid ${dialogColors.border}`,
-                borderRadius: '6px',
-                boxShadow: '0 12px 32px rgba(0,0,0,0.45)',
-                padding: '20px',
-                color: dialogColors.text,
-                fontFamily: 'Inter, "IBM Plex Mono", monospace'
-            }}>
-                {/* 标题 */}
-                <div style={{
-                    fontSize: '13px',
-                    letterSpacing: '0.5px',
-                    color: dialogColors.accent,
-                    marginBottom: '16px',
-                    textTransform: 'uppercase'
-                }}>
-                    Create New Project
-                </div>
-
-                {/* 名称输入 */}
-                <div style={{ marginBottom: '12px' }}>
-                    <label style={{
-                        display: 'block',
-                        fontSize: '11px',
-                        color: dialogColors.muted,
-                        marginBottom: '6px',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.5px'
-                    }}>
-                        Project Name *
-                    </label>
-                    <input
-                        ref={nameInputRef}
-                        type="text"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        onKeyDown={handleKeyDown}
-                        style={{
-                            width: '100%',
-                            padding: '10px 12px',
-                            borderRadius: '4px',
-                            border: `1px solid ${dialogColors.borderSecondary}`,
-                            background: dialogColors.inputBg,
-                            color: dialogColors.text,
-                            fontSize: '14px',
-                            outline: 'none',
-                            boxSizing: 'border-box'
-                        }}
-                        placeholder="Enter project name"
-                    />
-                </div>
-
-                {/* 描述输入 */}
-                <div style={{ marginBottom: '12px' }}>
-                    <label style={{
-                        display: 'block',
-                        fontSize: '11px',
-                        color: dialogColors.muted,
-                        marginBottom: '6px',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.5px'
-                    }}>
-                        Description (Optional)
-                    </label>
-                    <textarea
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
-                        onKeyDown={(e) => {
-                            if (e.key === 'Escape') onCancel();
-                        }}
-                        style={{
-                            width: '100%',
-                            padding: '10px 12px',
-                            borderRadius: '4px',
-                            border: `1px solid ${dialogColors.borderSecondary}`,
-                            background: dialogColors.inputBg,
-                            color: dialogColors.text,
-                            fontSize: '14px',
-                            outline: 'none',
-                            boxSizing: 'border-box',
-                            resize: 'vertical',
-                            minHeight: '60px'
-                        }}
-                        placeholder="Enter project description"
-                    />
-                </div>
-
-                {/* 项目存放位置（仅 Electron 模式显示） */}
-                {isElectron() && (
-                    <div style={{ marginBottom: '20px' }}>
-                        <label style={{
-                            display: 'block',
-                            fontSize: '11px',
-                            color: dialogColors.muted,
-                            marginBottom: '6px',
-                            textTransform: 'uppercase',
-                            letterSpacing: '0.5px'
-                        }}>
-                            Project Location
-                        </label>
-                        <div style={{ display: 'flex', gap: '8px' }}>
-                            <input
-                                type="text"
-                                value={location}
-                                onChange={(e) => setLocation(e.target.value)}
-                                onKeyDown={handleKeyDown}
-                                style={{
-                                    flex: 1,
-                                    padding: '10px 12px',
-                                    borderRadius: '4px',
-                                    border: `1px solid ${dialogColors.borderSecondary}`,
-                                    background: dialogColors.inputBg,
-                                    color: dialogColors.text,
-                                    fontSize: '13px',
-                                    outline: 'none'
-                                }}
-                                placeholder={defaultLocation || 'Use default location'}
-                            />
-                            <button
-                                onClick={handleSelectLocation}
-                                style={{
-                                    padding: '10px 12px',
-                                    borderRadius: '4px',
-                                    border: `1px solid ${dialogColors.borderSecondary}`,
-                                    background: dialogColors.inputBg,
-                                    color: dialogColors.text,
-                                    cursor: 'pointer',
-                                    display: 'flex',
-                                    alignItems: 'center'
-                                }}
-                                title="Browse"
-                            >
-                                <FolderOpen size={16} />
-                            </button>
-                        </div>
-                        <div style={{ fontSize: '11px', color: dialogColors.muted, marginTop: '4px' }}>
-                            Leave empty to use default: {defaultLocation || 'Not set'}
-                        </div>
-                    </div>
-                )}
-
-                {/* 按钮区域 */}
-                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
-                    <button
-                        onClick={onCancel}
-                        style={{
-                            padding: '8px 14px',
-                            borderRadius: '4px',
-                            border: `1px solid ${dialogColors.borderSecondary}`,
-                            background: '#27272a',
-                            color: dialogColors.text,
-                            cursor: 'pointer'
-                        }}
-                    >
-                        Cancel
-                    </button>
-                    <button
-                        onClick={handleSubmit}
-                        disabled={!name.trim()}
-                        style={{
-                            padding: '8px 14px',
-                            borderRadius: '4px',
-                            border: `1px solid ${dialogColors.accent}`,
-                            background: name.trim() ? dialogColors.accent : '#3f3f46',
-                            color: name.trim() ? '#0b0b0f' : dialogColors.muted,
-                            fontWeight: 600,
-                            cursor: name.trim() ? 'pointer' : 'not-allowed'
-                        }}
-                    >
-                        Create Project
-                    </button>
-                </div>
-            </div>
+      }}
+      footer={
+        <>
+          <DialogButton disabled={busy} onClick={onCancel}>
+            Cancel
+          </DialogButton>
+          <DialogButton variant="primary" disabled={busy || !name.trim()} onClick={handleSubmit}>
+            {busy ? 'Creating...' : 'Create Project'}
+          </DialogButton>
+        </>
+      }
+    >
+      <div className="dialog-field">
+        <label className="dialog-label" htmlFor={`${id}-name`}>
+          Project Name *
+        </label>
+        <input
+          id={`${id}-name`}
+          className="dialog-input ui-control"
+          ref={nameInputRef}
+          value={name}
+          onChange={(event) => setName(event.target.value)}
+        />
+      </div>
+      <div className="dialog-field">
+        <label className="dialog-label" htmlFor={`${id}-description`}>
+          Description
+        </label>
+        <textarea
+          id={`${id}-description`}
+          className="dialog-input ui-control"
+          value={description}
+          onChange={(event) => setDescription(event.target.value)}
+          placeholder="Enter project description"
+        />
+      </div>
+      {isElectron() && (
+        <div className="dialog-field">
+          <label className="dialog-label" htmlFor={`${id}-location`}>
+            Location
+          </label>
+          <div className="dialog-row">
+            <input
+              id={`${id}-location`}
+              className="dialog-input ui-control"
+              value={location}
+              onChange={(event) => setLocation(event.target.value)}
+              placeholder={defaultLocation || 'Use default projects directory'}
+            />
+            <DialogButton
+              onClick={handleSelectLocation}
+              title="Browse"
+              aria-label="Browse project location"
+            >
+              <FolderOpen size={16} />
+            </DialogButton>
+          </div>
+          <p className="dialog-help">Leave empty to use default: {defaultLocation || 'Not set'}</p>
         </div>
-    );
+      )}
+      {error && (
+        <p role="alert" className="dialog-notice dialog-error">
+          {error}
+        </p>
+      )}
+    </Dialog>
+  );
 };
-
 export default NewProjectDialog;
-

@@ -22,7 +22,7 @@ export interface VariableDefinition extends Entity {
   id: VariableId;
   assetName?: string;        // 资产名（符合变量命名规则：字母/下划线开头，只含字母数字下划线）
   type: VariableType;
-  value: any;           // 变量的当前值
+  value: import('./json').JsonValue; // 保留导入原值；类型不匹配由业务校验和显式编辑处理
   state: ResourceState;
   scope: VariableScope;      // 定义时的作用域
   displayOrder?: number;     // 显示顺序（用于黑板拖拽排序）

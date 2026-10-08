@@ -7,7 +7,7 @@
  * #33-#56: 引用完整性校验（生命周期、事件、变量、触发器、条件、参数修改器、演出配置）
  */
 
-import { ValidationResult } from '../../../store/types';
+import type { ValidationResult } from '../../../types/validation';
 import { ProjectData } from '../../../types/project';
 import { ConditionExpression, TriggerConfig } from '../../../types/stateMachine';
 import { EventListener, PresentationBinding, ParameterModifier, ValueSource } from '../../../types/common';

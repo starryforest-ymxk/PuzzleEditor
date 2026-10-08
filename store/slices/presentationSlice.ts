@@ -3,32 +3,15 @@
  * 处理所有与演出图及其节点和连线相关的操作
  */
 
+import { isActionForDomain, type ActionForDomain } from '../actionPolicy';
 import { EditorState, Action } from '../types';
-import { PresentationNode, PresentationGraph } from '../../types/presentation';
-import { Side } from '../../types/common';
 import { normalizePresentationNode } from '../../utils/presentation';
 
 // ========== Presentation 相关 Actions 类型定义 ==========
-export type PresentationAction =
-    | { type: 'ADD_PRESENTATION_GRAPH'; payload: { graph: PresentationGraph } }
-    | { type: 'UPDATE_PRESENTATION_GRAPH'; payload: { graphId: string; data: Partial<PresentationGraph> } }
-    | { type: 'DELETE_PRESENTATION_GRAPH'; payload: { graphId: string } }
-    | { type: 'ADD_PRESENTATION_NODE'; payload: { graphId: string; node: PresentationNode } }
-    | { type: 'DELETE_PRESENTATION_NODE'; payload: { graphId: string; nodeId: string } }
-    | { type: 'UPDATE_PRESENTATION_NODE'; payload: { graphId: string; nodeId: string; data: Partial<PresentationNode> } }
-    | { type: 'LINK_PRESENTATION_NODES'; payload: { graphId: string; fromNodeId: string; toNodeId: string; fromSide?: Side; toSide?: Side } }
-    | { type: 'UNLINK_PRESENTATION_NODES'; payload: { graphId: string; fromNodeId: string; toNodeId: string } }
-    | { type: 'UPDATE_EDGE_PROPERTIES'; payload: { graphId: string; fromNodeId: string; toNodeId: string; fromSide?: Side; toSide?: Side } };
+export type PresentationAction = ActionForDomain<'presentation'>;
 
 // ========== 类型守卫：判断是否为 Presentation Action ==========
-export const isPresentationAction = (action: { type: string }): action is PresentationAction => {
-    const presentationActionTypes = [
-        'ADD_PRESENTATION_GRAPH', 'UPDATE_PRESENTATION_GRAPH', 'DELETE_PRESENTATION_GRAPH',
-        'ADD_PRESENTATION_NODE', 'DELETE_PRESENTATION_NODE', 'UPDATE_PRESENTATION_NODE',
-        'LINK_PRESENTATION_NODES', 'UNLINK_PRESENTATION_NODES', 'UPDATE_EDGE_PROPERTIES'
-    ];
-    return presentationActionTypes.includes(action.type);
-};
+export const isPresentationAction = (action: Action): action is PresentationAction => isActionForDomain(action, 'presentation');
 
 // ========== Presentation Reducer ==========
 export const presentationReducer = (state: EditorState, action: PresentationAction): EditorState => {
@@ -67,7 +50,7 @@ export const presentationReducer = (state: EditorState, action: PresentationActi
 
         case 'DELETE_PRESENTATION_GRAPH': {
             const { graphId } = action.payload;
-            const { [graphId]: deleted, ...remaining } = state.project.presentationGraphs;
+            const { [graphId]: _deleted, ...remaining } = state.project.presentationGraphs;
 
             // 更新选择状态
             let newSelection = state.ui.selection;
@@ -258,7 +241,9 @@ export const presentationReducer = (state: EditorState, action: PresentationActi
         case 'UPDATE_EDGE_PROPERTIES': {
             const { graphId, fromNodeId, toNodeId, fromSide, toSide } = action.payload;
             const graph = state.project.presentationGraphs[graphId];
-            if (!graph) return state;
+            // 端点必须属于真实连线，迟到的拖拽回调不能创建悬空边属性。
+            if (!graph?.nodes[fromNodeId]?.nextIds.includes(toNodeId) || !graph.nodes[toNodeId]) return state;
+            if (fromSide === undefined && toSide === undefined) return state;
 
             // 边属性 key 格式：fromNodeId->toNodeId
             const edgeKey = `${fromNodeId}->${toNodeId}`;

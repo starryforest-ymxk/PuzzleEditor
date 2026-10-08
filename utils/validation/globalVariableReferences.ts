@@ -4,8 +4,14 @@
  * 
  * 与 variableReferences.ts 类似，但专门处理 Global 作用域的变量
  */
-import { ConditionExpression, StateMachine, Transition } from '../../types/stateMachine';
-import { EventListener, ParameterModifier, ValueSource, ParameterBinding, PresentationBinding } from '../../types/common';
+import { ConditionExpression, Transition } from '../../types/stateMachine';
+import {
+  EventListener,
+  ParameterModifier,
+  ValueSource,
+  ParameterBinding,
+  PresentationBinding
+} from '../../types/common';
 import { PresentationGraph } from '../../types/presentation';
 import { PuzzleNode } from '../../types/puzzleNode';
 import { StageNode } from '../../types/stage';
@@ -140,7 +146,7 @@ const collectFromEventListeners = (
  * type: 'Graph' 的情况不在此处理，演出图内部的参数引用由主函数最后统一遍历
  */
 const collectFromPresentationBinding = (
-  binding: any,
+  binding: PresentationBinding | undefined,
   variableId: string,
   collector: (info: VariableReferenceInfo) => void,
   origin: string,

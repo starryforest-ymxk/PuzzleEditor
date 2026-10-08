@@ -54,8 +54,7 @@ export interface VirtualEdge extends IGraphEdge {
  * 统一 FSM (StateMachine) 和演出图 (PresentationGraph) 的容器结构
  */
 export interface IGraphContainer<
-    N extends IGraphNode = IGraphNode,
-    E extends IGraphEdge = IGraphEdge
+    N extends IGraphNode = IGraphNode
 > {
     id: string;
     nodes: Record<string, N>;
@@ -70,7 +69,7 @@ export interface IGraphContainer<
 export interface IGraphContainerWithEdges<
     N extends IGraphNode = IGraphNode,
     E extends IGraphEdge = IGraphEdge
-> extends IGraphContainer<N, E> {
+> extends IGraphContainer<N> {
     edges: Record<string, E>;
 }
 

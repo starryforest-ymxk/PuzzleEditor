@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react';
+import React from 'react';
 
 interface SidebarProps {
   title: string;
@@ -6,18 +6,16 @@ interface SidebarProps {
   width?: number;
 }
 
-export const Sidebar = ({ title, position, width, children }: React.PropsWithChildren<SidebarProps>) => {
+export const Sidebar = ({
+  title,
+  position,
+  width,
+  children,
+}: React.PropsWithChildren<SidebarProps>) => {
   return (
-    <div
-      className={`sidebar ${position}`}
-      style={{ width: width ? `${width}px` : undefined }}
-    >
-      <div className="panel-header">
-        {title}
-      </div>
-      <div className="panel-content">
-        {children}
-      </div>
+    <div className={`sidebar ${position}`} style={{ width: width ? `${width}px` : undefined }}>
+      <div className="panel-header">{title}</div>
+      <div className="panel-content">{children}</div>
     </div>
   );
 };

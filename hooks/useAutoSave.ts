@@ -1,57 +1,14 @@
-import { useEffect, useRef } from 'react';
-import { isElectron } from '@/src/electron/api';
-import { useEditorState } from '../store/context';
-import { useProjectActions } from './useProjectActions';
+import { useEffect } from 'react';
+import { useEditorState, useProjectSession } from '../store/context';
+import { scheduleAutoSave } from '../services/autoSaveScheduler';
 
-/**
- * 自动保存 Hook
- * - 仅在 Electron 环境生效
- * - 仅在项目已加载且存在未保存修改时触发
- * - 使用单飞锁避免并发写入
- */
+/** 稳定定时器调用共享队列，手动保存和持续编辑不会重置周期。 */
 export const useAutoSave = () => {
-    const { project, ui, runtime, settings } = useEditorState();
-    const { saveProject } = useProjectActions();
-    const savingRef = useRef(false);
-
+    const { settings } = useEditorState();
+    const session = useProjectSession();
     useEffect(() => {
-        if (!isElectron()) return;
         if (!settings.autoSave.enabled) return;
-
-        // 保护：自动保存最小间隔为 1 分钟
-        const intervalMinutes = Math.max(1, Number(settings.autoSave.intervalMinutes || 1));
-        const intervalMs = intervalMinutes * 60 * 1000;
-
-        const timerId = window.setInterval(async () => {
-            // 只有在项目已加载、存在文件路径且有脏数据时才执行自动保存
-            if (!project.isLoaded || !runtime.currentProjectPath || !ui.isDirty) {
-                return;
-            }
-
-            // 单飞保护，避免慢盘情况下重叠写入
-            if (savingRef.current) {
-                return;
-            }
-
-            savingRef.current = true;
-            try {
-                await saveProject({ silent: true });
-            } finally {
-                savingRef.current = false;
-            }
-        }, intervalMs);
-
-        return () => {
-            window.clearInterval(timerId);
-        };
-    }, [
-        project.isLoaded,
-        runtime.currentProjectPath,
-        ui.isDirty,
-        settings.autoSave.enabled,
-        settings.autoSave.intervalMinutes,
-        saveProject
-    ]);
+        return scheduleAutoSave(session.autoSave, settings.autoSave.intervalMinutes);
+    }, [session, settings.autoSave.enabled, settings.autoSave.intervalMinutes]);
 };
-
 export default useAutoSave;

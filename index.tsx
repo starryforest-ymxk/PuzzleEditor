@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { StoreProvider } from './store/context';
+import { StoreProvider } from './store/StoreProvider';
 import { MainLayout } from './components/Layout/MainLayout';
 import './styles.css';
 

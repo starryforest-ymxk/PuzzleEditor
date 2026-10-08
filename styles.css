@@ -1,57 +1,4 @@
-:root {
-  /* Analog Lab Theme Palette */
-  /* Backgrounds: Zinc-950 / Zinc-900 / Zinc-800 */
-  --bg-color: #18181b;
-  /* Deep matte charcoal */
-  --panel-bg: #27272a;
-  /* Slightly lighter panel background */
-  --panel-header-bg: #3f3f46;
-  /* Distinct header bg */
-
-  /* Borders: Zinc-600 */
-  --border-color: #52525b;
-  /* Visible, mechanical borders */
-
-  /* Text: Zinc-200 / Zinc-400 */
-  --text-primary: #e4e4e7;
-  /* Off-white, high contrast but no bloom */
-  --text-secondary: #a1a1aa;
-  /* Muted technical info */
-  --text-dim: #71717a;
-  /* Inactive/Hint */
-
-  /* Accents: Safety Orange / Amber */
-  --accent-color: #f97316;
-  /* Primary interaction color (Orange-500) */
-  --accent-hover: #fb923c;
-  /* Lighter orange for hover */
-  --accent-active: #ea580c;
-  /* Darker orange for active/press */
-
-  --accent-success: #22c55e;
-  --accent-warning: #f59e0b;
-  --accent-error: #ef4444;
-
-  --selection-bg: rgba(249, 115, 22, 0.2);
-  --selection-border: #f97316;
-
-  /* Layout Dimensions */
-  --header-height: 56px;
-  /* Slightly taller for "Control Deck" feel */
-  --sidebar-width: 280px;
-  /* Wider for "Component Rack" */
-  --inspector-width: 340px;
-  /* Wider for "Parameters Deck" */
-
-  /* Shadows & Radius */
-  --node-bg: #27272a;
-  --node-header-bg: #3f3f46;
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
-  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.6);
-  --radius-sm: 4px;
-  /* Machined metal corners */
-  --radius-md: 6px;
-}
+@import './components/shared/ui.css';
 
 body,
 html {
@@ -240,7 +187,7 @@ html {
   position: relative;
 }
 
-.tree-node.drop-target-between[data-drop-edge="top"]::before {
+.tree-node.drop-target-between[data-drop-edge='top']::before {
   content: '';
   position: absolute;
   top: -1px;
@@ -254,7 +201,7 @@ html {
   z-index: 10;
 }
 
-.tree-node.drop-target-between[data-drop-edge="bottom"]::after {
+.tree-node.drop-target-between[data-drop-edge='bottom']::after {
   content: '';
   position: absolute;
   bottom: -1px;
@@ -354,7 +301,7 @@ html {
   width: 100%;
 }
 
-.inspector-row>* {
+.inspector-row > * {
   min-width: 0;
 }
 
@@ -484,7 +431,10 @@ html {
   cursor: pointer;
   box-sizing: border-box;
   opacity: 0.8;
-  transition: background 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    opacity 0.15s ease;
 }
 
 .btn-add-ghost:hover {
@@ -561,7 +511,9 @@ html {
 
 /* Transition Handles */
 .transition-handle {
-  transition: fill 0.1s, stroke 0.1s;
+  transition:
+    fill 0.1s,
+    stroke 0.1s;
 }
 
 .transition-handle:hover {
@@ -580,7 +532,10 @@ html {
   border-radius: 50%;
   cursor: grab;
   transform: translate(-50%, -50%);
-  transition: background-color 0.15s, border-color 0.15s, transform 0.1s;
+  transition:
+    background-color 0.15s,
+    border-color 0.15s,
+    transform 0.1s;
 }
 
 .handle:hover {
@@ -719,7 +674,7 @@ html {
 }
 
 /* 确保网格内卡片高度统一（同行卡片以最高者为准） */
-.card-grid>* {
+.card-grid > * {
   height: 100%;
 }
 
@@ -739,12 +694,6 @@ html {
 }
 
 /* ========== 卡片元素 ========== */
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 8px;
-}
 
 .card-name {
   font-weight: 600;
@@ -753,17 +702,11 @@ html {
 }
 
 .card-key {
-  font-size: 10px;
-  color: var(--text-dim);
-  font-family: 'JetBrains Mono', 'Consolas', monospace;
   margin-bottom: 6px;
 }
 
 .card-description {
   margin-top: 8px;
-  font-size: 11px;
-  color: var(--text-secondary);
-  font-style: italic;
 }
 
 .card-type-value-row {
@@ -802,11 +745,11 @@ html {
 }
 
 .scope-badge .scope-type--stage {
-  color: #4fc1ff;
+  color: var(--scope-StageLocal);
 }
 
 .scope-badge .scope-type--node {
-  color: #ce9178;
+  color: var(--scope-NodeLocal);
 }
 
 .scope-badge .scope-separator {
@@ -818,35 +761,6 @@ html {
 }
 
 /* ========== 表单控件 ========== */
-.search-input {
-  flex: 1;
-  padding: 6px 10px;
-  font-size: 12px;
-  background: var(--panel-bg);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-sm);
-  color: var(--text-primary);
-  outline: none;
-}
-
-.search-input:focus {
-  border-color: var(--accent-color);
-}
-
-.filter-select {
-  background: var(--panel-bg);
-  color: var(--text-primary);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-sm);
-  padding: 6px 8px;
-  font-size: 12px;
-  cursor: pointer;
-}
-
-.filter-select:focus {
-  border-color: var(--accent-color);
-  outline: none;
-}
 
 /* ========== Blackboard 面板布局 ========== */
 .blackboard-container {
@@ -1210,18 +1124,7 @@ html {
 
 /* 名称输入框 */
 .inspector-name-input {
-  background: #222;
-  border: 1px solid #444;
-  color: #fff;
-  font-size: 14px;
-  font-weight: 600;
   width: 100%;
-  padding: 4px;
-  box-sizing: border-box;
-}
-
-.inspector-name-input:disabled {
-  opacity: 0.7;
 }
 
 .inspector-name-input--with-margin {
@@ -1239,14 +1142,6 @@ html {
 }
 
 /* Section 标题 */
-.inspector-section-title {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--text-secondary);
-  margin-bottom: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
 
 /* 只读模式包装器 */
 .inspector-readonly-wrapper {
@@ -1326,30 +1221,14 @@ html {
 
 /* 文本区域 */
 .inspector-textarea {
-  background: #222;
-  border: 1px solid #444;
-  color: #ccc;
   width: 100%;
   height: 60px;
   resize: vertical;
-  font-family: inherit;
-  box-sizing: border-box;
-}
-
-.inspector-textarea:disabled {
-  opacity: 0.7;
 }
 
 /* 数字输入框 */
 .inspector-number-input {
-  background: #222;
-  border: 1px solid #444;
-  color: #ccc;
   width: 60px;
-}
-
-.inspector-number-input:disabled {
-  opacity: 0.7;
 }
 
 /* 属性值样式 */
@@ -1415,20 +1294,6 @@ html {
 }
 
 /* Canvas context menu items */
-.ctx-item {
-  padding: 8px 12px;
-  font-size: 13px;
-  cursor: pointer;
-  color: #eee;
-}
-
-.ctx-item:hover {
-  background: #3e3e42;
-}
-
-.ctx-item.danger {
-  color: #ff6b6b;
-}
 
 /* Connection handle styling for canvas links */
 .handle {
@@ -1441,7 +1306,9 @@ html {
   transform: translate(-50%, -50%);
   cursor: grab;
   opacity: 0;
-  transition: opacity 0.2s, background 0.2s;
+  transition:
+    opacity 0.2s,
+    background 0.2s;
 }
 
 .handle:hover {
@@ -1533,99 +1400,35 @@ html {
 
 /* Inspector 输入框统一样式 */
 .inspector-input {
-  background: #222;
-  border: 1px solid #444;
-  color: var(--text-primary);
-  font-size: 12px;
-  padding: 6px 8px;
-  border-radius: var(--radius-sm);
   width: 100%;
-  box-sizing: border-box;
-  transition: border-color 0.15s;
-}
-
-.inspector-input:focus {
-  border-color: var(--accent-color);
-  outline: none;
-}
-
-.inspector-input:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.inspector-input.monospace {
-  font-family: 'JetBrains Mono', 'Consolas', monospace;
 }
 
 /* Inspector 选择框统一样式 */
 .inspector-select {
-  background: #222;
-  border: 1px solid #444;
-  color: var(--text-primary);
-  font-size: 12px;
-  padding: 6px 8px;
-  border-radius: var(--radius-sm);
   width: 100%;
-  box-sizing: border-box;
-  cursor: pointer;
-  transition: border-color 0.15s;
-}
-
-.inspector-select:focus {
-  border-color: var(--accent-color);
-  outline: none;
-}
-
-.inspector-select:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.inspector-select.monospace {
-  font-family: 'JetBrains Mono', 'Consolas', monospace;
 }
 
 /* 类型选择器统一样式（用于本地变量和全局变量） */
 .inspector-type-select {
-  background: #222;
-  border: 1px solid var(--border-color);
-  color: var(--text-primary);
-  font-size: 12px;
-  padding: 6px 8px;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  font-family: 'JetBrains Mono', 'Consolas', monospace;
   min-width: 90px;
-  box-sizing: border-box;
   /* 确保宽度包含 border 和 padding */
 }
 
-.inspector-type-select:focus {
-  border-color: var(--accent-color);
-  outline: none;
-}
-
-.inspector-type-select:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
 /* 类型选择器选项颜色 */
-.inspector-type-select option[value="boolean"] {
-  color: #60a5fa;
+.inspector-type-select option[value='boolean'] {
+  color: var(--variable-boolean);
 }
 
-.inspector-type-select option[value="integer"] {
-  color: #a3e635;
+.inspector-type-select option[value='integer'] {
+  color: var(--variable-integer);
 }
 
-.inspector-type-select option[value="float"] {
-  color: #2dd4bf;
+.inspector-type-select option[value='float'] {
+  color: var(--variable-float);
 }
 
-.inspector-type-select option[value="string"] {
-  color: #fbbf24;
+.inspector-type-select option[value='string'] {
+  color: var(--variable-string);
 }
 
 /* 引用追踪占位区块 */
@@ -1659,7 +1462,9 @@ html {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: color 0.15s, background 0.15s;
+  transition:
+    color 0.15s,
+    background 0.15s;
 }
 
 .btn-icon:hover {
@@ -1909,7 +1714,9 @@ html {
 /* 可点击的引用项样式 */
 .local-variable-card__references-item--clickable {
   cursor: pointer;
-  transition: background-color 0.15s, color 0.15s;
+  transition:
+    background-color 0.15s,
+    color 0.15s;
 }
 
 .local-variable-card__references-item--clickable:hover {
@@ -2006,7 +1813,9 @@ html {
 
 /* Inspector 中的引用项样式 */
 .inspector-reference-item {
-  transition: background-color 0.15s, color 0.15s;
+  transition:
+    background-color 0.15s,
+    color 0.15s;
 }
 
 .inspector-reference-item--clickable {
@@ -2036,35 +1845,6 @@ html {
 }
 
 /* ========== Context Menu (Stage Tree, Canvas) ========== */
-.canvas-context-menu {
-  background: var(--panel-bg);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-sm);
-  box-shadow: var(--shadow-md);
-  min-width: 180px;
-  padding: 4px 0;
-  z-index: 1000;
-}
-
-.menu-item {
-  display: flex;
-  align-items: center;
-  padding: 8px 12px;
-  font-size: 12px;
-  color: var(--text-primary);
-  cursor: pointer;
-  transition: background 0.1s;
-}
-
-.menu-item:hover {
-  background: rgba(255, 255, 255, 0.08);
-}
-
-.menu-divider {
-  height: 1px;
-  background: var(--border-color);
-  margin: 4px 0;
-}
 
 /* Context Menu Danger Item - 必须在 .menu-item 之后以覆盖颜色 */
 .menu-item.menu-item-danger {

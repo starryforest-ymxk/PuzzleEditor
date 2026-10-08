@@ -11,9 +11,9 @@ const DRAG_THRESHOLD = 4;
 /** Hook 参数 */
 interface UseStateNodeInteractionOptions {
     /** 当前连线状态 */
-    linkingState: any;
+    linkingState: { nodeId: string } | null;
     /** 当前修改连线状态 */
-    modifyingTransition: any;
+    modifyingTransition: { id: string; handle: 'source' | 'target' } | null;
     /** 多选状态 ID 列表 */
     multiSelectIds: string[];
     /** 只读模式 */
@@ -161,12 +161,4 @@ export function useStateNodeInteraction({
         handleStateMouseDown,
         handleStateMouseUp
     };
-}
-
-/**
- * 设置当前 PuzzleNode ID（供 contextId 使用）
- * 需要在组件外部调用此函数更新
- */
-export function setNodeIdRef(nodeId: string): void {
-    // 这是一个简化实现，实际使用时需要通过 ref 传递
 }

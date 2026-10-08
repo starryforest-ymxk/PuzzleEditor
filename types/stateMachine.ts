@@ -7,7 +7,6 @@ import {
   Entity,
   Vector2,
   Side,
-  VariableScope,
   EventListener,
   PresentationBinding,
   ParameterModifier,
@@ -16,7 +15,6 @@ import {
   TransitionId,
   EventId,
   ScriptId,
-  VariableId,
   ValueSource
 } from './common';
 

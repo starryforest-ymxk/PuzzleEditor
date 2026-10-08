@@ -25,14 +25,13 @@ export const EventListenersEditor: React.FC<Props> = ({
   listeners,
   onChange,
   eventOptions,
-  scriptOptions,
-  variables
+  variables,
 }) => {
   // 新增监听
   const handleAdd = () => {
     const newListener: EventListener = {
-      eventId: '' as any,
-      action: { type: 'InvokeScript' }
+      eventId: '',
+      action: { type: 'InvokeScript' },
     };
     onChange([...listeners, newListener]);
   };
@@ -51,15 +50,14 @@ export const EventListenersEditor: React.FC<Props> = ({
 
   // 切换动作类型
   const handleActionTypeChange = (index: number, type: 'InvokeScript' | 'ModifyParameter') => {
-    const listener = listeners[index];
     if (type === 'InvokeScript') {
       handleUpdate(index, { action: { type: 'InvokeScript' } });
     } else {
       handleUpdate(index, {
         action: {
           type: 'ModifyParameter',
-          modifiers: []
-        }
+          modifiers: [],
+        },
       });
     }
   };
@@ -73,19 +71,23 @@ export const EventListenersEditor: React.FC<Props> = ({
       targetVariableId: '',
       targetScope: 'Global',
       operation: 'Set',
-      source: { type: 'Constant', value: '' }
+      source: { type: 'Constant', value: '' },
     };
 
     handleUpdate(listenerIndex, {
       action: {
         ...listener.action,
-        modifiers: [...listener.action.modifiers, newModifier]
-      }
+        modifiers: [...listener.action.modifiers, newModifier],
+      },
     });
   };
 
   // 更新修改器
-  const handleUpdateModifier = (listenerIndex: number, modifierIndex: number, newModifier: ParameterModifier) => {
+  const handleUpdateModifier = (
+    listenerIndex: number,
+    modifierIndex: number,
+    newModifier: ParameterModifier,
+  ) => {
     const listener = listeners[listenerIndex];
     if (listener.action.type !== 'ModifyParameter') return;
 
@@ -95,8 +97,8 @@ export const EventListenersEditor: React.FC<Props> = ({
     handleUpdate(listenerIndex, {
       action: {
         ...listener.action,
-        modifiers: newModifiers
-      }
+        modifiers: newModifiers,
+      },
     });
   };
 
@@ -108,8 +110,8 @@ export const EventListenersEditor: React.FC<Props> = ({
     handleUpdate(listenerIndex, {
       action: {
         ...listener.action,
-        modifiers: listener.action.modifiers.filter((_, i) => i !== modifierIndex)
-      }
+        modifiers: listener.action.modifiers.filter((_, i) => i !== modifierIndex),
+      },
     });
   };
 
@@ -130,12 +132,23 @@ export const EventListenersEditor: React.FC<Props> = ({
               borderRadius: '4px',
               border: '1px solid #333',
               display: 'flex',
-              flexDirection: 'column'
+              flexDirection: 'column',
             }}
           >
             {/* Event select */}
-            <div className="inspector-row" style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '8px', flexWrap: 'nowrap' }}>
-              <span style={{ fontSize: '11px', color: '#888', minWidth: '48px', flexShrink: 0 }}>Event</span>
+            <div
+              className="inspector-row"
+              style={{
+                display: 'flex',
+                gap: '8px',
+                alignItems: 'center',
+                marginBottom: '8px',
+                flexWrap: 'nowrap',
+              }}
+            >
+              <span style={{ fontSize: '11px', color: '#888', minWidth: '48px', flexShrink: 0 }}>
+                Event
+              </span>
               <div style={{ flex: 1, minWidth: 0, display: 'flex' }}>
                 <ResourceSelect
                   options={eventOptions}
@@ -155,7 +168,7 @@ export const EventListenersEditor: React.FC<Props> = ({
                   cursor: 'pointer',
                   fontSize: '16px',
                   padding: '0 4px',
-                  flexShrink: 0
+                  flexShrink: 0,
                 }}
               >
                 ×
@@ -163,26 +176,28 @@ export const EventListenersEditor: React.FC<Props> = ({
             </div>
 
             {/* Action type */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', flexWrap: 'nowrap' }}>
-              <span style={{ fontSize: '11px', color: '#888', minWidth: '48px', flexShrink: 0 }}>Action</span>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                marginBottom: '8px',
+                flexWrap: 'nowrap',
+              }}
+            >
+              <span style={{ fontSize: '11px', color: '#888', minWidth: '48px', flexShrink: 0 }}>
+                Action
+              </span>
               <select
+                className="ui-control"
                 value={listener.action.type}
-                onChange={(e) => handleActionTypeChange(index, e.target.value as 'InvokeScript' | 'ModifyParameter')}
-                style={{
-                  background: '#27272a', // Zinc-800
-                  color: '#e4e4e7',      // Zinc-200
-                  border: '1px solid #52525b', // Zinc-600
-                  padding: '4px 8px',
-                  fontSize: '12px',
-                  borderRadius: '4px',
-                  flex: 1,
-                  minWidth: 0,
-                  height: 30, // Reference height
-                  boxSizing: 'border-box',
-                  lineHeight: '18px',
-                  outline: 'none',
-                  fontFamily: 'Inter, sans-serif'
-                }}
+                onChange={(e) =>
+                  handleActionTypeChange(
+                    index,
+                    e.target.value as 'InvokeScript' | 'ModifyParameter',
+                  )
+                }
+                style={{ flex: 1, minWidth: 0, height: 30 }}
               >
                 <option value="InvokeScript">Invoke Script</option>
                 <option value="ModifyParameter">Modify Parameter</option>
@@ -198,18 +213,29 @@ export const EventListenersEditor: React.FC<Props> = ({
 
             {/* ModifyParameter: 允许配置多个参数修改器 */}
             {listener.action.type === 'ModifyParameter' && (
-              <div style={{ marginTop: '4px', display: 'flex', flexDirection: 'column', width: '100%', gap: '8px' }}>
+              <div
+                style={{
+                  marginTop: '4px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  width: '100%',
+                  gap: '8px',
+                }}
+              >
                 {listener.action.modifiers.map((modifier, mIdx) => (
-                  <div key={mIdx} style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '4px',
-                    padding: '8px',
-                    background: 'rgba(255,255,255,0.03)',
-                    border: '1px solid #333',
-                    borderRadius: '4px',
-                    position: 'relative'
-                  }}>
+                  <div
+                    key={mIdx}
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '4px',
+                      padding: '8px',
+                      background: 'rgba(255,255,255,0.03)',
+                      border: '1px solid #333',
+                      borderRadius: '4px',
+                      position: 'relative',
+                    }}
+                  >
                     <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                       <button
                         onClick={() => handleDeleteModifier(index, mIdx)}
@@ -242,11 +268,7 @@ export const EventListenersEditor: React.FC<Props> = ({
 
       {/* Add button */}
       <div style={{ textAlign: 'center', marginTop: '8px', padding: 0 }}>
-        <button
-          className="btn-add-ghost"
-          onClick={handleAdd}
-          style={{ width: '100%' }}
-        >
+        <button className="btn-add-ghost" onClick={handleAdd} style={{ width: '100%' }}>
           + Add Listener
         </button>
       </div>

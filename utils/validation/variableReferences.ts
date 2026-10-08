@@ -7,8 +7,13 @@
  */
 import { ProjectData } from '../../types/project';
 import { ConditionExpression, Transition } from '../../types/stateMachine';
-import { EventListener, ParameterBinding, ParameterModifier, PresentationBinding, ValueSource } from '../../types/common';
-import { PresentationGraph } from '../../types/presentation';
+import {
+  EventListener,
+  ParameterBinding,
+  ParameterModifier,
+  PresentationBinding,
+  ValueSource
+} from '../../types/common';
 // 从 globalVariableReferences 导入共享类型
 import type { VariableReferenceInfo, ReferenceNavigationContext } from './globalVariableReferences';
 

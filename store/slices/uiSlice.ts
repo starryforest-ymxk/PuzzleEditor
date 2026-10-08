@@ -3,37 +3,15 @@
  * 处理所有与 UI 状态相关的操作：选择、面板尺寸、黑板视图、消息等
  */
 
-import { EditorState, Action, Selection, BlackboardViewState, UiMessage } from '../types';
+import { isActionForDomain, type ActionForDomain } from '../actionPolicy';
+import { EditorState, Action } from '../types';
 import { normalizePanelSizes } from '../../utils/panelSizes';
 
 // ========== UI 相关 Actions 类型定义 ==========
-export type UiAction =
-    | { type: 'SELECT_OBJECT'; payload: Selection }
-    | { type: 'SET_MULTI_SELECT_STATES'; payload: string[] }
-    | { type: 'SET_MULTI_SELECT_PRESENTATION_NODES'; payload: string[] }
-    | { type: 'TOGGLE_STAGE_EXPAND'; payload: { id: string } }
-    | { type: 'SET_STAGE_EXPANDED'; payload: { id: string; expanded: boolean } }
-    | { type: 'SET_BLACKBOARD_VIEW'; payload: Partial<BlackboardViewState> }
-    | { type: 'SET_PANEL_SIZES'; payload: Partial<{ explorerWidth: number; inspectorWidth: number; stagesHeight: number }> }
-    | { type: 'SET_READ_ONLY'; payload: boolean }
-    | { type: 'ADD_MESSAGE'; payload: UiMessage }
-    | { type: 'CLEAR_MESSAGES' }
-    | { type: 'SET_VALIDATION_RESULTS'; payload: import('../types').ValidationResult[] }
-    | { type: 'SET_SHOW_VALIDATION_PANEL'; payload: boolean }
-    | { type: 'SET_CONFIRM_DIALOG'; payload: { isOpen: boolean; title?: string; message?: string; confirmAction?: import('../types').Action; danger?: boolean } };
+export type UiAction = ActionForDomain<'ui'>;
 
 // ========== 类型守卫：判断是否为 UI Action ==========
-export const isUiAction = (action: Action): action is UiAction => {
-    const uiActionTypes = [
-        'SELECT_OBJECT', 'SET_MULTI_SELECT_STATES', 'SET_MULTI_SELECT_PRESENTATION_NODES',
-        'TOGGLE_STAGE_EXPAND', 'SET_STAGE_EXPANDED',
-        'SET_BLACKBOARD_VIEW', 'SET_PANEL_SIZES',
-        'ADD_MESSAGE', 'CLEAR_MESSAGES',
-        'SET_VALIDATION_RESULTS', 'SET_SHOW_VALIDATION_PANEL',
-        'SET_CONFIRM_DIALOG'
-    ];
-    return uiActionTypes.includes(action.type);
-};
+export const isUiAction = (action: Action): action is UiAction => isActionForDomain(action, 'ui');
 
 // ========== UI Reducer ==========
 export const uiReducer = (state: EditorState, action: UiAction): EditorState => {

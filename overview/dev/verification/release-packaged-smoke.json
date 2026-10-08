@@ -1,0 +1,39 @@
+{
+  "success": true,
+  "executable": "E:\\Projects\\Web Projects\\puzzle-editor\\release\\2026-10-08\\win-unpacked\\Puzzle Editor.exe",
+  "directory": "D:\\Temp\\puzzle-packaged-release-kgwvEN",
+  "metadata": [
+    {
+      "packaged": true,
+      "version": "1.0.0-beta",
+      "appPath": "E:\\Projects\\Web Projects\\puzzle-editor\\release\\2026-10-08\\win-unpacked\\resources\\app.asar",
+      "userData": "D:\\Temp\\puzzle-packaged-release-kgwvEN\\appdata\\app"
+    },
+    {
+      "packaged": true,
+      "version": "1.0.0-beta",
+      "appPath": "E:\\Projects\\Web Projects\\puzzle-editor\\release\\2026-10-08\\win-unpacked\\resources\\app.asar",
+      "userData": "D:\\Temp\\puzzle-packaged-release-kgwvEN\\appdata\\app"
+    }
+  ],
+  "checks": [
+    "Actual packaged ASAR application launched",
+    "User data was isolated before startup",
+    "Packaged preload and close API available",
+    "Packaged preferences IPC restored the isolated fixture",
+    "Focused Inspector input",
+    "Unified close dialog displayed all three choices",
+    "Cancel kept the actual packaged process alive",
+    "Cancel left the saved project unchanged",
+    "Save & Close exited successfully",
+    "Latest Inspector draft persisted before process exit",
+    "Actual packaged ASAR application launched",
+    "User data was isolated before startup",
+    "Packaged preload and close API available",
+    "Packaged preferences IPC restored the isolated fixture",
+    "Restart restored the saved edit",
+    "Clean packaged project closed without confirmation",
+    "No renderer warnings or errors observed during the exercised interactions"
+  ],
+  "consoleErrors": []
+}

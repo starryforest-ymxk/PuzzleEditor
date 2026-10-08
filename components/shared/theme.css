@@ -1,0 +1,103 @@
+/* 全局主题和语义色值的唯一来源。 */
+:root {
+  /* 图编辑与资源菜单保留原视觉值，供拆分后的组件共用。 */
+  --graph-canvas-bg: #1a1a1d;
+  --graph-text-muted: #888;
+  --graph-text-secondary: #ccc;
+  --graph-branch-true: #4ec9b0;
+  --graph-branch-false: #e6a23c;
+  --graph-reference: #9cdcfe;
+  --graph-snap-border: #666;
+  --resource-menu-bg: #252526;
+  --resource-menu-border: #3e3e42;
+  --resource-menu-hover: #37373d;
+  --resource-performance: #c586c0;
+  --resource-lifecycle: #4fc1ff;
+  --resource-condition: #dcdcaa;
+  --resource-trigger: #ce9178;
+  --condition-bg: #1f1f23;
+  /* Analog Lab Theme Palette */
+  /* Backgrounds: Zinc-950 / Zinc-900 / Zinc-800 */
+  --bg-color: #18181b;
+  /* Deep matte charcoal */
+  --panel-bg: #27272a;
+  /* Slightly lighter panel background */
+  --panel-header-bg: #3f3f46;
+  /* Distinct header bg */
+
+  /* Borders: Zinc-600 */
+  --border-color: #52525b;
+  /* Visible, mechanical borders */
+
+  /* Text: Zinc-200 / Zinc-400 */
+  --text-primary: #e4e4e7;
+  /* Off-white, high contrast but no bloom */
+  --text-secondary: #a1a1aa;
+  /* Muted technical info */
+  --text-dim: #71717a;
+  /* Inactive/Hint */
+
+  /* Accents: Safety Orange / Amber */
+  --accent-color: #f97316;
+  /* Primary interaction color (Orange-500) */
+  --accent-hover: #fb923c;
+  /* Lighter orange for hover */
+  --accent-active: #ea580c;
+  /* Darker orange for active/press */
+
+  --accent-success: #22c55e;
+  --accent-warning: #f59e0b;
+  --accent-error: #ef4444;
+
+  --selection-bg: rgba(249, 115, 22, 0.2);
+  --selection-border: #f97316;
+
+  /* Layout Dimensions */
+  --header-height: 56px;
+  /* Slightly taller for "Control Deck" feel */
+  --sidebar-width: 280px;
+  /* Wider for "Component Rack" */
+  --inspector-width: 340px;
+  /* Wider for "Parameters Deck" */
+
+  /* Shadows & Radius */
+  --node-bg: #27272a;
+  --node-header-bg: #3f3f46;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.6);
+  --radius-sm: 4px;
+  /* Machined metal corners */
+  --radius-md: 6px;
+
+  --variable-boolean: #60a5fa;
+  --variable-integer: #a3e635;
+  --variable-float: #2dd4bf;
+  --variable-string: #fbbf24;
+  --variable-unknown: var(--text-secondary);
+  --scope-Global: #4fc1ff;
+  --scope-StageLocal: #f6c344;
+  --scope-NodeLocal: #9d7dff;
+  --scope-Temporary: #ff8a80;
+  --state-Draft: var(--accent-warning);
+  --state-Implemented: var(--accent-success);
+  --state-MarkedForDelete: var(--accent-error);
+  --state-Draft-bg: rgba(249, 115, 22, 0.15);
+  --state-Implemented-bg: rgba(34, 197, 94, 0.15);
+  --state-MarkedForDelete-bg: rgba(239, 68, 68, 0.15);
+  --notice-info: #3b82f6;
+  --notice-info-bg: rgba(59, 130, 246, 0.1);
+  --notice-info-border: rgba(59, 130, 246, 0.3);
+  --notice-warning-border: rgba(249, 115, 22, 0.3);
+  --notice-error-border: rgba(239, 68, 68, 0.3);
+  --layer-menu: 9999;
+  --layer-popover: 100;
+  --graph-presentation-selection: #f472b6;
+  --graph-presentation-multi: #33212d;
+  --graph-presentation-initial: #4a2a4a;
+  --graph-fsm-multi: #3a3a4a;
+  --graph-fsm-initial: #1e3a5f;
+  --graph-title-bg: #383838;
+  --graph-gradient-end: #2d2d2d;
+  --graph-warning-bg: #3c2a0d;
+  --graph-error-bg: #3f1515;
+}

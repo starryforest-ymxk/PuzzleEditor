@@ -15,9 +15,9 @@ import { isValidAssetName } from '../utils/assetNameValidation';
 /** Hook 配置选项 */
 export interface UseInspectorNameFieldsOptions {
     /** 实体对象，包含 name 和可选的 assetName 属性；为 null 时 Hook 不活跃 */
-    entity: { name: string; assetName?: string } | null;
+    entity: { id: string; name: string; assetName?: string } | null;
     /** 更新回调，接收属性对象（如 { name: 'newName' } 或 { assetName: 'newAsset' }） */
-    onUpdate: (updates: Record<string, any>) => void;
+    onUpdate: (updates: Partial<{ name: string; assetName: string }>) => void;
     /** 
      * 是否允许空名称提交
      * - true: Node/Stage/State — 空名称也会提交更新
@@ -62,13 +62,16 @@ export function useInspectorNameFields({
     const [localName, setLocalName] = useState('');
     const [localAssetName, setLocalAssetName] = useState('');
 
-    // 同步外部实体变更到本地状态
+    const entityId = entity?.id;
+    const entityName = entity?.name;
+    const entityAssetName = entity?.assetName;
+    // 切换对象或名称字段改变时同步；同一对象的其他更新不能覆盖正在输入的名称。
     useEffect(() => {
-        if (entity) {
-            setLocalName(entity.name || '');
-            setLocalAssetName(entity.assetName || '');
+        if (entityName !== undefined) {
+            setLocalName(entityName || '');
+            setLocalAssetName(entityAssetName || '');
         }
-    }, [entity?.name, entity?.assetName]);
+    }, [entityId, entityName, entityAssetName]);
 
     // 自动翻译 Hook（当 AssetName 为空时，自动从 Name 翻译填充）
     const triggerAutoTranslate = useAutoTranslateAssetName({

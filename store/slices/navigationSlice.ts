@@ -3,19 +3,14 @@
  * 处理所有与导航相关的操作：视图切换、导航跳转、返回等
  */
 
-import { EditorState, Action, Selection } from '../types';
+import { isActionForDomain, type ActionForDomain } from '../actionPolicy';
+import { EditorState, Action } from '../types';
 
 // ========== Navigation 相关 Actions 类型定义 ==========
-export type NavigationAction =
-    | { type: 'SWITCH_VIEW'; payload: 'EDITOR' | 'BLACKBOARD' }
-    | { type: 'NAVIGATE_TO'; payload: { stageId?: string | null; nodeId?: string | null; graphId?: string | null; selection?: Selection } }
-    | { type: 'NAVIGATE_BACK' };
+export type NavigationAction = ActionForDomain<'navigation'>;
 
 // ========== 类型守卫：判断是否为 Navigation Action ==========
-export const isNavigationAction = (action: Action): action is NavigationAction => {
-    const navigationActionTypes = ['SWITCH_VIEW', 'NAVIGATE_TO', 'NAVIGATE_BACK'];
-    return navigationActionTypes.includes(action.type);
-};
+export const isNavigationAction = (action: Action): action is NavigationAction => isActionForDomain(action, 'navigation');
 
 // ========== Navigation Reducer ==========
 export const navigationReducer = (state: EditorState, action: NavigationAction): EditorState => {

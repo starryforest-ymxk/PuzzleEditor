@@ -6,7 +6,7 @@
  */
 
 import { ProjectData } from '../../types/project';
-import { ValidationResult } from '../../store/types';
+import type { ValidationResult } from '../../types/validation';
 
 import { validateNames } from './rules/validateNames';
 import { validateStructure } from './rules/validateStructure';

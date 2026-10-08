@@ -5,7 +5,7 @@
 
 import { PresentationGraph, PresentationNode } from '../../types/presentation';
 import { PresentationBinding } from '../../types/common';
-import { EditorState, ValidationResult } from '../../store/types';
+import { ProjectData } from '../../types/project';
 import { FsmValidationIssue } from './fsmValidation';
 import { checkConditionScriptReferences } from './conditionChecker';
 
@@ -24,7 +24,7 @@ export interface PresentationNodeValidation {
  */
 export function checkPresentationNodeValidation(
     node: PresentationNode,
-    editorState: EditorState
+    project: ProjectData
 ): PresentationNodeValidation {
     const issues: FsmValidationIssue[] = [];
 
@@ -50,14 +50,14 @@ export function checkPresentationNodeValidation(
 
     // 3. 检查演出绑定 (Script Ref / Graph Ref)
     if (node.presentation) {
-        checkPresentationBinding(node.presentation, editorState, issues);
+        checkPresentationBinding(node.presentation, project, issues);
     }
 
     // 4. 检查 Condition 中的 Script Ref (对于 Branch 节点)
     if (node.condition) {
         checkConditionScriptReferences(
             node.condition,
-            editorState.project.scripts?.scripts || {},
+            project.scripts?.scripts || {},
             (scriptId, status) => {
                 issues.push({
                     type: 'error',
@@ -83,10 +83,10 @@ export function checkPresentationNodeValidation(
  */
 function checkPresentationBinding(
     binding: PresentationBinding,
-    state: EditorState,
+    state: ProjectData,
     issues: FsmValidationIssue[]
 ): void {
-    const project = state.project;
+    const project = state;
 
     if (binding.type === 'Script' && binding.scriptId) {
         const script = project.scripts?.scripts[binding.scriptId];
@@ -126,7 +126,7 @@ function checkPresentationBinding(
  */
 export function validatePresentationGraph(
     graph: PresentationGraph,
-    editorState: EditorState
+    project: ProjectData
 ): Record<string, PresentationNodeValidation> {
     const results: Record<string, PresentationNodeValidation> = {};
     const inDegrees = new Map<string, number>();
@@ -144,7 +144,7 @@ export function validatePresentationGraph(
     });
 
     Object.values(graph.nodes).forEach(node => {
-        const result = checkPresentationNodeValidation(node, editorState);
+        const result = checkPresentationNodeValidation(node, project);
 
         // 1. 检查孤立节点 (Warning): 非 Start Node 且入度为 0
         if (node.id !== graph.startNodeId && (inDegrees.get(node.id) || 0) === 0) {

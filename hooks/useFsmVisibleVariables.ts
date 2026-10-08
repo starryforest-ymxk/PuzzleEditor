@@ -35,7 +35,7 @@ export function useFsmVisibleVariables(fsmId: string): {
 
   // 收集可见变量并过滤已标记删除的
   const visibleVars = useMemo(() => {
-    const vars = collectVisibleVariables(state, owningNode?.stageId, owningNode?.id);
+    const vars = collectVisibleVariables(state.project, owningNode?.stageId, owningNode?.id);
     return filterActiveResources(vars.all);
   }, [state, owningNode]);
 

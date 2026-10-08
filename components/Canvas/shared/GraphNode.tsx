@@ -1,70 +1,53 @@
-/**
- * components/Canvas/shared/GraphNode.tsx
- * 通用图节点组件 - 可被 FSM 和演出图复用
- * 
- * 设计原则：
- * 1. 接收通用 IGraphNode 数据，通过 renderContent 自定义内容
- * 2. 复用 StateNode 的样式和交互模式
- * 3. 支持选中、多选、错误、初始节点等状态
- */
-
 import React from 'react';
 import { IGraphNode, NodeDimensions } from '../../../types/graphCore';
 import { Vector2 } from '../../../types/common';
-
-// ========== 默认节点尺寸 ==========
-export const DEFAULT_NODE_DIMENSIONS: NodeDimensions = {
-    width: 160,
-    height: 80,
-    minHeight: 68
-};
-
-// ========== Props 定义 ==========
+import '../../shared/ui.css';
+export const DEFAULT_NODE_DIMENSIONS: NodeDimensions = { width: 160, height: 80, minHeight: 68 };
 export interface GraphNodeProps {
-    /** 节点数据 */
-    node: IGraphNode;
-    /** 显示位置（可能是拖拽中的临时位置） */
-    position: Vector2;
-    /** 节点尺寸配置 */
-    dimensions?: NodeDimensions;
-    /** 是否选中 */
-    isSelected: boolean;
-    /** 是否多选（框选） */
-    isMultiSelected?: boolean;
-    /** 是否为初始/起始节点 */
-    isInitial: boolean;
-    /** 是否为右键菜单目标 */
-    isContextTarget: boolean;
-    /** 只读模式 */
-    readOnly?: boolean;
-    /** 是否有校验错误 */
-    hasError?: boolean;
-    hasWarning?: boolean;
-    /** 错误提示信息 */
-    errorTooltip?: string;
-    warningTooltip?: string;
-    /** 自定义内容渲染器 */
-    renderContent?: (node: IGraphNode) => React.ReactNode;
-    /** 自定义标题渲染器 */
-    renderTitle?: (node: IGraphNode) => React.ReactNode;
-    /** 自定义样式类名 */
-    className?: string;
-    /** 节点鼠标按下事件 */
-    onMouseDown: (e: React.MouseEvent, nodeId: string) => void;
-    /** 节点鼠标抬起事件 */
-    onMouseUp: (e: React.MouseEvent, nodeId: string) => void;
-    /** 右键菜单事件 */
-    onContextMenu: (e: React.MouseEvent, nodeId: string) => void;
+  variant?: 'fsm' | 'presentation';
+  /** 节点数据 */
+  node: IGraphNode;
+  /** 显示位置（可能是拖拽中的临时位置） */
+  position: Vector2;
+  /** 节点尺寸配置 */
+  dimensions?: NodeDimensions;
+  /** 是否选中 */
+  isSelected: boolean;
+  /** 是否多选（框选） */
+  isMultiSelected?: boolean;
+  /** 是否为初始/起始节点 */
+  isInitial: boolean;
+  /** 是否为右键菜单目标 */
+  isContextTarget: boolean;
+  /** 只读模式 */
+  readOnly?: boolean;
+  /** 是否有校验错误 */
+  hasError?: boolean;
+  hasWarning?: boolean;
+  /** 错误提示信息 */
+  errorTooltip?: string;
+  warningTooltip?: string;
+  /** 自定义内容渲染器 */
+  renderContent?: (node: IGraphNode) => React.ReactNode;
+  /** 自定义标题渲染器 */
+  renderTitle?: (node: IGraphNode) => React.ReactNode;
+  /** 自定义样式类名 */
+  className?: string;
+  /** 节点鼠标按下事件 */
+  onMouseDown: (e: React.MouseEvent, nodeId: string) => void;
+  /** 节点鼠标抬起事件 */
+  onMouseUp: (e: React.MouseEvent, nodeId: string) => void;
+  /** 右键菜单事件 */
+  onContextMenu: (e: React.MouseEvent, nodeId: string) => void;
 }
 
-/**
- * 通用图节点组件
- * 可用于 FSM State 和演出图 PresentationNode 的渲染
- */
-export const GraphNode: React.FC<GraphNodeProps> = React.memo(({
+// 两种画布共用节点外壳，主题差异通过声明式 variant 表达。
+export const GraphNode: React.FC<GraphNodeProps> = React.memo(
+  ({
     node,
     position,
     dimensions = DEFAULT_NODE_DIMENSIONS,
+    variant = 'presentation',
     isSelected,
     isMultiSelected = false,
     isInitial,
@@ -76,146 +59,58 @@ export const GraphNode: React.FC<GraphNodeProps> = React.memo(({
     warningTooltip,
     renderContent,
     renderTitle,
-    className,
+    className = '',
     onMouseDown,
     onMouseUp,
-    onContextMenu
-}) => {
-    // 计算边框阴影样式
-    const getBoxShadow = (): string => {
-        const shadows: string[] = [];
-
-        // 1. 基础状态 (Error/Warning) 占据内层 (0-2px)
-        if (hasError) {
-            shadows.push('0 0 0 2px var(--accent-error, #ef4444)');
-        } else if (hasWarning) {
-            shadows.push('0 0 0 2px var(--accent-warning, #e6a23c)');
-        }
-
-        // 2. 选中状态 占据外层 (叠加)
-        // 如果有状态颜色，选中框向外扩张；否则占据基础位置
-        const baseOffset = (hasError || hasWarning) ? 2 : 0;
-        const spread = 2; // 选中框宽度
-
-        if (isMultiSelected) {
-            shadows.push(`0 0 0 ${baseOffset + spread}px #f472b6`); // 框选时的粉色边框
-        } else if (isSelected) {
-            shadows.push(`0 0 0 ${baseOffset + spread}px #f472b6`); // 单选也使用粉色边框
-        } else if (isContextTarget) {
-            shadows.push(`0 0 0 ${baseOffset + spread}px var(--accent-warning)`);
-        }
-
-        shadows.push('var(--shadow-md)');
-        return shadows.join(', ');
-    };
-
-    // 计算标题栏背景
-    const getTitleBackground = (): string => {
-        if (hasError) {
-            return 'linear-gradient(90deg, #3f1515, #2d2d2d)';
-        }
-        if (hasWarning) {
-            return 'linear-gradient(90deg, #3c2a0d, #2d2d2d)';
-        }
-        if (isInitial) {
-            return 'linear-gradient(90deg, #4a2a4a, #2d2d2d)';
-        }
-        return '#383838';
-    };
-
+    onContextMenu,
+  }) => {
+    const shadows: string[] = [];
+    if (hasError) shadows.push('0 0 0 2px var(--accent-error)');
+    else if (hasWarning) shadows.push('0 0 0 2px var(--accent-warning)');
+    const spread = hasError || hasWarning ? 4 : 2;
+    if (isSelected || isMultiSelected)
+      shadows.push('0 0 0 ' + spread + 'px var(--graph-selection)');
+    else if (isContextTarget) shadows.push('0 0 0 ' + spread + 'px var(--accent-warning)');
+    shadows.push('var(--shadow-md)');
     return (
-        <div
-            data-node-id={node.id}
-            className={className}
-            onMouseDown={(e) => onMouseDown(e, node.id)}
-            onMouseUp={(e) => onMouseUp(e, node.id)}
-            onContextMenu={(e) => onContextMenu(e, node.id)}
-            onClick={(e) => e.stopPropagation()}
-            title={hasError ? errorTooltip : (hasWarning ? warningTooltip : undefined)}
-            style={{
-                position: 'absolute',
-                left: position.x,
-                top: position.y,
-                width: dimensions.width,
-                minHeight: dimensions.minHeight,
-                borderRadius: '6px',
-                backgroundColor: isMultiSelected ? '#33212d' : '#27272a',
-                boxShadow: getBoxShadow(),
-                zIndex: 10,
-                cursor: readOnly ? 'pointer' : 'grab',
-                transform: 'translate3d(0,0,0)',
-                transition: 'box-shadow 0.1s, background-color 0.1s'
-            }}
-        >
-            {/* 标题栏 */}
-            <div style={{
-                height: 28,
-                background: getTitleBackground(),
-                borderBottom: '1px solid rgba(0,0,0,0.5)',
-                display: 'flex',
-                alignItems: 'center',
-                padding: '0 8px',
-                color: '#e0e0e0',
-                fontSize: '11px',
-                fontWeight: 700,
-                borderRadius: '6px 6px 0 0'
-            }}>
-                {/* 错误图标 */}
-                {hasError && (
-                    <span style={{
-                        color: '#ef4444',
-                        marginRight: '4px',
-                        fontSize: '12px',
-                        fontWeight: 'bold'
-                    }}>⚠</span>
-                )}
-                {/* 警告图标 (当没有Error时显示) */}
-                {!hasError && hasWarning && (
-                    <span style={{
-                        color: '#e6a23c',
-                        marginRight: '4px',
-                        fontSize: '12px',
-                        fontWeight: 'bold'
-                    }}>⚠</span>
-                )}
-                {/* 初始节点指示器 */}
-                {isInitial && !hasError && (
-                    <span style={{ color: '#c586c0', marginRight: '4px' }}>{'>'}</span>
-                )}
-                {/* 标题内容 */}
-                {renderTitle ? (
-                    renderTitle(node)
-                ) : (
-                    <span style={{
-                        whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        flex: 1
-                    }}>
-                        {node.name}
-                    </span>
-                )}
-            </div>
-
-            {/* 内容区域 */}
-            <div style={{
-                padding: '8px',
-                minHeight: 40,
-                fontSize: '11px',
-                color: '#aaa'
-            }}>
-                {renderContent ? (
-                    renderContent(node)
-                ) : (
-                    node.description || 'No description'
-                )}
-            </div>
+      <div
+        data-node-id={node.id}
+        data-variant={variant}
+        data-multi={isMultiSelected}
+        data-tone={hasError ? 'error' : hasWarning ? 'warning' : isInitial ? 'initial' : 'default'}
+        className={'ui-graph-node ' + className}
+        onMouseDown={(e) => onMouseDown(e, node.id)}
+        onMouseUp={(e) => onMouseUp(e, node.id)}
+        onContextMenu={(e) => onContextMenu(e, node.id)}
+        onClick={(e) => e.stopPropagation()}
+        title={hasError ? errorTooltip : hasWarning ? warningTooltip : undefined}
+        style={{
+          left: position.x,
+          top: position.y,
+          width: dimensions.width,
+          minHeight: dimensions.minHeight,
+          boxShadow: shadows.join(', '),
+          cursor: readOnly ? 'pointer' : 'grab',
+        }}
+      >
+        <div className="ui-graph-node__title">
+          {hasError && <span className="ui-graph-node__icon ui-graph-node__icon--error">⚠</span>}
+          {!hasError && hasWarning && (
+            <span className="ui-graph-node__icon ui-graph-node__icon--warning">⚠</span>
+          )}
+          {isInitial && !hasError && <span className="ui-graph-node__initial">{'>'}</span>}
+          {renderTitle ? (
+            renderTitle(node)
+          ) : (
+            <span className="ui-graph-node__name">{node.name}</span>
+          )}
         </div>
+        <div className="ui-graph-node__body">
+          {renderContent ? renderContent(node) : node.description || 'No description'}
+        </div>
+      </div>
     );
-});
-
-// 为 React DevTools 设置 displayName
+  },
+);
 GraphNode.displayName = 'GraphNode';
-
 export default GraphNode;
-

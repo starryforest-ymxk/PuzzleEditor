@@ -37,7 +37,7 @@ export const DraggableCard: React.FC<DraggableCardProps> = ({
   onDragOver,
   onDragEnd,
   children,
-  disabled = false
+  disabled = false,
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -126,7 +126,7 @@ export const DraggableCard: React.FC<DraggableCardProps> = ({
         opacity: isDragging ? 0.5 : 1,
         borderTop: isDragOver ? '2px solid var(--accent-color)' : '2px solid transparent',
         cursor: disabled ? 'default' : 'grab',
-        transition: 'border-top 0.1s ease'
+        transition: 'border-top 0.1s ease',
       }}
     >
       {children}

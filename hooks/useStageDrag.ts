@@ -98,7 +98,7 @@ const INITIAL_DRAG_STATE: DragState = {
 export function useStageDrag(
   stageTree: StageTreeData,
   dispatch: React.Dispatch<Action>,
-  containerRef?: React.RefObject<HTMLElement>,
+  containerRef?: React.RefObject<HTMLElement | null>,
   lastVisibleStageId?: StageId | null
 ): UseStageDragResult {
   const [dragState, setDragState] = useState<DragState>(INITIAL_DRAG_STATE);

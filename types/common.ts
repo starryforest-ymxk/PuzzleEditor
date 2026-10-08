@@ -2,20 +2,7 @@
  * types/common.ts
  * 通用基础类型定义 - 包含所有模块共享的类型
  */
-import type {
-  ProjectId,
-  StageId,
-  PuzzleNodeId,
-  StateMachineId,
-  StateId,
-  TransitionId,
-  PresentationGraphId,
-  PresentationNodeId,
-  ScriptId,
-  VariableId,
-  EventId,
-  IdRef
-} from './identity';
+import type { PresentationGraphId, ScriptId, VariableId, EventId } from './identity';
 
 export type {
   ProjectId,
@@ -102,7 +89,7 @@ export interface Entity {
  * - VariableRef: 变量引用
  */
 export type ValueSource =
-  | { type: 'Constant'; value: any }
+  | { type: 'Constant'; value: import('./json').JsonValue }
   | { type: 'VariableRef'; variableId: VariableId; scope: VariableScope };
 
 // ========== 参数修改器 ==========

@@ -5,6 +5,9 @@
  */
 
 import chokidar, { FSWatcher } from 'chokidar';
+import { createHash } from 'crypto';
+import { readFile } from 'fs/promises';
+import { resolve } from 'path';
 import { BrowserWindow } from 'electron';
 import { IPC_CHANNELS, FileChangedEvent } from '../types.js';
 
@@ -13,14 +16,22 @@ class FileWatcherService {
     private currentWatchedPath: string | null = null;
     private mainWindow: BrowserWindow | null = null;
     private debounceTimer: NodeJS.Timeout | null = null;
-    private isPaused: boolean = false; // 暂停标识，防止前端保存时触发自身监听
+    private generation = 0;
+    private ownWrites = new Map<string, string>();
+    private key(path: string): string { return process.platform === 'win32' ? resolve(path).toLowerCase() : resolve(path); }
+    private hash(content: string): string { return createHash('sha256').update(content).digest('hex'); }
+
+    public noteInternalWrite(path: string, content: string) {
+        this.ownWrites.set(this.key(path), this.hash(content));
+        if (this.ownWrites.size > 20) this.ownWrites.delete(this.ownWrites.keys().next().value!);
+    }
 
     constructor() { }
 
     /**
      * 设置主窗口引用 (用于发送事件)
      */
-    public setMainWindow(window: BrowserWindow) {
+    public setMainWindow(window: BrowserWindow | null) {
         this.mainWindow = window;
     }
 
@@ -63,6 +74,9 @@ class FileWatcherService {
      * 停止监听
      */
     public stopWatching() {
+        this.generation++;
+        if (this.debounceTimer) clearTimeout(this.debounceTimer);
+        this.debounceTimer = null;
         if (this.watcher) {
             console.log(`[FileWatcher] Stop watching: ${this.currentWatchedPath}`);
             this.watcher.close();
@@ -71,54 +85,28 @@ class FileWatcherService {
         }
     }
 
-    /**
-     * 暂停监听（前端保存时调用，防止触发自身）
-     */
-    public pauseWatching() {
-        this.isPaused = true;
-        console.log('[FileWatcher] Paused (internal write)');
-    }
-
-    /**
-     * 恢复监听
-     */
-    public resumeWatching() {
-        // 延迟恢复，确保文件写入完成后的事件被忽略
-        setTimeout(() => {
-            this.isPaused = false;
-            console.log('[FileWatcher] Resumed');
-        }, 600); // 略大于 awaitWriteFinish.stabilityThreshold (500ms)
-    }
-
-    /**
-     * 处理文件变更 (带防抖)
-     */
+    /** 内容指纹过滤自身回声，不设置忽略真实外部更新的时间窗口。 */
     private handleFileChange(path: string, type: 'change' | 'unlink') {
-        // 如果处于暂停状态（前端自身写入），忽略此次变更
-        if (this.isPaused) {
-            console.log(`[FileWatcher] Ignored (paused): ${type} ${path}`);
-            return;
-        }
-
-        if (this.debounceTimer) {
-            clearTimeout(this.debounceTimer);
-        }
-
-        this.debounceTimer = setTimeout(() => {
-            // 再次检查暂停状态（防抖期间可能被暂停）
-            if (this.isPaused) {
-                console.log(`[FileWatcher] Ignored after debounce (paused): ${type} ${path}`);
-                return;
+        if (!this.currentWatchedPath || this.key(path) !== this.key(this.currentWatchedPath)) return;
+        if (this.debounceTimer) clearTimeout(this.debounceTimer);
+        const generation = this.generation;
+        this.debounceTimer = setTimeout(async () => {
+            if (generation !== this.generation) return;
+            if (type === 'change') {
+                try {
+                    const content = await readFile(path, 'utf8');
+                    if (generation !== this.generation) return;
+                    if (this.ownWrites.get(this.key(path)) === this.hash(content)) return;
+                    this.ownWrites.delete(this.key(path));
+                } catch { /* 读取错误交给渲染进程统一报告。 */ }
             }
-
-            console.log(`[FileWatcher] External file ${type}: ${path}`);
-
+            if (generation !== this.generation) return;
             if (this.mainWindow && !this.mainWindow.isDestroyed()) {
-                const event: FileChangedEvent = { path, type };
+                // chokidar 在 Windows 可能改写斜杠；向渲染进程返回激活时的同一身份路径。
+                const event: FileChangedEvent = { path: this.currentWatchedPath!, type };
                 this.mainWindow.webContents.send(IPC_CHANNELS.PROJECT_FILE_CHANGED, event);
             }
-        }, 100); // 额外防抖 (虽然 awaitWriteFinish 已处理大部分)
+        }, 100);
     }
 }
-
 export const fileWatcherService = new FileWatcherService();

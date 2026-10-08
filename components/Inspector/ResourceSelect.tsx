@@ -1,3 +1,5 @@
+import { InspectorError } from './InspectorInfo';
+import { ResourcePreview } from '../shared/ResourcePreview';
 /**
  * components/Inspector/ResourceSelect.tsx
  * Generic resource picker for scripts/events/variables
@@ -49,18 +51,27 @@ export const ResourceSelect: React.FC<Props> = ({
   style,
   showDetails = false,
   onClear,
-  height = 30 // Default
+  height = 30, // Default
 }) => {
-  const selected = options.find(opt => opt.id === value);
+  const selected = options.find((opt) => opt.id === value);
   // 默认隐藏已标记删除的选项，若当前值已被标记则仅保留当前值以便提示
   const visibleOptions = filterActiveOrSelected<ResourceOption>(options, value);
   const isSelectedDeleted = selected?.state === 'MarkedForDelete';
-  const optionStyle: React.CSSProperties = { padding: '6px 8px', height: height, lineHeight: `${height * 0.6}px` };
+  const optionStyle: React.CSSProperties = {
+    padding: '6px 8px',
+    height: height,
+    lineHeight: `${height * 0.6}px`,
+  };
 
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px', ...(style || {}) }} className={className}>
+    <div
+      style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px', ...(style || {}) }}
+      className={className}
+    >
       <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
         <select
+          data-invalid={isSelectedDeleted}
+          className="ui-control"
           value={value || ''}
           onChange={(e) => onChange(e.target.value)}
           disabled={disabled}
@@ -68,30 +79,25 @@ export const ResourceSelect: React.FC<Props> = ({
             flex: 1,
             width: '100%',
             minWidth: 0,
-            background: '#27272a',
-            color: isSelectedDeleted ? '#ef4444' : '#e4e4e7',
-            border: `1px solid ${isSelectedDeleted ? '#ef4444' : '#52525b'}`,
-            padding: '0 8px',
-            fontSize: '12px',
-            borderRadius: '4px',
             height: height,
-            boxSizing: 'border-box',
-            lineHeight: `${height - 2}px`,
-            outline: 'none',
-            fontFamily: 'Inter, sans-serif',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap'
+            whiteSpace: 'nowrap',
           }}
         >
-          <option value="" disabled hidden>{placeholder}</option>
-          {visibleOptions.map(opt => {
+          <option value="" disabled hidden>
+            {placeholder}
+          </option>
+          {visibleOptions.map((opt) => {
             const isDeleted = opt.state === 'MarkedForDelete';
             return (
               <option
                 key={opt.id}
                 value={opt.id}
-                style={{ ...optionStyle, color: isDeleted ? '#f66' : '#eee' }}
+                style={{
+                  ...optionStyle,
+                  color: isDeleted ? 'var(--accent-error)' : 'var(--text-primary)',
+                }}
               >
                 {opt.name}
                 {opt.extraLabel ? ` ${opt.extraLabel}` : ''}
@@ -114,7 +120,7 @@ export const ResourceSelect: React.FC<Props> = ({
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: '#999'
+              color: '#999',
             }}
             title="Clear selection"
           >
@@ -124,64 +130,25 @@ export const ResourceSelect: React.FC<Props> = ({
       </div>
 
       {/* Script Details Card */}
-      {showDetails && selected && (
-        <ResourceDetailsCard resource={selected} />
-      )}
+      {showDetails && selected && <ResourceDetailsCard resource={selected} />}
 
       {/* Warning: selected a resource marked for delete */}
       {warnOnMarkedDelete && isSelectedDeleted && (
-        <div style={{ color: '#f66', fontSize: '10px', marginTop: '4px' }}>
-          ⚠ Resource is marked for delete. Please choose another.
-        </div>
+        <InspectorError
+          style={{ marginTop: 4 }}
+          message="Resource is marked for delete. Please choose another."
+        />
       )}
     </div>
   );
 };
 
+// 兼容已有调用接口，预览布局只在 ResourcePreview 维护。
 export const ResourceDetailsCard: React.FC<{ resource: ResourceOption }> = ({ resource }) => (
-  <div style={{
-    padding: '12px',
-    background: '#222',
-    border: '1px solid #3e3e42',
-    borderRadius: '4px',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '8px',
-    fontSize: '12px',
-    animation: 'fadeIn 0.2s ease-out',
-    width: '100%',
-    boxSizing: 'border-box'
-  }}>
-    {/* Header: Name + ID */}
-    <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
-      <span style={{ fontWeight: 600, color: '#e4e4e7' }}>{resource.name}</span>
-      <span style={{ fontSize: '10px', color: '#666', fontFamily: 'monospace' }}>{resource.id}</span>
-    </div>
-
-    {/* Grid: State */}
-    <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '4px 8px', fontSize: '11px' }}>
-      {resource.state && (
-        <>
-          <span style={{ color: '#888' }}>State:</span>
-          <span style={{ color: resource.state === 'Implemented' ? '#4ec9b0' : '#ce9178' }}>
-            {resource.state}
-          </span>
-        </>
-      )}
-    </div>
-
-    {/* Description */}
-    {resource.description && (
-      <div style={{
-        marginTop: '4px',
-        paddingTop: '8px',
-        borderTop: '1px solid #333',
-        color: '#9ca3af',
-        fontStyle: 'italic',
-        lineHeight: 1.4
-      }}>
-        {resource.description}
-      </div>
-    )}
-  </div>
+  <ResourcePreview
+    name={resource.name}
+    id={resource.id}
+    state={resource.state}
+    description={resource.description}
+  />
 );

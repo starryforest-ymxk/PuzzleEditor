@@ -8,6 +8,7 @@ import * as path from 'path';
 import { fileURLToPath } from 'url';
 import { registerIpcHandlers } from './ipc/handlers.js';
 import { fileWatcherService } from './ipc/watcherService.js';
+import { registerWindowCloseGuard } from './windowCloseGuard.js';
 
 // ESM 模式下获取 __dirname
 const __filename = fileURLToPath(import.meta.url);
@@ -50,6 +51,9 @@ function createWindow(): void {
         show: false,
     });
 
+    // 在加载页面前拦截原生关闭；保存与放弃的决定由项目会话作出。
+    registerWindowCloseGuard(mainWindow);
+
     // 窗口准备好后显示，避免白屏闪烁
     mainWindow.once('ready-to-show', () => {
         mainWindow?.show();
@@ -76,7 +80,7 @@ function createWindow(): void {
     // 窗口关闭处理
     mainWindow.on('closed', () => {
         mainWindow = null;
-        fileWatcherService.setMainWindow(null as any); // 清理引用
+        fileWatcherService.setMainWindow(null); // 清理引用
     });
 
     // 注入窗口实例到文件监听服务
@@ -123,8 +127,7 @@ app.on('window-all-closed', () => {
     }
 });
 
-// 应用即将退出时的清理
-app.on('before-quit', () => {
-    // 可在此处保存应用状态
-    console.log('Application is closing...');
+// 只有确认退出之后才清理文件监听，取消关闭不影响当前会话。
+app.on('will-quit', () => {
+    fileWatcherService.stopWatching();
 });

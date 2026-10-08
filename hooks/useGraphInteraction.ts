@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Side } from '../types/common';
+import { Side, Vector2 } from '../types/common';
 import * as Geom from '../utils/geometry';
 
 // ========== 类型定义 ==========
@@ -30,7 +30,7 @@ interface InteractionOptions {
     onLinkDelete?: (transId: string) => void;
     onBoxSelectEnd: (nodeIds: string[]) => void;
     getContentOffset: (clientX: number, clientY: number) => { x: number, y: number };
-    getNodes: () => Record<string, any>;
+    getNodes: () => Record<string, { id: string; position: Vector2 }>;
     /** 节点尺寸（可选，默认使用FSM状态节点尺寸） */
     nodeDimensions?: { width: number; height: number };
 }
@@ -80,7 +80,7 @@ export const useGraphInteraction = ({
     const updateSnapCache = () => {
         const nodes = getNodes();
         const points: SnapPoint[] = [];
-        Object.values(nodes).forEach((node: any) => {
+        Object.values(nodes).forEach((node) => {
             const pos = node.position;
             // 使用传入的节点尺寸或默认值
             const anchors = [
@@ -113,7 +113,7 @@ export const useGraphInteraction = ({
     };
 
     // === 开始连线 ===
-    const startLinking = (e: React.MouseEvent, nodeId: string) => {
+    const startLinking = (e: Pick<React.MouseEvent, 'clientX' | 'clientY'>, nodeId: string) => {
         const pos = getContentOffset(e.clientX, e.clientY);
         updateSnapCache();
         setLinkingState({ nodeId });
@@ -173,7 +173,7 @@ export const useGraphInteraction = ({
                 const rect = normalizeRect(boxSelectRect.startX, boxSelectRect.startY, pos.x, pos.y);
                 const selectedIds: string[] = [];
 
-                Object.values(nodes).forEach((node: any) => {
+                Object.values(nodes).forEach((node) => {
                     const nodeRect = {
                         left: node.position.x,
                         top: node.position.y,
@@ -267,10 +267,10 @@ export const useGraphInteraction = ({
             window.addEventListener('mouseup', handleWindowMouseUp, { capture: true });
         }
         return () => {
-            window.removeEventListener('mousemove', handleWindowMouseMove, { capture: true } as any);
-            window.removeEventListener('mouseup', handleWindowMouseUp, { capture: true } as any);
+            window.removeEventListener('mousemove', handleWindowMouseMove, { capture: true });
+            window.removeEventListener('mouseup', handleWindowMouseUp, { capture: true });
         };
-    }, [draggingNodeId, linkingState, modifyingTransition, dragOffset, activeSnapPoint, boxSelectRect, isDraggingMultiple, onLinkDelete, nodeWidth, nodeHeight]);
+    }, [draggingNodeId, linkingState, modifyingTransition, dragOffset, activeSnapPoint, boxSelectRect, isDraggingMultiple, onLinkDelete, nodeWidth, nodeHeight, getContentOffset, getNodes, onBoxSelectEnd, onLinkComplete, onLinkUpdate, onMultiNodeMove, onNodeMove]);
 
     // === 获取节点显示位置（拖拽时使用临时位置）===
     const getNodeDisplayPosition = (nodeId: string, actualPos: { x: number, y: number }) => {

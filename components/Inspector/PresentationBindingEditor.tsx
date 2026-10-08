@@ -30,7 +30,7 @@ export const PresentationBindingEditor: React.FC<Props> = ({
   variables,
   title,
   onNavigateToGraph,
-  readOnly = false
+  readOnly = false,
 }) => {
   const currentType = binding?.type || 'None';
 
@@ -47,25 +47,15 @@ export const PresentationBindingEditor: React.FC<Props> = ({
 
   return (
     <div style={{ padding: '8px', background: '#1e1e1e', borderRadius: '4px' }}>
-      {title && (
-        <div style={{ fontSize: '11px', color: '#888', marginBottom: '8px' }}>{title}</div>
-      )}
+      {title && <div style={{ fontSize: '11px', color: '#888', marginBottom: '8px' }}>{title}</div>}
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
         <span style={{ fontSize: '11px', color: '#aaa' }}>Type:</span>
         <select
+          className="ui-control"
           value={currentType}
           onChange={(e) => handleTypeChange(e.target.value)}
           disabled={readOnly}
-          style={{
-            background: '#222',
-            color: '#eee',
-            border: '1px solid #444',
-            padding: '2px 4px',
-            fontSize: '12px',
-            borderRadius: '3px',
-            outline: 'none'
-          }}
         >
           <option value="None">None</option>
           <option value="Script">Script</option>

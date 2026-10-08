@@ -3,50 +3,15 @@
  * 处理所有与黑板数据相关的操作：全局变量、事件、脚本、Stage/Node局部变量
  */
 
+import { isActionForDomain, type ActionForDomain } from '../actionPolicy';
 import { EditorState, Action } from '../types';
 import { resolveDeleteAction } from '../../utils/resourceLifecycle';
-import { VariableDefinition, EventDefinition } from '../../types/blackboard';
-import { ScriptDefinition } from '../../types/manifest';
 
 // ========== Blackboard 相关 Actions 类型定义 ==========
-export type BlackboardAction =
-    | { type: 'ADD_GLOBAL_VARIABLE'; payload: { variable: VariableDefinition } }
-    | { type: 'UPDATE_GLOBAL_VARIABLE'; payload: { id: string; data: Partial<VariableDefinition> } }
-    | { type: 'SOFT_DELETE_GLOBAL_VARIABLE'; payload: { id: string } }
-    | { type: 'APPLY_DELETE_GLOBAL_VARIABLE'; payload: { id: string } }
-    | { type: 'ADD_EVENT'; payload: { event: EventDefinition } }
-    | { type: 'UPDATE_EVENT'; payload: { id: string; data: Partial<EventDefinition> } }
-    | { type: 'SOFT_DELETE_EVENT'; payload: { id: string } }
-    | { type: 'APPLY_DELETE_EVENT'; payload: { id: string } }
-    | { type: 'ADD_SCRIPT'; payload: { script: ScriptDefinition } }
-    | { type: 'UPDATE_SCRIPT'; payload: { id: string; data: Partial<ScriptDefinition> } }
-    | { type: 'SOFT_DELETE_SCRIPT'; payload: { id: string } }
-    | { type: 'APPLY_DELETE_SCRIPT'; payload: { id: string } }
-    // Reorder Actions
-    | { type: 'REORDER_GLOBAL_VARIABLES'; payload: { orderedIds: string[] } }
-    | { type: 'REORDER_EVENTS'; payload: { orderedIds: string[] } }
-    | { type: 'REORDER_SCRIPTS'; payload: { category: string; lifecycleType?: string; orderedIds: string[] } }
-    | { type: 'REORDER_LOCAL_VARIABLES'; payload: { scopeType: 'Stage' | 'Node'; scopeId: string; orderedIds: string[] } }
-    | { type: 'REORDER_FSMS'; payload: { orderedIds: string[] } }
-    | { type: 'REORDER_PRESENTATION_GRAPHS'; payload: { orderedIds: string[] } }
-    | { type: 'SOFT_DELETE_STAGE_VARIABLE'; payload: { stageId: string; varId: string } }
-    | { type: 'APPLY_DELETE_STAGE_VARIABLE'; payload: { stageId: string; varId: string } };
+export type BlackboardAction = ActionForDomain<'blackboard'>;
 
 // ========== 类型守卫：判断是否为 Blackboard Action ==========
-export const isBlackboardAction = (action: Action): action is BlackboardAction => {
-    const blackboardActionTypes = [
-        'ADD_GLOBAL_VARIABLE', 'UPDATE_GLOBAL_VARIABLE',
-        'SOFT_DELETE_GLOBAL_VARIABLE', 'APPLY_DELETE_GLOBAL_VARIABLE',
-        'ADD_EVENT', 'UPDATE_EVENT',
-        'SOFT_DELETE_EVENT', 'APPLY_DELETE_EVENT',
-        'ADD_SCRIPT', 'UPDATE_SCRIPT',
-        'SOFT_DELETE_SCRIPT', 'APPLY_DELETE_SCRIPT',
-        'REORDER_GLOBAL_VARIABLES', 'REORDER_EVENTS', 'REORDER_SCRIPTS',
-        'REORDER_LOCAL_VARIABLES', 'REORDER_FSMS', 'REORDER_PRESENTATION_GRAPHS',
-        'SOFT_DELETE_STAGE_VARIABLE', 'APPLY_DELETE_STAGE_VARIABLE'
-    ];
-    return blackboardActionTypes.includes(action.type);
-};
+export const isBlackboardAction = (action: Action): action is BlackboardAction => isActionForDomain(action, 'blackboard');
 
 // ========== Blackboard Reducer ==========
 export const blackboardReducer = (state: EditorState, action: BlackboardAction): EditorState => {

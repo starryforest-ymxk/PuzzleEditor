@@ -16,6 +16,7 @@ export const IPC_CHANNELS = {
     // 项目操作相关
     PROJECT_READ: 'project:read',
     PROJECT_WRITE: 'project:write',
+    PROJECT_ACTIVATE: 'project:activate',
     PROJECT_EXPORT: 'project:export',
     PROJECT_CREATE: 'project:create',
     // 最近项目管理
@@ -31,4 +32,8 @@ export const IPC_CHANNELS = {
     FILE_SHOW_IN_EXPLORER: 'file:show-in-explorer',
     // 文件监听
     PROJECT_FILE_CHANGED: 'project:file-changed',
+    // 原生窗口关闭握手
+    WINDOW_CLOSE_READY: 'window:close-ready',
+    WINDOW_CLOSE_REQUESTED: 'window:close-requested',
+    WINDOW_CLOSE_RESOLVE: 'window:close-resolve',
 };

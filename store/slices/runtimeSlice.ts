@@ -3,25 +3,16 @@
  * 运行时状态切片 - 处理 Electron 相关的运行时状态
  */
 
+import { isActionForDomain, type ActionForDomain } from '../actionPolicy';
 import { EditorState, Action } from '../types';
 
 // ========== Runtime Action 类型守卫 ==========
-export type RuntimeAction = Extract<Action,
-    | { type: 'SET_PROJECT_PATH'; payload: string | null }
-    | { type: 'SET_NEW_UNSAVED_PROJECT'; payload: boolean }
-    | { type: 'SET_PREFERENCES_LOADED'; payload: boolean }
->;
+export type RuntimeAction = ActionForDomain<'runtime'>;
 
 /**
  * 判断是否为 Runtime 相关 Action
  */
-export const isRuntimeAction = (action: Action): action is RuntimeAction => {
-    return [
-        'SET_PROJECT_PATH',
-        'SET_NEW_UNSAVED_PROJECT',
-        'SET_PREFERENCES_LOADED'
-    ].includes(action.type);
-};
+export const isRuntimeAction = (action: Action): action is RuntimeAction => isActionForDomain(action, 'runtime');
 
 /**
  * Runtime Slice Reducer
@@ -29,6 +20,8 @@ export const isRuntimeAction = (action: Action): action is RuntimeAction => {
  */
 export const runtimeReducer = (state: EditorState, action: RuntimeAction): EditorState => {
     switch (action.type) {
+        case 'SET_PROJECT_OPERATION':
+            return { ...state, runtime: { ...state.runtime, projectOperation: action.payload } };
         case 'SET_PROJECT_PATH':
             return {
                 ...state,

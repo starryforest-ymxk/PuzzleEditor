@@ -1,0 +1,56 @@
+/* 保留现有视觉数值，菜单与工具栏不再通过事件写 DOM 样式。 */
+.blackboard-empty-events {
+  padding: 40px;
+  font-size: 13px;
+}
+.blackboard-fsm-grid {
+  margin-bottom: 20px;
+}
+.blackboard-search-icon {
+  color: var(--text-dim);
+}
+.blackboard-action {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.blackboard-filters > .blackboard-action,
+.blackboard-script-menu {
+  margin-right: 8px;
+}
+.blackboard-script-menu,
+.blackboard-lifecycle-menu {
+  position: relative;
+}
+.blackboard-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 140px;
+}
+.blackboard-submenu {
+  left: 100%;
+  top: 0;
+  min-width: 100px;
+}
+
+.blackboard-script-performance {
+  color: var(--resource-performance);
+}
+.blackboard-script-lifecycle {
+  color: var(--resource-lifecycle);
+}
+.blackboard-script-condition {
+  color: var(--resource-condition);
+}
+.blackboard-script-trigger {
+  color: var(--resource-trigger);
+}
+.blackboard-lifecycle-toggle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.blackboard-submenu-arrow {
+  font-size: 10px;
+}

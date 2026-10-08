@@ -14,14 +14,20 @@
  * - Unused Graphs: Usage of Local Variables is an ERROR (no context to resolve them).
  */
 
-import { ValidationResult } from '../../../store/types';
+import type { ValidationResult } from '../../../types/validation';
 import { ProjectData } from '../../../types/project';
 import { ConditionExpression } from '../../../types/stateMachine';
-import { ParameterBinding, ValueSource, ParameterModifier, EventListener, PresentationBinding, VariableScope, VariableType } from '../../../types/common';
+import {
+  ParameterBinding,
+  ValueSource,
+  ParameterModifier,
+  EventListener,
+  PresentationBinding,
+  VariableScope
+} from '../../../types/common';
 import { StageNode } from '../../../types/stage';
 import { PuzzleNode } from '../../../types/puzzleNode';
 import { VariableDefinition } from '../../../types/blackboard';
-import { PresentationNode } from '../../../types/presentation';
 
 import { ASSET_NAME_REGEX } from '../../assetNameValidation';
 

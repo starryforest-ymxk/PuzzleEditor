@@ -18,6 +18,18 @@ import {
  * 暴露给渲染进程的 API 实现
  */
 const electronAPI: ElectronAPI = {
+    // 先安装监听再报告就绪，防止主进程请求落在订阅空隙。
+    onWindowCloseRequested: (callback) => {
+        const listener = (_: Electron.IpcRendererEvent, requestId: string) => callback(requestId);
+        ipcRenderer.on(IPC_CHANNELS.WINDOW_CLOSE_REQUESTED, listener);
+        ipcRenderer.send(IPC_CHANNELS.WINDOW_CLOSE_READY, true);
+        return () => {
+            ipcRenderer.removeListener(IPC_CHANNELS.WINDOW_CLOSE_REQUESTED, listener);
+            ipcRenderer.send(IPC_CHANNELS.WINDOW_CLOSE_READY, false);
+        };
+    },
+    resolveWindowClose: (requestId, allow) => ipcRenderer.invoke(IPC_CHANNELS.WINDOW_CLOSE_RESOLVE, requestId, allow),
+
     // ========================================================================
     // 偏好设置相关
     // ========================================================================
@@ -53,8 +65,11 @@ const electronAPI: ElectronAPI = {
      * @param filePath 项目文件路径
      * @param data 项目数据 (JSON 字符串)
      */
-    writeProject: (filePath: string, data: string): Promise<IPCResult> => {
-        return ipcRenderer.invoke(IPC_CHANNELS.PROJECT_WRITE, filePath, data);
+    writeProject: (filePath: string, data: string, options?: { exclusive?: boolean }): Promise<IPCResult> => {
+        return ipcRenderer.invoke(IPC_CHANNELS.PROJECT_WRITE, filePath, data, options);
+    },
+    activateProject: (filePath: string | null, name: string): Promise<IPCResult> => {
+        return ipcRenderer.invoke(IPC_CHANNELS.PROJECT_ACTIVATE, filePath, name);
     },
 
     /**
@@ -125,8 +140,8 @@ const electronAPI: ElectronAPI = {
      * @param defaultPath 默认目录路径
      * @param defaultFileName 默认文件名
      */
-    saveFileDialog: (defaultPath?: string, defaultFileName?: string): Promise<FileDialogResult> => {
-        return ipcRenderer.invoke(IPC_CHANNELS.DIALOG_SAVE_FILE, defaultPath, defaultFileName);
+    saveFileDialog: (defaultPath?: string, defaultFileName?: string, kind?: 'project' | 'export'): Promise<FileDialogResult> => {
+        return ipcRenderer.invoke(IPC_CHANNELS.DIALOG_SAVE_FILE, defaultPath, defaultFileName, kind);
     },
 
     // ========================================================================
@@ -157,7 +172,7 @@ const electronAPI: ElectronAPI = {
      * 监听项目文件变更
      */
     onProjectFileChanged: (callback: (event: import('./types.js').FileChangedEvent) => void) => {
-        const subscription = (_: any, event: import('./types.js').FileChangedEvent) => callback(event);
+        const subscription = (_: Electron.IpcRendererEvent, event: import('./types.js').FileChangedEvent) => callback(event);
         ipcRenderer.on(IPC_CHANNELS.PROJECT_FILE_CHANGED, subscription);
 
         // 返回取消订阅函数

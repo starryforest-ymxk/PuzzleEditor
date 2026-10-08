@@ -3,6 +3,7 @@
  * Redux-like Store 类型定义
  */
 
+import type { ValidationResult } from '../types/validation';
 import { StageTreeData } from '../types/stage';
 import { PuzzleNode } from '../types/puzzleNode';
 import { ScriptsManifest, ScriptDefinition } from '../types/manifest';
@@ -13,9 +14,10 @@ import {
   PuzzleNodeId,
   StateMachineId,
   PresentationGraphId,
-  StateId
+  StateId,
+  Side
 } from '../types/common';
-import { ProjectMeta } from '../types/project';
+import { ProjectMeta, EditorUIState } from '../types/project';
 import { EditorSettings, DEFAULT_SETTINGS, TranslationSettings, AutoSaveSettings } from '../types/settings';
 
 // ========== Undo/Redo 快照数据 ==========
@@ -29,6 +31,34 @@ export interface ProjectContent {
   scripts: ScriptsManifest;
 }
 
+/** 版本只在当前编辑会话内使用，不进入项目文件或运行时导出。 */
+export interface DocumentState {
+  sessionId: number;
+  revision: number;
+  nextRevision: number;
+  savedRevision: number | null;
+}
+
+export interface HistoryEntry {
+  content: ProjectContent;
+  revision: number;
+}
+
+/** 保存前捕获身份，异步完成时只确认实际写入的那一版。 */
+export interface SaveAcknowledgement {
+  sessionId: number;
+  revision: number;
+  path: string | null;
+  previousPath?: string | null;
+  savedAt: string;
+}
+
+export interface ProjectOperation {
+  phase: 'idle' | 'preparing' | 'confirming' | 'saving' | 'committing';
+  nextAction?: string;
+  message?: string;
+}
+
 // ========== UI 消息类型 ==========
 export type MessageLevel = 'info' | 'warning' | 'error';
 export interface UiMessage {
@@ -36,16 +66,6 @@ export interface UiMessage {
   level: MessageLevel;
   text: string;
   timestamp: string;
-}
-
-export interface ValidationResult {
-  id: string;
-  level: 'error' | 'warning' | 'hint';
-  message: string;
-  objectType: 'STAGE' | 'NODE' | 'STATE' | 'TRANSITION' | 'PRESENTATION_GRAPH' | 'PRESENTATION_NODE' | 'SCRIPT' | 'VARIABLE' | 'EVENT';
-  objectId: string;
-  contextId?: string; // e.g. NodeId for State/Transition
-  location: string;   // Human readable location string
 }
 
 // ========== UI 状态类型 ==========
@@ -65,6 +85,7 @@ export interface Selection {
 
 // ========== Editor 全局状态 ==========
 export interface EditorState {
+  document: DocumentState;
   project: {
     isLoaded: boolean;
     meta: ProjectMeta;
@@ -77,14 +98,15 @@ export interface EditorState {
   };
   // 运行时状态（Electron 相关）
   runtime: {
+    projectOperation: ProjectOperation;
     currentProjectPath: string | null;  // 当前项目文件路径
     isNewUnsavedProject: boolean;       // 是否为新建未保存项目
     preferencesLoaded: boolean;         // 偏好设置是否已加载
   };
   // 历史记录（Undo/Redo）
   history: {
-    past: ProjectContent[];
-    future: ProjectContent[];
+    past: HistoryEntry[];
+    future: HistoryEntry[];
   };
   // 全局可用脚本（UI 展示）
   manifest: {
@@ -138,6 +160,7 @@ export interface EditorState {
 
 // ========== 初始状态 ==========
 export const INITIAL_STATE: EditorState = {
+  document: { sessionId: 0, revision: 0, nextRevision: 1, savedRevision: 0 },
   project: {
     isLoaded: false,
     meta: { id: '', name: '', version: '', createdAt: '', updatedAt: '', description: '' },
@@ -149,6 +172,7 @@ export const INITIAL_STATE: EditorState = {
     scripts: { version: '', scripts: {} }
   },
   runtime: {
+    projectOperation: { phase: 'idle' },
     currentProjectPath: null,
     isNewUnsavedProject: false,
     preferencesLoaded: false
@@ -195,7 +219,7 @@ export const INITIAL_STATE: EditorState = {
       isOpen: false,
       title: '',
       message: '',
-      confirmAction: { type: 'MARK_CLEAN' },
+      confirmAction: { type: 'SET_CONFIRM_DIALOG', payload: { isOpen: false } },
       danger: false
     }
   },
@@ -207,7 +231,7 @@ export type Action =
   | { type: 'UNDO' }
   | { type: 'REDO' }
   | { type: 'INIT_START' }
-  | { type: 'INIT_SUCCESS'; payload: { stageTree: StageTreeData; nodes: Record<string, PuzzleNode>; stateMachines: Record<string, StateMachine>; presentationGraphs: Record<string, PresentationGraph>; blackboard: BlackboardData; meta: ProjectMeta; scripts: ScriptsManifest } }
+  | { type: 'INIT_SUCCESS'; payload: ProjectContent; saved?: boolean; path?: string | null; editorState?: EditorUIState; validationResults?: ValidationResult[] }
   | { type: 'INIT_ERROR'; payload: { message: string } }
   | { type: 'SELECT_OBJECT'; payload: { type: 'STAGE' | 'NODE' | 'STATE' | 'TRANSITION' | 'FSM' | 'PRESENTATION_GRAPH' | 'PRESENTATION_NODE' | 'VARIABLE' | 'SCRIPT' | 'EVENT' | 'NONE'; id: string | null; contextId?: string | null } }
   | { type: 'UPDATE_STAGE_TREE'; payload: StageTreeData }
@@ -257,11 +281,15 @@ export type Action =
   | { type: 'DELETE_TRANSITION'; payload: { fsmId: string; transitionId: string } }
   | { type: 'UPDATE_TRANSITION'; payload: { fsmId: string; transitionId: string; data: Partial<Transition> } }
   // Presentation Graph CRUD
+  | { type: 'ADD_PRESENTATION_GRAPH'; payload: { graph: PresentationGraph } }
+  | { type: 'UPDATE_PRESENTATION_GRAPH'; payload: { graphId: string; data: Partial<PresentationGraph> } }
+  | { type: 'DELETE_PRESENTATION_GRAPH'; payload: { graphId: string } }
   | { type: 'ADD_PRESENTATION_NODE'; payload: { graphId: string; node: PresentationNode } }
   | { type: 'DELETE_PRESENTATION_NODE'; payload: { graphId: string; nodeId: string } }
   | { type: 'UPDATE_PRESENTATION_NODE'; payload: { graphId: string; nodeId: string; data: Partial<PresentationNode> } }
-  | { type: 'LINK_PRESENTATION_NODES'; payload: { graphId: string; fromNodeId: string; toNodeId: string } }
+  | { type: 'LINK_PRESENTATION_NODES'; payload: { graphId: string; fromNodeId: string; toNodeId: string; fromSide?: Side; toSide?: Side } }
   | { type: 'UNLINK_PRESENTATION_NODES'; payload: { graphId: string; fromNodeId: string; toNodeId: string } }
+  | { type: 'UPDATE_EDGE_PROPERTIES'; payload: { graphId: string; fromNodeId: string; toNodeId: string; fromSide?: Side; toSide?: Side } }
   // Node Parameters (局部变量 CRUD)
   | { type: 'ADD_NODE_PARAM'; payload: { nodeId: string; variable: VariableDefinition } }
   | { type: 'UPDATE_NODE_PARAM'; payload: { nodeId: string; varId: string; data: Partial<VariableDefinition> } }
@@ -281,14 +309,14 @@ export type Action =
   | { type: 'SET_PANEL_SIZES'; payload: Partial<{ explorerWidth: number; inspectorWidth: number; stagesHeight: number }> }
   // Project Meta Actions (P4-T06)
   | { type: 'UPDATE_PROJECT_META'; payload: Partial<ProjectMeta> }
-  | { type: 'SYNC_RESOURCE_STATES'; payload: import('../types/project').ProjectData }
-  | { type: 'SYNC_UPDATED_AT'; payload: string }  // 同步时间戳（保存后调用，不触发 isDirty）
+  | { type: 'SYNC_RESOURCE_STATES'; payload: import('../types/project').ProjectData; sessionId: number }
   | { type: 'RESET_PROJECT' }
-  | { type: 'MARK_CLEAN' }
+  | { type: 'PROJECT_SAVE_SUCCEEDED'; payload: SaveAcknowledgement }
   | { type: 'SET_VALIDATION_RESULTS'; payload: ValidationResult[] }
   | { type: 'SET_SHOW_VALIDATION_PANEL'; payload: boolean }
   // Runtime Actions (P4-T06 Electron)
   | { type: 'SET_PROJECT_PATH'; payload: string | null }
+  | { type: 'SET_PROJECT_OPERATION'; payload: ProjectOperation }
   | { type: 'SET_NEW_UNSAVED_PROJECT'; payload: boolean }
   | { type: 'SET_PREFERENCES_LOADED'; payload: boolean }
   // Settings Actions (Translation)

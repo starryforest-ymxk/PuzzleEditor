@@ -1,0 +1,101 @@
+{
+  "date": "2026-10-08",
+  "filesScanned": 103,
+  "method": "TypeScript AST: exact normalized JSX style objects with at least 4 property assignments across multiple files; layout-only groups still require human classification",
+  "duplicateGroups": 4,
+  "groups": [
+    {
+      "style": {
+        "display": "'flex'",
+        "flex": "1",
+        "gap": "'6px'",
+        "minWidth": "0"
+      },
+      "locations": [
+        {
+          "file": "components/Inspector/EventInspector.tsx",
+          "line": 180
+        },
+        {
+          "file": "components/Inspector/NodeInspector.tsx",
+          "line": 148
+        },
+        {
+          "file": "components/Inspector/ScriptInspector.tsx",
+          "line": 193
+        },
+        {
+          "file": "components/Inspector/StageInspector.tsx",
+          "line": 220
+        },
+        {
+          "file": "components/Inspector/StateInspector.tsx",
+          "line": 164
+        },
+        {
+          "file": "components/Inspector/VariableInspector.tsx",
+          "line": 362
+        }
+      ]
+    },
+    {
+      "style": {
+        "display": "'flex'",
+        "flexDirection": "'column'",
+        "height": "'100%'",
+        "opacity": "isMarkedForDelete ? 0.7 : 1"
+      },
+      "locations": [
+        {
+          "file": "components/Inspector/EventInspector.tsx",
+          "line": 121
+        },
+        {
+          "file": "components/Inspector/ScriptInspector.tsx",
+          "line": 134
+        },
+        {
+          "file": "components/Inspector/VariableInspector.tsx",
+          "line": 304
+        }
+      ]
+    },
+    {
+      "style": {
+        "boxSizing": "'border-box'",
+        "display": "'flex'",
+        "flex": "1",
+        "flexDirection": "'column'",
+        "minHeight": "0"
+      },
+      "locations": [
+        {
+          "file": "components/Explorer/NodeExplorer.tsx",
+          "line": 346
+        },
+        {
+          "file": "components/Layout/MainLayout.tsx",
+          "line": 146
+        }
+      ]
+    },
+    {
+      "style": {
+        "alignItems": "'center'",
+        "display": "'flex'",
+        "gap": "'8px'",
+        "width": "'100%'"
+      },
+      "locations": [
+        {
+          "file": "components/Inspector/ValueSourceEditor.tsx",
+          "line": 96
+        },
+        {
+          "file": "components/Layout/OpenAIModelSelect.tsx",
+          "line": 102
+        }
+      ]
+    }
+  ]
+}

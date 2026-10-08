@@ -3,7 +3,7 @@
  * 事件引用追踪工具，用于显示事件被引用的位置
  */
 
-import { StateMachine, Transition, State } from '../../types/stateMachine';
+import { Transition, State } from '../../types/stateMachine';
 import { PuzzleNode } from '../../types/puzzleNode';
 import { StageNode } from '../../types/stage';
 import { EventListener } from '../../types/common';

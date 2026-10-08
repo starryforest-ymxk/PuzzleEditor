@@ -37,7 +37,7 @@ type VarTypeIndex = Record<VariableId, VariableType>;
  * @param obj 目标对象
  * @param fields 待删除的字段名列表
  */
-function stripUIFields(obj: any, fields: string[]): void {
+function stripUIFields<T extends object>(obj: T, fields: (keyof T)[]): void {
     for (const field of fields) {
         if (field in obj) {
             delete obj[field];

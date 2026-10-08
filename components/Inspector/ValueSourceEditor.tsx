@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { ValueSource, VariableType } from '../../types/common';
 import { VariableDefinition } from '../../types/blackboard';
 import { VariableSelector } from './VariableSelector';
@@ -15,30 +15,30 @@ interface Props {
 }
 
 // Value source editor: choose constant or variable reference; blocks soft-deleted vars
-export const ValueSourceEditor: React.FC<Props> = ({ source, onChange, variables, valueType, prefixElement, allowedTypes, height = 30, hideTypeSelect = false }) => {
+export const ValueSourceEditor: React.FC<Props> = ({
+  source,
+  onChange,
+  variables,
+  valueType,
+  prefixElement,
+  allowedTypes,
+  height = 30,
+  hideTypeSelect = false,
+}) => {
   const type = source?.type || 'Constant';
 
   const renderConstantInput = () => {
     if (valueType === 'boolean') {
-      const current = source.type === 'Constant' ? `${source.value === true || source.value === 'true'}` : 'false';
+      const current =
+        source.type === 'Constant'
+          ? `${source.value === true || source.value === 'true'}`
+          : 'false';
       return (
         <select
+          className="ui-control"
           value={current}
           onChange={(e) => onChange({ type: 'Constant', value: e.target.value === 'true' })}
-          style={{
-            background: '#27272a',
-            color: '#e4e4e7',
-            border: '1px solid #52525b',
-            padding: '0 8px',
-            fontSize: '12px',
-            height,
-            boxSizing: 'border-box',
-            lineHeight: `${height - 2}px`,
-            borderRadius: '4px',
-            outline: 'none',
-            fontFamily: 'IBM Plex Mono, monospace',
-            width: '100%'
-          }}
+          style={{ height, width: '100%' }}
         >
           <option value="true">True</option>
           <option value="false">False</option>
@@ -49,9 +49,10 @@ export const ValueSourceEditor: React.FC<Props> = ({ source, onChange, variables
     const isNumber = valueType === 'integer' || valueType === 'float';
     return (
       <input
+        className="ui-control"
         type={isNumber ? 'number' : 'text'}
         step={valueType === 'float' ? '0.1' : undefined}
-        value={source.type === 'Constant' ? source.value ?? '' : ''}
+        value={source.type === 'Constant' ? String(source.value ?? '') : ''}
         onChange={(e) => {
           const raw = e.target.value;
           if (isNumber) {
@@ -66,20 +67,7 @@ export const ValueSourceEditor: React.FC<Props> = ({ source, onChange, variables
           }
           onChange({ type: 'Constant', value: raw });
         }}
-        style={{
-          background: '#27272a',
-          color: '#e4e4e7',
-          border: '1px solid #52525b',
-          padding: '4px 8px',
-          fontSize: '12px',
-          flex: 1,
-          height,
-          boxSizing: 'border-box',
-          borderRadius: '4px',
-          outline: 'none',
-          fontFamily: isNumber ? 'IBM Plex Mono, monospace' : 'Inter, sans-serif',
-          width: '100%'
-        }}
+        style={{ flex: 1, height, width: '100%' }}
         placeholder="Constant Value"
       />
     );
@@ -87,27 +75,14 @@ export const ValueSourceEditor: React.FC<Props> = ({ source, onChange, variables
 
   const renderTypeSelect = () => (
     <select
+      className="ui-control"
       value={type}
       onChange={(e) => {
         const nextType = e.target.value as ValueSource['type'];
         if (nextType === 'Constant') onChange({ type: 'Constant', value: '' });
         else onChange({ type: 'VariableRef', variableId: '', scope: 'Global' });
       }}
-      style={{
-        background: '#27272a',
-        color: '#e4e4e7',
-        border: '1px solid #52525b',
-        padding: '0 8px',
-        fontSize: '12px',
-        height,
-        boxSizing: 'border-box',
-        borderRadius: '4px',
-        outline: 'none',
-        fontFamily: 'Inter, sans-serif',
-        lineHeight: `${height - 2}px`,
-        flex: prefixElement ? 1 : undefined,
-        minWidth: 0,
-      }}
+      style={{ height, flex: prefixElement ? 1 : undefined, minWidth: 0 }}
     >
       <option value="Constant">Constant</option>
       <option value="VariableRef">Variable Ref</option>

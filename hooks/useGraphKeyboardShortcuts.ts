@@ -24,7 +24,7 @@ interface UseGraphKeyboardShortcutsOptions {
     selection: {
         type: string;
         id: string | null;
-        contextId?: string;
+        contextId?: string | null;
     };
     /** 只读模式 */
     readOnly?: boolean;
@@ -49,14 +49,7 @@ interface UseGraphKeyboardShortcutsOptions {
  * 4. Shift - 显示连线模式提示
  */
 export function useGraphKeyboardShortcuts({
-    contextId,
-    nodeSelectionType,
-    edgeSelectionType,
-    multiSelectIds,
-    selection,
     readOnly = false,
-    onDeleteNode,
-    onDeleteEdge,
     onClearMultiSelect,
     onSetLineCuttingMode,
     onSetLinkKeyActive
@@ -73,7 +66,7 @@ export function useGraphKeyboardShortcuts({
         if (e.key === 'Escape') {
             onClearMultiSelect();
         }
-    }, [multiSelectIds, selection, contextId, nodeSelectionType, edgeSelectionType, readOnly, onDeleteNode, onDeleteEdge, onClearMultiSelect]);
+    }, [onClearMultiSelect]);
 
     // 处理模式提示按键
     const handleModifierKeyDown = useCallback((e: KeyboardEvent) => {

@@ -90,6 +90,7 @@ export const IPC_CHANNELS = {
     // 项目操作相关
     PROJECT_READ: 'project:read',
     PROJECT_WRITE: 'project:write',
+    PROJECT_ACTIVATE: 'project:activate',
     PROJECT_EXPORT: 'project:export',
     PROJECT_CREATE: 'project:create',
 
@@ -109,6 +110,11 @@ export const IPC_CHANNELS = {
 
     // 文件监听
     PROJECT_FILE_CHANGED: 'project:file-changed',
+
+    // 原生窗口关闭握手
+    WINDOW_CLOSE_READY: 'window:close-ready',
+    WINDOW_CLOSE_REQUESTED: 'window:close-requested',
+    WINDOW_CLOSE_RESOLVE: 'window:close-resolve',
 } as const;
 
 export interface FileChangedEvent {
@@ -173,7 +179,8 @@ export interface ElectronAPI {
 
     // 项目操作
     readProject: (path: string) => Promise<IPCResult<string>>;
-    writeProject: (path: string, data: string) => Promise<IPCResult>;
+    writeProject: (path: string, data: string, options?: { exclusive?: boolean }) => Promise<IPCResult>;
+    activateProject: (path: string | null, name: string) => Promise<IPCResult>;
     exportProject: (path: string, data: string) => Promise<IPCResult>;
     createProject: (params: CreateProjectParams) => Promise<IPCResult<CreateProjectResult>>;
 
@@ -185,7 +192,7 @@ export interface ElectronAPI {
     // 对话框
     openFileDialog: () => Promise<FileDialogResult>;
     openDirectoryDialog: () => Promise<FileDialogResult>;
-    saveFileDialog: (defaultPath?: string, defaultFileName?: string) => Promise<FileDialogResult>;
+    saveFileDialog: (defaultPath?: string, defaultFileName?: string, kind?: 'project' | 'export') => Promise<FileDialogResult>;
 
     // 文件操作
     fileExists: (path: string) => Promise<boolean>;
@@ -193,6 +200,8 @@ export interface ElectronAPI {
 
     // 事件监听
     onProjectFileChanged: (callback: (event: FileChangedEvent) => void) => () => void;
+    onWindowCloseRequested: (callback: (requestId: string) => void) => () => void;
+    resolveWindowClose: (requestId: string, allow: boolean) => Promise<boolean>;
 }
 
 // ============================================================================

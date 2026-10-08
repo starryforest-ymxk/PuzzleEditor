@@ -56,8 +56,6 @@ export function registerIpcHandlers(ipcMain: IpcMain): void {
     ipcMain.handle(IPC_CHANNELS.PROJECT_READ, async (_, filePath: string): Promise<IPCResult<string>> => {
         try {
             const content = await fileService.readFile(filePath);
-            // 启动文件监听
-            fileWatcherService.startWatching(filePath);
             return { success: true, data: content };
         } catch (error) {
             const message = error instanceof Error ? error.message : 'Unknown error';
@@ -68,22 +66,33 @@ export function registerIpcHandlers(ipcMain: IpcMain): void {
 
     /**
      * 写入项目文件
-     * 写入前暂停文件监听，避免触发自身的变更事件
+     * 写入后记录内容指纹，监听仍可接收真实外部变化
      */
-    ipcMain.handle(IPC_CHANNELS.PROJECT_WRITE, async (_, filePath: string, data: string): Promise<IPCResult> => {
+    ipcMain.handle(IPC_CHANNELS.PROJECT_WRITE, async (_, filePath: string, data: string, options?: { exclusive?: boolean }): Promise<IPCResult> => {
         try {
-            // 暂停监听，防止自身写入触发文件变更事件
-            fileWatcherService.pauseWatching();
-            await fileService.writeFile(filePath, data);
-            // 写入完成后恢复监听（内部有延迟以确保事件被忽略）
-            fileWatcherService.resumeWatching();
+            await fileService.writeFile(filePath, data, options);
+            fileWatcherService.noteInternalWrite(filePath, data);
             return { success: true };
         } catch (error) {
-            // 出错也要恢复监听
-            fileWatcherService.resumeWatching();
             const message = error instanceof Error ? error.message : 'Unknown error';
             console.error('Failed to write project:', message);
             return { success: false, error: message };
+        }
+    });
+
+    // 读取候选不切换监听；仅成功提交的会话更新活动文件与恢复路径。
+    ipcMain.handle(IPC_CHANNELS.PROJECT_ACTIVATE, async (_, filePath: string | null, name: string): Promise<IPCResult> => {
+        try {
+            if (filePath) fileWatcherService.startWatching(filePath);
+            else fileWatcherService.stopWatching();
+            if (filePath) await preferencesService.updateRecentProjects(filePath, name);
+            else {
+                const prefs = await preferencesService.loadPreferences();
+                await preferencesService.savePreferences({ ...prefs, lastProjectPath: null });
+            }
+            return { success: true };
+        } catch (error) {
+            return { success: false, error: error instanceof Error ? error.message : String(error) };
         }
     });
 
@@ -206,14 +215,14 @@ export function registerIpcHandlers(ipcMain: IpcMain): void {
     /**
      * 打开保存文件对话框
      */
-    ipcMain.handle(IPC_CHANNELS.DIALOG_SAVE_FILE, async (_, defaultPath?: string, defaultFileName?: string): Promise<FileDialogResult> => {
+    ipcMain.handle(IPC_CHANNELS.DIALOG_SAVE_FILE, async (_, defaultPath?: string, defaultFileName?: string, kind: 'project' | 'export' = 'export'): Promise<FileDialogResult> => {
         const result = await dialog.showSaveDialog({
-            title: 'Export Project',
+            title: kind === 'project' ? 'Save Project' : 'Export Project',
             defaultPath: defaultPath
                 ? (defaultFileName ? `${defaultPath}/${defaultFileName}` : defaultPath)
                 : defaultFileName,
             filters: [
-                { name: 'Puzzle Export', extensions: ['json'] },
+                { name: kind === 'project' ? 'Puzzle Project' : 'Puzzle Export', extensions: kind === 'project' ? ['puzzle.json'] : ['json'] },
                 { name: 'All Files', extensions: ['*'] },
             ],
         });

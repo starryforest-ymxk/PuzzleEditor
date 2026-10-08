@@ -7,7 +7,7 @@
 
 import { useCallback } from 'react';
 import { useEditorState, useEditorDispatch } from '../store/context';
-import { translateToAssetName } from '../utils/translation/translationService';
+import { translateToAssetName } from '../services/translation/translationService';
 
 interface UseAutoTranslateAssetNameOptions {
     /** 当前的 AssetName 值（用于判断是否已有值） */

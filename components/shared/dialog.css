@@ -1,0 +1,216 @@
+/* 只在此处维护内部弹窗规格，颜色沿用编辑器主题变量。 */
+.dialog-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgb(0 0 0 / 60%);
+}
+.dialog {
+  --dialog-bg: #1f1f23;
+  --dialog-border: #3f3f46;
+  --dialog-title-color: var(--accent-color);
+  box-sizing: border-box;
+  width: 440px;
+  max-width: 100%;
+  max-height: calc(100dvh - 32px);
+  display: flex;
+  flex-direction: column;
+  background: var(--dialog-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  box-shadow: 0 12px 32px rgb(0 0 0 / 45%);
+  color: var(--text-primary);
+  font-family: inherit;
+  outline: none;
+}
+.dialog--form {
+  width: 520px;
+}
+.dialog--warning {
+  --dialog-title-color: var(--accent-warning);
+}
+.dialog--danger {
+  --dialog-title-color: var(--accent-error);
+}
+.dialog-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  margin: 0;
+  padding: 20px 20px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--dialog-title-color);
+}
+.dialog-body {
+  overflow-y: auto;
+  min-height: 0;
+  padding: 0 20px;
+}
+.dialog-content {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.dialog-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-shrink: 0;
+  padding: 20px;
+}
+.dialog-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 8px 14px;
+  border: 1px solid var(--dialog-border);
+  border-radius: var(--radius-sm);
+  background: var(--panel-bg);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.dialog-button--primary {
+  background: var(--accent-color);
+  border-color: var(--accent-color);
+  color: var(--bg-color);
+  font-weight: 600;
+}
+.dialog-button--success {
+  background: var(--accent-success);
+  border-color: var(--accent-success);
+  color: var(--bg-color);
+  font-weight: 600;
+}
+.dialog-button--danger {
+  background: var(--accent-error);
+  border-color: var(--accent-error);
+  color: white;
+  font-weight: 600;
+}
+.dialog-button--danger-outline {
+  background: transparent;
+  border-color: var(--accent-error);
+  color: var(--accent-error);
+}
+.dialog-button:hover:not(:disabled) {
+  filter: brightness(1.15);
+}
+.dialog-button:disabled,
+.dialog-input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.dialog-button:focus-visible,
+.dialog-input:focus-visible,
+.dialog-toggle:focus-visible {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 2px;
+}
+.dialog-field {
+  margin-bottom: 12px;
+}
+.dialog-label {
+  display: block;
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.dialog-input {
+  width: 100%;
+}
+textarea.dialog-input {
+  resize: vertical;
+  min-height: 70px;
+}
+.dialog-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.dialog-help,
+.dialog-card-description {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin: 4px 0 0;
+}
+.dialog-card {
+  background: var(--bg-color);
+  border: 1px solid var(--dialog-border);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  margin-bottom: 16px;
+}
+.dialog-card-title {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.dialog-card-description {
+  margin: 0 0 12px;
+}
+.dialog-message {
+  margin: 0;
+}
+.dialog-notice {
+  padding: 10px;
+  margin: 12px 0 0;
+  border: 1px solid currentColor;
+  border-radius: var(--radius-sm);
+  color: var(--accent-warning);
+  overflow-wrap: anywhere;
+}
+.dialog-error {
+  color: var(--accent-error);
+}
+.dialog-references {
+  max-height: 120px;
+  overflow-y: auto;
+  font-size: 12px;
+}
+.dialog-toggle {
+  width: 44px;
+  height: 24px;
+  flex-shrink: 0;
+  position: relative;
+  border: 0;
+  border-radius: 12px;
+  background: var(--dialog-border);
+  cursor: pointer;
+}
+.dialog-toggle[aria-checked='true'] {
+  background: var(--accent-success);
+}
+.dialog-toggle span {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: white;
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  transition: left 0.2s;
+}
+.dialog-toggle[aria-checked='true'] span {
+  left: 23px;
+}
+.dialog-toggle:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

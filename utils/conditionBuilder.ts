@@ -4,7 +4,6 @@
  * - 为参数修改器提供默认模板
  */
 import { ConditionExpression, TriggerConfig } from '../types/stateMachine';
-import { ParameterModifier, VariableScope } from '../types/common';
 
 // ===== ConditionExpression Builders =====
 
@@ -17,41 +16,41 @@ import { ParameterModifier, VariableScope } from '../types/common';
 export const literalTrue = (): ConditionExpression => ({ type: 'Literal', value: true });
 export const literalFalse = (): ConditionExpression => ({ type: 'Literal', value: false });
 
-/** 
+/**
  * 构造比较表达式
  * 左右操作数现在直接使用 ValueSource
  */
 export const comparison = (
   left: ConditionExpression['left'] = { type: 'VariableRef', variableId: '', scope: 'NodeLocal' },
   operator: ConditionExpression['operator'] = '==',
-  right: ConditionExpression['right'] = { type: 'Constant', value: '' }
+  right: ConditionExpression['right'] = { type: 'Constant', value: '' },
 ): ConditionExpression => ({
   type: 'Comparison',
   operator,
   left,
-  right
+  right,
 });
 
 /** 构造逻辑与/或 */
 export const logicalAnd = (children: ConditionExpression[]): ConditionExpression => ({
   type: 'And',
-  children
+  children,
 });
 export const logicalOr = (children: ConditionExpression[]): ConditionExpression => ({
   type: 'Or',
-  children
+  children,
 });
 
 /** 构造取反 */
 export const logicalNot = (operand: ConditionExpression): ConditionExpression => ({
   type: 'Not',
-  operand
+  operand,
 });
 
 /** 构造自定义条件脚本引用 */
 export const scriptCondition = (scriptId: string): ConditionExpression => ({
   type: 'ScriptRef',
-  scriptId
+  scriptId,
 });
 
 // ===== Condition Builder Helpers =====
@@ -78,13 +77,13 @@ export const createComparison = (): ConditionExpression => ({
   type: 'Comparison',
   operator: '==',
   left: { type: 'VariableRef', variableId: '', scope: 'NodeLocal' },
-  right: { type: 'Constant', value: '' }
+  right: { type: 'Constant', value: '' },
 });
 
 /** 创建一个脚本条件引用 */
 export const createScriptRef = (): ConditionExpression => ({
   type: 'ScriptRef',
-  scriptId: ''
+  scriptId: '',
 });
 
 /** 获取组内子条件数量 */
@@ -121,7 +120,10 @@ export const getChildren = (condition: ConditionExpression): ConditionExpression
 };
 
 /** 设定组的子条件（统一接口） */
-export const setChildren = (condition: ConditionExpression, children: ConditionExpression[]): ConditionExpression => {
+export const setChildren = (
+  condition: ConditionExpression,
+  children: ConditionExpression[],
+): ConditionExpression => {
   if (condition.type === 'Not') {
     // 仅取第一个子节点，其余忽略
     return { ...condition, operand: children[0] };
@@ -141,4 +143,34 @@ export const isEmptyGroup = (condition: ConditionExpression): boolean => {
 // ===== Trigger helpers（方便 UI 填充默认触发器） =====
 export const alwaysTrigger = (): TriggerConfig => ({ type: 'Always' });
 export const onEventTrigger = (eventId: string): TriggerConfig => ({ type: 'OnEvent', eventId });
-export const customTrigger = (scriptId: string): TriggerConfig => ({ type: 'CustomScript', scriptId });
+export const customTrigger = (scriptId: string): TriggerConfig => ({
+  type: 'CustomScript',
+  scriptId,
+});
+
+// 递归统计组内元素数量（不含当前组本身）
+export const countGroupContent = (condition: ConditionExpression): number => {
+  const countSelfAndDesc = (cond: ConditionExpression): number => {
+    if (!isGroupType(cond.type)) return 1;
+    if (cond.type === 'Not') {
+      return 1 + (cond.operand ? countSelfAndDesc(cond.operand) : 0);
+    }
+    return 1 + (cond.children || []).reduce((sum, child) => sum + countSelfAndDesc(child), 0);
+  };
+
+  return Math.max(countSelfAndDesc(condition) - 1, 0);
+};
+
+/** 根级默认优化仅用于未要求保留组的操作，显式组（包括空组）保持原语义。 */
+export function normalizeConditionRoot(
+  condition: ConditionExpression,
+  depth: number,
+  preserveGroup = false,
+): ConditionExpression | undefined {
+  if (depth !== 0 || !isGroupType(condition.type) || preserveGroup) return condition;
+  const children = getChildren(condition);
+  if (children.length === 0) return undefined;
+  if (condition.type === 'And' && children.length === 1 && isLeafType(children[0].type))
+    return children[0];
+  return condition;
+}

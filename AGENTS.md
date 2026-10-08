@@ -9,13 +9,13 @@
 
 ### Project Structure
 
-- `components/`: React UI components — overall layout (Layout), stage explorer (Explorer), canvas editors (FSM canvas, presentation canvas), inspector panels, and shared UI elements.
-- `store/`: Global state management — context provider, reducers (with undo/redo and selection history), feature slices, and shared action/state types.
-- `api/`: Service layer — typed interfaces, real/mock service implementations, and seeded data (stages, nodes, FSMs, presentation graphs, scripts/triggers).
-- `types/`: Domain models — stage tree, puzzle nodes, FSM (states/transitions/conditions), presentation graphs, script/trigger manifests, blackboard variables, and common primitives.
+- `components/`: React UI components â€” overall layout (Layout), stage explorer (Explorer), canvas editors (FSM canvas, presentation canvas), inspector panels, and shared UI elements.
+- `store/`: Global state management â€” context provider, reducers (with undo/redo and selection history), feature slices, and shared action/state types.
+- `api/`: Service layer â€” typed interfaces, real/mock service implementations, and seeded data (stages, nodes, FSMs, presentation graphs, scripts/triggers).
+- `types/`: Domain models â€” stage tree, puzzle nodes, FSM (states/transitions/conditions), presentation graphs, script/trigger manifests, blackboard variables, and common primitives.
 - `hooks/` & `utils/`: Custom hooks (canvas navigation, graph interaction) and utility functions (geometry, paths, hit testing, etc.).
-- `overview/`: Design docs — `Project_Overview`, `Task_Breakdown`, `UX_Flow` (**read-only**); Dev docs — in `overview/dev/` (read & write)
-- Root: App entry and tooling — main entry file, global styles, Vite/TypeScript config, and package management files.
+- `overview/`: Design docs â€” `Project_Overview`, `Task_Breakdown`, `UX_Flow` (**read-only**); Dev docs â€” in `overview/dev/` (read & write)
+- Root: App entry and tooling â€” main entry file, global styles, Vite/TypeScript config, and package management files.
 
 ### General Guidelines
 
@@ -38,7 +38,9 @@ For each Task in `overview/Task_Breakdown.md`:
 
 ### Language & Code Style
 
-- All explanations, design documents, and reports must use the **user’s language (Chinese)**.
+- UI changes must follow `overview/dev/UI_Standards.md`: reuse the single shared owner for dialogs, menus, controls, semantic colors, notices, resource previews, section/card styles, and graph node/label frames. Add necessary variants at that owner instead of copying visual specifications into business components. Run `npm run check:ui` as part of `npm run check`.
+
+- All explanations, design documents, and reports must use the **userâ€™s language (Chinese)**.
 - All important code sections must contain **UTF-8 encoded Chinese comments** explaining intent and key logic.
 
 ### Validation & Reporting

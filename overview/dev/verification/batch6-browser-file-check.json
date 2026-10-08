@@ -1,0 +1,16 @@
+{
+  "success": true,
+  "projectSha256": "f76a4c0bc09c1fec024a01974b0fcdcd8f5fc2b072397ead8d4a6bfbc43b0096",
+  "exportSha256": "d994fc503723f5ac2cbb7045c438e94a182b9572fac2e2d4540c2307830f4dae",
+  "checks": [
+    "saved project establishes clean baseline",
+    "runtime import requires a separate save",
+    "custom project version preserved",
+    "new variable false value and restored resource state preserved",
+    "FSM and presentation positions preserved in complete project",
+    "new reference count equals one in both formats",
+    "temporary boolean false preserved in both formats",
+    "normalized runtime semantics equal after save/export/import",
+    "both files validate with zero errors and warnings"
+  ]
+}

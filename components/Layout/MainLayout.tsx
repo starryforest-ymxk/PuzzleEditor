@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback } from 'react';
+import { useEffect, useCallback } from 'react';
 import { Header } from './Header';
 import { Sidebar } from './Sidebar';
 import { Resizer } from './Resizer';
@@ -13,9 +13,9 @@ import { BlackboardPanel } from '../Blackboard/BlackboardPanel';
 import { useAppStartup } from '../../hooks/useAppStartup';
 import { useFileWatcher } from '../../hooks/useFileWatcher';
 import { ValidationPanel } from './ValidationPanel';
-import { Footer } from './Footer';
 import GlobalConfirmDialog from './GlobalConfirmDialog';
 import { useAutoSave } from '../../hooks/useAutoSave';
+import { useWindowClose } from '../../hooks/useWindowClose';
 
 // Constraints for panel sizes
 const MIN_SIDEBAR_WIDTH = 180;
@@ -34,6 +34,9 @@ export const MainLayout = () => {
 
   // 全局自动保存（由 Preferences 控制）
   useAutoSave();
+
+  // 原生关闭与应用退出统一走项目会话保存保护。
+  useWindowClose();
 
   const { ui } = useEditorState();
   const { panelSizes } = ui;
@@ -65,22 +68,40 @@ export const MainLayout = () => {
   }, []);
 
   // Resize handlers with constraints
-  const handleExplorerResize = useCallback((delta: number) => {
-    const newWidth = Math.max(MIN_SIDEBAR_WIDTH, Math.min(MAX_SIDEBAR_WIDTH, panelSizes.explorerWidth + delta));
-    dispatch({ type: 'SET_PANEL_SIZES', payload: { explorerWidth: newWidth } });
-  }, [dispatch, panelSizes.explorerWidth]);
+  const handleExplorerResize = useCallback(
+    (delta: number) => {
+      const newWidth = Math.max(
+        MIN_SIDEBAR_WIDTH,
+        Math.min(MAX_SIDEBAR_WIDTH, panelSizes.explorerWidth + delta),
+      );
+      dispatch({ type: 'SET_PANEL_SIZES', payload: { explorerWidth: newWidth } });
+    },
+    [dispatch, panelSizes.explorerWidth],
+  );
 
-  const handleInspectorResize = useCallback((delta: number) => {
-    // Inspector resize is inverted (dragging left increases width)
-    const newWidth = Math.max(MIN_SIDEBAR_WIDTH, Math.min(MAX_SIDEBAR_WIDTH, panelSizes.inspectorWidth - delta));
-    dispatch({ type: 'SET_PANEL_SIZES', payload: { inspectorWidth: newWidth } });
-  }, [dispatch, panelSizes.inspectorWidth]);
+  const handleInspectorResize = useCallback(
+    (delta: number) => {
+      // Inspector resize is inverted (dragging left increases width)
+      const newWidth = Math.max(
+        MIN_SIDEBAR_WIDTH,
+        Math.min(MAX_SIDEBAR_WIDTH, panelSizes.inspectorWidth - delta),
+      );
+      dispatch({ type: 'SET_PANEL_SIZES', payload: { inspectorWidth: newWidth } });
+    },
+    [dispatch, panelSizes.inspectorWidth],
+  );
 
-  const handleStagesResize = useCallback((delta: number, containerHeight: number) => {
-    const deltaPercent = (delta / containerHeight) * 100;
-    const newHeight = Math.max(MIN_STAGES_HEIGHT, Math.min(MAX_STAGES_HEIGHT, panelSizes.stagesHeight + deltaPercent));
-    dispatch({ type: 'SET_PANEL_SIZES', payload: { stagesHeight: newHeight } });
-  }, [dispatch, panelSizes.stagesHeight]);
+  const handleStagesResize = useCallback(
+    (delta: number, containerHeight: number) => {
+      const deltaPercent = (delta / containerHeight) * 100;
+      const newHeight = Math.max(
+        MIN_STAGES_HEIGHT,
+        Math.min(MAX_STAGES_HEIGHT, panelSizes.stagesHeight + deltaPercent),
+      );
+      dispatch({ type: 'SET_PANEL_SIZES', payload: { stagesHeight: newHeight } });
+    },
+    [dispatch, panelSizes.stagesHeight],
+  );
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
@@ -93,8 +114,26 @@ export const MainLayout = () => {
           <>
             <Sidebar title="Explorer" position="left" width={panelSizes.explorerWidth}>
               <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-                <div style={{ flex: `0 0 ${panelSizes.stagesHeight}%`, minHeight: 0, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
-                  <div style={{ padding: '8px 16px', fontSize: '10px', color: 'var(--text-secondary)', fontWeight: 600, flexShrink: 0 }}>STAGES</div>
+                <div
+                  style={{
+                    flex: `0 0 ${panelSizes.stagesHeight}%`,
+                    minHeight: 0,
+                    overflowY: 'auto',
+                    display: 'flex',
+                    flexDirection: 'column',
+                  }}
+                >
+                  <div
+                    style={{
+                      padding: '8px 16px',
+                      fontSize: '10px',
+                      color: 'var(--text-secondary)',
+                      fontWeight: 600,
+                      flexShrink: 0,
+                    }}
+                  >
+                    STAGES
+                  </div>
                   <StageExplorer />
                 </div>
                 <Resizer
@@ -104,8 +143,26 @@ export const MainLayout = () => {
                     if (container) handleStagesResize(delta, container.clientHeight);
                   }}
                 />
-                <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', boxSizing: 'border-box' }}>
-                  <div style={{ padding: '8px 16px', fontSize: '10px', color: 'var(--text-secondary)', fontWeight: 600, flexShrink: 0 }}>NODES</div>
+                <div
+                  style={{
+                    flex: 1,
+                    minHeight: 0,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    boxSizing: 'border-box',
+                  }}
+                >
+                  <div
+                    style={{
+                      padding: '8px 16px',
+                      fontSize: '10px',
+                      color: 'var(--text-secondary)',
+                      fontWeight: 600,
+                      flexShrink: 0,
+                    }}
+                  >
+                    NODES
+                  </div>
                   <NodeExplorer />
                 </div>
               </div>
@@ -115,7 +172,15 @@ export const MainLayout = () => {
         )}
 
         {/* 中央内容：Editor 或 Blackboard */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
+        <div
+          style={{
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden',
+            minWidth: 0,
+          }}
+        >
           {isEditorView ? (
             <>
               <Breadcrumb />

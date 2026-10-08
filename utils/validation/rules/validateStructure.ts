@@ -9,7 +9,7 @@
  * #26-#32: 演出图结构校验
  */
 
-import { ValidationResult } from '../../../store/types';
+import type { ValidationResult } from '../../../types/validation';
 import { ProjectData } from '../../../types/project';
 import { findNodeByFsmId } from '../../puzzleNodeUtils';
 

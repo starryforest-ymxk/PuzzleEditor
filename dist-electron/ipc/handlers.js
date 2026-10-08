@@ -52,8 +52,6 @@ export function registerIpcHandlers(ipcMain) {
     ipcMain.handle(IPC_CHANNELS.PROJECT_READ, async (_, filePath) => {
         try {
             const content = await fileService.readFile(filePath);
-            // 启动文件监听
-            fileWatcherService.startWatching(filePath);
             return { success: true, data: content };
         }
         catch (error) {
@@ -64,23 +62,37 @@ export function registerIpcHandlers(ipcMain) {
     });
     /**
      * 写入项目文件
-     * 写入前暂停文件监听，避免触发自身的变更事件
+     * 写入后记录内容指纹，监听仍可接收真实外部变化
      */
-    ipcMain.handle(IPC_CHANNELS.PROJECT_WRITE, async (_, filePath, data) => {
+    ipcMain.handle(IPC_CHANNELS.PROJECT_WRITE, async (_, filePath, data, options) => {
         try {
-            // 暂停监听，防止自身写入触发文件变更事件
-            fileWatcherService.pauseWatching();
-            await fileService.writeFile(filePath, data);
-            // 写入完成后恢复监听（内部有延迟以确保事件被忽略）
-            fileWatcherService.resumeWatching();
+            await fileService.writeFile(filePath, data, options);
+            fileWatcherService.noteInternalWrite(filePath, data);
             return { success: true };
         }
         catch (error) {
-            // 出错也要恢复监听
-            fileWatcherService.resumeWatching();
             const message = error instanceof Error ? error.message : 'Unknown error';
             console.error('Failed to write project:', message);
             return { success: false, error: message };
+        }
+    });
+    // 读取候选不切换监听；仅成功提交的会话更新活动文件与恢复路径。
+    ipcMain.handle(IPC_CHANNELS.PROJECT_ACTIVATE, async (_, filePath, name) => {
+        try {
+            if (filePath)
+                fileWatcherService.startWatching(filePath);
+            else
+                fileWatcherService.stopWatching();
+            if (filePath)
+                await preferencesService.updateRecentProjects(filePath, name);
+            else {
+                const prefs = await preferencesService.loadPreferences();
+                await preferencesService.savePreferences({ ...prefs, lastProjectPath: null });
+            }
+            return { success: true };
+        }
+        catch (error) {
+            return { success: false, error: error instanceof Error ? error.message : String(error) };
         }
     });
     /**
@@ -196,14 +208,14 @@ export function registerIpcHandlers(ipcMain) {
     /**
      * 打开保存文件对话框
      */
-    ipcMain.handle(IPC_CHANNELS.DIALOG_SAVE_FILE, async (_, defaultPath, defaultFileName) => {
+    ipcMain.handle(IPC_CHANNELS.DIALOG_SAVE_FILE, async (_, defaultPath, defaultFileName, kind = 'export') => {
         const result = await dialog.showSaveDialog({
-            title: 'Export Project',
+            title: kind === 'project' ? 'Save Project' : 'Export Project',
             defaultPath: defaultPath
                 ? (defaultFileName ? `${defaultPath}/${defaultFileName}` : defaultPath)
                 : defaultFileName,
             filters: [
-                { name: 'Puzzle Export', extensions: ['json'] },
+                { name: kind === 'project' ? 'Puzzle Project' : 'Puzzle Export', extensions: kind === 'project' ? ['puzzle.json'] : ['json'] },
                 { name: 'All Files', extensions: ['*'] },
             ],
         });

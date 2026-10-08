@@ -3,7 +3,12 @@
  * 使用切片模式组织代码，负责协调基础 reducer 与全局历史/初始化逻辑
  */
 
-import { EditorState, Action, ProjectContent } from './types';
+import { EditorState, Action } from './types';
+import { ACTION_POLICIES, type ActionPolicy } from './actionPolicy';
+import { equalProjectData } from '../utils/equalProjectData';
+import { reconcileHistoryUi } from './historyUi';
+import { normalizePanelSizes } from '../utils/panelSizes';
+import { acknowledgeSave, beginDocument, getHistoryEntry, isPermanentResourceDeletion, MAX_HISTORY_LENGTH, restoreHistory } from './documentHistory';
 import {
     fsmReducer, isFsmAction,
     presentationReducer, isPresentationAction,
@@ -16,68 +21,12 @@ import {
     runtimeReducer, isRuntimeAction
 } from './slices';
 
-// ========== 常量配置 ==========
-const MAX_HISTORY_LENGTH = 50;
-
-// 触发历史快照的 Actions（同时也会设置 isDirty = true）
-const HISTORY_ACTIONS = new Set([
-    'UPDATE_STAGE_TREE',
-    'UPDATE_NODE',
-    // Blackboard 资源管理
-    'ADD_GLOBAL_VARIABLE', 'UPDATE_GLOBAL_VARIABLE',
-    'SOFT_DELETE_GLOBAL_VARIABLE', 'APPLY_DELETE_GLOBAL_VARIABLE',
-    'ADD_EVENT', 'UPDATE_EVENT',
-    'SOFT_DELETE_EVENT', 'APPLY_DELETE_EVENT',
-    'ADD_SCRIPT', 'UPDATE_SCRIPT',
-    'SOFT_DELETE_SCRIPT', 'APPLY_DELETE_SCRIPT',
-    // Stage 局部变量
-    'ADD_STAGE_VARIABLE', 'UPDATE_STAGE_VARIABLE', 'DELETE_STAGE_VARIABLE',
-    'SOFT_DELETE_STAGE_VARIABLE', 'APPLY_DELETE_STAGE_VARIABLE',
-    // Blackboard Reorder (拖拽排序)
-    'REORDER_GLOBAL_VARIABLES', 'REORDER_EVENTS', 'REORDER_SCRIPTS',
-    'REORDER_LOCAL_VARIABLES', 'REORDER_FSMS', 'REORDER_PRESENTATION_GRAPHS',
-    // Stage CRUD (P4-T02)
-    'ADD_STAGE', 'DELETE_STAGE', 'UPDATE_STAGE', 'REORDER_STAGE', 'MOVE_STAGE',
-    // PuzzleNode CRUD (P4-T03)
-    'ADD_PUZZLE_NODE', 'DELETE_PUZZLE_NODE', 'REORDER_PUZZLE_NODES',
-    // FSM 状态与转移
-    'ADD_STATE', 'DELETE_STATE', 'UPDATE_STATE', 'UPDATE_FSM',
-    'ADD_TRANSITION', 'DELETE_TRANSITION', 'UPDATE_TRANSITION',
-    // Presentation 图
-    'ADD_PRESENTATION_NODE', 'DELETE_PRESENTATION_NODE', 'UPDATE_PRESENTATION_NODE',
-    'LINK_PRESENTATION_NODES', 'UNLINK_PRESENTATION_NODES',
-    // Node 局部变量
-    'ADD_NODE_PARAM', 'UPDATE_NODE_PARAM', 'DELETE_NODE_PARAM',
-    // 项目元信息
-    'UPDATE_PROJECT_META'
-]);
-
-// 只读模式下阻断的数据修改 Actions
-const READONLY_BLOCKED_ACTIONS = new Set<string>(HISTORY_ACTIONS);
-
-// ========== 快照工具函数 ==========
-/** 提取项目数据的纯数据部分用于快照 */
-const getProjectSnapshot = (state: EditorState): ProjectContent => ({
-    stageTree: state.project.stageTree,
-    nodes: state.project.nodes,
-    stateMachines: state.project.stateMachines,
-    presentationGraphs: state.project.presentationGraphs,
-    blackboard: state.project.blackboard,
-    meta: state.project.meta,
-    scripts: state.project.scripts
-});
-
 // ========== Core Business Logic Reducer ==========
 /**
  * 基础业务逻辑 Reducer
  * 将基础相关的 Action 分派给对应的 Slice
  */
 const internalReducer = (state: EditorState, action: Action): EditorState => {
-    // P2 只读模式：阻止数据写操作（初始化/导航/选择等 UI 操作仍允许）
-    if (state.ui.readOnly && READONLY_BLOCKED_ACTIONS.has(action.type)) {
-        return state;
-    }
-
     // 使用类型守卫分发到各 Slice
     if (isFsmAction(action)) {
         return fsmReducer(state, action);
@@ -207,72 +156,51 @@ const internalReducer = (state: EditorState, action: Action): EditorState => {
     }
 };
 
-// ========== History Wrapper Reducer ==========
-/**
- * 顶层 Reducer，包装历史管理功能（Undo/Redo）
- */
+// ========== 统一操作约束与历史管理 ==========
+/** 全局约束先于切片执行，业务更新只执行一次。 */
 export const editorReducer = (state: EditorState, action: Action): EditorState => {
-    // 1. 处理 UNDO
-    if (action.type === 'UNDO') {
-        const { past, future } = state.history;
-        if (past.length === 0) return state;
+    const policy: ActionPolicy = ACTION_POLICIES[action.type];
+    if (!policy || (state.ui.readOnly && !policy.allowReadOnly)) return state;
+    // 最终候选写入期间暂时冻结内容，避免确认后仍有旧会话编辑被丢弃。
+    if (state.runtime.projectOperation.phase === 'committing' && policy.changesContent) return state;
+    if (action.type === 'SYNC_RESOURCE_STATES' && action.sessionId !== state.document.sessionId) return state;
+    if (action.type === 'UNDO' || action.type === 'REDO') return restoreHistory(state, action.type);
+    if (action.type === 'PROJECT_SAVE_SUCCEEDED') return acknowledgeSave(state, action.payload);
 
-        const previous = past[past.length - 1];
-        const newPast = past.slice(0, past.length - 1);
-        const currentSnapshot = getProjectSnapshot(state);
-
-        return {
-            ...state,
-            project: { ...state.project, ...previous },
-            history: {
-                past: newPast,
-                future: [currentSnapshot, ...future]
-            }
-        };
+    const next = internalReducer(state, action);
+    if (action.type === 'INIT_SUCCESS') {
+        const es = action.editorState;
+        const ui = reconcileHistoryUi({
+            ...next.ui,
+            panelSizes: normalizePanelSizes(es?.panelSizes ?? next.ui.panelSizes),
+            stageExpanded: es?.stageExpanded ?? {},
+            currentStageId: es?.currentStageId ?? action.payload.stageTree.rootId ?? null,
+            currentNodeId: es?.currentNodeId ?? null,
+            currentGraphId: es?.currentGraphId ?? null,
+            view: es?.view === 'BLACKBOARD' ? 'BLACKBOARD' : 'EDITOR',
+            selection: !es && action.payload.stageTree.rootId ? { type: 'STAGE', id: action.payload.stageTree.rootId } : next.ui.selection,
+            validationResults: action.validationResults ?? [], showValidationPanel: (action.validationResults?.length ?? 0) > 0
+        }, action.payload);
+        return beginDocument(state, { ...next, ui }, action.saved !== false, action.path ?? null);
     }
+    if (action.type === 'RESET_PROJECT') return beginDocument(state, next, true);
+    if (!policy.changesContent || next === state) return next;
 
-    // 2. 处理 REDO
-    if (action.type === 'REDO') {
-        const { past, future } = state.history;
-        if (future.length === 0) return state;
-
-        const next = future[0];
-        const newFuture = future.slice(1);
-        const currentSnapshot = getProjectSnapshot(state);
-
-        return {
-            ...state,
-            project: { ...state.project, ...next },
-            history: {
-                past: [...past, currentSnapshot],
-                future: newFuture
-            }
-        };
+    // 引用变化不等同于内容变化；同值更新不得产生空历史或清空 redo。
+    if (equalProjectData(state.project, next.project)) {
+        return next.ui === state.ui ? state : { ...next, project: state.project };
     }
-
-    const shouldSaveHistory = HISTORY_ACTIONS.has(action.type);
-
-    if (shouldSaveHistory) {
-        const snapshot = getProjectSnapshot(state);
-        const newState = internalReducer(state, action);
-
-        // 只有状态真正改变时才记录历史并标记为脏状态
-        if (newState !== state) {
-            return {
-                ...newState,
-                history: {
-                    past: [...state.history.past, snapshot].slice(-MAX_HISTORY_LENGTH),
-                    future: [] // 新操作清空重做栈
-                },
-                // P4-T06: 数据修改自动标记为未保存状态
-                ui: {
-                    ...newState.ui,
-                    isDirty: true
-                }
-            };
-        }
-    }
-
-    // 4. 其他 Actions 直接处理（Selection, Init 等）
-    return internalReducer(state, action);
+    const barrier = policy.history === 'barrier'
+        || (policy.history === 'resource-delete' && isPermanentResourceDeletion(state.project, next.project, action));
+    const revision = state.document.nextRevision;
+    return {
+        ...next,
+        document: { ...state.document, revision, nextRevision: revision + 1 },
+        manifest: { ...next.manifest, scripts: Object.values(next.project.scripts.scripts) },
+        history: barrier ? { past: [], future: [] } : {
+            past: [...state.history.past, getHistoryEntry(state)].slice(-MAX_HISTORY_LENGTH),
+            future: []
+        },
+        ui: { ...next.ui, isDirty: revision !== state.document.savedRevision }
+    };
 };

@@ -1,0 +1,12 @@
+[
+  {
+    "path": "resources\\app.asar",
+    "sha256": "c7a808a0492c43e10c54cae619e4ea71652d9eee03b61143ad403abfa4f652a5",
+    "matches": true
+  },
+  {
+    "path": "Puzzle Editor.exe",
+    "sha256": "484c016a52a8fbdd55e4985fafad0ce21e600c5bd3d152fcbe2e5ef14752f19f",
+    "matches": true
+  }
+]

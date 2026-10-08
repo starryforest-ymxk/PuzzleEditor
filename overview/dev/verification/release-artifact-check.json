@@ -1,0 +1,10 @@
+{
+  "version": "1.0.0-beta",
+  "sourceFilesCompared": 15,
+  "allSourceFilesMatch": true,
+  "installerMetadataSha512Matches": true,
+  "installerSize": 85939188,
+  "installerSha256": "2a52db9b182b189a014144774dab3aff8c68a36f6a949c7dca14ff92f9fa30e7",
+  "forbiddenPaths": [],
+  "developmentDependencyPaths": 0
+}

@@ -11,15 +11,12 @@
 
 import { useCallback } from 'react';
 import { useEditorState, useEditorDispatch } from '../store/context';
-import { hasStageContent, getStageNodeIds } from '../utils/stageTreeUtils';
+import { hasStageContent } from '../utils/stageTreeUtils';
 import { findGlobalVariableReferences } from '../utils/validation/globalVariableReferences';
 import { findScriptReferences } from '../utils/validation/scriptReferences';
 import { findEventReferences } from '../utils/validation/eventReferences';
 import { findPresentationGraphReferences } from '../utils/validation/presentationGraphReferences';
 import type { StageId } from '../types/common';
-import type { VariableDefinition } from '../types/blackboard';
-import type { ScriptDefinition } from '../types/manifest';
-import type { EventDefinition } from '../types/blackboard';
 import { usePushMessage } from './usePushMessage';
 
 export function useDeleteHandler() {
@@ -220,9 +217,6 @@ export function useDeleteHandler() {
         const node = project.nodes[nodeId];
         if (!node) return;
 
-        const stage = project.stageTree.stages[node.stageId];
-        const stageNodeIds = getStageNodeIds(project.nodes, node.stageId);
-        const siblingCount = stageNodeIds.length - 1;
 
         dispatch({
             type: 'SET_CONFIRM_DIALOG',
@@ -235,7 +229,7 @@ export function useDeleteHandler() {
                 references: undefined // Explicitly clear references
             }
         });
-    }, [project.nodes, project.stageTree.stages, dispatch]);
+    }, [project.nodes, dispatch]);
 
     // ========== Presentation Graph 删除 ==========
     const deletePresentationGraph = useCallback((graphId: string) => {
@@ -358,7 +352,7 @@ export function useDeleteHandler() {
                 if (contextId) dispatch({ type: 'DELETE_PRESENTATION_NODE', payload: { graphId: contextId, nodeId: id } });
                 break;
         }
-    }, [ui.selection, ui.multiSelectStateIds, ui.multiSelectPresentationNodeIds, deleteStage, deleteGlobalVariable, deleteScript, deleteEvent, deletePresentationGraph, dispatch, project.blackboard.globalVariables, project.nodes]);
+    }, [deleteNode, ui.view, ui.selection, ui.multiSelectStateIds, ui.multiSelectPresentationNodeIds, deleteStage, deleteGlobalVariable, deleteScript, deleteEvent, deletePresentationGraph, dispatch, project.blackboard.globalVariables, project.nodes]);
 
     // ========== 通用恢复操作 ==========
     /**
@@ -370,18 +364,18 @@ export function useDeleteHandler() {
         resourceId: string,
         resourceName: string
     ) => {
-        const actionTypeMap: Record<string, string> = {
+        const actionTypeMap = {
             'SCRIPT': 'UPDATE_SCRIPT',
             'EVENT': 'UPDATE_EVENT',
             'GLOBAL_VARIABLE': 'UPDATE_GLOBAL_VARIABLE',
-        };
+        } as const;
         const labelMap: Record<string, string> = {
             'SCRIPT': 'script',
             'EVENT': 'event',
             'GLOBAL_VARIABLE': 'global variable',
         };
         dispatch({
-            type: actionTypeMap[resourceType] as any,
+            type: actionTypeMap[resourceType],
             payload: { id: resourceId, data: { state: 'Implemented' } }
         });
         pushMessage('info', `Restored ${labelMap[resourceType]} "${resourceName}" to Implemented state.`);

@@ -3,8 +3,7 @@
  * 脚本引用追踪工具，用于显示脚本被引用的位置
  */
 
-import { ConditionExpression, StateMachine, Transition, State } from '../../types/stateMachine';
-import { PresentationGraph } from '../../types/presentation';
+import { ConditionExpression, Transition, State, TriggerConfig } from '../../types/stateMachine';
 import { PuzzleNode } from '../../types/puzzleNode';
 import { StageNode } from '../../types/stage';
 import { PresentationBinding } from '../../types/common';
@@ -25,7 +24,7 @@ const collectScriptFromCondition = (
 
     // 检查 ScriptRef 类型
     if (condition.type === 'ScriptRef') {
-        if ((condition as any).scriptId === scriptId) {
+        if (condition.scriptId === scriptId) {
             collector({ location: origin, navContext });
         }
         return;
@@ -47,7 +46,7 @@ const collectScriptFromCondition = (
  * 检查触发器是否引用了指定的脚本
  */
 const collectScriptFromTriggers = (
-    triggers: any[] | undefined,
+    triggers: TriggerConfig[] | undefined,
     scriptId: string,
     collector: (info: VariableReferenceInfo) => void,
     origin: string,

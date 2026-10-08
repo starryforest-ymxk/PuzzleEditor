@@ -109,7 +109,7 @@ class PreferencesService {
             this.cachedPreferences = mergedPreferences;
 
             return mergedPreferences;
-        } catch (error) {
+        } catch {
             // 文件不存在或读取失败，使用默认设置
             console.log('Preferences file not found, creating default preferences');
             this.cachedPreferences = getDefaultPreferences();

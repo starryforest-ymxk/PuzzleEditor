@@ -6,7 +6,7 @@
  * 统一了 5 个 Inspector 中重复的选项构建逻辑
  */
 
-import type { ResourceState } from '../types/common';
+import type { ResourceState, ScriptCategory, LifecycleScriptTarget } from '../types/common';
 import type { EventDefinition } from '../types/blackboard';
 import type { ScriptDefinition } from '../types/manifest';
 import type { PresentationGraph } from '../types/presentation';
@@ -68,9 +68,9 @@ export function buildScriptOptions(
  */
 export function buildScriptOptionsByCategory(
     scripts: Record<string, ScriptDefinition>,
-    category: string,
-    lifecycleType?: string
-): ResourceOption[] {
+    category: ScriptCategory,
+    lifecycleType?: LifecycleScriptTarget
+): ScriptDefinition[] {
     return Object.values<ScriptDefinition>(scripts)
         .filter(s => {
             // 类别必须匹配

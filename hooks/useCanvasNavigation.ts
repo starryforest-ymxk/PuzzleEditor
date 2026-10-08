@@ -13,7 +13,7 @@ import React, { useState, useRef, useEffect, MouseEvent } from 'react';
 // ========== 类型定义 ==========
 interface UseCanvasNavigationProps {
     /** 画布容器的 ref */
-    canvasRef: React.RefObject<HTMLDivElement>;
+    canvasRef: React.RefObject<HTMLDivElement | null>;
 }
 
 /**

@@ -3,8 +3,7 @@
  * 演出图引用追踪工具，用于显示演出图被引用的位置
  */
 
-import { StateMachine, Transition } from '../../types/stateMachine';
-import { PuzzleNode } from '../../types/puzzleNode';
+import { Transition } from '../../types/stateMachine';
 import { StageNode } from '../../types/stage';
 import { PresentationBinding } from '../../types/common';
 import { ReferenceNavigationContext, VariableReferenceInfo } from './globalVariableReferences';
@@ -109,11 +108,11 @@ export const findPresentationGraphReferences = (
     });
 
     // 3) 遍历所有演出图节点中 type: 'Graph' 的绑定
-    const graphs = (project as any).presentationGraphs || {};
-    Object.values(graphs).forEach((graph: any) => {
+    const graphs = project.presentationGraphs || {};
+    Object.values(graphs).forEach((graph) => {
         if (!graph) return;
         const graphName = graph.name || graph.id;
-        Object.values(graph.nodes || {}).forEach((pNode: any) => {
+        Object.values(graph.nodes || {}).forEach((pNode) => {
             // 检查演出节点的 Graph 绑定
             if (pNode.presentation?.type === 'Graph' && pNode.presentation.graphId === graphId) {
                 const navContext: ReferenceNavigationContext = {

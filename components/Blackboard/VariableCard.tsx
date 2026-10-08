@@ -1,7 +1,8 @@
+import { variableTypeColor as getTypeColor } from '../shared/uiTokens';
 /**
  * components/Blackboard/VariableCard.tsx
  * 全局变量卡片组件 - 用于显示单个全局变量的信息
- * 
+ *
  * 重构说明：
  * - 内联样式已替换为 CSS 类
  */
@@ -15,32 +16,18 @@ import { StateBadge } from './StateBadge';
 /**
  * 根据变量类型返回对应的颜色
  */
-export const getTypeColor = (type: string): string => {
-    switch (type) {
-        case 'boolean':
-            return '#60a5fa';
-        case 'integer':
-            return '#a3e635';
-        case 'float':
-            return '#2dd4bf';
-        case 'string':
-            return '#fbbf24';
-        default:
-            return 'var(--text-secondary)';
-    }
-};
 
 // ========== 组件 Props ==========
 
 interface VariableCardProps {
-    /** 变量定义数据 */
-    variable: VariableDefinition;
-    /** 是否被选中 */
-    isSelected: boolean;
-    /** 点击卡片的回调 */
-    onClick: () => void;
-    /** 引用数量（可选） */
-    referenceCount?: number;
+  /** 变量定义数据 */
+  variable: VariableDefinition;
+  /** 是否被选中 */
+  isSelected: boolean;
+  /** 点击卡片的回调 */
+  onClick: () => void;
+  /** 引用数量（可选） */
+  referenceCount?: number;
 }
 
 // ========== 组件 ==========
@@ -50,65 +37,60 @@ interface VariableCardProps {
  * 显示变量的名称、Key、类型、默认值和描述
  */
 export const VariableCard: React.FC<VariableCardProps> = ({
-    variable,
-    isSelected,
-    onClick,
-    referenceCount
+  variable,
+  isSelected,
+  onClick,
+  referenceCount,
 }) => {
-    const isDeleted = variable.state === 'MarkedForDelete';
+  const isDeleted = variable.state === 'MarkedForDelete';
 
-    return (
-        <div
-            onClick={onClick}
-            className={`overview-card ${isSelected ? 'selected' : ''}`}
-            style={{
-                opacity: isDeleted ? 0.5 : 1,
-                cursor: 'pointer',
-                marginBottom: '8px',
-                padding: '12px'
-            }}
-        >
-            {/* 头部：名称 + 状态徽章 */}
-            <div className="card-header">
-                <span className="card-name">{variable.name}</span>
-                <StateBadge state={variable.state} />
-            </div>
+  return (
+    <div
+      onClick={onClick}
+      data-deleted={isDeleted}
+      className={`overview-card ui-resource-card ${isSelected ? 'selected' : ''}`}
+    >
+      {/* 头部：名称 + 状态徽章 */}
+      <div className="card-header">
+        <span className="card-name">{variable.name}</span>
+        <StateBadge state={variable.state} />
+      </div>
 
-            {/* Key */}
-            <div className="card-key">{variable.key}</div>
+      {/* Key */}
+      <div className="card-key">{variable.id}</div>
 
-            {/* 类型和默认值 */}
-            <div className="card-type-value-row">
-                <div>
-                    <span className="label">Type: </span>
-                    <span className="value" style={{ color: getTypeColor(variable.type) }}>
-                        {variable.type}
-                    </span>
-                </div>
-                <div>
-                    <span className="label">Value: </span>
-                    <span className="value">
-                        {variable.value !== undefined ? String(variable.value) : '-'}
-                    </span>
-                </div>
-                {/* 引用数量显示 */}
-                {referenceCount !== undefined && (
-                    <div>
-                        <span className="label">Refs: </span>
-                        <span className="value" style={{ color: referenceCount > 0 ? '#60a5fa' : 'var(--text-dim)' }}>
-                            {referenceCount}
-                        </span>
-                    </div>
-                )}
-            </div>
-
-            {/* 描述（可选） */}
-            {variable.description && (
-                <div className="card-description">{variable.description}</div>
-            )}
+      {/* 类型和默认值 */}
+      <div className="card-type-value-row">
+        <div>
+          <span className="label">Type: </span>
+          <span className="value" style={{ color: getTypeColor(variable.type) }}>
+            {variable.type}
+          </span>
         </div>
-    );
+        <div>
+          <span className="label">Value: </span>
+          <span className="value">
+            {variable.value !== undefined ? String(variable.value) : '-'}
+          </span>
+        </div>
+        {/* 引用数量显示 */}
+        {referenceCount !== undefined && (
+          <div>
+            <span className="label">Refs: </span>
+            <span
+              className="value"
+              style={{ color: referenceCount > 0 ? '#60a5fa' : 'var(--text-dim)' }}
+            >
+              {referenceCount}
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* 描述（可选） */}
+      {variable.description && <div className="card-description">{variable.description}</div>}
+    </div>
+  );
 };
 
 export default VariableCard;
-

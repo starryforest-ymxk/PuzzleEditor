@@ -1,10 +1,10 @@
 /**
  * components/Inspector/Inspector.tsx
  * 属性检查器路由组件
- * 
+ *
  * 该组件负责根据当前选中类型分发到对应的子检查器组件。
  * 遵循单一职责原则，不包含具体的渲染逻辑。
- * 
+ *
  * P4-T02 更新：添加滚动位置保留功能，切换选中时保持滚动位置
  */
 
@@ -57,7 +57,7 @@ export const Inspector: React.FC<InspectorProps> = ({ readOnly = false }) => {
     const container = scrollContainerRef.current;
     const panelContent = container?.parentElement?.closest('.panel-content') as HTMLElement | null;
     // 只返回真正应该滚动的容器（panelContent）；若找不到则回退自身（用于非 Sidebar 场景）
-    return (panelContent ? [panelContent] : (container ? [container] : []));
+    return panelContent ? [panelContent] : container ? [container] : [];
   }, []);
 
   // 初始化滚动元素引用并绑定监听（中文注释：确保使用真实滚动容器捕获滚动位置，避免阶段面板不保存）
@@ -80,7 +80,6 @@ export const Inspector: React.FC<InspectorProps> = ({ readOnly = false }) => {
       scrollEls.forEach((el) => el.removeEventListener('scroll', handleScrollEvent));
     };
     // getSelectionKey 内部依赖 ui.selection，因此不将其放入依赖避免重复绑定；使用 ref 读取最新 key
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resolveScrollElements]);
 
   // 生成当前选中对象的唯一 key
@@ -95,15 +94,18 @@ export const Inspector: React.FC<InspectorProps> = ({ readOnly = false }) => {
   currentKeyRef.current = currentKey;
 
   // 确保某个 key 的滚动位置已写入缓存（若已有则不覆盖，避免被重渲染后的 0 覆盖）
-  const ensureScrollPositionSaved = useCallback((key: string) => {
-    if (!key) return;
-    if (inspectorScrollCache.has(key)) return;
+  const ensureScrollPositionSaved = useCallback(
+    (key: string) => {
+      if (!key) return;
+      if (inspectorScrollCache.has(key)) return;
 
-    const scrollEl = resolveScrollElements()[0];
-    // 优先使用最近一次滚动事件记录的值；否则回退读取当前容器 scrollTop
-    const scrollTop = lastScrollTopRef.current || (scrollEl?.scrollTop ?? 0);
-    inspectorScrollCache.set(key, scrollTop);
-  }, [resolveScrollElements]);
+      const scrollEl = resolveScrollElements()[0];
+      // 优先使用最近一次滚动事件记录的值；否则回退读取当前容器 scrollTop
+      const scrollTop = lastScrollTopRef.current || (scrollEl?.scrollTop ?? 0);
+      inspectorScrollCache.set(key, scrollTop);
+    },
+    [resolveScrollElements],
+  );
 
   // 恢复滚动位置
   const restoreScrollPosition = useCallback(() => {
@@ -192,7 +194,13 @@ export const Inspector: React.FC<InspectorProps> = ({ readOnly = false }) => {
       if (!node) {
         return <div className="empty-state">Context node not found</div>;
       }
-      return <StateInspector fsmId={node.stateMachineId} stateId={ui.selection.id!} readOnly={readOnly} />;
+      return (
+        <StateInspector
+          fsmId={node.stateMachineId}
+          stateId={ui.selection.id!}
+          readOnly={readOnly}
+        />
+      );
     }
 
     // --- TRANSITION 检查器 ---
@@ -204,7 +212,13 @@ export const Inspector: React.FC<InspectorProps> = ({ readOnly = false }) => {
       if (!node) {
         return <div className="empty-state">Context node not found</div>;
       }
-      return <TransitionInspector fsmId={node.stateMachineId} transitionId={ui.selection.id!} readOnly={readOnly} />;
+      return (
+        <TransitionInspector
+          fsmId={node.stateMachineId}
+          transitionId={ui.selection.id!}
+          readOnly={readOnly}
+        />
+      );
     }
 
     // --- PRESENTATION_NODE 检查器 ---
@@ -212,7 +226,9 @@ export const Inspector: React.FC<InspectorProps> = ({ readOnly = false }) => {
       if (!ui.selection.contextId) {
         return <div className="empty-state">Presentation graph context missing</div>;
       }
-      return <PresentationNodeInspector graphId={ui.selection.contextId} nodeId={ui.selection.id!} />;
+      return (
+        <PresentationNodeInspector graphId={ui.selection.contextId} nodeId={ui.selection.id!} />
+      );
     }
 
     // --- PRESENTATION_GRAPH 检查器 ---
@@ -244,11 +260,5 @@ export const Inspector: React.FC<InspectorProps> = ({ readOnly = false }) => {
     return <div className="empty-state">Unknown selection type</div>;
   };
 
-  return (
-    <div
-      ref={scrollContainerRef}
-    >
-      {renderContent()}
-    </div>
-  );
+  return <div ref={scrollContainerRef}>{renderContent()}</div>;
 };

@@ -8,9 +8,9 @@
  */
 
 import type { State, Transition, ConditionExpression, TriggerConfig } from '../../types/stateMachine';
-import type { ParameterModifier, EventListener, PresentationBinding, ValueSource, ResourceState } from '../../types/common';
+import type { ParameterModifier, EventListener, PresentationBinding, ValueSource } from '../../types/common';
 import type { VariableDefinition } from '../../types/blackboard';
-import type { EditorState } from '../../store/types';
+import type { ProjectData } from '../../types/project';
 import { checkConditionScriptReferences } from './conditionChecker';
 
 // ========== 校验结果类型 ==========
@@ -50,9 +50,9 @@ export interface TransitionValidation {
 /**
  * 检查脚本状态
  */
-function getScriptValidationStatus(state: EditorState, scriptId: string | undefined): 'Valid' | 'Missing' | 'Deleted' {
+function getScriptValidationStatus(state: ProjectData, scriptId: string | undefined): 'Valid' | 'Missing' | 'Deleted' {
   if (!scriptId) return 'Valid';
-  const scripts = state.project.scripts?.scripts || {};
+  const scripts = state.scripts?.scripts || {};
   const script = scripts[scriptId];
   if (!script) return 'Missing';
   if (script.state === 'MarkedForDelete') return 'Deleted';
@@ -62,9 +62,9 @@ function getScriptValidationStatus(state: EditorState, scriptId: string | undefi
 /**
  * 检查事件状态
  */
-function getEventValidationStatus(state: EditorState, eventId: string | undefined): 'Valid' | 'Missing' | 'Deleted' {
+function getEventValidationStatus(state: ProjectData, eventId: string | undefined): 'Valid' | 'Missing' | 'Deleted' {
   if (!eventId) return 'Valid'; // Empty ID handled elsewhere if needed
-  const events = state.project.blackboard?.events || {};
+  const events = state.blackboard?.events || {};
   const event = events[eventId];
   if (!event) return 'Missing';
   if (event.state === 'MarkedForDelete') return 'Deleted';
@@ -76,7 +76,7 @@ function getEventValidationStatus(state: EditorState, eventId: string | undefine
  * 需要根据作用域检查不同位置的变量
  */
 function isVariableMarkedForDelete(
-  state: EditorState,
+  state: ProjectData,
   variableId: string | undefined,
   scope: string | undefined,
   nodeId?: string
@@ -85,21 +85,21 @@ function isVariableMarkedForDelete(
 
   // 全局变量
   if (scope === 'Global') {
-    const globalVars = state.project.blackboard?.globalVariables || {};
+    const globalVars = state.blackboard?.globalVariables || {};
     const variable = globalVars[variableId];
     return variable?.state === 'MarkedForDelete';
   }
 
   // 节点局部变量
   if (scope === 'NodeLocal' && nodeId) {
-    const node = state.project.nodes[nodeId];
+    const node = state.nodes[nodeId];
     const variable = node?.localVariables?.[variableId];
     return variable?.state === 'MarkedForDelete';
   }
 
   // Stage 局部变量
   if (scope === 'StageLocal') {
-    const stages = state.project.stageTree?.stages || {};
+    const stages = state.stageTree?.stages || {};
     for (const stage of Object.values(stages)) {
       const variable = stage.localVariables?.[variableId];
       if (variable) {
@@ -115,7 +115,7 @@ function isVariableMarkedForDelete(
  * 检查演出图是否为已删除状态
  * 注：当前演出图没有软删除状态，返回 false
  */
-function isGraphMarkedForDelete(state: EditorState, graphId: string | undefined): boolean {
+function isGraphMarkedForDelete(state: ProjectData, graphId: string | undefined): boolean {
   if (!graphId) return false;
   // 当前演出图没有 state 字段，暂时返回 false
   // 未来可扩展支持演出图的软删除
@@ -129,7 +129,7 @@ function isGraphMarkedForDelete(state: EditorState, graphId: string | undefined)
  */
 function checkValueSource(
   source: ValueSource | undefined,
-  state: EditorState,
+  state: ProjectData,
   nodeId: string,
   issues: ValidationIssue[]
 ): void {
@@ -164,7 +164,7 @@ function checkValueSource(
  */
 function checkConditionExpression(
   condition: ConditionExpression | undefined,
-  state: EditorState,
+  state: ProjectData,
   nodeId: string,
   issues: ValidationIssue[]
 ): void {
@@ -173,7 +173,7 @@ function checkConditionExpression(
   // 公共逻辑：检查脚本引用（ScriptRef 节点）
   checkConditionScriptReferences(
     condition,
-    state.project.scripts?.scripts || {},
+    state.scripts?.scripts || {},
     (scriptId, status) => {
       issues.push({
         type: 'error',
@@ -208,25 +208,25 @@ function checkConditionExpression(
  */
 const ALLOWED_MODIFIER_OPS = new Set(['Set', 'Add', 'Subtract']);
 
-function resolveVariableByScope(state: EditorState, scope: string, variableId: string, nodeId: string): VariableDefinition | undefined {
+function resolveVariableByScope(state: ProjectData, scope: string, variableId: string, nodeId: string): VariableDefinition | undefined {
   if (!variableId) return undefined;
 
   if (scope === 'Global') {
-    return state.project.blackboard?.globalVariables?.[variableId];
+    return state.blackboard?.globalVariables?.[variableId];
   }
 
   if (scope === 'NodeLocal') {
-    const node = state.project.nodes[nodeId];
+    const node = state.nodes[nodeId];
     return node?.localVariables?.[variableId];
   }
 
   if (scope === 'StageLocal') {
-    const node = state.project.nodes[nodeId];
-    let currentStageId = node?.stageId ?? null;
+    const node = state.nodes[nodeId];
+    let currentStageId: string | null = node?.stageId ?? null;
 
     // 向上遍历父级 Stage 链，查找变量（与 variableScope.ts 保持一致）
     while (currentStageId) {
-      const currentStage = state.project.stageTree?.stages?.[currentStageId];
+      const currentStage: import('../../types/stage').StageNode | undefined = state.stageTree?.stages?.[currentStageId];
       const variable = currentStage?.localVariables?.[variableId];
       if (variable) {
         return variable;
@@ -240,7 +240,7 @@ function resolveVariableByScope(state: EditorState, scope: string, variableId: s
 
 function checkParameterModifiers(
   modifiers: ParameterModifier[] | undefined,
-  state: EditorState,
+  state: ProjectData,
   nodeId: string,
   issues: ValidationIssue[]
 ): void {
@@ -332,7 +332,7 @@ function checkParameterModifiers(
  */
 function checkEventListeners(
   listeners: EventListener[] | undefined,
-  state: EditorState,
+  state: ProjectData,
   nodeId: string,
   issues: ValidationIssue[]
 ): void {
@@ -374,7 +374,7 @@ function checkEventListeners(
  */
 function checkPresentationBinding(
   binding: PresentationBinding | undefined,
-  state: EditorState,
+  state: ProjectData,
   nodeId: string,
   issues: ValidationIssue[]
 ): void {
@@ -433,7 +433,7 @@ function checkPresentationBinding(
  */
 function checkTriggers(
   triggers: TriggerConfig[] | undefined,
-  state: EditorState,
+  state: ProjectData,
   issues: ValidationIssue[]
 ): void {
   if (!triggers) return;
@@ -486,18 +486,18 @@ function checkTriggers(
 /**
  * 检查状态节点中引用已删除资源的问题
  * @param stateNode 状态节点
- * @param editorState 编辑器状态
+ * @param project 编辑器状态
  * @param nodeId 所属 PuzzleNode ID（用于局部变量查找）
  */
 export function checkStateValidation(
   stateNode: State,
-  editorState: EditorState,
+  project: ProjectData,
   nodeId: string
 ): StateValidation {
   const issues: ValidationIssue[] = [];
 
   // 检查生命周期脚本
-  const lcStatus = getScriptValidationStatus(editorState, stateNode.lifecycleScriptId);
+  const lcStatus = getScriptValidationStatus(project, stateNode.lifecycleScriptId);
   if (lcStatus === 'Deleted') {
     issues.push({
       type: 'error',
@@ -525,7 +525,7 @@ export function checkStateValidation(
   }
 
   // 检查事件监听器
-  checkEventListeners(stateNode.eventListeners, editorState, nodeId, issues);
+  checkEventListeners(stateNode.eventListeners, project, nodeId, issues);
 
   return {
     hasError: issues.some(i => i.type === 'error'),
@@ -539,12 +539,12 @@ export function checkStateValidation(
 /**
  * 检查转移连线中引用已删除资源的问题
  * @param transition 转移连线
- * @param editorState 编辑器状态
+ * @param project 编辑器状态
  * @param nodeId 所属 PuzzleNode ID（用于局部变量查找）
  */
 export function checkTransitionValidation(
   transition: Transition,
-  editorState: EditorState,
+  project: ProjectData,
   nodeId: string
 ): TransitionValidation {
   const issues: ValidationIssue[] = [];
@@ -558,17 +558,17 @@ export function checkTransitionValidation(
       resourceId: transition.id
     });
   } else {
-    checkTriggers(transition.triggers, editorState, issues);
+    checkTriggers(transition.triggers, project, issues);
   }
 
   // 检查条件表达式
-  checkConditionExpression(transition.condition, editorState, nodeId, issues);
+  checkConditionExpression(transition.condition, project, nodeId, issues);
 
   // 检查参数修改器
-  checkParameterModifiers(transition.parameterModifiers, editorState, nodeId, issues);
+  checkParameterModifiers(transition.parameterModifiers, project, nodeId, issues);
 
   // 检查演出绑定
-  checkPresentationBinding(transition.presentation, editorState, nodeId, issues);
+  checkPresentationBinding(transition.presentation, project, nodeId, issues);
 
   return {
     hasError: issues.some(i => i.type === 'error'),
@@ -585,14 +585,14 @@ export function checkTransitionValidation(
  */
 export function validateStateMachine(
   fsmId: string,
-  editorState: EditorState,
+  project: ProjectData,
   nodeId: string
 ): {
   states: Record<string, StateValidation>;
   transitions: Record<string, TransitionValidation>;
   hasInitialState: boolean;
 } {
-  const fsm = editorState.project.stateMachines[fsmId];
+  const fsm = project.stateMachines[fsmId];
   if (!fsm) {
     return { states: {}, transitions: {}, hasInitialState: false };
   }
@@ -623,7 +623,7 @@ export function validateStateMachine(
 
   // 校验所有状态节点
   Object.values(fsm.states).forEach(state => {
-    const result = checkStateValidation(state, editorState, nodeId);
+    const result = checkStateValidation(state, project, nodeId);
 
     // 检查重复 Asset Name (Error)
     if (state.assetName && state.assetName.trim() !== '') {
@@ -658,7 +658,7 @@ export function validateStateMachine(
 
   // 校验所有转移连线
   Object.values(fsm.transitions).forEach(trans => {
-    transitionResults[trans.id] = checkTransitionValidation(trans, editorState, nodeId);
+    transitionResults[trans.id] = checkTransitionValidation(trans, project, nodeId);
   });
 
   // 检查是否有初始状态

@@ -1,0 +1,9 @@
+{
+  "roundTrip": true,
+  "temporaryFalsePreserved": true,
+  "expectedBranchWarning": 1,
+  "visualBaselinesIdentical": {
+    "blackboard": "0bf93dab548561aefb3dc87cf0647273f52175215ca05054ec7d3a82ae39d7b6",
+    "canvas": "3e4c4334c064ca0ef02373ec4de534a99b2650fd1ecb2d78b2310aeb0bce5034"
+  }
+}
