@@ -1,0 +1,114 @@
+/** C2 任务夹具刻意使用前向别名、不同深度与 false/0，不依赖 GUI 自动命名。 */
+import type { Plan } from '../../contracts/automation/planSchemas';
+export function creationPlan(): Plan {
+  return {
+    apiVersion: '1.0.0',
+    scope: { project: true },
+    commands: [
+      {
+        op: 'variable.create',
+        alias: 'found',
+        owner: { type: 'puzzle', ref: { alias: 'door' } },
+        data: { name: 'Found', assetName: 'Found', type: 'boolean', value: false },
+      },
+      {
+        op: 'puzzle.create',
+        alias: 'door',
+        stage: { alias: 'inner' },
+        data: { name: 'Door', assetName: 'Door' },
+        initialState: { name: 'Locked', assetName: 'Locked' },
+      },
+      {
+        op: 'stage.create',
+        alias: 'inner',
+        parent: { alias: 'room' },
+        data: { name: 'Inner', assetName: 'Inner' },
+      },
+      {
+        op: 'stage.create',
+        alias: 'room',
+        parent: { alias: 'root' },
+        data: { name: 'Room', assetName: 'Room' },
+      },
+      {
+        op: 'stage.create',
+        alias: 'side',
+        parent: { alias: 'root' },
+        data: {
+          name: 'Side',
+          assetName: 'Side',
+          unlockTriggers: [{ type: 'OnEvent', eventId: { alias: 'open' } }],
+          unlockCondition: { type: 'Literal', value: false },
+        },
+      },
+      {
+        op: 'puzzle.create',
+        alias: 'panel',
+        stage: { alias: 'root' },
+        data: { name: 'Panel', assetName: 'Panel' },
+        initialState: { name: 'Idle', assetName: 'Idle' },
+      },
+      {
+        op: 'variable.create',
+        alias: 'key',
+        owner: { type: 'stage', ref: { alias: 'room' } },
+        data: { name: 'Keys', assetName: 'Keys', type: 'integer', value: 0 },
+      },
+      {
+        op: 'variable.create',
+        alias: 'flag',
+        owner: { type: 'global' },
+        data: { name: 'Power', assetName: 'Power', type: 'boolean', value: false },
+      },
+      { op: 'event.create', alias: 'open', data: { name: 'Open', assetName: 'Open' } },
+      {
+        op: 'script.create',
+        alias: 'life',
+        data: {
+          name: 'Door lifecycle',
+          assetName: 'DoorLifecycle',
+          category: 'Lifecycle',
+          lifecycleType: 'Node',
+        },
+      },
+      {
+        op: 'script.create',
+        alias: 'effect',
+        data: { name: 'Open effect', assetName: 'OpenEffect', category: 'Performance' },
+      },
+      {
+        op: 'script.create',
+        alias: 'condition',
+        data: { name: 'Condition', assetName: 'Condition', category: 'Condition' },
+      },
+      {
+        op: 'script.create',
+        alias: 'trigger',
+        data: { name: 'Trigger', assetName: 'Trigger', category: 'Trigger' },
+      },
+      {
+        op: 'puzzle.update',
+        target: { alias: 'door' },
+        changes: {
+          lifecycleScriptId: { alias: 'life' },
+          eventListeners: [
+            {
+              eventId: { alias: 'open' },
+              action: {
+                type: 'ModifyParameter',
+                modifiers: [
+                  {
+                    targetVariableId: { alias: 'key' },
+                    targetScope: 'StageLocal',
+                    operation: 'Set',
+                    source: { type: 'Constant', value: 0 },
+                  },
+                ],
+              },
+            },
+          ],
+        },
+      },
+    ],
+  };
+}

@@ -1,0 +1,3 @@
+# 保留 CLI 验收文件的实际字节，避免换行转换使指纹和回执失效。
+overview/dev/evidence/CLI_*/** -text
+overview/dev/evidence/CLI_*/*.log whitespace=cr-at-eol,-blank-at-eof

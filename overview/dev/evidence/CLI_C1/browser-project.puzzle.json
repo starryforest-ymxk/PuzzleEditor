@@ -1,0 +1,55 @@
+{
+  "fileType": "puzzle-project",
+  "editorVersion": "1.0.0",
+  "savedAt": "2026-10-08T12:38:44.436Z",
+  "project": {
+    "meta": {
+      "id": "PROJECT_1",
+      "name": "CLI C1 Browser Smoke",
+      "description": "",
+      "version": "1.0.0",
+      "createdAt": "2026-10-08T12:31:17.896Z",
+      "updatedAt": "2026-10-08T12:38:44.436Z"
+    },
+    "blackboard": {
+      "globalVariables": {},
+      "events": {}
+    },
+    "scripts": {
+      "version": "1.0.0",
+      "scripts": {}
+    },
+    "stageTree": {
+      "rootId": "STAGE_1",
+      "stages": {
+        "STAGE_1": {
+          "id": "STAGE_1",
+          "name": "Root Stage",
+          "description": "Project root stage",
+          "parentId": null,
+          "childrenIds": [],
+          "localVariables": {},
+          "eventListeners": [],
+          "isExpanded": true,
+          "isInitial": true,
+          "assetName": "C1BrowserRoot"
+        }
+      }
+    },
+    "nodes": {},
+    "stateMachines": {},
+    "presentationGraphs": {}
+  },
+  "editorState": {
+    "panelSizes": {
+      "explorerWidth": 280,
+      "inspectorWidth": 320,
+      "stagesHeight": 55
+    },
+    "stageExpanded": {},
+    "currentStageId": "STAGE_1",
+    "currentNodeId": null,
+    "currentGraphId": null,
+    "view": "EDITOR"
+  }
+}

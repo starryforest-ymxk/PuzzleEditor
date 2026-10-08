@@ -1,0 +1,242 @@
+{
+  "fileType": "puzzle-project",
+  "editorVersion": "1.0.0",
+  "savedAt": "2026-10-08T13:57:44.993Z",
+  "project": {
+    "meta": {
+      "id": "PROJECT_1",
+      "name": "CLI C2 Browser",
+      "description": "",
+      "version": "1.0.0",
+      "createdAt": "2026-10-08T13:57:44.993Z",
+      "updatedAt": "2026-10-08T13:57:44.993Z"
+    },
+    "blackboard": {
+      "globalVariables": {
+        "VAR_1": {
+          "name": "Power",
+          "assetName": "Power",
+          "type": "boolean",
+          "value": false,
+          "id": "VAR_1",
+          "scope": "Global",
+          "state": "Draft"
+        }
+      },
+      "events": {
+        "EVENT_1": {
+          "name": "Open",
+          "assetName": "Open",
+          "id": "EVENT_1",
+          "state": "Draft"
+        }
+      }
+    },
+    "scripts": {
+      "version": "1.0.0",
+      "scripts": {
+        "SCRIPT_LIFE_1": {
+          "name": "Door lifecycle",
+          "assetName": "DoorLifecycle",
+          "category": "Lifecycle",
+          "lifecycleType": "Node",
+          "id": "SCRIPT_LIFE_1",
+          "state": "Draft"
+        },
+        "SCRIPT_PERF_1": {
+          "name": "Open effect",
+          "assetName": "OpenEffect",
+          "category": "Performance",
+          "id": "SCRIPT_PERF_1",
+          "state": "Draft"
+        },
+        "SCRIPT_COND_1": {
+          "name": "Condition",
+          "assetName": "Condition",
+          "category": "Condition",
+          "id": "SCRIPT_COND_1",
+          "state": "Draft"
+        },
+        "SCRIPT_TRIG_1": {
+          "name": "Trigger",
+          "assetName": "Trigger",
+          "category": "Trigger",
+          "id": "SCRIPT_TRIG_1",
+          "state": "Draft"
+        }
+      }
+    },
+    "stageTree": {
+      "rootId": "STAGE_1",
+      "stages": {
+        "STAGE_1": {
+          "id": "STAGE_1",
+          "name": "Root Stage",
+          "description": "Project root stage",
+          "parentId": null,
+          "childrenIds": [
+            "STAGE_3",
+            "STAGE_4"
+          ],
+          "localVariables": {},
+          "eventListeners": [],
+          "isExpanded": true,
+          "isInitial": true,
+          "assetName": "C2Root"
+        },
+        "STAGE_3": {
+          "id": "STAGE_3",
+          "name": "Room",
+          "description": "",
+          "parentId": "STAGE_1",
+          "childrenIds": [
+            "STAGE_2"
+          ],
+          "isInitial": true,
+          "unlockTriggers": [],
+          "localVariables": {
+            "STAGEVAR_1": {
+              "name": "Keys",
+              "assetName": "Keys",
+              "type": "integer",
+              "value": 0,
+              "id": "STAGEVAR_1",
+              "scope": "StageLocal",
+              "state": "Draft"
+            }
+          },
+          "eventListeners": [],
+          "isExpanded": false,
+          "assetName": "Room"
+        },
+        "STAGE_4": {
+          "id": "STAGE_4",
+          "name": "Side",
+          "description": "",
+          "parentId": "STAGE_1",
+          "childrenIds": [],
+          "isInitial": false,
+          "unlockTriggers": [
+            {
+              "type": "OnEvent",
+              "eventId": "EVENT_1"
+            }
+          ],
+          "localVariables": {},
+          "eventListeners": [],
+          "isExpanded": false,
+          "assetName": "Side",
+          "unlockCondition": {
+            "type": "Literal",
+            "value": false
+          }
+        },
+        "STAGE_2": {
+          "id": "STAGE_2",
+          "name": "Inner",
+          "description": "",
+          "parentId": "STAGE_3",
+          "childrenIds": [],
+          "isInitial": true,
+          "unlockTriggers": [],
+          "localVariables": {},
+          "eventListeners": [],
+          "isExpanded": false,
+          "assetName": "Inner"
+        }
+      }
+    },
+    "nodes": {
+      "NODE_2": {
+        "id": "NODE_2",
+        "name": "Panel",
+        "description": "",
+        "stageId": "STAGE_1",
+        "stateMachineId": "FSM_2",
+        "localVariables": {},
+        "eventListeners": [],
+        "displayOrder": 0,
+        "assetName": "Panel"
+      },
+      "NODE_1": {
+        "id": "NODE_1",
+        "name": "Door",
+        "description": "",
+        "stageId": "STAGE_2",
+        "stateMachineId": "FSM_1",
+        "localVariables": {
+          "NODEVAR_1": {
+            "name": "Found",
+            "assetName": "Found",
+            "type": "boolean",
+            "value": false,
+            "id": "NODEVAR_1",
+            "scope": "NodeLocal",
+            "state": "Draft"
+          }
+        },
+        "eventListeners": [
+          {
+            "eventId": "EVENT_1",
+            "action": {
+              "type": "ModifyParameter",
+              "modifiers": [
+                {
+                  "targetVariableId": "STAGEVAR_1",
+                  "targetScope": "StageLocal",
+                  "operation": "Set",
+                  "source": {
+                    "type": "Constant",
+                    "value": 0
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "displayOrder": 0,
+        "assetName": "Door",
+        "lifecycleScriptId": "SCRIPT_LIFE_1"
+      }
+    },
+    "stateMachines": {
+      "FSM_2": {
+        "id": "FSM_2",
+        "initialStateId": "STATE_2",
+        "states": {
+          "STATE_2": {
+            "id": "STATE_2",
+            "name": "Idle",
+            "description": "The initial state of this puzzle node",
+            "position": {
+              "x": 200,
+              "y": 150
+            },
+            "eventListeners": [],
+            "assetName": "Idle"
+          }
+        },
+        "transitions": {}
+      },
+      "FSM_1": {
+        "id": "FSM_1",
+        "initialStateId": "STATE_1",
+        "states": {
+          "STATE_1": {
+            "id": "STATE_1",
+            "name": "Locked",
+            "description": "The initial state of this puzzle node",
+            "position": {
+              "x": 200,
+              "y": 150
+            },
+            "eventListeners": [],
+            "assetName": "Locked"
+          }
+        },
+        "transitions": {}
+      }
+    },
+    "presentationGraphs": {}
+  }
+}

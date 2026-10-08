@@ -4,19 +4,8 @@
  */
 import * as fs from 'fs';
 import * as path from 'path';
-import { randomUUID } from 'crypto';
+import { readUtf8File, writeUtf8File } from '../../dist-node/files.js';
 import { preferencesService } from './preferencesService.js';
-/**
- * 确保目录存在，不存在则创建
- */
-async function ensureDirectoryExists(dirPath) {
-    try {
-        await fs.promises.access(dirPath);
-    }
-    catch {
-        await fs.promises.mkdir(dirPath, { recursive: true });
-    }
-}
 /**
  * 文件操作服务类
  */
@@ -26,8 +15,7 @@ class FileService {
      * @param filePath 文件路径
      */
     async readFile(filePath) {
-        const content = await fs.promises.readFile(filePath, 'utf-8');
-        return content;
+        return readUtf8File(filePath);
     }
     /**
      * 写入文件内容
@@ -35,20 +23,8 @@ class FileService {
      * @param content 文件内容
      */
     async writeFile(filePath, content, options) {
-        const dir = path.dirname(filePath);
-        await ensureDirectoryExists(dir);
-        // 同目录完整写入临时文件后替换；失败不截断原文件，新建以排他链接防止覆盖。
-        const temporary = path.join(dir, `.${path.basename(filePath)}.${randomUUID()}.tmp`);
-        try {
-            await fs.promises.writeFile(temporary, content, { encoding: 'utf-8', flag: 'wx' });
-            if (options?.exclusive)
-                await fs.promises.link(temporary, filePath);
-            else
-                await fs.promises.rename(temporary, filePath);
-        }
-        finally {
-            await fs.promises.unlink(temporary).catch(() => undefined);
-        }
+        // 与离线 CLI 共用 IO；桌面专有偏好仍由当前服务协调。
+        await writeUtf8File(filePath, content, options);
     }
     /**
      * 检查文件是否存在

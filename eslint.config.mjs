@@ -4,7 +4,16 @@ import reactHooks from 'eslint-plugin-react-hooks';
 
 // 所有维护中的源码都受检查；只忽略依赖、构建和发布产物。
 export default tseslint.config(
-  { ignores: ['node_modules/**', 'dist/**', 'dist-electron/**', 'release/**'] },
+  {
+    ignores: [
+      'node_modules/**',
+      'dist/**',
+      'dist-electron/**',
+      'dist-node/**',
+      'dist-cli/**',
+      'release/**',
+    ],
+  },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
@@ -131,6 +140,46 @@ export default tseslint.config(
             {
               group: ['**/components/**'],
               message: 'Application coordination must not depend on component implementations.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: [
+      'cli/**/*.ts',
+      'contracts/automation/**/*.ts',
+      'services/automation/**/*.ts',
+      'services/projectExportPreparation.ts',
+      'platform/node/**/*.ts',
+    ],
+    rules: {
+      'no-restricted-globals': ['error', 'window', 'document', 'localStorage', 'sessionStorage'],
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: [
+                'react',
+                'react/*',
+                'react-dom',
+                'react-dom/*',
+                'electron',
+                '**/electron/**',
+                '**/components/**',
+                '**/hooks/**',
+                '**/store/**',
+                '!**/store/commands',
+                '!**/store/commands/automation',
+                '!**/store/commands/automation/execute',
+                '**/platform/electron*',
+                '**/platform/browser*',
+                '**/projectPlatform*',
+                '**/projectSession*',
+              ],
+              message: 'CLI and automation core must run without GUI, editor state, or Electron.',
             },
           ],
         },

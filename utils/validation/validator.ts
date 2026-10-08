@@ -1,12 +1,12 @@
 /**
  * utils/validation/validator.ts
  * 工程校验逻辑入口
- * 
+ *
  * Aggregates all validation rules from ./rules directory
  */
 
 import { ProjectData } from '../../types/project';
-import type { ValidationResult } from '../../types/validation';
+import type { CodedValidationResult as ValidationResult } from '../../types/validation';
 
 import { validateNames } from './rules/validateNames';
 import { validateStructure } from './rules/validateStructure';
@@ -17,7 +17,7 @@ import { validateTemporaryParams } from './rules/validateTemporaryParams';
 
 /**
  * 校验规则实现
- * 
+ *
  * 1. 命名规范校验 (validateNames)
  *    - 资源名称为空 (Error)
  *    - 资源名称重复 (Error)
@@ -39,25 +39,25 @@ import { validateTemporaryParams } from './rules/validateTemporaryParams';
  */
 
 export const validateProject = (project: ProjectData): ValidationResult[] => {
-    let results: ValidationResult[] = [];
+  let results: ValidationResult[] = [];
 
-    // 1. Name Check (Missing / Duplicate / Invalid Format)
-    results = results.concat(validateNames(project));
+  // 1. Name Check (Missing / Duplicate / Invalid Format)
+  results = results.concat(validateNames(project));
 
-    // 2. Structure Check (Missing Roots, Cycles, etc.)
-    results = results.concat(validateStructure(project));
+  // 2. Structure Check (Missing Roots, Cycles, etc.)
+  results = results.concat(validateStructure(project));
 
-    // 3. Reference Check (Missing Scripts/Events/Structural Links)
-    results = results.concat(validateReferences(project));
+  // 3. Reference Check (Missing Scripts/Events/Structural Links)
+  results = results.concat(validateReferences(project));
 
-    // 4. Variable Validation (Global & Local)
-    results = results.concat(validateVariables(project));
+  // 4. Variable Validation (Global & Local)
+  results = results.concat(validateVariables(project));
 
-    // 5. Unique Lifecycle Script Check (ERROR if reused)
-    results = results.concat(validateLifecycleUnique(project));
+  // 5. Unique Lifecycle Script Check (ERROR if reused)
+  results = results.concat(validateLifecycleUnique(project));
 
-    // 6. Temporary Parameter Consistency (#57-#61)
-    results = results.concat(validateTemporaryParams(project));
+  // 6. Temporary Parameter Consistency (#57-#61)
+  results = results.concat(validateTemporaryParams(project));
 
-    return results;
+  return results;
 };

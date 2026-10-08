@@ -1,9 +1,10 @@
 import React, { useMemo, useEffect } from 'react';
-import { ParameterModifier, VariableType } from '../../types/common';
+import { ParameterModifier } from '../../types/common';
 import { VariableDefinition } from '../../types/blackboard';
 import { ValueSourceEditor } from './ValueSourceEditor';
 import { VariableSelector } from './VariableSelector';
 import { filterActiveResources } from '../../utils/resourceFilters';
+import { modifierOperations, modifierSourceTypes } from '../../utils/parameterCompatibility';
 
 interface Props {
   modifier: ParameterModifier;
@@ -25,14 +26,7 @@ export const ParameterModifierEditor: React.FC<Props> = ({ modifier, onChange, v
   const targetType = selectedVar?.type;
 
   // 根据目标变量类型限定可用操作
-  const opOptions = useMemo<ParameterModifier['operation'][]>(() => {
-    // 布尔类型支持：设置、反转（Toggle不需要来源值）
-    if (targetType === 'boolean') return ['Set', 'Toggle'];
-    // 数值类型支持：设置、加、减、乘、除运算
-    if (targetType === 'integer' || targetType === 'float')
-      return ['Set', 'Add', 'Subtract', 'Multiply', 'Divide'];
-    return ['Set'];
-  }, [targetType]);
+  const opOptions = useMemo(() => modifierOperations(targetType), [targetType]);
 
   useEffect(() => {
     if (!opOptions.includes(modifier.operation)) {
@@ -50,13 +44,7 @@ export const ParameterModifierEditor: React.FC<Props> = ({ modifier, onChange, v
   // - String 目标：string, int, float, bool 都可以赋值
   // - Bool 目标：只有 bool 可以赋值
   // - Int/Float 目标：int 和 float 可以互换赋值/运算
-  const allowedSourceTypes = useMemo((): VariableType[] => {
-    if (!targetType) return ['boolean', 'integer', 'float', 'string'];
-    if (targetType === 'string') return ['string', 'integer', 'float', 'boolean'];
-    if (targetType === 'boolean') return ['boolean'];
-    if (targetType === 'integer' || targetType === 'float') return ['integer', 'float'];
-    return ['boolean', 'integer', 'float', 'string'];
-  }, [targetType]);
+  const allowedSourceTypes = useMemo(() => modifierSourceTypes(targetType), [targetType]);
 
   const sourceVariables = useMemo(() => {
     if (!targetType) return availableVariables;

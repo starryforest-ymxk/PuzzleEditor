@@ -1,6 +1,7 @@
 # Logs
 logs
 *.log
+!overview/dev/evidence/CLI_*/*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
@@ -10,6 +11,9 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+dist-node/
+dist-cli/
+dist-electron/
 *.local
 
 # Editor directories and files

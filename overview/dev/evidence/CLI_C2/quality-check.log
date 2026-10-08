@@ -1,0 +1,122 @@
+
+> puzzle-editor@1.0.0-beta check
+> npm run check:encoding && npm run typecheck && npm run lint && npm run format:check && npm run check:ui && npm run check:guards && npm run test:run
+
+
+> puzzle-editor@1.0.0-beta check:encoding
+> node scripts/check-encoding.mjs
+
+UTF-8 check passed (314 source/configuration files).
+
+> puzzle-editor@1.0.0-beta typecheck
+> npm run node:build && tsc --noEmit && tsc -p electron/tsconfig.json --noEmit && tsc -p cli/tsconfig.json
+
+
+> puzzle-editor@1.0.0-beta node:build
+> tsc -p platform/node/tsconfig.json
+
+
+> puzzle-editor@1.0.0-beta lint
+> eslint . --max-warnings 0
+
+
+> puzzle-editor@1.0.0-beta format:check
+> node scripts/check-format.mjs
+
+Format check passed (215 files in the documented scope).
+
+> puzzle-editor@1.0.0-beta check:ui
+> node scripts/check-ui-style.mjs
+
+UI ownership check passed (110 files, no copied decorative profiles).
+
+> puzzle-editor@1.0.0-beta check:guards
+> node scripts/check-guards.mjs
+
+Guard checks passed: 15 lint probes, 7 type contracts, 3 encoding failures, 1 formatting failure.
+UI guard checks passed: 10 negative probes, 2 allowed layout/token probes.
+
+> puzzle-editor@1.0.0-beta test:run
+> npm run cli:build && vitest run
+
+
+> puzzle-editor@1.0.0-beta cli:build
+> npm run node:build && vite build --config vite.cli.config.ts
+
+
+> puzzle-editor@1.0.0-beta node:build
+> tsc -p platform/node/tsconfig.json
+
+vite v6.4.1 building SSR bundle for production...
+transforming...
+node_modules/zod/v4/core/util.js (400:0): A comment
+
+"// Wrapped in a `@__PURE__` IIFE: esbuild never tree-shakes a top-level initializer that contains a member access on `Number`, so the bare object literal survived into every bundle."
+
+in "node_modules/zod/v4/core/util.js" contains an annotation that Rollup cannot interpret due to the position of the comment. The comment will be removed to avoid issues.
+node_modules/zod/v4/core/regexes.js (74:0): A comment
+
+"/** Anchors a pattern source. The interpolation lives here rather than at the call site because
+ * esbuild will not drop a `@__PURE__` call whose own argument interpolates a variable, but it
+ * will drop `anchor(dateSource)`. Keeping it inline pinned `date` into every bundle. */"
+
+in "node_modules/zod/v4/core/regexes.js" contains an annotation that Rollup cannot interpret due to the position of the comment. The comment will be removed to avoid issues.
+✓ 156 modules transformed.
+rendering chunks...
+dist-cli/package.json    0.03 kB
+dist-cli/cli.js        455.90 kB
+✓ built in 645ms
+
+ RUN  v3.2.7 E:/Projects/Web Projects/puzzle-editor
+
+ ✓ tests/services/variableScope.test.ts (8 tests) 5ms
+ ✓ tests/electron/fileService.test.ts (3 tests) 31ms
+ ✓ tests/cli/contracts.test.ts (17 tests) 14ms
+ ✓ tests/cli/exportPreparation.test.ts (3 tests) 15ms
+ ✓ tests/services/validationNavigation.test.ts (6 tests) 9ms
+ ✓ tests/store/reducer.test.ts (15 tests) 10ms
+ ✓ tests/store/resourceHistory.test.ts (17 tests) 14ms
+ ✓ tests/store/documentHistory.test.ts (21 tests) 16ms
+ ✓ tests/services/projectImport.test.ts (41 tests) 72ms
+ ✓ tests/batch5/export.test.ts (4 tests) 21ms
+ ✓ tests/store/provider.test.tsx (1 test) 10ms
+ ✓ tests/batch5/domain.test.ts (10 tests) 17ms
+ ✓ tests/hooks/useProjectActions.test.ts (6 tests) 153ms
+ ✓ tests/components/uiConsistency.test.tsx (8 tests) 199ms
+ ✓ tests/components/dialogs.test.tsx (12 tests) 577ms
+stdout | tests/batch5/components.test.tsx > 演出画布真实组件手势 > Ctrl 拖动剪线删除交叉边，撤销恢复连接
+[Cutting] Started at { x: 220, y: 0 }
+
+ ✓ tests/components/editorInteractions.test.tsx (6 tests) 257ms
+ ✓ tests/services/projectSession.test.ts (44 tests) 2555ms
+ ✓ tests/components/windowClose.test.tsx (5 tests) 568ms
+ ✓ tests/batch5/components.test.tsx (12 tests) 709ms
+ ✓ tests/performance/references.test.ts (6 tests) 3117ms
+   ✓ 引用计数索引保持原查询语义 > large 夹具校验无 error、可往返，全部计数一致  1644ms
+   ✓ 引用计数索引保持原查询语义 > 编辑、标记删除、恢复、Undo/Redo 与切换项目均重新计算正确  1027ms
+ ✓ tests/performance/blackboardData.test.tsx (1 test) 2156ms
+   ✓ 黑板引用计算的更新边界 > 筛选/选择复用统计，业务修改/撤销/切换更新，卸载不保留项目缓存  2154ms
+ ✓ tests/cli/process.test.ts (23 tests) 4903ms
+   ✓ 编译产物的真实命令行行为 > 帮助、能力和权限如实区分 C2 与未来 JSON 写命令  362ms
+   ✓ 编译产物的真实命令行行为 > 完整读取保留未知字段、文件封装和 editorState，源文件/偏好零修改  313ms
+   ✓ 编译产物的真实命令行行为 > 大文件经过 stdout 管道仍完整返回  386ms
+   ✓ 编译产物的真实命令行行为 > 非法 UTF-8 和不存在路径有稳定错误及原文错误通道  371ms
+   ✓ 领域查询、上下文和机器诊断 > 树深度/列表分页有明确边界，指纹变化后拒绝后续页  395ms
+   ✓ 领域查询、上下文和机器诊断 > 父链/子链环不会让校验、变量或引用查询无限运行  342ms
+ ✓ tests/cli/c2Process.test.ts (41 tests) 8761ms
+   ✓ C2 编译产物完整写入链路 > 无 plan 创建只含外部命名根 Stage 的合法空项目  359ms
+   ✓ C2 编译产物完整写入链路 > 前向 alias、多层 Stage、不同层 Puzzle、资源创建与导出完整闭环  479ms
+   ✓ C2 编译产物完整写入链路 > 默认预览零写入，回执重建同一候选且重试确认已有输出  532ms
+   ✓ C2 编译产物完整写入链路 > 局部更新保留资产名、完整 FSM/演出和 editorState  334ms
+   ✓ C2 编译产物完整写入链路 > Stage 重排和移动更新两边初始项，清除的解锁配置出现在预览中  322ms
+   ✓ C2 编译产物完整写入链路 > 同批删除不复用编号，局部变量移动与更新保留身份  303ms
+   ✓ C2 拒绝非法操作且保留源工程 > 错误基线允许保留旧缺名并修复；不允许新增错误  380ms
+   ✓ C2 拒绝非法操作且保留源工程 > 参数修改器与 GUI 共用类型规则，false/0 不丢失且 Toggle 不消费来源  368ms
+   ✓ C2 文件一致性与失败策略 > 拒绝源/计划/回执别名、硬链接以及已有不同内容输出  471ms
+   ✓ C2 文件一致性与失败策略 > 已有目标、导出后缀与 IO 失败不覆盖任何输入  366ms
+
+ Test Files  23 passed (23)
+      Tests  310 passed (310)
+   Start at  22:04:19
+   Duration  9.75s (transform 4.09s, setup 0ms, collect 13.71s, tests 24.19s, environment 7.13s, prepare 5.05s)
+

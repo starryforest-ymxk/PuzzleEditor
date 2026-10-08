@@ -1,0 +1,17 @@
+{
+  "apiVersion": "1.0.0",
+  "kind": "domain-preview",
+  "source": {
+    "path": "E:\\Projects\\Web Projects\\puzzle-editor\\overview\\dev\\evidence\\CLI_C2\\created.puzzle.json",
+    "sha256": "abe54e956c8bcb6e34dd20f16e3679d020b881e9fde216050bb8746e6a3c0336"
+  },
+  "planHash": "d8400d3ab1e2bd7bb5a3fcadbeacb645ca1dd5a505240ae5551cf8d6982d148b",
+  "savedAt": "2026-10-08T13:58:44.738Z",
+  "candidateHash": "8ba4dce7a9b5d16d615b5dafb0cfb9bd087a5ef77d03f4d7a057947c5c199136",
+  "allocations": {
+    "root": {
+      "type": "stage",
+      "id": "STAGE_1"
+    }
+  }
+}

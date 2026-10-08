@@ -10,6 +10,27 @@ import { inspectUiProject } from './ui-style-rules.mjs';
 const eslint = new ESLint();
 const lintProbes = [
   [
+    'services/automation/QualityProbe.ts',
+    "export { INITIAL_STATE } from '../../store/types';",
+    'no-restricted-imports',
+  ],
+  ['cli/QualityProbe.ts', "export { BrowserWindow } from 'electron';", 'no-restricted-imports'],
+  [
+    'contracts/automation/QualityProbe.ts',
+    "export { useState } from 'react';",
+    'no-restricted-imports',
+  ],
+  [
+    'services/automation/QualityProbe.ts',
+    'export const title = document.title;',
+    'no-restricted-globals',
+  ],
+  [
+    'platform/node/QualityProbe.ts',
+    "export { projectPlatform } from '../../services/projectPlatform';",
+    'no-restricted-imports',
+  ],
+  [
     'utils/QualityProbe.ts',
     "export const request = () => fetch('/test');",
     'no-restricted-globals',

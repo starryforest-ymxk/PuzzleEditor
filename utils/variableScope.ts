@@ -21,9 +21,12 @@ export interface VisibleVariables {
 /**
  * 规范化变量作用域：用于新增局部变量时强制绑定正确 scope
  */
-export const withScope = (variable: VariableDefinition, scope: VariableScope): VariableDefinition => ({
+export const withScope = (
+  variable: VariableDefinition,
+  scope: VariableScope,
+): VariableDefinition => ({
   ...variable,
-  scope
+  scope,
 });
 
 /**
@@ -35,7 +38,7 @@ export const withScope = (variable: VariableDefinition, scope: VariableScope): V
 export const collectVisibleVariables = (
   project: ProjectData,
   stageId?: StageId | null,
-  nodeId?: PuzzleNodeId | null
+  nodeId?: PuzzleNodeId | null,
 ): VisibleVariables => {
   let resolvedStageId = stageId ?? null;
 
@@ -45,7 +48,9 @@ export const collectVisibleVariables = (
   }
 
   // 全局黑板变量
-  const globalVisible: VariableDefinition[] = Object.values(project.blackboard?.globalVariables || {});
+  const globalVisible: VariableDefinition[] = Object.values(
+    project.blackboard?.globalVariables || {},
+  );
 
   // 收集当前 Stage 及其所有祖先 Stage 的局部变量
   // 按照从根到当前的顺序，子级变量会覆盖同名父级变量
@@ -54,8 +59,11 @@ export const collectVisibleVariables = (
     // 向上遍历父级链，收集所有祖先 Stage
     const ancestorChain: StageId[] = [];
     let currentStageId: StageId | null = resolvedStageId;
+    const visited = new Set<StageId>();
 
-    while (currentStageId) {
+    // 外部工程可能存在父链环；查询应终止，由共同结构校验报告错误。
+    while (currentStageId && !visited.has(currentStageId)) {
+      visited.add(currentStageId);
       ancestorChain.unshift(currentStageId); // 从根到当前的顺序
       const currentStage: StageNode | undefined = project.stageTree.stages[currentStageId];
       currentStageId = currentStage?.parentId ?? null;
@@ -87,6 +95,6 @@ export const collectVisibleVariables = (
     stage: stageVisible,
     node: nodeVisible,
     temporary,
-    all: [...globalVisible, ...stageVisible, ...nodeVisible]
+    all: [...globalVisible, ...stageVisible, ...nodeVisible],
   };
 };

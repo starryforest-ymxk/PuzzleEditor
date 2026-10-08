@@ -1,0 +1,38 @@
+{
+  "apiVersion": "1.0.0",
+  "sourceHash": "abe54e956c8bcb6e34dd20f16e3679d020b881e9fde216050bb8746e6a3c0336",
+  "scope": {
+    "puzzles": [
+      {
+        "id": "NODE_1"
+      }
+    ],
+    "globals": [
+      "variable"
+    ]
+  },
+  "commands": [
+    {
+      "op": "puzzle.update",
+      "target": {
+        "id": "NODE_1"
+      },
+      "changes": {
+        "name": "Entry Door",
+        "description": "Created and edited through CLI C2."
+      }
+    },
+    {
+      "op": "variable.update",
+      "owner": {
+        "type": "global"
+      },
+      "target": {
+        "id": "VAR_1"
+      },
+      "changes": {
+        "value": true
+      }
+    }
+  ]
+}

@@ -51,8 +51,8 @@ const createRootStage = (id: StageId): StageNode => ({
  * @param description 项目描述（可选）
  * @returns 完整的 ProjectData 对象
  */
-export function createEmptyProject(name: string, description?: string): ProjectData {
-    const now = new Date().toISOString();
+export function createEmptyProject(name: string, description?: string, now = new Date().toISOString()): ProjectData {
+    // 无界面候选可注入固定时间，GUI 默认仍使用创建时刻。
     const projectId = createProjectId();
     const rootStageId = createStageId();
 

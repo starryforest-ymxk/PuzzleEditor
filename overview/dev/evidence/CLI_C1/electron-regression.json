@@ -1,0 +1,98 @@
+{
+  "date": "2026-10-08",
+  "command": "npm run test:electron",
+  "session": {
+    "success": true,
+    "path": "D:/Temp/puzzle-batch2-electron-ii32ox/projects/IPC Verification.puzzle.json",
+    "graphName": "Keep Local Edit",
+    "checks": [
+      "create",
+      "edit/save",
+      "reopen",
+      "complete settings save",
+      "exclusive-create failure preserves current session and disk",
+      "internal write echo filtered",
+      "cancelled candidate does not change watched path",
+      "external resource sync preserves local edits",
+      "invalid import preserves document/history/path",
+      "runtime import requires a separate project save",
+      "runtime copy round trip preserves data and source file"
+    ]
+  },
+  "close": [
+    {
+      "scenario": "empty",
+      "success": true,
+      "checks": [
+        "Window closed only after explicit approval or a clean session"
+      ]
+    },
+    {
+      "scenario": "clean",
+      "success": true,
+      "checks": [
+        "Window closed only after explicit approval or a clean session"
+      ]
+    },
+    {
+      "scenario": "save",
+      "success": true,
+      "checks": [
+        "Focused Inspector draft",
+        "Clicked Cancel",
+        "Cancel kept the window alive",
+        "Repeated close requests share one confirmation",
+        "Stale approval rejected",
+        "Approval from another window rejected",
+        "Clicked Save & Close",
+        "Window closed only after explicit approval or a clean session",
+        "Latest input was on disk before the window closed",
+        "Cancelled quit did not turn a later window close into app.quit"
+      ]
+    },
+    {
+      "scenario": "discard",
+      "success": true,
+      "checks": [
+        "Focused Inspector draft",
+        "Clicked Discard & Close",
+        "Window closed only after explicit approval or a clean session",
+        "Discard left the saved file unchanged"
+      ]
+    },
+    {
+      "scenario": "failed-save",
+      "success": true,
+      "checks": [
+        "Focused Inspector draft",
+        "Clicked Save & Close",
+        "Failed write kept the window alive",
+        "Clicked Save & Close",
+        "Window closed only after explicit approval or a clean session",
+        "Latest input was on disk before the window closed"
+      ]
+    },
+    {
+      "scenario": "save-as",
+      "success": true,
+      "checks": [
+        "Focused Inspector draft",
+        "Clicked Save & Close",
+        "Cancelled save picker kept the window alive",
+        "Clicked Save & Close",
+        "Window closed only after explicit approval or a clean session",
+        "Latest input was on disk before the window closed"
+      ]
+    },
+    {
+      "scenario": "quit",
+      "success": true,
+      "checks": [
+        "Focused Inspector draft",
+        "Clicked Save & Close",
+        "Window closed only after explicit approval or a clean session",
+        "Latest input was on disk before the window closed"
+      ]
+    }
+  ]
+}

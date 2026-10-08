@@ -1,7 +1,7 @@
 # 架构指南（Architecture Guide）
 
 > 本文档描述项目的整体架构设计、分层结构与开发规范，用于指导后续阶段的功能实现。  
-> **版本**: 1.2.11 | **更新时间**: 2026-10-08 | **本次同步**: 六类 UI 重复收敛、单一维护规范与 226 项回归
+> **版本**: 1.2.13 | **更新时间**: 2026-10-08 | **本次同步**: CLI C2 候选命令、共用领域校验、回执与排他写入；310 项回归
 
 ---
 
@@ -38,7 +38,7 @@ puzzle-editor/
 │  ├─ StoreProvider.tsx # 每个 Provider 独立 Store 与项目会话
 │  ├─ types.ts         # Store 状态与 Action 定义
 │  ├─ reducer.ts       # 主 Reducer（含 Undo/Redo）
-│  ├─ commands/        # 由领域意图生成 Action
+│  ├─ commands/        # 由领域意图生成 Action；automation 为隔离候选执行入口
 │  ├─ navigation/      # 引用/诊断转导航与选择 Action
 │  └─ slices/          # 领域 Reducer 切片
 │     ├─ index.ts      # 统一导出
@@ -54,13 +54,19 @@ puzzle-editor/
 ├─ services/           # 应用协调与 IO 服务
 │  ├─ projectSession.ts # 会话、切换保护、串行保存与导出
 │  ├─ projectFiles.ts   # 项目序列化与候选准备
-│  ├─ projectExport.ts  # 运行时导出校验、命名与序列化
+│  ├─ projectExport.ts  # GUI 导出协调：面板、消息、选择器与 IO
+│  ├─ projectExportPreparation.ts # 纯导出校验、命名与序列化，时间可注入
+│  ├─ automation/      # CLI 查询、快照、候选预览/提交与文件交付协调
 │  ├─ projectPlatform.ts # 注入式桌面/浏览器项目 IO 适配
 │  ├─ autoSaveScheduler.ts # 自动保存调度
 │  └─ translation/     # 网络翻译服务与提供方
 │
 ├─ platform/
+│  ├─ node/            # Node 通用文件 IO，独立编译到 dist-node
 │  └─ electron.ts      # 渲染进程 IPC 封装，不依赖 Store 或 UI
+│
+├─ contracts/automation/ # CLI 严格输入、结果、权限、命名片段与能力目录
+├─ cli/                # 参数与输出适配；独立构建到 dist-cli
 │
 ├─ electron/           # Electron 主进程代码
 │  ├─ main.ts          # 主进程入口
@@ -155,14 +161,32 @@ flowchart TD
 | 层级 | 可依赖 | 禁止依赖 |
 |------|--------|----------|
 | `types/` | 领域及共享契约 | Store、UI、服务、平台和实现工具 |
+| `contracts/automation/` | Zod、领域命名等纯规则 | React、UI、Hook、Electron、浏览器全局 |
 | `utils/` | `types/`、其他纯工具 | React、Store、Hook、服务、平台、Electron、直接浏览器/网络 IO |
 | `store/` 纯逻辑 | `types/`、`utils/` | 组件、文件 IO；Provider/Context 的 React 装配单独处理 |
 | `platform/` | IPC 契约、平台 API | React、Store、Hook、服务、组件 |
 | `services/` | 类型、纯工具、Store 接口、平台适配 | 组件实现 |
+| `services/automation/`、`cli/` | 自动化契约、领域纯工具、Node IO | React、DOM、GUI 平台实例、Electron 运行时 |
 | `hooks/` | React、Store、服务、类型和纯工具 | 组件实现 |
 | `components/` | 视图、Hook、Store、契约和纯工具 | 直接修改状态或绕过会话读写项目 |
 
 ESLint 自动拦截领域/纯工具反向依赖、Store/服务/Hook 对组件的依赖、平台对应用层的依赖；`check:guards` 验证规则会失败。项目 IO 必须经过会话的调用链还由服务测试和代码审查保护。`services/translation` 承担网络请求，本地字典保持在 `utils/translation`。
+
+### 3.3 离线 CLI 与共用维护入口
+
+C1 已交付 `describe/inspect/validate/json read`，C2 已交付 `create/preview/apply/export`。CLI 读取磁盘快照，候选命令只操作隔离状态，不持有或修改 GUI Store、历史、dirty、最近项目和偏好。完整原文读取绕开迁移，结构化视图复用 `utils/projectImport` 与 `utils/validation`。实体由类型、ID、所属上下文定位；跨页一致性使用源字节 SHA-256，领域诊断路径明确标注规范化基准。
+
+`contracts/automation/schemas.ts`、`planSchemas.ts` 派生 TypeScript 和 JSON Schema，`primitives.ts` 管理唯一命名基础片段，`capabilities.ts` 是命令、权限和帮助的唯一目录；CLI 参数命名由输入字段转换。assetName 新增身份片段复用共用格式规则并要求非空、无空白，所有创建入口必须外部输入，不能自行生成名字。稳定诊断 code 在原规则产生处维护，不解析英文消息重建规则。
+
+`store/commands/automation/execute.ts` 是应用层可导入的唯一候选执行入口，内部复用领域 Slice、工厂和生命周期；不能直接开放 reducer Action。`context.ts` 集中预留源/同批实体 ID、解析 alias 和检查源快照 scope，创建先于编辑，引用转换只处理白名单字段。后续 C3/C4 在此扩展命令及契约，不另建 CLI 专属资源模型或独立写入器。
+
+`services/automation/writeService.ts` 将领域执行、结构/业务校验、错误基线和固定回执组合；`transactionData.ts` 维护差异与计划解析，`fileCommit.ts` 维护路径/输入保护与排他发布。回执绑定源、计划、时间、分配和候选 hash，提交重新执行校验，既有同字节输出只能核验为 `already-applied`。普通计划只准修改声明字段，不能加入通用 Patch、JSON Pointer 或替换对象；备用 JSON 写入必须继续等待 C5 的逐次人工审批通道。
+
+领域校验必须覆盖 UI 选择器约束：局部变量命名按所属容器判重，脚本按类别/生命周期目标匹配，参数运算及来源类型由 `utils/parameterCompatibility.ts` 同时供组件与校验器使用。外部 ID 字典查找使用 `ownEntry`，不能将原型成员当成资源。共用规则变化需更新合法测试夹具并验证旧工程诊断，不能通过跳过测试维持“全绿”。
+
+`platform/node/files.ts` 提供严格 UTF-8/快照和共用临时写入/排他发布，独立编译到 `dist-node`；Electron 引用生成 JS 与类型声明，保持 `electron/` rootDir 和 `dist-electron/main.js` 入口。`electron:compile/cli:build/typecheck` 先构建 Node 模块，Electron 打包必须收录 `dist-node`。新增编译产物忽略，不能把构建输出作为第二份可编辑实现。
+
+`projectExportPreparation.ts` 只接受工程和时间，返回诊断、规范化内容、建议文件名；`projectExport.ts` 保留 GUI 外壳。Node CLI 构建关闭 public 静态资源复制，并阻断 UI/Electron 进入依赖图。只复制 `dist-cli` 即可由兼容 Node 运行；附带运行时的 Windows CLI 发行物仍在 C5。查询/编辑限制与实例见 [使用说明](./CLI_Agent_Usage.md)，验证证据见 [C1 报告](./CLI_C1_Implementation.md)、[C2 报告](./CLI_C2_Implementation.md)。
 
 ---
 
@@ -341,9 +365,9 @@ collectVisibleVariables(project, stageId, nodeId): VisibleVariables
 
 ### 7.6 自动检查
 
-提交前运行 `npm run check`：严格 UTF-8、前端/Electron 类型、ESLint、渐进格式、故意错误拦截和行为回归。另运行 `npm run build`；文件会话相关改动还应运行 `npm run test:electron`。类型/lint 不排除业务源码；领域类型不能反向导入 Store/UI/服务/实现工具，Store 不能导入组件。Hook 不得条件调用，依赖数组按实际闭包列出。
+提交前运行 `npm run check`：严格 UTF-8、前端/Electron/CLI 类型、ESLint、渐进格式、UI 所属规则、故意错误拦截和行为回归。另运行 `npm run build`；文件会话相关改动还应运行 `npm run test:electron`。类型/lint 不排除业务源码；领域类型不能反向导入 Store/UI/服务/实现工具，Store 不能导入组件。Hook 不得条件调用，依赖数组按实际闭包列出。
 
-`format:check` / `format` 的清单位于 `scripts/source-files.mjs`，关闭保护补充后覆盖 85 个配置/工具/服务、相关组件及测试文件，不代表全仓库格式统一。反向拦截覆盖 7 项类型、10 项 lint/依赖、3 项编码与 1 项格式错误；累计 206 个回归用例。`test:electron` 包含原 11 项文件会话检查与完整生产页面上的 7 个关闭场景；每个退出场景使用独立进程、项目和偏好目录。详见 [关闭保护验收](./Window_Close_Protection.md)。
+`format:check` / `format` 的清单位于 `scripts/source-files.mjs`，C2 后覆盖 215 个配置/工具/服务、组件及测试文件，不代表全仓库格式统一。反向拦截覆盖 7 项类型、15 项 lint/依赖、3 项编码与 1 项格式错误，另含 10 项错误/2 项合法 UI 探针；累计 310 个回归用例。`test:cli` 和 `test:run` 先构建 CLI，再执行含真实子进程的测试；直接 `npm test` watch 前先构建 CLI。`test:electron` 包含 11 项文件会话检查与完整生产页面上的 7 个关闭场景；每个退出场景使用独立进程、项目和偏好目录。详见 [关闭保护验收](./Window_Close_Protection.md)、[C1 验收](./CLI_C1_Implementation.md)和 [C2 验收](./CLI_C2_Implementation.md)。
 
 ### 7.7 性能基准
 

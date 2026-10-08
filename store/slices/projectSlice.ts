@@ -7,7 +7,7 @@ import { isActionForDomain, type ActionForDomain } from '../actionPolicy';
 import { EditorState, Action } from '../types';
 import { StageNode } from '../../types/stage';
 import { StageId, VariableId, PuzzleNodeId } from '../../types/common';
-import { getDescendantStageIds, getStageNodeIds } from '../../utils/stageTreeUtils';
+import { getDescendantStageIds, getStageNodeIds, canMoveStage } from '../../utils/stageTreeUtils';
 
 // ========== Project 相关 Actions 类型定义 ==========
 export type ProjectAction = ActionForDomain<'project'>;
@@ -295,6 +295,8 @@ export const projectReducer = (state: EditorState, action: ProjectAction): Edito
             const newParent = state.project.stageTree.stages[newParentId];
 
             if (!stage || !oldParent || !newParent) return state;
+            // 共用移动保护：UI 与无界面命令均不能制造阶段环。
+            if (!canMoveStage(state.project.stageTree, stageId, newParentId)) return state;
             if (stage.parentId === newParentId) return state; // 已在目标父节点下
 
             // 从旧父节点移除

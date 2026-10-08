@@ -9,14 +9,18 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest",
-    "test:run": "vitest run",
+    "test:run": "npm run cli:build && vitest run",
+    "node:build": "tsc -p platform/node/tsconfig.json",
+    "cli:build": "npm run node:build && vite build --config vite.cli.config.ts",
+    "typecheck:cli": "npm run node:build && tsc -p cli/tsconfig.json",
+    "test:cli": "npm run cli:build && vitest run tests/cli",
     "bench": "node tests/performance/run.mjs",
     "test:electron": "npm run electron:compile && node tests/electron/run-session-smoke.mjs && node tests/electron/run-close-smoke.mjs",
-    "electron:compile": "tsc -p electron/tsconfig.json",
+    "electron:compile": "npm run node:build && tsc -p electron/tsconfig.json",
     "electron:dev": "npm run electron:compile && concurrently -k \"npm run dev\" \"wait-on http://localhost:3000 && electron .\"",
     "electron:build": "npm run build && npm run electron:compile && electron-builder",
     "electron:start": "npm run electron:compile && electron .",
-    "typecheck": "tsc --noEmit && tsc -p electron/tsconfig.json --noEmit",
+    "typecheck": "npm run node:build && tsc --noEmit && tsc -p electron/tsconfig.json --noEmit && tsc -p cli/tsconfig.json",
     "lint": "eslint . --max-warnings 0",
     "format:check": "node scripts/check-format.mjs",
     "format": "node scripts/check-format.mjs --write",
@@ -29,7 +33,8 @@
     "chokidar": "^4.0.3",
     "lucide-react": "^0.556.0",
     "react": "^19.2.1",
-    "react-dom": "^19.2.1"
+    "react-dom": "^19.2.1",
+    "zod": "4.6.5"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
@@ -59,7 +64,8 @@
     },
     "files": [
       "dist/**/*",
-      "dist-electron/**/*"
+      "dist-electron/**/*",
+      "dist-node/**/*"
     ],
     "win": {
       "target": [

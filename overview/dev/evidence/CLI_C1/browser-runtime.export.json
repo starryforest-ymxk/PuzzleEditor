@@ -1,0 +1,36 @@
+{
+  "fileType": "puzzle-export",
+  "manifestVersion": "1.0.0",
+  "exportedAt": "2026-10-08T12:32:45.692Z",
+  "projectName": "CLI C1 Browser Smoke",
+  "projectVersion": "1.0.0",
+  "data": {
+    "blackboard": {
+      "globalVariables": {},
+      "events": {}
+    },
+    "scripts": {
+      "version": "1.0.0",
+      "scripts": {}
+    },
+    "stageTree": {
+      "rootId": "STAGE_1",
+      "stages": {
+        "STAGE_1": {
+          "id": "STAGE_1",
+          "name": "Root Stage",
+          "description": "Project root stage",
+          "parentId": null,
+          "childrenIds": [],
+          "localVariables": {},
+          "eventListeners": [],
+          "isInitial": true,
+          "assetName": "C1BrowserRoot"
+        }
+      }
+    },
+    "nodes": {},
+    "stateMachines": {},
+    "presentationGraphs": {}
+  }
+}

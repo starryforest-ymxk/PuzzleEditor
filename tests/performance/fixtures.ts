@@ -85,6 +85,7 @@ export function createPerformanceProject(size: 'medium' | 'large'): ProjectData 
         counter: {
           id: 'counter',
           name: 'Stage Counter',
+          assetName: 'StageCounter',
           type: 'integer',
           value: 0,
           scope: 'StageLocal',
@@ -116,6 +117,7 @@ export function createPerformanceProject(size: 'medium' | 'large'): ProjectData 
           counter: {
             id: 'counter',
             name: 'Node Counter',
+            assetName: 'NodeCounter',
             type: 'integer',
             value: 0,
             scope: 'NodeLocal',

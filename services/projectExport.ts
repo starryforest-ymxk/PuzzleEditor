@@ -1,8 +1,7 @@
-import type { ProjectData, ExportBundle } from '../types/project';
+import type { ProjectData } from '../types/project';
 import type { Action, MessageLevel } from '../store/types';
 import type { ProjectPlatform } from './projectPlatform';
-import { validateProject } from '../utils/validation/validator';
-import { normalizeForExport } from '../utils/exportNormalizer';
+import { prepareRuntimeExport } from './projectExportPreparation';
 
 /** 运行时导出独立于 React；校验与后缀保护保留，实际 IO 统一经过平台适配。 */
 export async function exportRuntimeProject(
@@ -12,12 +11,13 @@ export async function exportRuntimeProject(
   pushMessage: (level: MessageLevel, text: string) => void,
 ): Promise<void> {
   // 1. Run Validation
-  const validationResults = validateProject(project);
+  const prepared = prepareRuntimeExport(project, new Date().toISOString());
+  const validationResults = prepared.diagnostics;
   // 修复后的导出也刷新问题列表，避免继续展示导入时已经解决的旧诊断。
   dispatch({ type: 'SET_VALIDATION_RESULTS', payload: validationResults });
   const errors = validationResults.filter((r) => r.level === 'error');
 
-  if (errors.length > 0) {
+  if (!prepared.ok) {
     dispatch({ type: 'SET_SHOW_VALIDATION_PANEL', payload: true });
     pushMessage('error', `Export failed: Found ${errors.length} critical errors.`);
     // Push individual errors to stack
@@ -39,29 +39,8 @@ export async function exportRuntimeProject(
     });
   }
 
-  // 精简导出：仅包含游戏引擎需要的运行时数据
-  // 通过 normalizeForExport 进行深拷贝 + 清洗：修正值类型、剥离 UI 字段
-  const exportBundle: ExportBundle = {
-    fileType: 'puzzle-export',
-    manifestVersion: '1.0.0',
-    exportedAt: new Date().toISOString(),
-    projectName: project.meta.name,
-    projectVersion: project.meta.version,
-    data: normalizeForExport(project),
-  };
-
-  const jsonStr = JSON.stringify(exportBundle, null, 2);
-  // 使用项目设置的导出文件名，或默认生成
-  let defaultFileName = project.meta.exportFileName;
-  if (!defaultFileName) {
-    defaultFileName = `${project.meta.name || 'project'}.export.json`;
-  } else if (!defaultFileName.toLowerCase().endsWith('.json')) {
-    // 如果用户自定义了文件名但没有后缀，自动补充 .export.json
-    if (!defaultFileName.toLowerCase().endsWith('.export')) {
-      defaultFileName += '.export';
-    }
-    defaultFileName += '.json';
-  }
+  const jsonStr = prepared.content;
+  const defaultFileName = prepared.suggestedFileName;
 
   // Electron 环境：使用保存对话框
   if (platform.isDesktop()) {

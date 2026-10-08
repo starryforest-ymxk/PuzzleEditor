@@ -1,0 +1,41 @@
+{
+  "testedAt": "2026-10-08T14:01:43.679Z",
+  "browser": "Codex in-app browser",
+  "url": "http://127.0.0.1:4178/",
+  "opened": "edited.puzzle.json",
+  "stagePath": [
+    "Root Stage",
+    "Room",
+    "Inner"
+  ],
+  "puzzle": "Entry Door",
+  "initialState": "Locked",
+  "localVariableValues": {
+    "Keys": 0,
+    "Found": false
+  },
+  "globalVariableValues": {
+    "Power": true
+  },
+  "scriptCategories": [
+    "Lifecycle (Node)",
+    "Performance",
+    "Condition",
+    "Trigger"
+  ],
+  "guiEdit": {
+    "id": "NODE_1",
+    "name": "Entry Door Reviewed",
+    "assetName": "Door"
+  },
+  "validation": {
+    "errors": 0,
+    "warnings": 0
+  },
+  "saved": "browser-saved.puzzle.json",
+  "guiExport": "browser-runtime.export.json",
+  "cliExport": "browser-via-cli.export.json",
+  "exportEqualExceptTimestamp": true,
+  "consoleErrors": 0,
+  "consoleWarnings": 0
+}

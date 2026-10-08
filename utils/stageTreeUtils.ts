@@ -46,9 +46,13 @@ export function getDescendantStageIds(stageTree: StageTreeData, stageId: StageId
 
     const descendants: StageId[] = [];
     const queue = [...stage.childrenIds];
+    const visited = new Set<StageId>([stageId]);
 
     while (queue.length > 0) {
         const currentId = queue.shift()!;
+        // 领域调用同样可能接触到异常树；遍历有界，避免外部数据使移动检查卡住。
+        if (visited.has(currentId)) continue;
+        visited.add(currentId);
         descendants.push(currentId);
         const currentStage = stageTree.stages[currentId];
         if (currentStage && currentStage.childrenIds.length > 0) {

@@ -1,0 +1,105 @@
+{
+  "recordedAt": "2026-10-08T14:12:46.080Z",
+  "files": [
+    {
+      "name": "apply-result.json",
+      "size": 1212,
+      "sha256": "7f7fd30d658a129f59b5eedf20d2f2684e150133b5be859869a4564940654286"
+    },
+    {
+      "name": "browser-cli-validation.json",
+      "size": 436,
+      "sha256": "9f892fc45727d795704f44b534c9d3b33fce289fe0f481b31318a89c3056262c"
+    },
+    {
+      "name": "browser-result.json",
+      "size": 862,
+      "sha256": "1f6f830be0b66d69195add2b45cdfea411e09d22c2515bdadfbbc343d8a2a8bb"
+    },
+    {
+      "name": "browser-runtime.export.json",
+      "size": 5761,
+      "sha256": "5c8c85bd29fc9179f16597b4f7930cebc9c24e9887bd261bdfae4b6a5d9c8e58"
+    },
+    {
+      "name": "browser-saved.puzzle.json",
+      "size": 6488,
+      "sha256": "15e546593b369ad26bbffa6d5ae1c5737a491a43dda81ab16f5ed85f0bd95a86"
+    },
+    {
+      "name": "browser-validation.jpg",
+      "size": 40343,
+      "sha256": "6e53f802de7d0b529bf408854f15324c216988ba4cd3910a7e9dcdeaedc7395d"
+    },
+    {
+      "name": "browser-via-cli.export.json",
+      "size": 5761,
+      "sha256": "5e7ee9ff7bea6d8d2e1616682abe22a60ec9ca69820021e6869a8d6abcc39803"
+    },
+    {
+      "name": "cli-runtime.export.json",
+      "size": 5752,
+      "sha256": "999c83d4440de578402d1dde5bec427e15930e6b4a6387ed69abd882b2f5bdf6"
+    },
+    {
+      "name": "create-plan.json",
+      "size": 4030,
+      "sha256": "8b733a6fbd55bb5eef9460afb796b8273178b582715db1b2953bd8e96c7890ea"
+    },
+    {
+      "name": "created-inspection.json",
+      "size": 739,
+      "sha256": "769ae618a9b667904d0f97c85005a097fabe26a0d955288e864c77b93ca225d0"
+    },
+    {
+      "name": "created.puzzle.json",
+      "size": 6169,
+      "sha256": "abe54e956c8bcb6e34dd20f16e3679d020b881e9fde216050bb8746e6a3c0336"
+    },
+    {
+      "name": "edit-plan.json",
+      "size": 655,
+      "sha256": "d8400d3ab1e2bd7bb5a3fcadbeacb645ca1dd5a505240ae5551cf8d6982d148b"
+    },
+    {
+      "name": "edited-validation.json",
+      "size": 429,
+      "sha256": "72c2aba5c2b859a4ee32ca79d8167d573939d8cfa57e221efb3f757a5a040687"
+    },
+    {
+      "name": "edited.puzzle.json",
+      "size": 6208,
+      "sha256": "8ba4dce7a9b5d16d615b5dafb0cfb9bd087a5ef77d03f4d7a057947c5c199136"
+    },
+    {
+      "name": "electron-check.log",
+      "size": 5763,
+      "sha256": "d611d91c90bfb052e7fbd968e36a6658b2371f665165eae6ee92fdd8c97bed07"
+    },
+    {
+      "name": "export-result.json",
+      "size": 588,
+      "sha256": "02d5950a3a72a7c8607822cae7803a272f3a48a8d975e4588d545d52a42fc09c"
+    },
+    {
+      "name": "frontend-build.log",
+      "size": 752,
+      "sha256": "833630c9c959809c16cc206692fc02c58a4fd8f71adb1a1f399c38234d67484d"
+    },
+    {
+      "name": "preview-result.json",
+      "size": 1744,
+      "sha256": "08a8be6902d0f9690abfe53bbbe662e40cce6b31c4f3639de886b1b36089cf13"
+    },
+    {
+      "name": "quality-check.log",
+      "size": 6685,
+      "sha256": "1cabaf7da6c0ef64cc74dd76aa0d71fba1531a89b5c2ade391ea0f4b9094a144"
+    },
+    {
+      "name": "receipt.json",
+      "size": 566,
+      "sha256": "e287cbe7a6042535d147b2e4e130e0c5808876823db987b2e0a0f9ef2898547c"
+    }
+  ]
+}
