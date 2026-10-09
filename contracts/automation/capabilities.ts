@@ -91,7 +91,7 @@ export const capabilities = [
     implemented: true,
     permission: 'read',
     summary:
-      'Preview conversion of a supported source to a new complete project with optional external asset names (C7).',
+      'Preview conversion of a supported source to a new complete project with optional external asset names.',
     example:
       'puzzle import preview "Demo.export.json" --out "Demo.puzzle.json" --receipt-out "import-receipt.json"',
   },
@@ -100,7 +100,7 @@ export const capabilities = [
     implemented: true,
     permission: 'semantic_write',
     summary:
-      'Rebuild a previewed conversion and publish a new project file; source files remain unchanged (C7).',
+      'Rebuild a previewed conversion and publish a new project file; source files remain unchanged.',
   },
   {
     operation: 'describe',
@@ -134,41 +134,40 @@ export const capabilities = [
     operation: 'create',
     implemented: true,
     permission: 'semantic_write',
-    summary: 'Create a project with external asset names and an optional domain plan (C4).',
+    summary: 'Create a project with external asset names and an optional domain plan.',
   },
   {
     operation: 'preview',
     implemented: true,
     permission: 'read',
     summary:
-      'Preview domain edits and permissions; --in-place freezes the overwrite source and identity (C8).',
+      'Preview domain edits and permissions; --in-place freezes the overwrite source and identity.',
   },
   {
     operation: 'apply',
     implemented: true,
     permission: 'semantic_write',
     summary:
-      'Apply a domain plan to --out or use --in-place --allow-overwrite; protected deletion also requires --allow-permanent-delete (C8).',
+      'Apply a domain plan to --out or use --in-place --allow-overwrite; protected deletion also requires --allow-permanent-delete.',
   },
   {
     operation: 'export',
     implemented: true,
     permission: 'semantic_write',
-    summary: 'Write a runtime export (C2).',
+    summary: 'Write a runtime export.',
   },
   {
     operation: 'json preview',
     implemented: true,
     permission: 'read',
-    summary:
-      'Preview a full JSON candidate for --out or --in-place and all required capabilities (C8).',
+    summary: 'Preview a full JSON candidate for --out or --in-place and all required capabilities.',
   },
   {
     operation: 'json apply',
     implemented: true,
     permission: 'raw_json_write',
     summary:
-      'Apply a JSON candidate with --allow-raw-json-write; --in-place also requires --allow-overwrite, protected deletion requires --allow-permanent-delete (C8).',
+      'Apply a JSON candidate with --allow-raw-json-write; --in-place also requires --allow-overwrite, protected deletion requires --allow-permanent-delete.',
   },
 ] satisfies Array<{
   operation: string;
@@ -221,7 +220,7 @@ export function describeCapabilities(operation?: string) {
     sessionTokenSchema: jsonSchema(sessionTokenSchema),
     sessionReceiptSchema: jsonSchema(sessionReceiptSchema),
     sessionRules: [
-      'Windows only, protocol 2 (C10 desktop and CLI). Explicit --instance and --session are mandatory outside session list. No offline fallback or recent-window guessing.',
+      'Windows only; desktop and CLI must support protocol 2. Explicit --instance and --session are mandatory outside session list. No offline fallback or recent-window guessing.',
       'Use session inspect --view project for the full unsaved snapshot. Read-only operations show committed content and pendingEdits, not unfinished field drafts.',
       'Token and receipt arguments are JSON files. Plans bind sourceHash to token.contentHash. Preview and apply flush valid drafts first, then reject stale tokens, invalid fields and active gestures.',
       'Apply is one atomic content/history commit. Protected permanent deletion creates the existing history barrier and needs --allow-permanent-delete independently.',

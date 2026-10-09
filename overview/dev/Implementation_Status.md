@@ -1,15 +1,22 @@
 # 项目实现状态（Implementation Status）
 
-> **版本**: 1.0.0-beta | **更新时间**: 2026-10-09 | **最近完成范围**: C16 后续图标修复已应用本机，用户确认显示正常；本地 CLI 已安装至 D:\Tools\PuzzleEditorCLI，全局解析、doctor、虚构工程创建/校验/导出通过。本轮以 v1.0.0-beta-c16.1 交付，发布结果见发行记录。
+> **版本**: 1.0.0-beta | **更新时间**: 2026-10-09 | **最近完成范围**: CLI 对外指南、Skill 和命令帮助已清理开发记录，新的本地 ZIP 与 D:\Tools\PuzzleEditorCLI、用户级 Skill 已同步更新；715 项回归、136 项独立包检查、doctor 与 Codex 发现通过。原桌面图标修复已获用户确认，GitHub C16.1 交付记录保留。
 
 ---
 
 ## 1. 总体进度
 
+### CLI 对外文档与本机 Skill 更新（2026-10-09）
+
+- 对外文档按当前功能组织，移除开发阶段、历史产物和内部报告内容；命令帮助同步清理批次标号。完整指南和 README 分别使用单一源文档，打包仅包含明确需要的 Skill 文件。
+- 保留一个 PuzzleEditor Skill 入口，按工程读取/领域编辑、桌面会话、导入导出和授权场景定位指南；飞书的多业务模型不直接套为本项目的 Skill 数量。
+- 39 文件/715 测试、136 项独立 ZIP 检查通过。新包位于 `release/cli/public-guide-2026-10-09`，已受管升级本地 CLI 与用户 Skill，doctor 与同用户 Codex 元数据发现通过。后续按用户要求纳入 Git 交付并重新执行安装，两者返回 changed=false、doctor 通过；不创建标签或更新 GitHub Release。细节与验证边界见[完成报告](./CLI_Public_Distribution_2026-10-09.md)。
+
 ### C16.1 重新交付与真实 CLI 安装（2026-10-09）
 
 - 用户删除原 GitHub Release/远端标签后，本轮采用新标签 `v1.0.0-beta-c16.1`，交付图标修复源码、证据、最新桌面安装器及同一已验收 CLI ZIP，未强制修改历史标签。
 - 先询问安装位置，按用户“D:\Tools 下新建目录”安装到 `D:\Tools\PuzzleEditorCLI`。真实用户 PATH 追加、版本/安装记录、doctor 与全局命令创建/校验/导出通过；重新打开终端或 Codex 后使用 `puzzle`。
+- 后续按用户明确要求，通过 CLI 的独立受管入口安装 `C:\Users\吴迪\.agents\skills\puzzle-editor`。预览、安装、状态与指纹校验通过，doctor 的 SKILL/COMMAND_PATH 均 pass。同用户 Codex app-server 只读 `skills/list` 发现已启用的用户级 Skill；未修改 Codex 配置或测试模型自动调用。离线工程操作无额外必需配置，在线操作需先运行兼容桌面版并选择明确会话。
 - 详情及实际发布结果的位置见[最新发行记录](./Release_C16_1_2026-10-09.md)。此前用户修改的回归项目夹具保留，不混入图标修复提交。
 
 ### C16 后续桌面图标修复（2026-10-09）

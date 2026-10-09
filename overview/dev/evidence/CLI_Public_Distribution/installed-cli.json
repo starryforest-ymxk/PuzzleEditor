@@ -1,0 +1,49 @@
+{
+  "ok": true,
+  "verifiedAt": "2026-10-09T14:16:56.1436633Z",
+  "root": "D:\\Tools\\PuzzleEditorCLI",
+  "activeVersion": "C16-5423f686871111b0",
+  "command": "D:\\Tools\\PuzzleEditorCLI\\bin\\puzzle.cmd",
+  "doctorHealthy": true,
+  "checks": [
+    {
+      "code": "RUNTIME",
+      "status": "pass"
+    },
+    {
+      "code": "CONFIG",
+      "status": "pass"
+    },
+    {
+      "code": "DESKTOP_PATH",
+      "status": "skip"
+    },
+    {
+      "code": "PACKAGE",
+      "status": "pass"
+    },
+    {
+      "code": "INSTALLATION",
+      "status": "pass"
+    },
+    {
+      "code": "COMMAND_PATH",
+      "status": "pass"
+    },
+    {
+      "code": "SKILL",
+      "status": "pass"
+    },
+    {
+      "code": "SESSION_DIRECTORY",
+      "status": "pass"
+    },
+    {
+      "code": "ONLINE_SESSION",
+      "status": "skip"
+    }
+  ],
+  "guideSha256": "36086e63b4ec5c9ecf232c2fc7d3cdbf72556ca0442e6ae0ce9c63bc3855cd1a",
+  "installedGuideMatchesSource": true,
+  "zipSha256": "244a2aab74aad54dc694445b9405f0c9f440e381bb0399a9bdf51e1628bd2212"
+}

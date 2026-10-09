@@ -1,0 +1,11 @@
+{
+  "ok": true,
+  "verifiedAt": "2026-10-09T14:13:32.432Z",
+  "documentFiles": 4,
+  "localLinks": 3,
+  "yamlMetadata": true,
+  "commandDescriptions": 36,
+  "userFacingDevelopmentReferences": 0,
+  "packageSourceEquality": true,
+  "pythonValidator": "Unavailable: bundled Python does not include PyYAML; YAML and required fields verified with js-yaml."
+}

@@ -1,0 +1,17 @@
+{
+  "ok": true,
+  "verifiedAt": "2026-10-09T14:16:19.165Z",
+  "phase": "C16",
+  "target": "C:\\Users\\吴迪\\.agents\\skills\\puzzle-editor",
+  "managed": true,
+  "fingerprintVerification": true,
+  "actualHostDiscovery": true,
+  "hostVerification": "read-only Codex app-server skills/list with current user environment",
+  "codex": "Codex Desktop/0.162.0-alpha.2 (Windows 10.0.26300; x86_64) dumb (puzzle-installed-skill-verification; 1.0.0)",
+  "name": "puzzle-editor",
+  "scope": "user",
+  "enabled": true,
+  "runningDesktopAppReloaded": false,
+  "automaticModelInvocationTested": false,
+  "userCodexConfigurationChanged": false
+}

@@ -1,12 +1,10 @@
 # PuzzleEditor CLI 入门
 
-本指南对应 C16 CLI / C16.1 桌面图标修订，Windows x64，在线协议 2。CLI 可以独立创建、读取、编辑、校验和导出工程；连接兼容桌面程序后也可以编辑未保存的内容并共用 Undo/Redo。
+PuzzleEditor CLI 支持 Windows x64，可以独立创建、读取、编辑、校验和导出工程；连接支持在线协议 2 的桌面程序后，也可以编辑未保存的内容并共用 Undo/Redo。
 
 ## 1. 下载并启动
 
-从 [C16.1 Release](https://github.com/starryforest-ymxk/PuzzleEditor/releases/tag/v1.0.0-beta-c16.1) 下载 [CLI ZIP](https://github.com/starryforest-ymxk/PuzzleEditor/releases/download/v1.0.0-beta-c16.1/PuzzleEditor-CLI-1.0.0-beta-C16-win-x64.zip) 和 [桌面安装器](https://github.com/starryforest-ymxk/PuzzleEditor/releases/download/v1.0.0-beta-c16.1/PuzzleEditor-Setup-1.0.0-beta-C16.1-win-x64.exe)。此前 GitHub Release 已被用户删除，本轮重新发布当前版本。解压 ZIP 到独立目录，包内包含 puzzle.cmd、Node、许可证、能力表、AGENTS.md、安装入口与 Skill，无需 Node/npm。
-
-本地验收包位于 release/cli/C16-final3 和 release/desktop/C16-iconfix；中间候选 C16、C16-final、C16-final2 不作为交付包。源与附件核验见 [发行记录](https://github.com/starryforest-ymxk/PuzzleEditor/blob/v1.0.0-beta-c16.1/overview/dev/Release_C16_1_2026-10-09.md)。
+从 [下载页面](https://github.com/starryforest-ymxk/PuzzleEditor/releases) 获取 Windows x64 CLI ZIP；需要在线编辑时，再安装兼容的桌面版。解压 ZIP 到独立目录，保留包内全部文件；其中包含启动器、Node 运行时、许可证、能力表、使用指南、安装入口和 Skill，无需另装 Node/npm。
 
 在 PowerShell 中设置启动器路径。下面的路径是示例，请改为自己的解压位置：
 
@@ -15,7 +13,7 @@ $cli = 'E:\Tools\PuzzleEditor-CLI-1.0.0-beta-win-x64\puzzle.cmd'
 & $cli describe --json
 ```
 
-返回的 `data.phase` 应为 `C16`；describe 提供全部 36 个命令及 JSON Schema。不要单独移动 puzzle.cmd 或包内运行时。路径有空格时，保留引号和前面的 `&`。
+`describe` 返回当前可用命令及 JSON Schema，`version` 返回实际版本和协议信息。不要单独移动 puzzle.cmd 或包内运行时。路径有空格时，保留引号和前面的 `&`。
 
 若需要全局命令，在解压目录执行：
 
@@ -26,7 +24,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\install-cli.ps1
 
 自定义安装目录可在两条安装命令后增加 `--install-root 'D:\Tools\PuzzleEditorCLI'`。当前 CLI 通过自己的安装记录和卸载入口管理，尚未注册到 Windows“已安装的应用”列表。
 
-重新打开终端或 Codex 后执行 puzzle version、puzzle config show、puzzle doctor --offline。Codex Skill 安装先预览 `puzzle skills install --agent codex --scope user --dry-run`，去掉 --dry-run 安装。项目级用 --scope project --project-root；查看/卸载与恢复见 [唯一发行指南](https://github.com/starryforest-ymxk/PuzzleEditor/blob/v1.0.0-beta-c16.1/overview/dev/CLI_Distribution_Guide.md)。全局安装不授权任何工程覆盖或 JSON 编辑。
+重新打开终端或 Codex 后执行 puzzle version、puzzle config show、puzzle doctor --offline。Codex Skill 安装先预览 `puzzle skills install --agent codex --scope user --dry-run`，去掉 --dry-run 安装。项目级用 --scope project --project-root；查看、卸载和恢复见[完整使用指南](./CLI_Distribution_Guide.md)。全局安装不授权任何工程覆盖或 JSON 编辑。
 
 ## 2. 创建、读取和导出
 
@@ -98,9 +96,9 @@ if ($LASTEXITCODE -ne 0) { throw 'Apply failed.' }
 & $cli history list --instance '<instanceId>' --session 1 --json
 ```
 
-在线修改使用 session preview/apply；历史 undo/redo 还要求最新 token、顶部 entryId 和 requestId。普通 apply/undo/redo 先修改内存，未获得覆盖许可时阻止相关自动保存。具体 token、回执、保存及重试例子见 [完整使用说明](https://github.com/starryforest-ymxk/PuzzleEditor/blob/v1.0.0-beta-c16.1/overview/dev/CLI_Agent_Usage.md)。
+在线修改使用 session preview/apply；历史 undo/redo 还要求最新 token、顶部 entryId 和 requestId。普通 apply/undo/redo 先修改内存，未获得覆盖许可时阻止相关自动保存。具体 token、回执、保存及重试例子见[完整使用指南](./CLI_Distribution_Guide.md)。
 
-C9 协议 1 和 C10 协议 2 不能混用。工程被桌面占用时，离线覆盖会拒绝；需要修改当前未保存内容时使用 session。
+CLI 与桌面版必须支持相同的在线协议。工程被桌面占用时，离线覆盖会拒绝；需要修改当前未保存内容时使用 session。
 
 ## 5. 交给外部 Agent 使用
 

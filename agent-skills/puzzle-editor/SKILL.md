@@ -5,7 +5,7 @@ description: Create, inspect and edit PuzzleEditor puzzle projects through its C
 
 # PuzzleEditor
 
-Use the external PuzzleEditor CLI for project work. Read [the execution guide](references/cli-guide.md) for commands, retry rules and permission-sensitive operations. It is generated from the application's maintained distribution guide.
+Use the external PuzzleEditor CLI for project work. Consult the relevant sections of [the CLI guide](references/cli-guide.md): installation and configuration for setup, project reading and domain editing for files, desktop sessions and undo/redo for unsaved work, and import/export or authorized operations when needed.
 
 Find `puzzle` on PATH or use the user's explicit portable `puzzle.cmd` path. If unavailable, report the missing executable; do not install tooling implicitly. Read `version` and `describe --json` for the actual schemas and supported operations. Do not invent commands from this skill's version.
 

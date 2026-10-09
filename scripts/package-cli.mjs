@@ -115,9 +115,12 @@ async function main() {
     );
     for (const file of ['install-cli.ps1', 'uninstall-cli.ps1'])
       await fs.copyFile(path.join(root, 'scripts', file), path.join(target, file));
-    await fs.cp(path.join(root, 'agent-skills'), path.join(target, 'agent-skills'), {
-      recursive: true,
-    });
+    // 仅复制对外 Skill 所需入口与元数据，避免源码目录里的临时文件或开发记录进入包。
+    for (const file of ['SKILL.md', 'agents/openai.yaml']) {
+      const destination = path.join(target, 'agent-skills/puzzle-editor', file);
+      await fs.mkdir(path.dirname(destination), { recursive: true });
+      await fs.copyFile(path.join(root, 'agent-skills/puzzle-editor', file), destination);
+    }
     const references = path.join(target, 'agent-skills/puzzle-editor/references');
     await fs.mkdir(references, { recursive: true });
     await fs.copyFile(
@@ -129,9 +132,14 @@ async function main() {
       '@echo off\r\nsetlocal DisableDelayedExpansion\r\n"%~dp0runtime\\node.exe" "%~dp0app\\cli.js" %*\r\nexit /b %errorlevel%\r\n',
       { encoding: 'utf8', flag: 'wx' },
     );
+    // 入门说明只有一个维护来源；包内将完整指南链接解析到随包提供的 AGENTS.md。
+    const quickStart = await fs.readFile(
+      path.join(root, 'overview/dev/CLI_Quick_Start.md'),
+      'utf8',
+    );
     await fs.writeFile(
       path.join(target, 'README.md'),
-      '# PuzzleEditor CLI\n\nWindows x64 独立包。启动：`puzzle.cmd --help`。完整调用和聊天授权约定见 [AGENTS.md](./AGENTS.md)。\n\n全局安装：`powershell -NoProfile -ExecutionPolicy Bypass -File .\\install-cli.ps1 --dry-run` 预览，去掉 --dry-run 安装。重新打开终端，使用 puzzle version、puzzle setup status。卸载从外部执行 `powershell -NoProfile -ExecutionPolicy Bypass -File .\\uninstall-cli.ps1`；受管入口位置可从 setup status 的 uninstallEntry 读取，具体见 AGENTS.md。只修改受管文件及当前用户 PATH，不需要管理员。中断使用 setup recover。\n\n本包包含固定 Node 及 Zod，许可证位于 licenses。不安装时不修改 PATH。应用代码使用权限沿用原项目，本包不另行授予第三方许可。\n',
+      quickStart.replaceAll('(./CLI_Distribution_Guide.md)', '(./AGENTS.md)'),
       'utf8',
     );
     const describe = spawnSync(node, [path.join(target, 'app/cli.js'), 'describe', '--json'], {

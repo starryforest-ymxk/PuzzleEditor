@@ -1,0 +1,60 @@
+{
+  "ok": true,
+  "verifiedAt": "2026-10-09T14:28:15.9975461Z",
+  "installation": {
+    "root": "D:\\Tools\\PuzzleEditorCLI",
+    "dryRun": false,
+    "activeVersion": "C16-5423f686871111b0",
+    "previousVersion": "C16-5423f686871111b0",
+    "pathChange": false,
+    "registry": "user",
+    "retainedVersions": 2,
+    "changed": false
+  },
+  "skillInstallation": {
+    "target": "C:\\Users\\吴迪\\.agents\\skills\\puzzle-editor",
+    "changed": false
+  },
+  "command": "D:\\Tools\\PuzzleEditorCLI\\bin\\puzzle.cmd",
+  "doctorHealthy": true,
+  "checks": [
+    {
+      "code": "RUNTIME",
+      "status": "pass"
+    },
+    {
+      "code": "CONFIG",
+      "status": "pass"
+    },
+    {
+      "code": "DESKTOP_PATH",
+      "status": "skip"
+    },
+    {
+      "code": "PACKAGE",
+      "status": "pass"
+    },
+    {
+      "code": "INSTALLATION",
+      "status": "pass"
+    },
+    {
+      "code": "COMMAND_PATH",
+      "status": "pass"
+    },
+    {
+      "code": "SKILL",
+      "status": "pass"
+    },
+    {
+      "code": "SESSION_DIRECTORY",
+      "status": "pass"
+    },
+    {
+      "code": "ONLINE_SESSION",
+      "status": "skip"
+    }
+  ],
+  "guideSha256": "36086e63b4ec5c9ecf232c2fc7d3cdbf72556ca0442e6ae0ce9c63bc3855cd1a",
+  "sourceGuideMatchesInstalled": true
+}
