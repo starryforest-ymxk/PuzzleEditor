@@ -1,0 +1,13 @@
+{
+  "ok": true,
+  "verifiedAt": "2026-10-09T15:46:52.143Z",
+  "codex": "Codex Desktop/0.162.0-alpha.2 (Windows 10.0.26300; x86_64) dumb (puzzle-user-skill-verification; 1.0.0)",
+  "name": "puzzle-editor",
+  "path": "C:\\Users\\吴迪\\.agents\\skills\\puzzle-editor\\SKILL.md",
+  "scope": "user",
+  "enabled": true,
+  "actualHostDiscovery": true,
+  "automaticModelInvocationTested": false,
+  "currentUserConfigurationChanged": false,
+  "skillSha256": "4c318734a811457d85ef0ae6e049f981f47a1d1bca4d15ee00541451f05d1a40"
+}

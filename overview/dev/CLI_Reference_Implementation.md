@@ -19,7 +19,7 @@
 3. 领域操作与教程：完成。47 种操作均有完整计划和实际结果断言；提供离线、复杂层级/FSM/演出图、导入、生命周期、在线历史与授权操作教程。
 4. 多文档打包与安装：完成。显式清单包含 24 份公共文件，服务另生成 compatibility.json；skills read/install 返回或安装共 25 份文件。旧四文件记录可直接受管升级，同批次内容改变也能被识别。
 5. 回归及独立包验收：完成。807 项回归、48 项真实 Electron 在线检查、212 项独立 ZIP 检查及浏览器、隔离 Codex 发现通过。
-6. Git 推送、本机安装及宿主发现：待实现提交推送后执行，实际结果将追加至本报告。
+6. Git 推送、本机安装及宿主发现：完成。实现提交先推送至 origin/main，再升级已有 CLI/Skill；全局命令、文件指纹、快速入门、doctor 和真实用户级 Codex 发现均通过，交付记录另提交推送。
 
 ## 验证和交付
 
@@ -42,6 +42,19 @@ SHA-256：`cb73823fb66dfeadb165a75dc53aaf541bbc0cca25ee450963a6c0bd15162d70`。
 CLI 产品版本仍为 1.0.0-beta；机器 phase C16、API 1.0.0、policy C10、converter C7.1、online 2 保持不变，不用开发批次变化代替内容指纹。包仅包含公开资料和运行依赖，不包含本报告、开发历史或测试证据。不创建 Release、标签或 npm 发布。
 
 本次开始前已有 overview/dev/verification/batch6-browser-saved.puzzle.json 修改，SHA-256 为 DD162353C02EC8404E660E4A364208B857608280525387B2B5A7762A359724DF；保留并排除本次提交。
+
+## 实际 Git 与本机安装结果
+
+- 实现提交 `508bd8247bf03fe65f78ccd7ba0df370e1f67123` 已推送至 origin/main，远端提交与本地一致；没有创建发布标签、GitHub Release 或 npm 发布。
+- 使用上方 SHA-256 对应的同一份完整包，在 dry-run 通过后升级 `D:\Tools\PuzzleEditorCLI`。当前受管版本 `C16-8728a5764e047680`，上一版本 `C16-5423f686871111b0` 保留，版本目录总数为 3；本次没有更改用户 PATH。
+- 新 CLI 的 skills status 正确识别旧 Skill 的同批次更新。预览通过后按受管流程升级 `C:\Users\吴迪\.agents\skills\puzzle-editor`；升级后 updateAvailable=false、recoveryRequired=false，再次安装 changed=false。
+- 初次 Skill 升级出现 Windows EPERM，事务自动回滚、旧四文件与安装记录完整。只读句柄检查定位到资源管理器占用 references 目录；用户关闭相关窗口后，同一安装命令成功。没有更改 ACL、绕过文件所有权检查、手动覆盖受管文件或中止用户进程。
+- 在仅刷新当前核验进程 PATH 的环境中，全局 puzzle 解析为 `D:\Tools\PuzzleEditorCLI\bin\puzzle.cmd`；version、setup status、config show、skills status/read 全部成功。读取并逐一比对 25 份安装文件的 SHA-256 与字节长度，全部一致；相对链接由同一读取服务校验。[安装证据](evidence/CLI_Reference/install.json)
+- doctor --offline 为 healthy=true，7 项 pass / 2 项按设计 skip，无 warn/fail。未配置桌面路径和未请求在线握手分别为 skip；已有终端若仍缓存旧 PATH，应新开终端。
+- 从已安装 Skill 目录执行 quick-start.ps1，使用实际全局命令在新临时目录完成创建、修改、预览、另存、校验、导出；根 Stage 的实际 description 正确。
+- 同用户 Codex app-server 的只读 skills/list(forceReload=true) 发现精确用户级路径，scope=user、enabled=true，入口 SHA-256 与安装内容一致；没有修改 Codex 配置或启动模型任务。[宿主证据](evidence/CLI_Reference/codex-user.json)
+
+本段及实际安装证据通过后续记录提交同步 origin/main。最终工作区仅保留用户原有的浏览器验证工程修改。
 
 ## UX 要求与验证边界
 

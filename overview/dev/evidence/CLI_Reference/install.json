@@ -1,0 +1,275 @@
+{
+  "ok": true,
+  "verifiedAt": "2026-10-09T15:46:55.8781597Z",
+  "command": "D:\\Tools\\PuzzleEditorCLI\\bin\\puzzle.cmd",
+  "version": {
+    "productVersion": "1.0.0-beta",
+    "phase": "C16",
+    "apiVersion": "1.0.0",
+    "policyVersion": "C10",
+    "onlineProtocol": 2,
+    "converterVersion": "C7.1",
+    "nodeVersion": "v24.15.0",
+    "executable": "D:\\Tools\\PuzzleEditorCLI\\versions\\C16-8728a5764e047680\\runtime\\node.exe",
+    "cliEntry": "D:\\Tools\\PuzzleEditorCLI\\versions\\C16-8728a5764e047680\\app\\cli.js"
+  },
+  "activeVersion": "C16-8728a5764e047680",
+  "setupInstalled": true,
+  "retainedVersions": 3,
+  "skill": {
+    "target": "C:\\Users\\吴迪\\.agents\\skills\\puzzle-editor",
+    "installed": true,
+    "managed": true,
+    "phase": "C16",
+    "updateAvailable": false,
+    "recoveryRequired": false,
+    "hostDiscovery": "not-verified",
+    "record": "D:\\Tools\\PuzzleEditorCLI\\skills\\a00476c029299733e3e83d29eecbca11d013c8602d2e4870ec7951ff5035df52.json"
+  },
+  "fileCount": 25,
+  "fingerprints": [
+    {
+      "path": "reference-files.json",
+      "sha256": "0eb7ed19879ecffd3d4e3e83be2f73d8ef2dd120ac729df06105eb2324c1e45f",
+      "size": 652
+    },
+    {
+      "path": "SKILL.md",
+      "sha256": "4c318734a811457d85ef0ae6e049f981f47a1d1bca4d15ee00541451f05d1a40",
+      "size": 3093
+    },
+    {
+      "path": "agents/openai.yaml",
+      "sha256": "43fa5d8d5dff715315929775a4b4e7e2dfde690dbd6461afb0a7de2f9f18e044",
+      "size": 113
+    },
+    {
+      "path": "references/cli-guide.md",
+      "sha256": "f204ce412d1fe0667583a5e3939cabb77672d53a67e52837d763132104823f65",
+      "size": 2494
+    },
+    {
+      "path": "references/quick-start.md",
+      "sha256": "38f9e92ab04eba7011a5b88e5d57445d4b993b48ceb5bc090470387d0a0404bc",
+      "size": 2703
+    },
+    {
+      "path": "references/commands-tooling.md",
+      "sha256": "0c04c82014e6bf4b822fa0b76e0b3c4ca51cc9b3905b9c1ea5e0e13bdffc5331",
+      "size": 22122
+    },
+    {
+      "path": "references/commands-files.md",
+      "sha256": "feb587d1a0bcb1e7ba10a6202708dca0fd15e18c4edd64fea231e5cc04687f3a",
+      "size": 26326
+    },
+    {
+      "path": "references/commands-session.md",
+      "sha256": "17ab7029fb63e06bbb83d27b246738f7fd9ba5900ef96c1fbec3f16716644bf6",
+      "size": 25059
+    },
+    {
+      "path": "references/operations-hierarchy.md",
+      "sha256": "83ba1b2d404af6bf917ba2e4e4ff6d791b4a71c5912adde8a7720db9e64a65ec",
+      "size": 22614
+    },
+    {
+      "path": "references/operations-resources.md",
+      "sha256": "7827b4af4e1c4a73be7342ec0f427dc19a1004375af69a99dac5be158994511e",
+      "size": 29620
+    },
+    {
+      "path": "references/operations-fsm.md",
+      "sha256": "53f6cda6a6bba5a5754aa8f491b51082a23dc277c27a7fd509ef487a307b4d11",
+      "size": 20431
+    },
+    {
+      "path": "references/operations-presentation.md",
+      "sha256": "a2238cdc1a45a2cd9c49179a7d7f89dedb6a97a5e0c53af702b46856440f71ea",
+      "size": 22797
+    },
+    {
+      "path": "references/data-structures.md",
+      "sha256": "a3a821e3cd5d8333675669493b5f92fb68aba46e9605fac0e87a0b07ee19e950",
+      "size": 6236
+    },
+    {
+      "path": "references/workflows.md",
+      "sha256": "a50aaf18642b06433bb7b27ff078cd59f66014b6a600eba28d4552f8e029a615",
+      "size": 8581
+    },
+    {
+      "path": "references/permissions-errors.md",
+      "sha256": "f6febcd9aec8ca5917cfb8551d8e1bfb726234adbc84a84ad2edcd2b1f4f6883",
+      "size": 7331
+    },
+    {
+      "path": "references/examples/sample.puzzle.json",
+      "sha256": "9ea51e2d010a1452fecae22e92ca9803c8c249725f6ace8e1b330a5fe71529b2",
+      "size": 7885
+    },
+    {
+      "path": "references/examples/operations.json",
+      "sha256": "71b9fac0edf3741b746a7170a1930730801453da74cb681ce6231ef5c9f99a4c",
+      "size": 18780
+    },
+    {
+      "path": "references/examples/operation-schema.json",
+      "sha256": "8c76216da23ce1a27d9606c738abc2fc8f3834b02858739b3af8d41555a57eda",
+      "size": 406932
+    },
+    {
+      "path": "references/examples/common.ps1",
+      "sha256": "672dbb1d2da28539f7c07045ec71c04672d3cd98c693e97915ae9ec6ff399f3a",
+      "size": 569
+    },
+    {
+      "path": "references/examples/quick-start.ps1",
+      "sha256": "8f6d33b54ad2d3cfb574b6c2e2f2fa3c69c6654ca4eb147a00139cdaeed167fc",
+      "size": 2008
+    },
+    {
+      "path": "references/examples/domain-operation.ps1",
+      "sha256": "1dee8f078ef749c3e610465f5e7804271cce1f6827cf5f0284283b3d122e1924",
+      "size": 2104
+    },
+    {
+      "path": "references/examples/online.ps1",
+      "sha256": "d158496db164fb2a881af3d624b3cfbcc9d182bee357ede4677a7f77b4d9ec40",
+      "size": 3191
+    },
+    {
+      "path": "references/examples/advanced.ps1",
+      "sha256": "fc46480816686efc0d9c28a239068532b0ca43287f29ec7c6006f408980ecaba",
+      "size": 6472
+    },
+    {
+      "path": "references/examples/authorized.ps1",
+      "sha256": "1e224fdbbd9a23ff435117435d5a0f753b39982c1355797a1b077e670e67379f",
+      "size": 3826
+    },
+    {
+      "path": "compatibility.json",
+      "sha256": "15e2df953c24a64b4689bdc64cb5ae910ec4a2bd584c3f4a6d0d90c275d89832",
+      "size": 72
+    }
+  ],
+  "doctor": {
+    "healthy": true,
+    "checks": [
+      {
+        "code": "RUNTIME",
+        "status": "pass",
+        "message": "CLI runtime is supported.",
+        "evidence": {
+          "productVersion": "1.0.0-beta",
+          "phase": "C16",
+          "apiVersion": "1.0.0",
+          "policyVersion": "C10",
+          "onlineProtocol": 2,
+          "converterVersion": "C7.1",
+          "nodeVersion": "v24.15.0",
+          "executable": "D:\\Tools\\PuzzleEditorCLI\\versions\\C16-8728a5764e047680\\runtime\\node.exe",
+          "cliEntry": "D:\\Tools\\PuzzleEditorCLI\\versions\\C16-8728a5764e047680\\app\\cli.js"
+        }
+      },
+      {
+        "code": "CONFIG",
+        "status": "pass",
+        "message": "Configuration is absent; derived defaults apply.",
+        "evidence": {
+          "config": {
+            "path": "D:\\Tools\\PuzzleEditorCLI\\config.json",
+            "exists": false,
+            "source": "default"
+          },
+          "sources": {
+            "desktopExecutable": "default"
+          },
+          "installation": {
+            "root": "D:\\Tools\\PuzzleEditorCLI",
+            "mode": "installed",
+            "activeVersion": "C16-8728a5764e047680",
+            "packageRoot": "D:\\Tools\\PuzzleEditorCLI\\versions\\C16-8728a5764e047680"
+          }
+        }
+      },
+      {
+        "code": "DESKTOP_PATH",
+        "status": "skip",
+        "message": "No desktop executable was configured."
+      },
+      {
+        "code": "PACKAGE",
+        "status": "pass",
+        "message": "Package runtime and all file fingerprints match.",
+        "evidence": {
+          "phase": "C16",
+          "version": "1.0.0-beta",
+          "manifestSha256": "8728a5764e047680c533e8ee8560922e6f8f9442d8a6fb0e65660c91af45ba16"
+        }
+      },
+      {
+        "code": "INSTALLATION",
+        "status": "pass",
+        "message": "Managed installation is intact.",
+        "evidence": {
+          "root": "D:\\Tools\\PuzzleEditorCLI",
+          "activeVersion": "C16-8728a5764e047680",
+          "recoveryRequired": false
+        }
+      },
+      {
+        "code": "COMMAND_PATH",
+        "status": "pass",
+        "message": "No command shadowing was observed.",
+        "evidence": {
+          "registryContains": true,
+          "processContains": true,
+          "candidates": [
+            "D:\\Tools\\PuzzleEditorCLI\\bin\\puzzle.cmd"
+          ]
+        },
+        "suggestion": "Open a new terminal after installing."
+      },
+      {
+        "code": "SKILL",
+        "status": "pass",
+        "message": "Managed Skill fingerprints match; host discovery is not verified.",
+        "evidence": {
+          "target": "C:\\Users\\吴迪\\.agents\\skills\\puzzle-editor",
+          "installed": true,
+          "managed": true,
+          "phase": "C16",
+          "updateAvailable": false,
+          "recoveryRequired": false,
+          "hostDiscovery": "not-verified",
+          "record": "D:\\Tools\\PuzzleEditorCLI\\skills\\a00476c029299733e3e83d29eecbca11d013c8602d2e4870ec7951ff5035df52.json"
+        }
+      },
+      {
+        "code": "SESSION_DIRECTORY",
+        "status": "pass",
+        "message": "Current-user discovery directory access is verified.",
+        "evidence": {
+          "directory": "C:\\Users\\吴迪\\AppData\\Local\\PuzzleEditor\\sessions-v1"
+        }
+      },
+      {
+        "code": "ONLINE_SESSION",
+        "status": "skip",
+        "message": "Online handshake was not requested."
+      }
+    ]
+  },
+  "configExists": false,
+  "quickStart": {
+    "source": "D:\\Temp\\puzzle-installed-reference-811afe05-3278-49e1-bee8-331dd227c51e\\Demo.puzzle.json",
+    "output": "D:\\Temp\\puzzle-installed-reference-811afe05-3278-49e1-bee8-331dd227c51e\\Demo-edited.puzzle.json",
+    "export": "D:\\Temp\\puzzle-installed-reference-811afe05-3278-49e1-bee8-331dd227c51e\\Demo.export.json",
+    "validated": true,
+    "apiVersion": "1.0.0"
+  },
+  "repeatChanged": false,
+  "pathRefreshedForVerificationProcessOnly": true
+}
