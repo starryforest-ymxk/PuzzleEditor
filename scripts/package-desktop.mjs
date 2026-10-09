@@ -7,7 +7,11 @@ import { spawnSync } from 'node:child_process';
 import { build, Platform, Arch } from 'electron-builder';
 import { extractFile } from '@electron/asar';
 import { inside } from './cli-package-io.mjs';
-import { verifyWindowsIcon } from './windows-icons.mjs';
+import {
+  verifyWindowsIcon,
+  windowsIconFilename,
+  windowsIconInstallerInclude,
+} from './windows-icons.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const output = path.resolve(
@@ -74,6 +78,11 @@ for (const file of ['rcedit-x64.exe', 'rcedit-ia32.exe', 'windows-10/x64/signtoo
 const packageInfo = JSON.parse(await fs.readFile(path.join(root, 'package.json'), 'utf8'));
 const productName = acceptance ? 'Puzzle Editor C16 Acceptance' : packageInfo.build.productName;
 const checks = [];
+const iconBytes = await fs.readFile(path.join(root, 'public/icon.ico'));
+const iconFilename = windowsIconFilename(iconBytes);
+await fs.mkdir(output);
+const iconInclude = path.join(output, 'windows-shortcut-icons.nsh');
+await fs.writeFile(iconInclude, windowsIconInstallerInclude(iconFilename), 'utf8');
 await build({
   targets: Platform.WINDOWS.createTarget(['nsis'], Arch.x64),
   config: {
@@ -81,15 +90,22 @@ await build({
       ? {
           appId: 'com.starrytree.puzzleeditor.c16.acceptance',
           productName,
-          nsis: {
+        }
+      : {}),
+    directories: { output },
+    // 独立 ICO 与 NSIS 钩子使用同一文件名来源；升级时包括被保留的快捷方式。
+    extraResources: [{ from: path.join(root, 'public/icon.ico'), to: iconFilename }],
+    nsis: {
+      ...(acceptance
+        ? {
             guid: 'ac41efc7-6b75-47bd-b6cb-9381a3c770ee',
             runAfterFinish: false,
             shortcutName: productName,
             uninstallDisplayName: productName,
-          },
-        }
-      : {}),
-    directories: { output },
+          }
+        : {}),
+      include: iconInclude,
+    },
     win: { signAndEditExecutable: true },
     afterSign: async ({ appOutDir }) => {
       const executable = path.join(appOutDir, productName + '.exe');
@@ -98,7 +114,9 @@ await build({
       const embedded = extractFile(path.join(appOutDir, 'resources/app.asar'), 'dist/icon.png');
       if (!embedded.equals(await fs.readFile(path.join(root, 'public/icon.png'))))
         throw new Error('Packaged window icon differs from the original PNG.');
-      checks.push({ ...icon, packagedPngMatches: true });
+      if (!(await fs.readFile(path.join(appOutDir, 'resources', iconFilename))).equals(iconBytes))
+        throw new Error('Packaged standalone shortcut icon differs from the original ICO.');
+      checks.push({ ...icon, packagedPngMatches: true, standaloneIcon: iconFilename });
     },
   },
 });

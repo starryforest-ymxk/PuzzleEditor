@@ -1,0 +1,68 @@
+{
+  "ok": true,
+  "verifiedAt": "2026-10-09T13:01:21.756Z",
+  "actualUserInstallationUpdated": true,
+  "installedDirectory": "D:/Program Files/Puzzle Editor",
+  "checks": [
+    {
+      "expected": "39b1665b078fcc2cb39d03b8598c157b9254329e68fd9b848d1b89cdec34173e",
+      "shortcut": {
+        "shellImages": [
+          {
+            "height": 32,
+            "width": 32,
+            "hash": "977d5f94644f1598b60bd95b26818f8e429b1ea88e04c698f3506d81eb165a20",
+            "index": 463
+          },
+          {
+            "height": 16,
+            "width": 16,
+            "hash": "e066efa138794b16952cb39c0f82d4727ab6ec2abcddb1d4219aeebc5137a799",
+            "index": 463
+          }
+        ],
+        "path": "C:\\Users\\Public\\Desktop\\Puzzle Editor.lnk",
+        "target": "D:\\Program Files\\Puzzle Editor\\Puzzle Editor.exe",
+        "icon": "D:\\Program Files\\Puzzle Editor\\resources\\puzzle-editor-966ab98b5f83ee14.ico,0"
+      },
+      "productName": "Puzzle Editor",
+      "actual": "39b1665b078fcc2cb39d03b8598c157b9254329e68fd9b848d1b89cdec34173e",
+      "executable": "D:\\Program Files\\Puzzle Editor\\Puzzle Editor.exe"
+    },
+    {
+      "expected": "39b1665b078fcc2cb39d03b8598c157b9254329e68fd9b848d1b89cdec34173e",
+      "shortcut": {
+        "shellImages": [
+          {
+            "height": 32,
+            "width": 32,
+            "hash": "977d5f94644f1598b60bd95b26818f8e429b1ea88e04c698f3506d81eb165a20",
+            "index": 463
+          },
+          {
+            "height": 16,
+            "width": 16,
+            "hash": "e066efa138794b16952cb39c0f82d4727ab6ec2abcddb1d4219aeebc5137a799",
+            "index": 463
+          }
+        ],
+        "path": "C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs\\Puzzle Editor.lnk",
+        "target": "D:\\Program Files\\Puzzle Editor\\Puzzle Editor.exe",
+        "icon": "D:\\Program Files\\Puzzle Editor\\resources\\puzzle-editor-966ab98b5f83ee14.ico,0"
+      },
+      "productName": "Puzzle Editor",
+      "actual": "39b1665b078fcc2cb39d03b8598c157b9254329e68fd9b848d1b89cdec34173e",
+      "executable": "D:\\Program Files\\Puzzle Editor\\Puzzle Editor.exe"
+    }
+  ],
+  "standaloneIconAllBytesMatch": true,
+  "installedExeAndAsarMatchPackage": true,
+  "installedFileHashes": {
+    "Puzzle Editor.exe": "1fe1506b5ad08eaa680eb0e582e37b73827d27cf29d6c4cb278a37646a13fa51",
+    "resources/app.asar": "1229c2ee2961cb15514848c44c6f280d0989dea97ec60907bc250326b7bcc360"
+  },
+  "userPreferencesUnchanged": true,
+  "accidentalInstallDirectoryAbsent": true,
+  "userConfirmedDesktopIconRestored": true,
+  "userConfirmation": "已恢复正常"
+}

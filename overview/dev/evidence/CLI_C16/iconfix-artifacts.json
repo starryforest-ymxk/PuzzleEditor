@@ -1,0 +1,11 @@
+{
+  "desktopPackagedSmoke": {
+    "ok": true,
+    "checks": 36,
+    "consoleErrors": []
+  },
+  "installer": {
+    "path": "release/desktop/C16-iconfix/Puzzle Editor Setup 1.0.0-beta.exe",
+    "sha256": "bd857a3b8392ec33a22d50a4c653fc3ae367b22e82ad045a99f3d7d2b2e0619e"
+  }
+}

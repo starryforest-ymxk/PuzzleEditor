@@ -1,0 +1,51 @@
+{
+  "doctorStatuses": [
+    {
+      "code": "RUNTIME",
+      "status": "pass"
+    },
+    {
+      "code": "CONFIG",
+      "status": "pass"
+    },
+    {
+      "code": "DESKTOP_PATH",
+      "status": "skip"
+    },
+    {
+      "code": "PACKAGE",
+      "status": "pass"
+    },
+    {
+      "code": "INSTALLATION",
+      "status": "pass"
+    },
+    {
+      "code": "COMMAND_PATH",
+      "status": "pass"
+    },
+    {
+      "code": "SKILL",
+      "status": "warn"
+    },
+    {
+      "code": "SESSION_DIRECTORY",
+      "status": "pass"
+    },
+    {
+      "code": "ONLINE_SESSION",
+      "status": "skip"
+    }
+  ],
+  "freshRegistryDerivedProcessPathVerified": true,
+  "installedAt": "2026-10-09T21:15:51.9395814+08:00",
+  "skillInstalledByThisTask": false,
+  "registryScope": "user",
+  "root": "D:\\Tools\\PuzzleEditorCLI",
+  "syntheticProjectCreateValidateExportPassed": true,
+  "command": "D:\\Tools\\PuzzleEditorCLI\\bin\\puzzle.cmd",
+  "doctorHealthy": true,
+  "phase": "C16",
+  "ok": true,
+  "activeVersion": "C16-1821c62f3a285be1"
+}

@@ -1,0 +1,35 @@
+{
+  "files": [
+    {
+      "sha256": "1fe1506b5ad08eaa680eb0e582e37b73827d27cf29d6c4cb278a37646a13fa51",
+      "path": "D:\\Program Files\\Puzzle Editor\\Puzzle Editor.exe"
+    },
+    {
+      "sha256": "1229c2ee2961cb15514848c44c6f280d0989dea97ec60907bc250326b7bcc360",
+      "path": "D:\\Program Files\\Puzzle Editor\\resources\\app.asar"
+    },
+    {
+      "sha256": "5aa4ee3d5fde213378ae9f5e7b8cf70736c359233de86e7c28441baed6d12724",
+      "path": "%APPDATA%\\StarryTree\\PuzzleEditor\\preferences.json"
+    }
+  ],
+  "shortcuts": [
+    {
+      "existed": false,
+      "path": "C:\\Users\\Public\\Desktop\\Puzzle Editor.lnk"
+    },
+    {
+      "existed": false,
+      "path": "%USERPROFILE%\\Desktop\\Puzzle Editor.lnk"
+    },
+    {
+      "sha256": "464bef0a1c4e2230d61e01f162e8a08694bed4facab196410f6a4efbbcb8bba1",
+      "existed": true,
+      "icon": "D:\\Program Files\\Puzzle Editor\\Puzzle Editor.exe,0",
+      "target": "D:\\Program Files\\Puzzle Editor\\Puzzle Editor.exe",
+      "path": "C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs\\Puzzle Editor.lnk"
+    }
+  ],
+  "verifiedAt": "2026-10-09T20:55:10.9353506+08:00",
+  "installer": "E:\\Projects\\Web Projects\\puzzle-editor\\release\\desktop\\C16-iconfix\\Puzzle Editor Setup 1.0.0-beta.exe"
+}

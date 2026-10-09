@@ -1,12 +1,12 @@
 # PuzzleEditor CLI 入门
 
-本指南对应 C16，Windows x64，在线协议 2。CLI 可以独立创建、读取、编辑、校验和导出工程；连接兼容桌面程序后也可以编辑未保存的内容并共用 Undo/Redo。
+本指南对应 C16 CLI / C16.1 桌面图标修订，Windows x64，在线协议 2。CLI 可以独立创建、读取、编辑、校验和导出工程；连接兼容桌面程序后也可以编辑未保存的内容并共用 Undo/Redo。
 
 ## 1. 下载并启动
 
-从 [C16 Release](https://github.com/starryforest-ymxk/PuzzleEditor/releases/tag/v1.0.0-beta-c16) 下载 [CLI ZIP](https://github.com/starryforest-ymxk/PuzzleEditor/releases/download/v1.0.0-beta-c16/PuzzleEditor-CLI-1.0.0-beta-C16-win-x64.zip) 和 [桌面安装器](https://github.com/starryforest-ymxk/PuzzleEditor/releases/download/v1.0.0-beta-c16/PuzzleEditor-Setup-1.0.0-beta-C16-win-x64.exe)。[旧 C10 Release](https://github.com/starryforest-ymxk/PuzzleEditor/releases/tag/v1.0.0-beta-c10) 保持。解压 ZIP 到独立目录，包内包含 puzzle.cmd、Node、许可证、能力表、AGENTS.md、安装入口与 Skill，无需 Node/npm。
+从 [C16.1 Release](https://github.com/starryforest-ymxk/PuzzleEditor/releases/tag/v1.0.0-beta-c16.1) 下载 [CLI ZIP](https://github.com/starryforest-ymxk/PuzzleEditor/releases/download/v1.0.0-beta-c16.1/PuzzleEditor-CLI-1.0.0-beta-C16-win-x64.zip) 和 [桌面安装器](https://github.com/starryforest-ymxk/PuzzleEditor/releases/download/v1.0.0-beta-c16.1/PuzzleEditor-Setup-1.0.0-beta-C16.1-win-x64.exe)。此前 GitHub Release 已被用户删除，本轮重新发布当前版本。解压 ZIP 到独立目录，包内包含 puzzle.cmd、Node、许可证、能力表、AGENTS.md、安装入口与 Skill，无需 Node/npm。
 
-本地验收包位于 release/cli/C16-final3 和 release/desktop/C16-final；中间候选 C16、C16-final、C16-final2 不作为交付包。源与附件核验见 [发行记录](https://github.com/starryforest-ymxk/PuzzleEditor/blob/v1.0.0-beta-c16/overview/dev/Release_C16_2026-10-09.md)。
+本地验收包位于 release/cli/C16-final3 和 release/desktop/C16-iconfix；中间候选 C16、C16-final、C16-final2 不作为交付包。源与附件核验见 [发行记录](https://github.com/starryforest-ymxk/PuzzleEditor/blob/v1.0.0-beta-c16.1/overview/dev/Release_C16_1_2026-10-09.md)。
 
 在 PowerShell 中设置启动器路径。下面的路径是示例，请改为自己的解压位置：
 
@@ -24,7 +24,9 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\install-cli.ps1 --dry-run
 powershell -NoProfile -ExecutionPolicy Bypass -File .\install-cli.ps1
 ```
 
-重新打开终端后执行 puzzle version、puzzle config show、puzzle doctor --offline。Codex Skill 安装先预览 `puzzle skills install --agent codex --scope user --dry-run`，去掉 --dry-run 安装。项目级用 --scope project --project-root；查看/卸载与恢复见 [唯一发行指南](https://github.com/starryforest-ymxk/PuzzleEditor/blob/v1.0.0-beta-c16/overview/dev/CLI_Distribution_Guide.md)。全局安装不授权任何工程覆盖或 JSON 编辑。
+自定义安装目录可在两条安装命令后增加 `--install-root 'D:\Tools\PuzzleEditorCLI'`。当前 CLI 通过自己的安装记录和卸载入口管理，尚未注册到 Windows“已安装的应用”列表。
+
+重新打开终端或 Codex 后执行 puzzle version、puzzle config show、puzzle doctor --offline。Codex Skill 安装先预览 `puzzle skills install --agent codex --scope user --dry-run`，去掉 --dry-run 安装。项目级用 --scope project --project-root；查看/卸载与恢复见 [唯一发行指南](https://github.com/starryforest-ymxk/PuzzleEditor/blob/v1.0.0-beta-c16.1/overview/dev/CLI_Distribution_Guide.md)。全局安装不授权任何工程覆盖或 JSON 编辑。
 
 ## 2. 创建、读取和导出
 

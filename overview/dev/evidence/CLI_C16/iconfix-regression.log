@@ -1,0 +1,192 @@
+
+ RUN  v3.2.7 E:/Projects/Web Projects/puzzle-editor
+
+ ✓ tests/cli/c7Process.test.ts (48 tests) 12259ms
+   ✓ C7 支持格式、命名与往返 > 能力发现提供两入口、映射/回执 Schema，拒绝其他权限与通用编辑参数  768ms
+   ✓ C7 支持格式、命名与往返 > project 预览提交并导出，与 GUI 导入相同，原 ID/状态/0/false 保留  678ms
+   ✓ C7 支持格式、命名与往返 > export 预览提交并导出，与 GUI 导入相同，原 ID/状态/0/false 保留  623ms
+   ✓ C7 支持格式、命名与往返 > raw 预览提交并导出，与 GUI 导入相同，原 ID/状态/0/false 保留  643ms
+   ✓ C7 支持格式、命名与往返 > legacy-manifest 预览提交并导出，与 GUI 导入相同，原 ID/状态/0/false 保留  634ms
+   ✓ C7 支持格式、命名与往返 > 旧缺名和业务错误可原样转换；外部名称补齐后导出恢复  779ms
+   ✓ C7 回执、文件所有权与重试 > expected-hash、已有输出、回执和目标重合均阻断预览  339ms
+   ✓ C7 回执、文件所有权与重试 > 同一回执并发发布只产生一个文件，已有不同目标不覆盖  420ms
+ ✓ tests/cli/c9Transport.test.ts (8 tests) 14720ms
+   ✓ C9 当前用户发现、认证与命令行 > 并发发布/清理临时文件不被误判为权限异常，实际 ACL 仍逐项验证  1993ms
+   ✓ C9 当前用户发现、认证与命令行 > 没有桌面实例时返回空列表，不建立目录  713ms
+   ✓ C9 当前用户发现、认证与命令行 > 两个实例分别可发现，CLI 必须提供明确实例和会话  4386ms
+   ✓ C9 当前用户发现、认证与命令行 > 认证前或错误签名不调用业务处理器  1341ms
+   ✓ C9 当前用户发现、认证与命令行 > 未知操作、错误 secret、关闭实例均无业务副作用  1951ms
+   ✓ C9 当前用户发现、认证与命令行 > 不兼容与陈旧登记如实报告，不自动删除或尝试 PID 接管  1948ms
+   ✓ C9 当前用户发现、认证与命令行 > 登记文件向 Everyone 授权后整个发现失败关闭  2095ms
+ ✓ tests/cli/c3Process.test.ts (54 tests) 9781ms
+   ✓ C3 完整 FSM 的真实 CLI 往返 > 新工程前向 alias、完整效果、画布校验、保存导出及重导入一致  377ms
+   ✓ C3 完整 FSM 的真实 CLI 往返 > 局部 ID 只在指定 FSM 更新，编辑状态与源文件保留，apply 重试无重复  396ms
+   ✓ C3 完整 FSM 的真实 CLI 往返 > 清空字段、事件和演出绑定可往返；Graph 绑定复用现有资源  508ms
+   ✓ C3 完整 FSM 的真实 CLI 往返 > 新建再删除编号不复用，已删除 alias 不能再次成为目标  349ms
+   ✓ C3 契约和归属边界 > 最后状态、独立 Puzzle 范围、跨 FSM alias、重复嵌套 alias 都被保护  496ms
+   ✓ C3 契约和归属边界 > 新 FSM 继承 Stage 范围，后创建的其他 FSM alias 不能作为连线端点  383ms
+   ✓ C3 复用工程校验，定位错误的所属 FSM > 拒绝状态的重复资产名、错误生命周期目标、无脚本 InvokeScript；允许合法同名跨 FSM  515ms
+ ✓ tests/cli/c10History.test.ts (6 tests) 23132ms
+   ✓ C10 真实 CLI 历史契约 > describe 暴露 36 个入口和严格历史字段、聊天声明及协议  1733ms
+   ✓ C10 真实 CLI 历史契约 > 真实 CLI Undo/Redo、同 ID 重试与 GUI 条目身份一致  6475ms
+   ✓ C10 真实 CLI 历史契约 > 缺参数、重复参数、任意路径和多条/跳过选项在传输前拒绝  2724ms
+   ✓ C10 真实 CLI 历史契约 > 错误顶部和被修改的 token 失败且内容保持，空栈如实报告  4893ms
+   ✓ C10 真实 CLI 历史契约 > C9 协议登记明确不兼容，不删除登记或尝试写入  3145ms
+   ✓ C10 真实 CLI 历史契约 > 历史实际永久删除检查声明，许可与 requestId 指纹独立  4161ms
+ ✓ tests/cli/c5Process.test.ts (50 tests) 11044ms
+   ✓ C5 真实整文件往返与授权声明 > 完整字节、BOM/换行/时间/编辑状态保持，图引用影响可读并可导出重开  514ms
+   ✓ C5 真实整文件往返与授权声明 > 同一回执重试与并发提交只交付同一候选，不重复写入或改变时间  399ms
+   ✓ C5 候选完整性与共同校验 > 新增资产缺名拒绝；补齐外部资产名后可创建  352ms
+   ✓ C5 整文件替换仍遵守生命周期 > 未获永久删除许可不能移除 Implemented 资源或借改 ID 伪装  770ms
+   ✓ C5 整文件替换仍遵守生命周期 > 未获永久删除许可不能移除 MarkedForDelete 资源或借改 ID 伪装  742ms
+   ✓ C5 整文件替换仍遵守生命周期 > 局部变量可明确移动并保持状态，但不能顺带删除受保护声明  528ms
+   ✓ C5 指纹、路径与故障保护 > expected-hash 前提错误拒绝；修改后重新预览允许继续  369ms
+   ✓ C5 指纹、路径与故障保护 > 回执不能占用源、候选或输出路径  362ms
+   ✓ C5 指纹、路径与故障保护 > 已有目标在 preview/apply 都受保护  417ms
+   ✓ C5 指纹、路径与故障保护 > 回执类型、额外批准字段和重复键不能混用  494ms
+ ✓ tests/cli/c2Process.test.ts (41 tests) 9916ms
+   ✓ C2 编译产物完整写入链路 > 前向 alias、多层 Stage、不同层 Puzzle、资源创建与导出完整闭环  344ms
+   ✓ C2 编译产物完整写入链路 > 默认预览零写入，回执重建同一候选且重试确认已有输出  393ms
+   ✓ C2 拒绝非法操作且保留源工程 > 根资产名必填且格式非法时不创建输出目录  320ms
+   ✓ C2 拒绝非法操作且保留源工程 > 前向 alias 类型错误、未知和父级环明确失败  343ms
+   ✓ C2 拒绝非法操作且保留源工程 > 错误基线允许保留旧缺名并修复；不允许新增错误  486ms
+   ✓ C2 拒绝非法操作且保留源工程 > 移动 Puzzle 离开局部变量可见范围拒绝；显式清理后允许且 ID 保持  379ms
+   ✓ C2 拒绝非法操作且保留源工程 > 脚本类别和生命周期目标必须匹配，更新脚本也不能破坏已有绑定  350ms
+   ✓ C2 拒绝非法操作且保留源工程 > 参数修改器与 GUI 共用类型规则，false/0 不丢失且 Toggle 不消费来源  500ms
+   ✓ C2 文件一致性与失败策略 > 原型成员不能冒充实体 ID 或有效引用  352ms
+   ✓ C2 文件一致性与失败策略 > 拒绝源/计划/回执别名、硬链接以及已有不同内容输出  625ms
+   ✓ C2 文件一致性与失败策略 > 已有目标、导出后缀与 IO 失败不覆盖任何输入  513ms
+   ✓ C2 文件一致性与失败策略 > 计划严格 Schema 可导出且拒绝通用字段，未知文件字段仍只能完整读取  372ms
+ ✓ tests/cli/c6Process.test.ts (28 tests) 11055ms
+   ✓ C6 领域删除与交付 > 新版目录保留 C6 的 47 种操作和同级独立能力，覆盖能力可调用但不能用于另存模式  342ms
+   ✓ C6 领域删除与交付 > 预览包含整棵子树和局部 FSM 实体，普通删除另存可重试且源原文保持  608ms
+   ✓ C6 领域删除与交付 > Implemented 级联预览可读，缺声明零写入，授权声明后成功  438ms
+   ✓ C6 领域删除与交付 > MarkedForDelete 级联预览可读，缺声明零写入，授权声明后成功  408ms
+   ✓ C6 领域删除与交付 > Puzzle 删除的局部受保护变量同样要求永久删除能力  372ms
+   ✓ C6 显式 purge > Implemented 'global' purge 需授权并只删除目标  483ms
+   ✓ C6 显式 purge > Implemented 'stage' purge 需授权并只删除目标  526ms
+   ✓ C6 显式 purge > Implemented 'node' purge 需授权并只删除目标  480ms
+   ✓ C6 显式 purge > Implemented 'event' purge 需授权并只删除目标  474ms
+   ✓ C6 显式 purge > Implemented 'script' purge 需授权并只删除目标  473ms
+   ✓ C6 显式 purge > MarkedForDelete 'global' purge 需授权并只删除目标  472ms
+   ✓ C6 显式 purge > MarkedForDelete 'stage' purge 需授权并只删除目标  470ms
+   ✓ C6 显式 purge > MarkedForDelete 'node' purge 需授权并只删除目标  482ms
+   ✓ C6 显式 purge > MarkedForDelete 'event' purge 需授权并只删除目标  477ms
+   ✓ C6 显式 purge > MarkedForDelete 'script' purge 需授权并只删除目标  461ms
+   ✓ C6 显式 purge > 普通 delete 仍标删，重复 delete 不会变成 purge，Draft 不用 purge  488ms
+   ✓ C6 显式 purge > 显式 purge 缺声明在工程/回执读取前拒绝，scope/回执不能代替授权  344ms
+   ✓ C6 显式 purge > 受引用资源需同批显式修复，授权不会关闭引用校验  384ms
+   ✓ C6 备用 JSON 权限组合与回执 > raw 删除父对象不能绕过永久删除声明，两项均声明后原文交付  705ms
+   ✓ C6 备用 JSON 权限组合与回执 > old-policy 拒绝旧/篡改回执且无输出  490ms
+   ✓ C6 备用 JSON 权限组合与回执 > removed-capabilities 拒绝旧/篡改回执且无输出  428ms
+   ✓ C6 备用 JSON 权限组合与回执 > changed-source 拒绝旧/篡改回执且无输出  385ms
+ ✓ tests/cli/c8Process.test.ts (18 tests) 10424ms
+   ✓ C8 覆盖的权限、原文与可重试交付 > 领域覆盖保留其他数据与编辑状态、备份原字节，并发同回执不重复执行  686ms
+   ✓ C8 覆盖的权限、原文与可重试交付 > raw 覆盖保留候选 BOM/缩进/换行及时间，重试也需两项许可  778ms
+   ✓ C8 覆盖的权限、原文与可重试交付 > raw+覆盖+永久删除三能力按实际效果组合，缺任一项不创建备份或改源  955ms
+   ✓ C8 覆盖的权限、原文与可重试交付 > 领域 purge+覆盖缺声明不读取源；提供两项许可后提交  497ms
+   ✓ C8 覆盖的权限、原文与可重试交付 > 模式互斥，旧另存回执与覆盖回执不能互换，import/export 无覆盖参数  875ms
+   ✓ C8 覆盖的权限、原文与可重试交付 > 相同字节但 inode 替换也不冒充原版本；硬链接源拒绝覆盖  386ms
+   ✓ C8 覆盖的权限、原文与可重试交付 > 已写入后的第三方改动拒绝重试，不自动还原备份  455ms
+   ✓ C8 覆盖的权限、原文与可重试交付 > raw 候选或回执改变后不能重试；丢失备份不能假报完成  1052ms
+   ✓ C8 覆盖的权限、原文与可重试交付 > 存活桌面所有者与未知/无响应所有者均拒绝，释放后可继续  979ms
+   ✓ C8 覆盖的权限、原文与可重试交付 > 进程在 after-backup 被终止，OS 释放锁且同回执能核验恢复  1199ms
+   ✓ C8 覆盖的权限、原文与可重试交付 > 进程在 after-replace 被终止，OS 释放锁且同回执能核验恢复  718ms
+ ✓ tests/services/projectSession.test.ts (49 tests) 2692ms
+ ✓ tests/cli/tooling.test.ts (46 tests) 40578ms
+   ✓ C12 tool installation processes > read-only status and dry-run do not create a root  1790ms
+   ✓ C12 tool installation processes > installs, verifies and repeats without changes  3112ms
+   ✓ C12 tool installation processes > OS ownership blocks a concurrent installation  396ms
+   ✓ C12 tool installation processes > upgrades only after package verification, keeping the old version  2801ms
+   ✓ C12 tool installation processes > recovers a known interrupted activation to the old verified version  2260ms
+   ✓ C12 tool installation processes > refuses recovery when PATH differs from both recorded snapshots  550ms
+   ✓ C12 tool installation processes > uninstall preview is read-only  1373ms
+   ✓ C12 tool installation processes > an installed runtime refuses to delete itself  1712ms
+   ✓ C12 tool installation processes > unknown files block deletion  789ms
+   ✓ C12 tool installation processes > removes owned files and PATH, preserving unrelated user configuration  2388ms
+   ✓ C12 tool installation processes > preserves a long unexpanded PATH and its registry type  4426ms
+   ✓ C12 tool installation processes > distinguishes an originally empty PATH from an absent value  3697ms
+   ✓ C13 read-only configuration > rejects invalid optional configuration without mutation: {"schemaVersion":2}  324ms
+   ✓ C13 read-only configuration > rejects invalid optional configuration without mutation: {"schemaVersion":1,"allowOverwrite":true}  324ms
+   ✓ C13 read-only configuration > rejects invalid optional configuration without mutation: {"schemaVersion":1,"schemaVersion":1}  331ms
+   ✓ C13 read-only configuration > rejects invalid optional configuration without mutation: {  327ms
+   ✓ C14 Skill lifecycle > installs and repeats idempotently  361ms
+   ✓ C14 Skill lifecycle > recovers an interrupted Skill removal and resumes committed cleanup  703ms
+   ✓ C14 Skill lifecycle > supports project scope and preserves external same-name skills  486ms
+   ✓ C14 Skill lifecycle > requires explicit scope, supported agent and project target  392ms
+   ✓ C15 doctor > healthy portable mode permits optional absences and makes no directories  1625ms
+   ✓ C15 doctor > aggregates failures and continues independent checks  1746ms
+   ✓ C15 doctor > checks an explicit valid project without changing its bytes  1986ms
+   ✓ C15 doctor > explicit unavailable online session fails without registration secrets  2094ms
+   ✓ C15 doctor > observes an external command without editing PATH  1559ms
+   ✓ C15 doctor > rejects ambiguous online arguments  304ms
+ ✓ tests/cli/process.test.ts (23 tests) 5028ms
+   ✓ 领域查询、上下文和机器诊断 > 树深度/列表分页有明确边界，指纹变化后拒绝后续页  418ms
+   ✓ 领域查询、上下文和机器诊断 > FSM/演出图详情保留完整字段，引用查询复用编辑器扫描  353ms
+   ✓ 领域查询、上下文和机器诊断 > 父链/子链环不会让校验、变量或引用查询无限运行  599ms
+ ✓ tests/performance/references.test.ts (6 tests) 619ms
+   ✓ 引用计数与批量引用查询一致 > large 夹具校验无 error、可往返，全部计数一致  304ms
+ ✓ tests/services/onlineSession.test.ts (22 tests) 225ms
+ ✓ tests/cli/c8FileTransactions.test.ts (10 tests) 300ms
+ ✓ tests/services/onlineHistory.test.ts (21 tests) 155ms
+ ✓ tests/services/projectImport.test.ts (41 tests) 40ms
+ ✓ tests/hooks/useProjectActions.test.ts (6 tests) 135ms
+ ✓ tests/cli/c7Domain.test.ts (11 tests) 30ms
+ ✓ tests/electron/fileService.test.ts (3 tests) 50ms
+ ✓ tests/cli/c6Domain.test.ts (22 tests) 28ms
+ ✓ tests/store/resourceHistory.test.ts (17 tests) 10ms
+ ✓ tests/batch5/export.test.ts (4 tests) 13ms
+ ✓ tests/cli/c4Domain.test.ts (11 tests) 17ms
+ ✓ tests/cli/exportPreparation.test.ts (3 tests) 11ms
+ ✓ tests/store/documentHistory.test.ts (21 tests) 10ms
+ ✓ tests/cli/contracts.test.ts (17 tests) 11ms
+ ✓ tests/cli/c4Process.test.ts (42 tests) 10766ms
+   ✓ C4 真实 CLI 演出图事务与查询 > 从新工程创建完整图、前向 alias、共享子图、零值/布尔参数并导出往返  639ms
+   ✓ C4 真实 CLI 演出图事务与查询 > 断开 True 不移动 False、清理对应样式，源字节/时间/编辑状态保留并可重试  444ms
+   ✓ C4 真实 CLI 演出图事务与查询 > Parallel 插入、删除、改接保留显式顺序  330ms
+   ✓ C4 真实 CLI 演出图事务与查询 > 断开后的 False 单独存在可被导出、再导入，不压缩空 True  471ms
+   ✓ C4 真实 CLI 演出图事务与查询 > 图内重复局部 ID 只修改指定图，入口和元数据显式编辑  312ms
+   ✓ C4 真实 CLI 演出图事务与查询 > 删除节点显式清理入出边和入口；最后节点删除后为空图  313ms
+   ✓ C4 真实 CLI 演出图事务与查询 > 删除 True 目标保留 False；创建图使用显式 alias scope  587ms
+   ✓ C4 真实 CLI 演出图事务与查询 > 引用查询包括嵌套条件脚本及事件派发，并报告局部变量的真正所有者  450ms
+   ✓ C4 拒绝非法编辑并保留源文件 > 跨图 alias、缺少新图权限明确拒绝  377ms
+   ✓ C4 拒绝非法编辑并保留源文件 > 递归条件中的局部变量逐个调用者验证；第二个错误不能被旧错误基线掩盖  513ms
+   ✓ C4 拒绝非法编辑并保留源文件 > 解除绑定后删除图、跨范围调用者修改仍需其自身权限  520ms
+   ✓ C4 拒绝非法编辑并保留源文件 > 后续失败时不生成项目/回执；回执修改和源文件过期均拒绝 apply  754ms
+ ✓ tests/store/reducer.test.ts (15 tests) 9ms
+ ✓ tests/services/validationNavigation.test.ts (6 tests) 6ms
+ ✓ tests/batch5/domain.test.ts (10 tests) 9ms
+ ✓ tests/services/variableScope.test.ts (8 tests) 4ms
+ ✓ tests/store/provider.test.tsx (1 test) 6ms
+ ✓ tests/components/dialogs.test.tsx (12 tests) 4290ms
+   ✓ 统一弹窗的真实交互 > 危险确认默认 Cancel，保留引用预览；StrictMode 退出恢复触发点和背景状态  1357ms
+   ✓ 统一弹窗的真实交互 > 新建过程中叠加保存确认：只响应最上层 Escape，取消保留名称草稿并恢复焦点  307ms
+   ✓ 统一弹窗的真实交互 > Tab 与 Shift+Tab 限于弹窗，背景聚焦被拦截，遮罩不丢失表单  329ms
+   ✓ 统一弹窗的真实交互 > 项目设置保留元信息和导出字段；Ctrl+Enter 从描述保存，失败后可继续编辑  317ms
+   ✓ 偏好设置接入共享表单 > 开关、目录、自动保存间隔及自定义模型持久化后才同步 Store  774ms
+   ✓ 偏好设置接入共享表单 > 写盘中阻止重复提交和关闭；异常保留草稿与旧设置，解除忙碌后可重试  616ms
+ ✓ tests/performance/blackboardData.test.tsx (1 test) 2805ms
+   ✓ 黑板引用计算的更新边界 > 筛选/选择复用统计，业务修改/撤销/切换更新，卸载不保留项目缓存  2803ms
+stdout | tests/batch5/components.test.tsx > 演出画布真实组件手势 > Ctrl 拖动剪线删除交叉边，撤销恢复连接
+[Cutting] Started at { x: 220, y: 0 }
+
+ ✓ tests/components/editorInteractions.test.tsx (6 tests) 2281ms
+   ✓ 组件生命周期与输入回归 > 'StageOverview' 在存在、缺失、恢复阶段之间切换时保持 Hook 顺序  835ms
+   ✓ 组件生命周期与输入回归 > 'StageInspector' 在存在、缺失、恢复阶段之间切换时保持 Hook 顺序  450ms
+   ✓ 组件生命周期与输入回归 > 删除被引用的局部变量时显示位置文字，确认后派发真实 Store 操作  863ms
+ ✓ tests/components/uiConsistency.test.tsx (8 tests) 134ms
+ ✓ tests/components/windowClose.test.tsx (5 tests) 3524ms
+   ✓ 关闭弹窗与应用接线 > 原生关闭先提交实际 Inspector 名称草稿（后台无 blur=false），取消保留修改  2225ms
+   ✓ 关闭弹窗与应用接线 > 原生关闭先提交实际 Inspector 名称草稿（后台无 blur=true），取消保留修改  437ms
+   ✓ 关闭弹窗与应用接线 > Save & Close 使用真实会话，确认之前不答复主进程  501ms
+ ✓ tests/components/editBarrier.test.ts (3 tests) 12ms
+ ✓ tests/batch5/components.test.tsx (12 tests) 3046ms
+   ✓ 演出画布真实组件手势 > 连线模式点击目标不会同时启动节点拖动或在后续鼠标移动时漂移  1018ms
+   ✓ Blackboard 组合与分组交互 > Store 视图更新立即同步工具栏，不保留另一份本地筛选状态  315ms
+   ✓ Blackboard 组合与分组交互 > 四页签创建后选中正确资源，生命周期脚本不附带旧参数字段  567ms
+
+ Test Files  39 passed (39)
+      Tests  715 passed (715)
+   Start at  20:45:59
+   Duration  63.05s (transform 22.72s, setup 0ms, collect 53.33s, tests 179.18s, environment 5.09s, prepare 3.40s)
+
