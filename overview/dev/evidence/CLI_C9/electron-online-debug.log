@@ -1,0 +1,55 @@
+C9 online evidence: D:\Temp\puzzle C9 desktop 中文 qmBGD5
+PASS Create isolated First
+PASS Create isolated Second
+DESKTOP one: 
+DESKTOP one: IPC handlers registered successfully
+DESKTOP two: 
+DESKTOP two: IPC handlers registered successfully
+DISCOVERY {"code":0,"apiVersion":"1.0.0","ok":true,"command":"session list","data":{"sessions":[]},"diagnostics":[]}
+DESKTOP one: [FileWatcher] Start watching: D:\Temp\puzzle C9 desktop 中文 qmBGD5\A.puzzle.json
+DESKTOP one: Preferences saved to: D:\Temp\puzzle C9 desktop 中文 qmBGD5\one\appdata\StarryTree\PuzzleEditor\preferences.json
+DESKTOP two: [FileWatcher] Start watching: D:\Temp\puzzle C9 desktop 中文 qmBGD5\B.puzzle.json
+DESKTOP two: Preferences saved to: D:\Temp\puzzle C9 desktop 中文 qmBGD5\two\appdata\StarryTree\PuzzleEditor\preferences.json
+DISCOVERY {"code":0,"apiVersion":"1.0.0","ok":true,"command":"session list","data":{"sessions":[]},"diagnostics":[]}
+PASS Two production desktop sessions discovered without guessing
+PASS Preview against live token
+PASS Dropped connection after request delivery preserves the committed transaction
+PASS CLI applies one atomic GUI undo transaction
+PASS Production Inspector immediately displays CLI edit
+PASS Same ID retry after real disconnect returns original result without duplicate commit
+PASS Other desktop remains unchanged
+PASS Auto-save restriction visible in live status
+PASS Real GUI Ctrl+Z undoes whole Agent batch
+PASS Real GUI redo restores auto-save restriction
+PASS Old token rejected after GUI undo/redo
+PASS Draft test preview
+PASS Focus real Inspector field in hidden/background window
+PASS Read-only reports pending draft and committed content separately
+PASS Apply flushes background field then rejects stale preview
+PASS Human field commit remains in shared history
+PASS Human draft preserved visibly
+PASS Online preview does not interrupt an open modal
+PASS Current-file save requires chat overwrite declaration
+DESKTOP one: Failed to write project: The disk project differs from expectedDiskHash. No write was performed.
+PASS Disk hash conflict leaves memory dirty and disk untouched
+Waiting for the real one-minute auto-save tick with unauthorized Agent content...
+PASS Real auto-save timer performs zero unauthorized disk overwrite
+PASS Auto-save preference remains enabled
+PASS Authorized current-file save acknowledges captured content
+PASS Saved disk contains latest human and Agent content
+PASS Preview next task
+PASS Apply next task
+PASS Previous authorization does not allow next task auto-save
+DESKTOP one: [FileWatcher] Stop watching: D:\Temp\puzzle C9 desktop 中文 qmBGD5\A.puzzle.json
+DESKTOP one: [FileWatcher] Start watching: D:\Temp\puzzle C9 desktop 中文 qmBGD5\New copy.puzzle.json
+DESKTOP one: Preferences saved to: D:\Temp\puzzle C9 desktop 中文 qmBGD5\one\appdata\StarryTree\PuzzleEditor\preferences.json
+PASS Explicit new path saves through ownership and session queue
+PASS New copy contains expected current snapshot
+DESKTOP one: [FileWatcher] Stop watching: D:\Temp\puzzle C9 desktop 中文 qmBGD5\New copy.puzzle.json
+DESKTOP one: [FileWatcher] Start watching: D:\Temp\puzzle C9 desktop 中文 qmBGD5\A.puzzle.json
+DESKTOP one: Preferences saved to: D:\Temp\puzzle C9 desktop 中文 qmBGD5\one\appdata\StarryTree\PuzzleEditor\preferences.json
+PASS Switching project invalidates old session identity
+DESKTOP one: [FileWatcher] Stop watching: D:\Temp\puzzle C9 desktop 中文 qmBGD5\A.puzzle.json
+DESKTOP two: [FileWatcher] Stop watching: D:\Temp\puzzle C9 desktop 中文 qmBGD5\B.puzzle.json
+PASS Closed desktop registrations are removed
+C9 real desktop online smoke passed (33 checks).

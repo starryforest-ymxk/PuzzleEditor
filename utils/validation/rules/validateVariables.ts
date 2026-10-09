@@ -31,6 +31,7 @@ import { VariableDefinition } from '../../../types/blackboard';
 
 import { ASSET_NAME_REGEX } from '../../assetNameValidation';
 import { ownEntry } from '../../recordLookup';
+import { buildPresentationUsage, resolveLocalVariableOwner } from '../../presentationUsage';
 import {
   constantVariableType,
   modifierOperations,
@@ -41,9 +42,6 @@ interface VariableContext {
   stage?: StageNode;
   node?: PuzzleNode;
 }
-
-// Map GraphID -> List of Usage Contexts
-type GraphContextMap = Map<string, VariableContext[]>;
 
 /**
  * 校验变量 ID (Internal Helper)
@@ -62,27 +60,17 @@ function checkVariableId(
 
   if (scope === 'Global') {
     variable = ownEntry(project.blackboard.globalVariables, variableId);
-  } else if (scope === 'StageLocal') {
-    // 向上遍历祖先 Stage 链查找变量（与 collectVisibleVariables 保持一致）
-    if (context.stage) {
-      let currentStage = context.stage;
-      const visited = new Set<string>();
-      while (currentStage && !visited.has(currentStage.id)) {
-        visited.add(currentStage.id);
-        if (ownEntry(currentStage.localVariables, variableId)) {
-          variable = ownEntry(currentStage.localVariables, variableId);
-          break;
-        }
-        // 沿父链向上查找
-        currentStage = currentStage.parentId
-          ? ownEntry(project.stageTree.stages, currentStage.parentId)!
-          : undefined!;
-      }
-    }
-  } else if (scope === 'NodeLocal') {
-    if (context.node && context.node.localVariables) {
-      variable = ownEntry(context.node.localVariables, variableId);
-    }
+  } else if (scope === 'StageLocal' || scope === 'NodeLocal') {
+    const owner = resolveLocalVariableOwner(project, scope, variableId, {
+      stageId: context.stage?.id,
+      nodeId: context.node?.id,
+    });
+    variable =
+      owner?.ownerType === 'stage'
+        ? ownEntry(project.stageTree.stages[owner.ownerId]?.localVariables, variableId)
+        : owner
+          ? ownEntry(project.nodes[owner.ownerId]?.localVariables, variableId)
+          : undefined;
   }
 
   if (!variable) return { valid: false, errorType: 'missing' };
@@ -168,9 +156,19 @@ function validateParameterBindings(
   contextDescription: string,
 ) {
   if (!bindings) return;
+  const names = new Set<string>();
   bindings.forEach((binding, idx) => {
+    if (names.has(binding.paramName))
+      results.push({
+        code: 'ERR_PARAM_DUPLICATE',
+        id: `err-param-duplicate-${locationContext.objectId}-${idx}`,
+        level: 'error',
+        message: `${contextDescription} repeats parameter name "${binding.paramName}".`,
+        ...locationContext,
+      });
+    names.add(binding.paramName);
     // Validate Param Name Format (Strict)
-    if (binding.paramName && !ASSET_NAME_REGEX.test(binding.paramName)) {
+    if (!binding.paramName || !ASSET_NAME_REGEX.test(binding.paramName)) {
       results.push({
         code: 'ERR_PARAM_FMT',
         id: `err-${locationContext.objectType.toLowerCase()}-param-fmt-${locationContext.objectId}-${idx}`,
@@ -188,6 +186,27 @@ function validateParameterBindings(
       locationContext,
       `${contextDescription} (Param: ${binding.paramName || 'Unnamed'})`,
     );
+    // 与 Temporary 编辑器的 allowedTypes 一致：变量引用必须与临时声明类型相同。
+    if (
+      binding.kind === 'Temporary' &&
+      binding.tempVariable &&
+      binding.source?.type === 'VariableRef'
+    ) {
+      const source = checkVariableId(
+        binding.source.variableId,
+        binding.source.scope,
+        project,
+        context,
+      );
+      if (source.valid && source.variable && source.variable.type !== binding.tempVariable.type)
+        results.push({
+          code: 'ERR_TEMP_SOURCE_TYPE',
+          id: `err-temp-source-type-${locationContext.objectId}-${idx}`,
+          level: 'error',
+          message: `Temporary parameter "${binding.paramName}" requires a ${binding.tempVariable.type} variable, received ${source.variable.type}.`,
+          ...locationContext,
+        });
+    }
   });
 }
 
@@ -354,7 +373,6 @@ function validatePresentationBinding(
     location: string;
   },
   contextDescription: string,
-  graphUsageMap: GraphContextMap, // [Changed] Pass map to collect usage
 ) {
   if (!binding) return;
 
@@ -369,144 +387,10 @@ function validatePresentationBinding(
       contextDescription,
     );
   }
-
-  // Graph Bindings: Record Context for Validation Phase
-  if (binding.type === 'Graph' && binding.graphId) {
-    if (!graphUsageMap.has(binding.graphId)) {
-      graphUsageMap.set(binding.graphId, []);
-    }
-    graphUsageMap.get(binding.graphId)!.push(context);
-  }
 }
-
-// --- 3. Graph Validation Phase Logic ---
-
-/**
- * Propagate contexts to nested graphs (DFS)
- * A -> B -> C: A's contexts should flow to B, and then to C.
- */
-function recurseGraphContexts(
-  project: ProjectData,
-  graphId: string,
-  currentContexts: VariableContext[],
-  graphUsageMap: GraphContextMap,
-  visitedGraphs: Set<string>,
-) {
-  if (visitedGraphs.has(graphId)) return;
-  visitedGraphs.add(graphId);
-
-  const graph = ownEntry(project.presentationGraphs, graphId);
-  if (!graph) return;
-
-  // Iterate all nodes in this graph to find sub-graph bindings
-  Object.values(graph.nodes).forEach((pNode) => {
-    if (pNode.presentation && pNode.presentation.type === 'Graph') {
-      const subGraphId = pNode.presentation.graphId;
-      if (!subGraphId) return;
-
-      // Add current contexts to sub-graph
-      if (!graphUsageMap.has(subGraphId)) {
-        graphUsageMap.set(subGraphId, []);
-      }
-      const subList = graphUsageMap.get(subGraphId)!;
-
-      // Push only unique contexts (by ref) to avoid explosion
-      currentContexts.forEach((ctx) => {
-        if (!subList.includes(ctx)) {
-          subList.push(ctx);
-        }
-      });
-
-      // Recurse
-      recurseGraphContexts(project, subGraphId, subList, graphUsageMap, visitedGraphs);
-    }
-  });
-
-  visitedGraphs.delete(graphId); // Allow visiting again from another path?
-  // Actually for strict Context propagation in DAG, we should just traverse.
-  // VariableContexts are accumulative.
-  // Simple approach: Multiple passes or just Propagate from known roots?
-  // Since we collected ALL initial usages in the main pass, we just need to propagate those down.
-  // The current recursive function pushes contexts downwards. We need to call this for every graph that has 'root' usages.
-}
-
-/**
- * Validate a ValueSource inside a Graph against ALL collected contexts
- */
-function validateGraphValueSource(
-  results: ValidationResult[],
-  source: ValueSource | undefined,
-  project: ProjectData,
-  contexts: VariableContext[],
-  graphId: string,
-  locationInfo: { contextDesc: string; objectId: string; location: string },
-) {
-  if (!source || source.type !== 'VariableRef') return;
-
-  const { variableId, scope } = source;
-  if (!variableId || !scope) return;
-  if (scope === 'Temporary') return;
-
-  // 1. Unused Graph Check (Strict Rules)
-  if (contexts.length === 0) {
-    if (scope !== 'Global') {
-      results.push({
-        code: 'ERR_GRAPH_ORPHANED_LOCAL',
-        id: `err-graph-orphaned-local-${graphId}-${variableId}`,
-        level: 'error',
-        message: `${locationInfo.contextDesc} uses ${scope} Variable '${variableId}', but Graph is UNUSED (no context). Local variables require a valid binding context.`,
-        objectType: 'PRESENTATION_GRAPH',
-        objectId: graphId,
-        location: locationInfo.location,
-      });
-    } else {
-      // Validating Global in unused graph is fine, just check global existence
-      const check = checkVariableId(variableId, scope, project, {});
-      if (!check.valid) {
-        results.push({
-          code: 'ERR_GRAPH_GLOBAL_MISSING',
-          id: `err-graph-global-missing-${graphId}-${variableId}`,
-          level: 'error',
-          message: `${locationInfo.contextDesc} references missing Global variable: ${variableId}`,
-          objectType: 'PRESENTATION_GRAPH',
-          objectId: graphId,
-          location: locationInfo.location,
-        });
-      }
-    }
-    return;
-  }
-
-  // 2. Used Graph Check (Intersection)
-  // Variable must exist in ALL contexts
-  for (const ctx of contexts) {
-    const check = checkVariableId(variableId, scope, project, ctx);
-    if (!check.valid) {
-      const ctxName = ctx.node
-        ? `Node: ${ctx.node.name}`
-        : ctx.stage
-          ? `Stage: ${ctx.stage.name}`
-          : 'Unknown Context';
-      results.push({
-        code: 'ERR_GRAPH_VAR_CTX_FAIL',
-        id: `err-graph-var-ctx-fail-${graphId}-${variableId}-${ctx.node?.id || ctx.stage?.id}`,
-        level: 'error',
-        message: `${locationInfo.contextDesc} references ${scope} variable '${check.variable?.name || variableId}' which is missing or invalid in usage context: ${ctxName}`,
-        objectType: 'PRESENTATION_GRAPH',
-        objectId: graphId,
-        location: locationInfo.location,
-      });
-      // Fail fast per variable to avoid spamming errors for every context
-      return;
-    }
-  }
-}
-
-// =========================================================================
 
 export const validateVariables = (project: ProjectData): ValidationResult[] => {
   const results: ValidationResult[] = [];
-  const graphUsageMap: GraphContextMap = new Map();
 
   // --- 1. Stage Tree (Collection Phase) ---
   Object.values(project.stageTree.stages).forEach((stage) => {
@@ -532,7 +416,6 @@ export const validateVariables = (project: ProjectData): ValidationResult[] => {
       varContext,
       stageContext,
       'OnEnter Presentation',
-      graphUsageMap,
     );
     validatePresentationBinding(
       results,
@@ -541,7 +424,6 @@ export const validateVariables = (project: ProjectData): ValidationResult[] => {
       varContext,
       stageContext,
       'OnExit Presentation',
-      graphUsageMap,
     );
     validateEventListeners(results, stage.eventListeners, project, varContext, stageContext);
   });
@@ -598,7 +480,6 @@ export const validateVariables = (project: ProjectData): ValidationResult[] => {
             varContext,
             transContext,
             'Presentation',
-            graphUsageMap,
           );
           validateParameterModifiers(
             results,
@@ -613,67 +494,78 @@ export const validateVariables = (project: ProjectData): ValidationResult[] => {
     }
   });
 
-  // --- 3. Presentation Graphs (Propagation & Validation Phase) ---
-  if (project.presentationGraphs) {
-    // 3.1 Propagate Contexts (Iterative approach to ensure depth)
-    // Since graphs can form a DAG (or cycle), we propagate.
-    // Simple propagation: Just iterate keys and recurse.
-    // Note: graphUsageMap keys grow as we find nested bindings.
-    // We use a safe copy of keys to start.
-    const initialGraphIds = Array.from(graphUsageMap.keys());
-    initialGraphIds.forEach((gid) => {
-      recurseGraphContexts(project, gid, graphUsageMap.get(gid)!, graphUsageMap, new Set());
+  // 共享图的每个真实调用上下文分别校验；递归条件与参数复用普通绑定规则。
+  const usage = buildPresentationUsage(project);
+  for (const graphId of usage.recursiveGraphs)
+    results.push({
+      code: 'WARN_SUBGRAPH_RECURSION',
+      id: `warn-subgraph-recursion-${graphId}`,
+      level: 'warning',
+      message: 'Recursive subgraph calls detected. Verify runtime termination explicitly.',
+      objectType: 'PRESENTATION_GRAPH',
+      objectId: graphId,
+      location: `Graph: ${graphId}`,
     });
-
-    // 3.2 Validate All Graphs
-    Object.values(project.presentationGraphs).forEach((graph) => {
-      const contexts = graphUsageMap.get(graph.id) || [];
-
-      // Warnings for Unused Graphs (Optional UX polish: Warning only if it's NOT checking Local vars.
-      // If it uses Local Vars, it will error below, so warning is redundant but helpful).
-      if (contexts.length === 0) {
-        results.push({
-          code: 'WARN_GRAPH_UNUSED',
-          id: `warn-graph-unused-${graph.id}`,
-          level: 'warning', // Warning: Orphaned
-          message: `Presentation Graph "${graph.name}" is not used anywhere (Orphaned).`,
-          objectType: 'PRESENTATION_GRAPH',
-          objectId: graph.id,
-          location: `Graph: ${graph.name}`,
-        });
-      }
-
-      // Iterate nodes and validate
-      Object.values(graph.nodes || {}).forEach((pNode) => {
-        const locationInfo = {
-          contextDesc: `Presentation Node '${pNode.name || pNode.id}'`,
-          objectId: graph.id,
-          location: `Graph: ${graph.name} > Node: ${pNode.name || pNode.id}`,
-        };
-
-        // Validate Binding Parameters
-        if (pNode.presentation && pNode.presentation.type === 'Script') {
-          pNode.presentation.parameters?.forEach((param) => {
-            validateGraphValueSource(results, param.source, project, contexts, graph.id, {
-              ...locationInfo,
-              contextDesc: `Param '${param.paramName}'`,
-            });
-          });
-        }
-
-        // Validate Branch Condition
-        if (pNode.condition && pNode.condition.type === 'Comparison') {
-          validateGraphValueSource(results, pNode.condition.left, project, contexts, graph.id, {
-            ...locationInfo,
-            contextDesc: `Condition Left`,
-          });
-          validateGraphValueSource(results, pNode.condition.right, project, contexts, graph.id, {
-            ...locationInfo,
-            contextDesc: `Condition Right`,
-          });
-        }
+  for (const graph of Object.values(project.presentationGraphs)) {
+    const contexts = usage.contexts.get(graph.id) ?? [];
+    if (!contexts.length)
+      results.push({
+        code: 'WARN_GRAPH_UNUSED',
+        id: 'warn-graph-unused-' + graph.id,
+        level: 'warning',
+        message: 'Presentation Graph "' + graph.name + '" is not used anywhere (Orphaned).',
+        objectType: 'PRESENTATION_GRAPH',
+        objectId: graph.id,
+        location: 'Graph: ' + graph.name,
       });
-    });
+    for (const pNode of Object.values(graph.nodes)) {
+      const calls = contexts.length ? contexts : [undefined];
+      for (const call of calls) {
+        const context: VariableContext = {
+          stage: call?.caller.stageId
+            ? ownEntry(project.stageTree.stages, call.caller.stageId)
+            : undefined,
+          node: call?.caller.nodeId ? ownEntry(project.nodes, call.caller.nodeId) : undefined,
+        };
+        const location =
+          'Graph: ' +
+          graph.name +
+          ' > Node: ' +
+          pNode.name +
+          (call ? ' > Caller: ' + call.caller.path : ' > No calling context');
+        const locationContext = {
+          objectType: 'PRESENTATION_NODE' as const,
+          objectId: pNode.id,
+          graphId: graph.id,
+          contextId: graph.id,
+          location,
+        };
+        const before = results.length;
+        if (pNode.presentation?.type === 'Script')
+          validateParameterBindings(
+            results,
+            pNode.presentation.parameters,
+            project,
+            context,
+            locationContext,
+            'Presentation',
+          );
+        validateCondition(results, pNode.condition, project, context, locationContext, 'Condition');
+        // 错误基线须区分调用者，新增第二个无效调用不能被同 ID 的旧错误吞掉。
+        for (const item of results.slice(before)) {
+          item.id +=
+            '-' +
+            graph.id +
+            '-' +
+            (call?.caller.nodeId ?? call?.caller.stageId ?? 'orphan') +
+            '-' +
+            (call?.caller.path ?? '');
+          item.message += call
+            ? ' Usage context: ' + call.caller.path + '.'
+            : ' Graph has no calling context.';
+        }
+      }
+    }
   }
 
   return results;

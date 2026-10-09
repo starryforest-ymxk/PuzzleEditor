@@ -83,6 +83,10 @@ export interface UserPreferences {
  * 用于主进程和渲染进程之间的通信
  */
 export const IPC_CHANNELS = {
+    SESSION_START: 'session:start',
+    SESSION_STOP: 'session:stop',
+    SESSION_REQUEST: 'session:request',
+    SESSION_RESPONSE: 'session:response',
     // 偏好设置相关
     PREFERENCES_LOAD: 'preferences:load',
     PREFERENCES_SAVE: 'preferences:save',
@@ -91,6 +95,8 @@ export const IPC_CHANNELS = {
     PROJECT_READ: 'project:read',
     PROJECT_WRITE: 'project:write',
     PROJECT_ACTIVATE: 'project:activate',
+    PROJECT_CLAIM: 'project:claim',
+    PROJECT_RELEASE_CLAIM: 'project:release-claim',
     PROJECT_EXPORT: 'project:export',
     PROJECT_CREATE: 'project:create',
 
@@ -173,14 +179,20 @@ export interface CreateProjectResult {
  * 通过 preload 脚本暴露给渲染进程的 API
  */
 export interface ElectronAPI {
+    startOnlineSession?: () => Promise<IPCResult<string>>;
+    stopOnlineSession?: (instanceId: string) => Promise<void>;
+    onOnlineSessionRequest?: (callback: (event: { instanceId: string; requestId: string; request: unknown }) => void) => () => void;
+    respondOnlineSession?: (instanceId: string, requestId: string, response: unknown) => Promise<void>;
     // 偏好设置
     loadPreferences: () => Promise<IPCResult<UserPreferences>>;
     savePreferences: (prefs: UserPreferences) => Promise<IPCResult>;
 
     // 项目操作
     readProject: (path: string) => Promise<IPCResult<string>>;
-    writeProject: (path: string, data: string, options?: { exclusive?: boolean }) => Promise<IPCResult>;
-    activateProject: (path: string | null, name: string) => Promise<IPCResult>;
+    writeProject: (path: string, data: string, options?: { exclusive?: boolean; expectedHash?: string }) => Promise<IPCResult>;
+    claimProject: (path: string | null, expectedContent?: string, create?: boolean) => Promise<IPCResult<string>>;
+    releaseProjectClaim: (token: string) => Promise<IPCResult>;
+    activateProject: (path: string | null, name: string, token?: string) => Promise<IPCResult>;
     exportProject: (path: string, data: string) => Promise<IPCResult>;
     createProject: (params: CreateProjectParams) => Promise<IPCResult<CreateProjectResult>>;
 

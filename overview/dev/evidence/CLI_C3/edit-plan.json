@@ -1,0 +1,46 @@
+{
+  "apiVersion": "1.0.0",
+  "sourceHash": "6bfd36c304a1330f1ded155d91bccbd138a66a84cac30fee1800594261dbdb08",
+  "scope": {
+    "puzzles": [
+      {
+        "id": "NODE_1"
+      }
+    ]
+  },
+  "commands": [
+    {
+      "op": "state.update",
+      "fsm": {
+        "puzzle": {
+          "id": "NODE_1"
+        }
+      },
+      "target": {
+        "id": "STATE_1"
+      },
+      "changes": {
+        "description": "Verified through CLI",
+        "position": {
+          "x": 620,
+          "y": 100
+        }
+      }
+    },
+    {
+      "op": "transition.update",
+      "fsm": {
+        "puzzle": {
+          "id": "NODE_1"
+        }
+      },
+      "target": {
+        "id": "TRANS_1"
+      },
+      "changes": {
+        "priority": 12,
+        "description": "CLI verified success"
+      }
+    }
+  ]
+}

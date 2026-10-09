@@ -1,0 +1,25 @@
+{
+  "success": true,
+  "checks": {
+    "unrelatedProjectDataPreserved": true,
+    "editorStatePreserved": true,
+    "guiSaveProjectDataPreserved": true,
+    "guiCliExportsEqual": true,
+    "backupMatchesOriginal": true,
+    "sourceMatchesCommittedHash": true,
+    "validationErrors": 0,
+    "validationWarnings": 0
+  },
+  "browser": "Codex IAB",
+  "url": "http://127.0.0.1:3018",
+  "actions": [
+    "Open CLI overwritten project through file chooser",
+    "Navigate Room and Door FSM",
+    "Verify ExternalDoor asset name and marked variable",
+    "Validate 0 errors and 0 warnings",
+    "Save full project",
+    "Export runtime data and compare"
+  ],
+  "consoleWarnings": 0,
+  "consoleErrors": 0
+}

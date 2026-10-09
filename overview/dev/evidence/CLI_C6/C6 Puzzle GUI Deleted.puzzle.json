@@ -1,0 +1,256 @@
+{
+  "fileType": "puzzle-project",
+  "editorVersion": "1.0.0",
+  "savedAt": "2026-10-09T05:53:41.340Z",
+  "project": {
+    "meta": {
+      "id": "PROJECT_1",
+      "name": "C6 Draft Regression",
+      "description": "",
+      "version": "1.0.0",
+      "createdAt": "2026-10-08T00:00:00.000Z",
+      "updatedAt": "2026-10-09T05:53:41.340Z"
+    },
+    "blackboard": {
+      "globalVariables": {
+        "flag": {
+          "id": "flag",
+          "name": "Flag",
+          "assetName": "Flag",
+          "type": "boolean",
+          "value": false,
+          "state": "Draft",
+          "scope": "Global"
+        }
+      },
+      "events": {
+        "open": {
+          "id": "open",
+          "name": "Open",
+          "assetName": "OpenEvent",
+          "state": "Draft"
+        }
+      }
+    },
+    "scripts": {
+      "version": "1.0.0",
+      "scripts": {
+        "effect": {
+          "id": "effect",
+          "name": "Effect",
+          "assetName": "Effect",
+          "category": "Performance",
+          "state": "Draft"
+        },
+        "deleted": {
+          "id": "deleted",
+          "name": "Deleted",
+          "assetName": "Deleted",
+          "category": "Performance",
+          "state": "MarkedForDelete"
+        }
+      }
+    },
+    "stageTree": {
+      "rootId": "STAGE_1",
+      "stages": {
+        "STAGE_1": {
+          "id": "STAGE_1",
+          "name": "Root Stage",
+          "description": "Project root stage",
+          "assetName": "RootStage",
+          "eventListeners": [],
+          "parentId": null,
+          "childrenIds": [
+            "room",
+            "sibling"
+          ],
+          "localVariables": {
+            "shared": {
+              "id": "shared",
+              "name": "Parent Key",
+              "assetName": "ParentKey",
+              "type": "integer",
+              "value": 0,
+              "state": "Draft",
+              "scope": "StageLocal"
+            }
+          },
+          "isInitial": true,
+          "isExpanded": true,
+          "onEnterPresentation": {
+            "type": "Graph",
+            "graphId": "intro"
+          }
+        },
+        "room": {
+          "id": "room",
+          "name": "Room",
+          "assetName": "Room",
+          "eventListeners": [],
+          "parentId": "STAGE_1",
+          "childrenIds": [
+            "deep"
+          ],
+          "localVariables": {
+            "shared": {
+              "id": "shared",
+              "name": "Room Key",
+              "assetName": "RoomKey",
+              "type": "integer",
+              "value": 1,
+              "state": "Draft",
+              "scope": "StageLocal"
+            }
+          },
+          "isInitial": true
+        },
+        "deep": {
+          "id": "deep",
+          "name": "Deep",
+          "assetName": "Deep",
+          "eventListeners": [],
+          "parentId": "room",
+          "childrenIds": [],
+          "localVariables": {
+            "shared": {
+              "id": "shared",
+              "name": "Room Key",
+              "assetName": "DeepShared",
+              "type": "integer",
+              "value": 1,
+              "state": "Draft",
+              "scope": "StageLocal"
+            }
+          },
+          "isInitial": true
+        },
+        "sibling": {
+          "id": "sibling",
+          "name": "Sibling",
+          "assetName": "Sibling",
+          "eventListeners": [],
+          "parentId": "STAGE_1",
+          "childrenIds": [],
+          "localVariables": {},
+          "isInitial": false,
+          "unlockTriggers": [
+            {
+              "type": "Always"
+            }
+          ],
+          "unlockCondition": {
+            "type": "Literal",
+            "value": false
+          }
+        }
+      }
+    },
+    "nodes": {
+      "lock": {
+        "id": "lock",
+        "name": "Shared Display Name",
+        "assetName": "Lock",
+        "eventListeners": [],
+        "stageId": "deep",
+        "stateMachineId": "lock-fsm",
+        "localVariables": {}
+      }
+    },
+    "stateMachines": {
+      "lock-fsm": {
+        "id": "lock-fsm",
+        "initialStateId": "idle",
+        "states": {
+          "idle": {
+            "id": "idle",
+            "name": "Idle",
+            "assetName": "Idle",
+            "eventListeners": [],
+            "position": {
+              "x": 0,
+              "y": 0
+            }
+          },
+          "done": {
+            "id": "done",
+            "name": "Done",
+            "assetName": "Done",
+            "eventListeners": [],
+            "position": {
+              "x": 200,
+              "y": 0
+            }
+          }
+        },
+        "transitions": {
+          "go": {
+            "id": "go",
+            "name": "Go",
+            "fromStateId": "idle",
+            "toStateId": "done",
+            "priority": 0,
+            "triggers": [
+              {
+                "eventId": "open",
+                "type": "OnEvent"
+              }
+            ],
+            "condition": {
+              "type": "Comparison",
+              "operator": "==",
+              "left": {
+                "type": "VariableRef",
+                "variableId": "flag",
+                "scope": "Global"
+              },
+              "right": {
+                "type": "Constant",
+                "value": false
+              }
+            },
+            "parameterModifiers": []
+          }
+        }
+      }
+    },
+    "presentationGraphs": {
+      "intro": {
+        "id": "intro",
+        "name": "Intro",
+        "startNodeId": "start",
+        "nodes": {
+          "start": {
+            "id": "start",
+            "name": "Intro Step",
+            "position": {
+              "x": 0,
+              "y": 0
+            },
+            "nextIds": [],
+            "type": "PresentationNode",
+            "presentation": {
+              "type": "Script",
+              "scriptId": "effect",
+              "parameters": []
+            }
+          }
+        }
+      }
+    }
+  },
+  "editorState": {
+    "panelSizes": {
+      "explorerWidth": 250,
+      "inspectorWidth": 300,
+      "stagesHeight": 80
+    },
+    "stageExpanded": {
+      "STAGE_1": true
+    },
+    "currentStageId": "room",
+    "currentNodeId": null,
+    "currentGraphId": null,
+    "view": "EDITOR"
+  }
+}

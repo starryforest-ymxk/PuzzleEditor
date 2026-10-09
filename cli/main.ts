@@ -10,6 +10,7 @@ import {
   type AutomationError,
 } from '../contracts/automation/schemas';
 import { FileSnapshotError } from '../dist-node/files.js';
+import { ProjectFileError } from '../dist-node/projectOwnership.js';
 import { ProjectImportError } from '../utils/projectImport';
 import { AutomationFailure } from '../services/automation/errors';
 import {
@@ -19,8 +20,13 @@ import {
   readSource,
 } from '../services/automation/readService';
 import { helpText, parseCommand } from './arguments';
+import { runSessionCommand } from './session';
 import { decodeUtf8 } from '../dist-node/files.js';
 import { writeInputSchemas } from '../contracts/automation/planSchemas';
+import { rawInputSchemas } from '../contracts/automation/rawSchemas';
+import { importInputSchemas } from '../contracts/automation/importSchemas';
+import { previewImport, applyImport } from '../services/automation/importService';
+import { previewRawJson, applyRawJson } from '../services/automation/rawWriteService';
 import {
   createProject,
   previewProject,
@@ -48,7 +54,9 @@ async function main() {
   const argv = process.argv.slice(2);
   const rawOutput =
     argv[0] === 'json' && argv[1] === 'read' && argv.includes('--raw') && !argv.includes('--json');
-  let command = argv[0] === 'json' ? `json ${argv[1] ?? ''}`.trim() : (argv[0] ?? 'help');
+  let command = ['json', 'import', 'session', 'history'].includes(argv[0])
+    ? `${argv[0]} ${argv[1] ?? ''}`.trim()
+    : (argv[0] ?? 'help');
   let diagnostics: Diagnostic[] = [];
   let data: unknown = null;
   let error: AutomationError | undefined;
@@ -61,6 +69,42 @@ async function main() {
     }
     command = parsed.operation;
     switch (parsed.operation) {
+      case 'history list':
+      case 'history undo':
+      case 'history redo':
+      case 'session list':
+      case 'session status':
+      case 'session inspect':
+      case 'session validate':
+      case 'session preview':
+      case 'session apply':
+      case 'session save':
+        ({ data, diagnostics } = await runSessionCommand(
+          parsed.operation,
+          parsed.input,
+          await planStdin(parsed.input),
+        ));
+        break;
+      case 'import preview':
+        ({ data, diagnostics } = await previewImport(
+          importInputSchemas['import preview'].parse(parsed.input),
+        ));
+        break;
+      case 'import apply':
+        ({ data, diagnostics } = await applyImport(
+          importInputSchemas['import apply'].parse(parsed.input),
+        ));
+        break;
+      case 'json preview':
+        ({ data, diagnostics } = await previewRawJson(
+          rawInputSchemas['json preview'].parse(parsed.input),
+        ));
+        break;
+      case 'json apply':
+        ({ data, diagnostics } = await applyRawJson(
+          rawInputSchemas['json apply'].parse(parsed.input),
+        ));
+        break;
       case 'create':
         ({ data, diagnostics } = await createProject(
           writeInputSchemas.create.parse(parsed.input),
@@ -142,6 +186,10 @@ async function main() {
         retryable: caught.retryable,
         path: caught.path,
       };
+    } else if (caught instanceof ProjectFileError) {
+      exitCode = caught.exitCode;
+      data = caught.details;
+      error = { code: caught.code, message: caught.message, retryable: caught.exitCode === 4 };
     } else if (caught instanceof ProjectImportError) {
       exitCode = 3;
       error = {

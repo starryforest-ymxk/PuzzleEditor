@@ -1,0 +1,41 @@
+{
+  "success": true,
+  "files": [
+    {
+      "path": "release/cli/C5/PuzzleEditor-CLI-1.0.0-beta-win-x64.zip",
+      "size": 34397286,
+      "sha256": "c3ba622c92e163e1cd905ee0e80e1bc0d83110894f943b342c86aab91ab0c58c",
+      "unchanged": true
+    },
+    {
+      "path": "release/cli/C6/PuzzleEditor-CLI-1.0.0-beta-win-x64.zip",
+      "size": 34402675,
+      "sha256": "4560249dc01e91d8ec38fb2b74eb666f260697b7f112a9c8c08bd1e5af1a6cef",
+      "unchanged": true
+    },
+    {
+      "path": "release/cli/C7/PuzzleEditor-CLI-1.0.0-beta-win-x64.zip",
+      "size": 34407980,
+      "sha256": "81d928d441ae7e7b2c7be0c5689fa41804c9a3a66a785dc34223daec931a067a",
+      "unchanged": true
+    },
+    {
+      "path": "release/cli/C8/PuzzleEditor-CLI-1.0.0-beta-win-x64.zip",
+      "size": 34414862,
+      "sha256": "c3d540e50ed8d2595e7aed4a5d948836d3cc86872bfff4939cff20abb0c5f7e6",
+      "unchanged": true
+    },
+    {
+      "path": "release/desktop/C8/win-unpacked/Puzzle Editor.exe",
+      "size": 190557184,
+      "sha256": "6a9d4f2741c4199022f98efdeda6830f3aec56631d0b87e143a9c69fc1f554d3",
+      "unchanged": true
+    },
+    {
+      "path": "release/desktop/C8/win-unpacked/resources/app.asar",
+      "size": 43638031,
+      "sha256": "e135a0800bc114d3ba82a0d8498ce2b857e503badbf30bf1b986f06c024f97d2",
+      "unchanged": true
+    }
+  ]
+}

@@ -16,6 +16,12 @@ export type SaveResult =
 export type SessionResult = { status: 'loaded' | 'cancelled' } | { status: 'failed'; error: string };
 type Choice = 'save' | 'discard' | 'cancel';
 type Identity = { sessionId: number; revision: number };
+export interface OnlineSaveOptions {
+    out?: string;
+    expectedDiskHash?: string;
+    allowOverwrite?: boolean;
+    matches: () => boolean;
+}
 export interface StartupToken extends Identity { intent: number }
 
 /** 每个编辑器实例一个协调器；所有入口共享写入顺序和会话切换保护。 */
@@ -26,6 +32,7 @@ export class ProjectSession {
     private intent = 0;
     private choice: ((choice: Choice) => void) | null = null;
     private assignedPath = new Map<number, string>();
+    private approvedRestrictions = new Map<number, Set<number>>();
 
     constructor(private store: EditorStore, private platform: ProjectPlatform) {}
 
@@ -81,18 +88,35 @@ export class ProjectSession {
         return token.intent === this.intent && this.matches(token) && !this.store.getState().project.isLoaded && !this.activeRequest;
     }
 
-    private async activate(): Promise<void> {
+    private async claim(path: string | null, expectedContent?: string, create?: boolean): Promise<string | undefined> {
+        if (!this.platform.isDesktop() || !this.platform.claim) return undefined;
+        const result = await this.platform.claim(path, expectedContent, create);
+        if (!result.success || !result.data) throw new Error(result.error || 'Unable to acquire project ownership');
+        return result.data;
+    }
+    private async releaseClaim(token?: string): Promise<void> {
+        if (!token) return;
+        try { await this.platform.releaseClaim?.(token); }
+        catch (error) { this.pushMessage('warning', `Unable to release the unused project candidate: ${String(error)}`); }
+    }
+    private async activate(token?: string): Promise<void> {
         if (!this.platform.isDesktop()) return;
         const state = this.store.getState();
         try {
-            const result = await this.platform.activate(state.runtime.currentProjectPath, state.project.meta.name);
+            const result = await this.platform.activate(state.runtime.currentProjectPath, state.project.meta.name, token);
             if (!result.success) throw new Error(result.error || 'Unable to update recent projects');
         } catch (error) {
             this.pushMessage('warning', `Project is open, but session preferences or file watching could not be updated: ${String(error)}`);
         }
     }
 
-    saveProject = async (options?: { silent?: boolean }): Promise<SaveResult> => {
+    /** 授权只认可实际保存快照的限制 ID；Undo 后保存不授权未来 Redo 的 Agent 内容。 */
+    savePolicy = (state = this.store.getState()) => {
+        const approved = this.approvedRestrictions.get(state.document.sessionId);
+        const blocked = (state.document.restrictedRevisions ?? []).some(id => !approved?.has(id));
+        return { autoSaveBlocked: blocked, reason: blocked ? 'Agent changes require an explicit authorized save, Save As, or a human GUI save.' : null };
+    };
+    saveProject = async (options?: { silent?: boolean; agent?: OnlineSaveOptions }): Promise<SaveResult> => {
         const snapshot = this.store.getState();
         if (!snapshot.project.isLoaded || snapshot.runtime.projectOperation.phase === 'committing') return { status: 'cancelled' };
         const savedAt = new Date().toISOString();
@@ -103,9 +127,17 @@ export class ProjectSession {
         catch (error) { return this.failure(error, 'Failed to save project'); }
 
         return this.enqueue(async () => {
+            let claim: string | undefined;
             try {
                 let current = this.store.getState();
                 if (current.document.sessionId !== identity.sessionId) return { status: 'cancelled' };
+                // 排队时捕获的受限内容及此刻的限制都检查，定时器不能绕过聊天覆盖许可。
+                if (options?.silent && (this.savePolicy(snapshot).autoSaveBlocked || this.savePolicy(current).autoSaveBlocked))
+                    return { status: 'failed', error: this.savePolicy(snapshot).reason ?? this.savePolicy(current).reason! };
+                const agent = options?.agent;
+                if (agent && (!agent.matches() || current.ui.readOnly || current.runtime.projectOperation.phase !== 'idle')) return { status: 'failed', error: 'SESSION_CONFLICT: The live session changed or is busy.' };
+                if (agent && !this.platform.isDesktop()) return { status: 'failed', error: 'Live saving requires the desktop editor.' };
+                if (agent && !agent.out && (!originalPath || !agent.allowOverwrite || !agent.expectedDiskHash)) return { status: 'failed', error: 'Existing project saves require chat overwrite authorization and expectedDiskHash; otherwise specify a new output.' };
                 let path = originalPath;
                 // 先前同会话的无路径保存可为后续排队请求建立路径，不重复弹选择器。
                 if (!path) path = this.assignedPath.get(identity.sessionId) ?? null;
@@ -116,6 +148,7 @@ export class ProjectSession {
                     return { status: 'downloadInitiated' };
                 }
                 const previousPath = path;
+                if (agent?.out) path = agent.out;
                 if (!path) {
                     path = await this.platform.chooseSave(`${snapshot.project.meta.name || 'project'}.puzzle.json`);
                     if (!path) {
@@ -124,19 +157,28 @@ export class ProjectSession {
                     }
                     if (!path.toLowerCase().endsWith('.puzzle.json')) throw new Error('Choose a .puzzle.json project file.');
                 }
+                if (!path.toLowerCase().endsWith('.puzzle.json')) throw new Error('Choose a .puzzle.json project file.');
                 current = this.store.getState();
                 if (current.document.sessionId !== identity.sessionId || current.runtime.currentProjectPath !== previousPath) return { status: 'cancelled' };
-                const result = await this.platform.write(path, content);
+                if (previousPath !== path) claim = await this.claim(path, undefined, Boolean(agent?.out));
+                if (agent && !agent.matches()) return { status: 'failed', error: 'SESSION_CONFLICT: The live session changed before saving.' };
+                const result = await this.platform.write(path, content, agent ? { exclusive: Boolean(agent.out), expectedHash: agent.out ? undefined : agent.expectedDiskHash } : undefined);
                 if (!result.success) throw new Error(result.error || 'Write failed');
                 const acknowledgement: SaveAcknowledgement = { sessionId: identity.sessionId, revision: identity.revision, path, previousPath, savedAt };
                 this.store.dispatch({ type: 'PROJECT_SAVE_SUCCEEDED', payload: acknowledgement });
+                if (!options?.silent) {
+                    const approved = this.approvedRestrictions.get(identity.sessionId) ?? new Set<number>();
+                    for (const id of identity.restrictedRevisions ?? []) approved.add(id);
+                    this.approvedRestrictions.set(identity.sessionId, approved);
+                }
                 if (this.store.getState().document.sessionId === identity.sessionId) {
                     this.assignedPath.set(identity.sessionId, path);
-                    if (previousPath !== path) await this.activate();
+                    if (previousPath !== path) await this.activate(claim);
                     if (!options?.silent) this.pushMessage('info', `Project saved to ${path}`);
                 }
                 return { status: 'saved', acknowledgement };
             } catch (error) { return this.failure(error, 'Failed to save project'); }
+            finally { await this.releaseClaim(claim); }
         });
     };
 
@@ -151,7 +193,7 @@ export class ProjectSession {
     autoSave = async (): Promise<void> => {
         const state = this.store.getState();
         if (this.autoSaving || this.activeRequest || !this.platform.isDesktop() || !state.settings.autoSave.enabled
-            || !state.project.isLoaded || !state.runtime.currentProjectPath || !state.ui.isDirty) return;
+            || !state.project.isLoaded || !state.runtime.currentProjectPath || !state.ui.isDirty || this.savePolicy(state).autoSaveBlocked) return;
         this.autoSaving = true;
         try { await this.saveProject({ silent: true }); } finally { this.autoSaving = false; }
     };
@@ -251,6 +293,7 @@ export class ProjectSession {
         this.activeRequest = true;
         const sessionId = this.identity().sessionId;
         this.phase('preparing', nextAction);
+        let claim: string | undefined;
         try {
             let candidate = await this.enqueue(prepare);
             if (!candidate) return { status: 'cancelled' };
@@ -264,6 +307,7 @@ export class ProjectSession {
                 if (!candidate.create && candidate.path && candidate.path === this.store.getState().runtime.currentProjectPath) {
                     candidate = await this.enqueue(() => this.readCandidate(candidate!.path!));
                 }
+                claim = await this.enqueue(() => this.claim(candidate!.path, candidate!.sourceContent, candidate!.create));
                 if (candidate.create && candidate.path) {
                     const savedAt = new Date().toISOString();
                     const content = serializeProject(candidate.project, candidate.editorState, savedAt);
@@ -273,13 +317,13 @@ export class ProjectSession {
                 }
                 if (!this.matches(consent)) return { status: 'cancelled' };
                 this.commit(candidate);
-                await this.enqueue(() => this.activate());
+                await this.enqueue(() => this.activate(claim));
                 this.pushMessage('info', `Project "${candidate.project.meta.name}" ${candidate.create ? 'created' : 'loaded'}.`);
                 return { status: 'loaded' };
             }
             return { status: 'cancelled' };
         } catch (error) { return this.failure(error, 'Project switch failed'); }
-        finally { this.choice = null; this.activeRequest = false; this.phase('idle'); }
+        finally { await this.releaseClaim(claim); this.choice = null; this.activeRequest = false; this.phase('idle'); }
     }
 
     openProject = (path?: string): Promise<SessionResult> => this.replace(async () => {
@@ -306,16 +350,19 @@ export class ProjectSession {
 
     restoreProject = async (path: string, token: StartupToken): Promise<SessionResult> => {
         if (!this.canRestore(token)) return { status: 'cancelled' };
+        let claim: string | undefined;
         try {
             const candidate = await this.enqueue(() => this.readCandidate(path));
             if (!this.canRestore(token)) return { status: 'cancelled' };
+            claim = await this.enqueue(() => this.claim(candidate.path, candidate.sourceContent));
+            if (!this.canRestore(token)) return { status: 'cancelled' };
             this.commit(candidate);
-            await this.enqueue(() => this.activate());
+            await this.enqueue(() => this.activate(claim));
             this.pushMessage('info', `Project "${candidate.project.meta.name}" restored.`);
             return { status: 'loaded' };
         } catch (error) {
             return this.canRestore(token) ? this.failure(error, 'Failed to restore last project') : { status: 'cancelled' };
-        }
+        } finally { await this.releaseClaim(claim); }
     };
 
     syncExternal = async (path: string): Promise<void> => {

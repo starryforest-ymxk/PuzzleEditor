@@ -1,0 +1,66 @@
+{
+  "name": "PuzzleEditor-CLI-1.0.0-beta-win-x64",
+  "version": "1.0.0-beta",
+  "phase": "C5",
+  "createdAt": "2026-10-09T05:00:18.748Z",
+  "runtime": {
+    "version": "24.15.0",
+    "platform": "win-x64",
+    "archive": "node-v24.15.0-win-x64.zip",
+    "url": "https://nodejs.org/dist/v24.15.0/node-v24.15.0-win-x64.zip",
+    "sha256": "cc5149eabd53779ce1e7bdc5401643622d0c7e6800ade18928a767e940bb0e62",
+    "checksums": "https://nodejs.org/dist/v24.15.0/SHASUMS256.txt"
+  },
+  "files": [
+    {
+      "path": "AGENTS.md",
+      "size": 4747,
+      "sha256": "66bb1ef6b62245f7f94f9821a4cc7f454512827a63ef3c950c057054ccb7f133"
+    },
+    {
+      "path": "README.md",
+      "size": 361,
+      "sha256": "8a756ae6d9fbb5ada4904e79cf5139e66676b290d49d9096197335dab482eb8d"
+    },
+    {
+      "path": "app/cli.js",
+      "size": 494364,
+      "sha256": "aa503d41308abb9eeadda2790cb6134486a24806d4d4476fc6edfc1db2177e1e"
+    },
+    {
+      "path": "app/package.json",
+      "size": 33,
+      "sha256": "89c47db7851f89caec72da4f215ebc21cf1e294aeef3b45d2583562d846ab035"
+    },
+    {
+      "path": "capabilities.json",
+      "size": 128668,
+      "sha256": "77aebf14af0a12f8d5c04b55745952e5f11053b22599536a097e5f22430101bb"
+    },
+    {
+      "path": "licenses/Node-LICENSE.txt",
+      "size": 159872,
+      "sha256": "8efdacdc1cfa3460aeb7fe98e3c54337b971d5da70e6eee292b73b981acb220c"
+    },
+    {
+      "path": "licenses/Zod-LICENSE.txt",
+      "size": 1072,
+      "sha256": "3f1189b28e3866e0d979968d466b78f813f76827cfdca1fbb124cc0a5c8841f8"
+    },
+    {
+      "path": "puzzle.cmd",
+      "size": 113,
+      "sha256": "4e13e1106e23ad4a32633e3d6d1a3b6ee763c485ae712e4ce59bdc7274c2f4a3"
+    },
+    {
+      "path": "runtime-lock.json",
+      "size": 311,
+      "sha256": "c412ba2122de519a85401c3f262c7e485ced2020d15d83462bfeae26664fdbc3"
+    },
+    {
+      "path": "runtime/node.exe",
+      "size": 91694408,
+      "sha256": "3331e1ffe19874215472217c5e94f5a0c6d8e18c4ac7111d3937aa0ad5e9b4a5"
+    }
+  ]
+}

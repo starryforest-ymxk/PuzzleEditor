@@ -1,0 +1,5 @@
+
+> puzzle-editor@1.0.0-beta test:cli:package
+> node scripts/verify-cli-package.mjs release/cli/C8/PuzzleEditor-CLI-1.0.0-beta-win-x64.zip overview/dev/evidence/CLI_C8/package-verification.json
+
+{"success":true,"checks":80,"zipSha256":"c3d540e50ed8d2595e7aed4a5d948836d3cc86872bfff4939cff20abb0c5f7e6"}

@@ -1,23 +1,32 @@
 /** 终端参数只适配共用契约；严格拒绝重复参数和无效组合，避免静默忽略意图。 */
 import { parseArgs, type ParseArgsConfig } from 'node:util';
-import { capabilities } from '../contracts/automation/capabilities';
+import { capabilities, CLI_PHASE } from '../contracts/automation/capabilities';
 import { inputSchemas, type InspectRequest } from '../contracts/automation/schemas';
 import { AutomationFailure } from '../services/automation/errors';
 
 const flagName = (name: string) => name.replace(/[A-Z]/g, (letter) => '-' + letter.toLowerCase());
-const numbers = new Set(['offset', 'limit', 'depth']);
-const booleans = new Set(['raw', 'warningsAsErrors']);
+const numbers = new Set(['offset', 'limit', 'depth', 'session']);
+const booleans = new Set([
+  'raw',
+  'warningsAsErrors',
+  'allowRawJsonWrite',
+  'allowPermanentDelete',
+  'inPlace',
+  'allowOverwrite',
+]);
 
 export function parseCommand(argv: string[]) {
   if (!argv.length || argv[0] === '--help' || argv[0] === '-h') return { kind: 'help' as const };
-  const operation = argv[0] === 'json' ? `json ${argv[1] ?? ''}`.trim() : argv[0];
+  const operation = ['json', 'import', 'session', 'history'].includes(argv[0])
+    ? `${argv[0]} ${argv[1] ?? ''}`.trim()
+    : argv[0];
   const definition = capabilities.find((item) => item.operation === operation);
   if (!definition)
     throw new AutomationFailure('UNKNOWN_COMMAND', `Unknown command: ${operation}. Use --help.`, 2);
   if (!definition.implemented)
     throw new AutomationFailure(
       'COMMAND_NOT_AVAILABLE',
-      `${operation} is not implemented in C2. No file was written.`,
+      `${operation} is not implemented. No file was written.`,
       2,
     );
   const name = operation as keyof typeof inputSchemas;
@@ -32,7 +41,7 @@ export function parseCommand(argv: string[]) {
   let parsed;
   try {
     parsed = parseArgs({
-      args: argv.slice(name === 'json read' ? 2 : 1),
+      args: argv.slice(name.split(' ').length),
       options,
       allowPositionals: true,
       strict: true,
@@ -59,16 +68,18 @@ export function parseCommand(argv: string[]) {
   if (parsed.values.help) return { kind: 'help' as const, operation: name };
   if (parsed.values.raw && parsed.values.json)
     throw new AutomationFailure('INVALID_ARGUMENT', '--raw and --json are mutually exclusive.', 2);
-  if (parsed.positionals.length !== (name === 'describe' || name === 'create' ? 0 : 1))
+  const noPath =
+    name === 'describe' ||
+    name === 'create' ||
+    name.startsWith('session ') ||
+    name.startsWith('history ');
+  if (parsed.positionals.length !== (noPath ? 0 : 1))
     throw new AutomationFailure(
       'INVALID_ARGUMENT',
-      name === 'describe' || name === 'create'
-        ? `${name} takes no input file path.`
-        : 'Exactly one input file path is required.',
+      noPath ? `${name} takes no input file path.` : 'Exactly one input file path is required.',
       2,
     );
-  const input: Record<string, unknown> =
-    name === 'describe' || name === 'create' ? {} : { path: parsed.positionals[0] };
+  const input: Record<string, unknown> = noPath ? {} : { path: parsed.positionals[0] };
   for (const field of fields) {
     const value = parsed.values[flagName(field)];
     if (value === undefined) continue;
@@ -82,7 +93,7 @@ export function parseCommand(argv: string[]) {
       input[field] = Number(value);
     } else input[field] = value;
   }
-  if (name === 'inspect') checkInspectOptions(input);
+  if (name === 'inspect' || name === 'session inspect') checkInspectOptions(input);
   const result = schema.safeParse(input);
   if (!result.success)
     throw new AutomationFailure(
@@ -102,8 +113,9 @@ export function parseCommand(argv: string[]) {
 }
 
 function checkInspectOptions(input: Record<string, unknown>) {
-  const view = (input.view ?? 'summary') as InspectRequest['view'];
-  const allowed: Record<InspectRequest['view'], string[]> = {
+  const view = (input.view ?? 'summary') as InspectRequest['view'] | 'project';
+  const allowed: Record<InspectRequest['view'] | 'project', string[]> = {
+    project: [],
     summary: [],
     tree: ['id', 'depth', 'offset', 'limit'],
     entities: ['type', 'id', 'ownerType', 'ownerId', 'search', 'offset', 'limit'],
@@ -115,7 +127,7 @@ function checkInspectOptions(input: Record<string, unknown>) {
   };
   if (!Object.hasOwn(allowed, view)) return; // 枚举错误交给共用 Schema 产生定位。
   for (const key of Object.keys(input))
-    if (!['view', 'path', 'expectedHash', ...allowed[view]].includes(key)) {
+    if (!['view', 'path', 'expectedHash', 'instance', 'session', ...allowed[view]].includes(key)) {
       throw new AutomationFailure(
         'INVALID_ARGUMENT',
         `--${flagName(key)} is not supported by view ${view}.`,
@@ -156,7 +168,7 @@ function checkInspectOptions(input: Record<string, unknown>) {
 
 export function helpText(operation?: keyof typeof inputSchemas): string {
   const lines = [
-    'Puzzle Editor CLI — C2 offline domain tools',
+    `Puzzle Editor CLI — ${CLI_PHASE} offline tools and explicit desktop sessions`,
     '',
     'Usage: puzzle <command> [file] [options]',
     'Output defaults to JSON. --json is explicit machine mode. --raw writes only original text.',
@@ -172,9 +184,9 @@ export function helpText(operation?: keyof typeof inputSchemas): string {
         '  Options: ' +
           Object.keys(shape)
             .filter((key) => key !== 'path')
+            .concat(['json', 'help'])
             .map((key) => '--' + flagName(key))
-            .join(', ') +
-          ', --json, --help',
+            .join(', '),
       );
     }
     if (item.example) lines.push('  ' + item.example);

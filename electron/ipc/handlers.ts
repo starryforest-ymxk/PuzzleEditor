@@ -3,11 +3,24 @@
  * 集中注册所有 IPC 事件处理器
  */
 
-import { IpcMain, dialog, shell } from 'electron';
+import { IpcMain, dialog, shell, type IpcMainInvokeEvent } from 'electron';
 import { IPC_CHANNELS, IPCResult, CreateProjectParams, CreateProjectResult, FileDialogResult, UserPreferences } from '../types.js';
 import { preferencesService } from './preferencesService.js';
 import { fileService } from './fileService.js';
 import { fileWatcherService } from './watcherService.js';
+import { desktopProjectOwnership } from './projectOwnershipService.js';
+
+const ownershipSenders = new Set<number>();
+function projectOwner(event: IpcMainInvokeEvent): number {
+    if (event.senderFrame !== event.sender.mainFrame) throw new Error('Project operations require the main frame.');
+    const id = event.sender.id;
+    if (!ownershipSenders.has(id)) {
+        ownershipSenders.add(id);
+        event.sender.once('destroyed', () => { ownershipSenders.delete(id); void desktopProjectOwnership.release(id); });
+    }
+    return id;
+}
+
 
 /**
  * 注册所有 IPC 处理器
@@ -68,9 +81,9 @@ export function registerIpcHandlers(ipcMain: IpcMain): void {
      * 写入项目文件
      * 写入后记录内容指纹，监听仍可接收真实外部变化
      */
-    ipcMain.handle(IPC_CHANNELS.PROJECT_WRITE, async (_, filePath: string, data: string, options?: { exclusive?: boolean }): Promise<IPCResult> => {
+    ipcMain.handle(IPC_CHANNELS.PROJECT_WRITE, async (event, filePath: string, data: string, options?: { exclusive?: boolean; expectedHash?: string }): Promise<IPCResult> => {
         try {
-            await fileService.writeFile(filePath, data, options);
+            await desktopProjectOwnership.write(projectOwner(event), filePath, data, options);
             fileWatcherService.noteInternalWrite(filePath, data);
             return { success: true };
         } catch (error) {
@@ -80,8 +93,22 @@ export function registerIpcHandlers(ipcMain: IpcMain): void {
         }
     });
 
-    // 读取候选不切换监听；仅成功提交的会话更新活动文件与恢复路径。
-    ipcMain.handle(IPC_CHANNELS.PROJECT_ACTIVATE, async (_, filePath: string | null, name: string): Promise<IPCResult> => {
+    // 候选所有权先取得再提交；读取文件本身不切换当前监听和偏好。
+    ipcMain.handle(IPC_CHANNELS.PROJECT_CLAIM, async (event, filePath: string | null, expectedContent?: string, create?: boolean): Promise<IPCResult<string>> => {
+        try {
+            if ((filePath !== null && typeof filePath !== 'string') || (expectedContent !== undefined && typeof expectedContent !== 'string') || (create !== undefined && typeof create !== 'boolean')) throw new Error('Invalid project claim.');
+            return { success: true, data: await desktopProjectOwnership.claim(projectOwner(event), filePath, expectedContent, create) };
+        } catch (error) { return { success: false, error: error instanceof Error ? error.message : String(error) }; }
+    });
+    ipcMain.handle(IPC_CHANNELS.PROJECT_RELEASE_CLAIM, async (event, token: string): Promise<IPCResult> => {
+        try { await desktopProjectOwnership.abandon(projectOwner(event), token); return { success: true }; }
+        catch (error) { return { success: false, error: error instanceof Error ? error.message : String(error) }; }
+    });
+    ipcMain.handle(IPC_CHANNELS.PROJECT_ACTIVATE, async (event, filePath: string | null, name: string, token?: string): Promise<IPCResult> => {
+        try {
+            if (!token) throw new Error('Project ownership claim is required.');
+            await desktopProjectOwnership.activate(projectOwner(event), filePath, token);
+        } catch (error) { return { success: false, error: error instanceof Error ? error.message : String(error) }; }
         try {
             if (filePath) fileWatcherService.startWatching(filePath);
             else fileWatcherService.stopWatching();
@@ -92,16 +119,17 @@ export function registerIpcHandlers(ipcMain: IpcMain): void {
             }
             return { success: true };
         } catch (error) {
-            return { success: false, error: error instanceof Error ? error.message : String(error) };
+            // 所有权已转移；保留活动工程，调用方将偏好/监听故障作为警告报告。
+            return { success: false, error: 'Project ownership was transferred, but session preferences or watching failed: ' + String(error) };
         }
     });
 
     /**
      * 导出项目文件
      */
-    ipcMain.handle(IPC_CHANNELS.PROJECT_EXPORT, async (_, filePath: string, data: string): Promise<IPCResult> => {
+    ipcMain.handle(IPC_CHANNELS.PROJECT_EXPORT, async (event, filePath: string, data: string): Promise<IPCResult> => {
         try {
-            await fileService.writeFile(filePath, data);
+            await desktopProjectOwnership.write(projectOwner(event), filePath, data, undefined, false);
             return { success: true };
         } catch (error) {
             const message = error instanceof Error ? error.message : 'Unknown error';
@@ -113,9 +141,16 @@ export function registerIpcHandlers(ipcMain: IpcMain): void {
     /**
      * 创建新项目
      */
-    ipcMain.handle(IPC_CHANNELS.PROJECT_CREATE, async (_, params: CreateProjectParams): Promise<IPCResult<CreateProjectResult>> => {
+    ipcMain.handle(IPC_CHANNELS.PROJECT_CREATE, async (event, params: CreateProjectParams): Promise<IPCResult<CreateProjectResult>> => {
+        const owner = projectOwner(event);
+        let claim: string | undefined;
         try {
-            const result = await fileService.createProject(params);
+            // 保留兼容入口，但同样先预留候选；不能通过旧创建路径绕过活动工程锁。
+            const result = await fileService.createProject(params, async (path, content, options) => {
+                claim = await desktopProjectOwnership.claim(owner, path, undefined, true);
+                await desktopProjectOwnership.write(owner, path, content, options);
+            });
+            await desktopProjectOwnership.activate(owner, result.path, claim!);
             // 启动文件监听
             fileWatcherService.startWatching(result.path);
             return { success: true, data: result };
@@ -123,7 +158,7 @@ export function registerIpcHandlers(ipcMain: IpcMain): void {
             const message = error instanceof Error ? error.message : 'Unknown error';
             console.error('Failed to create project:', message);
             return { success: false, error: message };
-        }
+        } finally { if (claim) await desktopProjectOwnership.abandon(owner, claim); }
     });
 
     // ========================================================================

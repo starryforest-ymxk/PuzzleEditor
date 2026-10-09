@@ -1,0 +1,26 @@
+{
+  "success": true,
+  "utf8Documents": 4,
+  "localLinks": 77,
+  "assets": [
+    {
+      "source": "release/desktop/C10/Puzzle Editor Setup 1.0.0-beta.exe",
+      "name": "PuzzleEditor-Setup-1.0.0-beta-C10-win-x64.exe",
+      "size": 86850770,
+      "sha256": "184cace90b7a77d4a1b1ebfe1f05d57f4bcca6cd557d1fa35d095816028696bc"
+    },
+    {
+      "source": "release/cli/C10/PuzzleEditor-CLI-1.0.0-beta-win-x64.zip",
+      "name": "PuzzleEditor-CLI-1.0.0-beta-C10-win-x64.zip",
+      "size": 34425403,
+      "sha256": "a8dcf7a567c128277d278148052ef8519d8a09689cd20edc0f1462a3747e3974"
+    },
+    {
+      "source": "overview/dev/CLI_Quick_Start.md",
+      "name": "CLI_Quick_Start.md",
+      "size": 5624,
+      "sha256": "acb4ca10970c2d7281b162b41e0109f4c89b7f41e7c1442f6bcf0af2112433f7"
+    }
+  ],
+  "errors": []
+}

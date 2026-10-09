@@ -1,0 +1,16 @@
+{
+  "apiVersion": "1.0.0",
+  "sourceHash": "936118d917f61c2717ac6287627a052ec31dd9350989b3bbdfb72ff8d15f0ccf",
+  "scope": {
+    "project": true
+  },
+  "commands": [
+    {
+      "op": "stage.delete",
+      "target": {
+        "id": "room"
+      },
+      "cascade": true
+    }
+  ]
+}

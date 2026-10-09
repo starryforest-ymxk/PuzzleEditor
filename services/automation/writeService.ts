@@ -1,5 +1,7 @@
 /** 离线事务协调：重新执行受限命令并校验，再排他交付；回执不授权 JSON 直接编辑。 */
-import { readFileSnapshot } from '../../dist-node/files.js';
+import { readFileSnapshot, type FileSnapshot } from '../../dist-node/files.js';
+import { executeOverwrite } from '../../dist-node/projectOverwrite.js';
+import { describeOverwrite, assertOverwriteMode } from './overwriteService';
 import {
   planSchema,
   receiptSchema,
@@ -10,19 +12,16 @@ import {
 import { API_VERSION } from '../../contracts/automation/primitives';
 import { createEmptyProject } from '../../utils/projectFactory';
 import { importProject } from '../../utils/projectImport';
-import { validateProject } from '../../utils/validation/validator';
-import type { CodedValidationResult } from '../../types/validation';
-import type { ProjectData, EditorUIState } from '../../types/project';
-import { executePlan, CommandFailure } from '../../store/commands/automation/execute';
-import { serializeProject } from '../projectFiles';
+import type { EditorUIState } from '../../types/project';
+import { buildCandidate } from './domainCandidate';
 import { prepareRuntimeExport } from '../projectExportPreparation';
 import { readSource, readProjectContext } from './readService';
 import { parseFileJson } from './jsonRead';
-import { indexEntities } from './entities';
-import { domainDiagnostics } from './diagnostics';
 import { AutomationFailure } from './errors';
 import { parseContract, hashText, fullDiff } from './transactionData';
 import { targetPath, publishNew } from './fileCommit';
+import { assertCapabilities } from './permissions';
+import { POLICY_VERSION } from '../../contracts/automation/permissions';
 
 async function loadPlan(input: string | undefined, stdin?: string) {
   if (!input)
@@ -52,95 +51,13 @@ async function unchanged(plan: Awaited<ReturnType<typeof loadPlan>>) {
       true,
     );
 }
-function baselineKey(item: CodedValidationResult) {
-  // 同一位置的规则 ID 可能没有包含失效目标；连同诊断详情比较，禁止用另一错误替换旧错误。
-  // message 仅作为完整字符串比较，不从英文文案解析实体或错误码。
-  return JSON.stringify([
-    item.code,
-    item.objectType,
-    item.objectId,
-    item.contextId,
-    item.fsmId,
-    item.ownerType,
-    item.ownerId,
-    item.field,
-    item.id,
-    item.message,
-  ]);
-}
-function buildCandidate(
-  source: ProjectData,
+async function editableSource(
+  path: string,
   plan: Plan,
-  savedAt: string,
-  editorState: EditorUIState | undefined,
-  creating = false,
+  expectedHash?: string,
+  original?: FileSnapshot,
+  now?: string,
 ) {
-  let execution: ReturnType<typeof executePlan>;
-  try {
-    execution = executePlan(source, plan);
-  } catch (error) {
-    if (!(error instanceof CommandFailure)) throw error;
-    throw new AutomationFailure(error.code, error.message, 3, [
-      {
-        code: error.code,
-        level: 'error',
-        message: error.message,
-        retryable: false,
-        operationIndex: error.operationIndex,
-        path: error.operationIndex === undefined ? '/scope' : `/commands/${error.operationIndex}`,
-        pathBasis: 'request',
-      },
-    ]);
-  }
-  const content = serializeProject(execution.project, editorState, savedAt);
-  // 序列化后再次走实际导入边界，保证可被 GUI 打开，不把类型断言当成结构验证。
-  const finalProject = importProject(content).project;
-  const before = creating ? [] : validateProject(source),
-    after = validateProject(finalProject);
-  const counts = new Map<string, number>();
-  for (const item of before.filter((r) => r.level === 'error'))
-    counts.set(baselineKey(item), (counts.get(baselineKey(item)) ?? 0) + 1);
-  const sourceEntities = indexEntities(source),
-    targetEntities = indexEntities(finalProject);
-  const added = after.filter((item) => {
-    if (item.level !== 'error') return false;
-    const key = baselineKey(item),
-      count = counts.get(key) ?? 0;
-    counts.set(key, count - 1);
-    if (count <= 0) return true;
-    if (item.field === 'assetName') {
-      const target = domainDiagnostics([item], targetEntities)[0].entity;
-      if (target) {
-        const same = (ref: typeof target) => JSON.stringify(ref) === JSON.stringify(target);
-        return (
-          sourceEntities.find((e) => same(e.ref))?.assetName !==
-          targetEntities.find((e) => same(e.ref))?.assetName
-        );
-      }
-    }
-    return false;
-  });
-  const diagnostics = domainDiagnostics(after, targetEntities);
-  if (added.length)
-    throw new AutomationFailure(
-      'CANDIDATE_VALIDATION_FAILED',
-      'The candidate introduces errors. No project file was written.',
-      3,
-      diagnostics,
-      {
-        newErrors: domainDiagnostics(added, targetEntities),
-        changes: fullDiff(source, finalProject),
-      },
-    );
-  return {
-    ...execution,
-    project: finalProject,
-    content,
-    diagnostics,
-    remainingErrors: after.filter((d) => d.level === 'error').length,
-  };
-}
-async function editableSource(path: string, plan: Plan, expectedHash?: string) {
   if (!plan.sourceHash)
     throw new AutomationFailure(
       'SOURCE_HASH_REQUIRED',
@@ -149,7 +66,23 @@ async function editableSource(path: string, plan: Plan, expectedHash?: string) {
     );
   if (expectedHash && expectedHash !== plan.sourceHash)
     throw new AutomationFailure('REVISION_CONFLICT', 'Request and plan source hashes differ.', 4);
-  const source = await readSource(path, plan.sourceHash);
+  const source = original
+    ? {
+        content: original.content,
+        source: {
+          path: original.path,
+          sha256: original.sha256,
+          size: original.size,
+          modifiedAt: original.modifiedAt,
+        },
+      }
+    : await readSource(path, plan.sourceHash);
+  if (source.source.sha256 !== plan.sourceHash)
+    throw new AutomationFailure(
+      'REVISION_CONFLICT',
+      'The plan does not match the original source.',
+      4,
+    );
   const parsed = parseFileJson(source.content);
   if (!parsed.parsedAvailable)
     throw new AutomationFailure(
@@ -158,11 +91,11 @@ async function editableSource(path: string, plan: Plan, expectedHash?: string) {
       3,
       parsed.diagnostics,
     );
-  const imported = importProject(source.content);
+  const imported = importProject(source.content, { now });
   if (imported.format !== 'project')
     throw new AutomationFailure(
       'PROJECT_FILE_REQUIRED',
-      'Save this imported format as a complete .puzzle.json project in the editor before editing it with the CLI.',
+      'Convert this source with import preview/apply, or save it as a complete .puzzle.json project in the editor before domain editing.',
       3,
     );
   // 已存编辑状态逐字段保持；领域计划不能通过普通字段替换编辑器状态。
@@ -181,28 +114,48 @@ export async function createProject(request: WriteRequests['create'], stdin?: st
   const project = createEmptyProject(request.name, request.description, savedAt);
   project.stageTree.stages[project.stageTree.rootId].assetName = request.rootAssetName;
   const candidate = buildCandidate(project, loaded.plan, savedAt, undefined, true);
+  assertCapabilities(candidate.requiredCapabilities, {}, candidate.permanentDeletions);
   const target = await targetPath(request.out, loaded.path ? [loaded.path] : [], '.puzzle.json');
   await unchanged(loaded);
   const result = await publishNew(target, candidate.content);
   return {
-    data: { ...result, aliases: candidate.allocations, remainingErrors: candidate.remainingErrors },
+    data: {
+      ...result,
+      requiredCapabilities: candidate.requiredCapabilities,
+      aliases: candidate.allocations,
+      impacts: candidate.impacts,
+      remainingErrors: candidate.remainingErrors,
+    },
     diagnostics: candidate.diagnostics,
   };
 }
 export async function previewProject(request: WriteRequests['preview'], stdin?: string) {
-  const loaded = await loadPlan(request.plan, stdin),
-    source = await editableSource(request.path, loaded.plan, request.expectedHash);
   const savedAt = new Date().toISOString();
+  const loaded = await loadPlan(request.plan, stdin),
+    source = await editableSource(
+      request.path,
+      loaded.plan,
+      request.expectedHash,
+      undefined,
+      savedAt,
+    );
   const candidate = buildCandidate(
     source.imported.project,
     loaded.plan,
     savedAt,
     source.editorState,
+    false,
+    request.inPlace,
   );
   const receipt: Receipt = {
     apiVersion: API_VERSION,
     kind: 'domain-preview',
+    policyVersion: POLICY_VERSION,
+    requiredCapabilities: candidate.requiredCapabilities,
     source: { path: source.source.path, sha256: source.source.sha256 },
+    ...(request.inPlace
+      ? { overwrite: await describeOverwrite(request.path, source.source.sha256) }
+      : {}),
     planHash: loaded.hash,
     savedAt,
     candidateHash: hashText(candidate.content),
@@ -222,71 +175,119 @@ export async function previewProject(request: WriteRequests['preview'], stdin?: 
   return {
     data: {
       source: source.source,
+      requiredCapabilities: candidate.requiredCapabilities,
+      permanentDeletions: candidate.permanentDeletions,
       importNotices: source.imported.notices,
       changes,
       aliases: candidate.allocations,
       receipt,
       receiptFile,
+      impacts: candidate.impacts,
       remainingErrors: candidate.remainingErrors,
     },
     diagnostics: candidate.diagnostics,
   };
 }
 export async function applyProject(request: WriteRequests['apply'], stdin?: string) {
-  const loaded = await loadPlan(request.plan, stdin),
-    receiptFile = await readFileSnapshot(request.receipt);
+  if (request.inPlace) assertCapabilities(['overwrite_project'], request);
+  const loaded = await loadPlan(request.plan, stdin);
+  if (loaded.plan.commands.some((op) => op.op.endsWith('.purge')))
+    assertCapabilities(['permanent_resource_delete'], request);
+  const receiptFile = await readFileSnapshot(request.receipt);
   const receipt = parseContract(receiptSchema, receiptFile.content, 'Receipt');
-  const source = await editableSource(request.path, loaded.plan, request.expectedHash);
-  if (
-    receipt.planHash !== loaded.hash ||
-    receipt.source.path !== source.source.path ||
-    receipt.source.sha256 !== source.source.sha256
-  )
-    throw new AutomationFailure(
-      'RECEIPT_CONFLICT',
-      'Source or plan differs from the preview receipt.',
-      4,
-      [],
-      null,
-      true,
+  assertOverwriteMode(request.inPlace, !!receipt.overwrite);
+  const verifyInputs = async () => {
+    await unchanged(loaded);
+    const current = await readFileSnapshot(request.receipt);
+    if (current.sha256 !== receiptFile.sha256 || current.path !== receiptFile.path)
+      throw new AutomationFailure('RECEIPT_CONFLICT', 'The receipt changed before publication.', 4);
+  };
+  // 首次提交与备份重试使用同一候选重建，授权、生命周期及错误基线不能被重试绕过。
+  const prepare = async (original?: FileSnapshot) => {
+    const source = await editableSource(
+      request.path,
+      loaded.plan,
+      request.expectedHash,
+      original,
+      receipt.savedAt,
     );
-  const candidate = buildCandidate(
-    source.imported.project,
-    loaded.plan,
-    receipt.savedAt,
-    source.editorState,
-  );
-  if (
-    receipt.candidateHash !== hashText(candidate.content) ||
-    JSON.stringify(receipt.allocations) !== JSON.stringify(candidate.allocations)
-  )
-    throw new AutomationFailure(
-      'RECEIPT_CONFLICT',
-      'The reconstructed candidate differs from the preview receipt.',
-      4,
-      [],
-      null,
-      true,
+    if (
+      receipt.planHash !== loaded.hash ||
+      receipt.source.path !== source.source.path ||
+      receipt.source.sha256 !== source.source.sha256
+    )
+      throw new AutomationFailure(
+        'RECEIPT_CONFLICT',
+        'Source or plan differs from the preview receipt.',
+        4,
+      );
+    const candidate = buildCandidate(
+      source.imported.project,
+      loaded.plan,
+      receipt.savedAt,
+      source.editorState,
+      false,
+      request.inPlace,
     );
+    assertCapabilities(candidate.requiredCapabilities, request, candidate.permanentDeletions);
+    if (
+      receipt.candidateHash !== hashText(candidate.content) ||
+      JSON.stringify(receipt.requiredCapabilities) !==
+        JSON.stringify(candidate.requiredCapabilities) ||
+      JSON.stringify(receipt.allocations) !== JSON.stringify(candidate.allocations)
+    )
+      throw new AutomationFailure(
+        'RECEIPT_CONFLICT',
+        'The reconstructed candidate differs from the preview receipt.',
+        4,
+      );
+    return {
+      source,
+      content: candidate.content,
+      result: {
+        data: {
+          source: source.source,
+          requiredCapabilities: candidate.requiredCapabilities,
+          permanentDeletions: candidate.permanentDeletions,
+          aliases: candidate.allocations,
+          changes: fullDiff(source.raw, JSON.parse(candidate.content)),
+          impacts: candidate.impacts,
+          remainingErrors: candidate.remainingErrors,
+        },
+        diagnostics: candidate.diagnostics,
+      },
+    };
+  };
+  if (request.inPlace && receipt.overwrite) {
+    await targetPath(
+      request.path,
+      [receiptFile.path, ...(loaded.path ? [loaded.path] : [])],
+      '.puzzle.json',
+    );
+    const committed = await executeOverwrite(
+      {
+        path: request.path,
+        expected: receipt.overwrite,
+        requestHash: receiptFile.sha256,
+        candidateHash: receipt.candidateHash,
+      },
+      prepare,
+      verifyInputs,
+    );
+    const { result, ...publication } = committed;
+    return { ...result, data: { ...result.data, ...publication } };
+  }
+  const prepared = await prepare();
   const target = await targetPath(
-    request.out,
-    [source.source.path, receiptFile.path, ...(loaded.path ? [loaded.path] : [])],
+    request.out!,
+    [prepared.source.source.path, receiptFile.path, ...(loaded.path ? [loaded.path] : [])],
     '.puzzle.json',
   );
-  await unchanged(loaded);
-  await readSource(source.source.path, source.source.sha256);
-  if ((await readFileSnapshot(receiptFile.path)).sha256 !== receiptFile.sha256)
-    throw new AutomationFailure('RECEIPT_CONFLICT', 'The receipt changed before publication.', 4);
-  const result = await publishNew(target, candidate.content, true);
+  await verifyInputs();
+  await readSource(request.path, prepared.source.source.sha256);
   return {
-    data: {
-      ...result,
-      source: source.source,
-      aliases: candidate.allocations,
-      changes: fullDiff(source.raw, JSON.parse(candidate.content)),
-      remainingErrors: candidate.remainingErrors,
-    },
-    diagnostics: candidate.diagnostics,
+    ...prepared.result,
+    data: { ...prepared.result.data, ...(await publishNew(target, prepared.content, true)) },
   };
 }
 export async function exportProject(request: WriteRequests['export']) {

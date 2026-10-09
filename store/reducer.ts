@@ -8,7 +8,8 @@ import { ACTION_POLICIES, type ActionPolicy } from './actionPolicy';
 import { equalProjectData } from '../utils/equalProjectData';
 import { reconcileHistoryUi } from './historyUi';
 import { normalizePanelSizes } from '../utils/panelSizes';
-import { acknowledgeSave, beginDocument, getHistoryEntry, isPermanentResourceDeletion, MAX_HISTORY_LENGTH, restoreHistory } from './documentHistory';
+import { defaultProjectEditorState } from '../utils/projectEditorState';
+import { acknowledgeSave, beginDocument, recordHistoryEntry, isPermanentResourceDeletion, MAX_HISTORY_LENGTH, restoreHistory } from './documentHistory';
 import {
     fsmReducer, isFsmAction,
     presentationReducer, isPresentationAction,
@@ -66,6 +67,12 @@ const internalReducer = (state: EditorState, action: Action): EditorState => {
 
     // 处理初始化相关 Actions（不适合放入 Slice）
     switch (action.type) {
+        case 'COMMIT_AUTOMATION':
+            return {
+                ...state,
+                project: { ...state.project, ...action.payload },
+                ui: { ...reconcileHistoryUi(state.ui, action.payload), validationResults: action.validationResults }
+            };
         case 'INIT_START':
             return {
                 ...state,
@@ -165,19 +172,21 @@ export const editorReducer = (state: EditorState, action: Action): EditorState =
     if (state.runtime.projectOperation.phase === 'committing' && policy.changesContent) return state;
     if (action.type === 'SYNC_RESOURCE_STATES' && action.sessionId !== state.document.sessionId) return state;
     if (action.type === 'UNDO' || action.type === 'REDO') return restoreHistory(state, action.type);
+    if (action.type === 'RESTORE_AUTOMATION_HISTORY') return restoreHistory(state, action.direction, action);
     if (action.type === 'PROJECT_SAVE_SUCCEEDED') return acknowledgeSave(state, action.payload);
 
     const next = internalReducer(state, action);
     if (action.type === 'INIT_SUCCESS') {
         const es = action.editorState;
+        const defaults = defaultProjectEditorState(action.payload.stageTree.rootId ?? null, next.ui.panelSizes);
         const ui = reconcileHistoryUi({
             ...next.ui,
             panelSizes: normalizePanelSizes(es?.panelSizes ?? next.ui.panelSizes),
-            stageExpanded: es?.stageExpanded ?? {},
-            currentStageId: es?.currentStageId ?? action.payload.stageTree.rootId ?? null,
-            currentNodeId: es?.currentNodeId ?? null,
-            currentGraphId: es?.currentGraphId ?? null,
-            view: es?.view === 'BLACKBOARD' ? 'BLACKBOARD' : 'EDITOR',
+            stageExpanded: es?.stageExpanded ?? defaults.stageExpanded,
+            currentStageId: es?.currentStageId ?? defaults.currentStageId,
+            currentNodeId: es?.currentNodeId ?? defaults.currentNodeId,
+            currentGraphId: es?.currentGraphId ?? defaults.currentGraphId,
+            view: es?.view === 'BLACKBOARD' ? 'BLACKBOARD' : defaults.view,
             selection: !es && action.payload.stageTree.rootId ? { type: 'STAGE', id: action.payload.stageTree.rootId } : next.ui.selection,
             validationResults: action.validationResults ?? [], showValidationPanel: (action.validationResults?.length ?? 0) > 0
         }, action.payload);
@@ -191,14 +200,16 @@ export const editorReducer = (state: EditorState, action: Action): EditorState =
         return next.ui === state.ui ? state : { ...next, project: state.project };
     }
     const barrier = policy.history === 'barrier'
-        || (policy.history === 'resource-delete' && isPermanentResourceDeletion(state.project, next.project, action));
+        || isPermanentResourceDeletion(state.project, next.project);
     const revision = state.document.nextRevision;
     return {
         ...next,
-        document: { ...state.document, revision, nextRevision: revision + 1 },
+        document: { ...state.document, revision, nextRevision: revision + 1,
+            restrictedRevisions: action.type === 'COMMIT_AUTOMATION' && action.restrictAutoSave
+                ? [...(state.document.restrictedRevisions ?? []), revision] : state.document.restrictedRevisions },
         manifest: { ...next.manifest, scripts: Object.values(next.project.scripts.scripts) },
         history: barrier ? { past: [], future: [] } : {
-            past: [...state.history.past, getHistoryEntry(state)].slice(-MAX_HISTORY_LENGTH),
+            past: [...state.history.past, recordHistoryEntry(state, action)].slice(-MAX_HISTORY_LENGTH),
             future: []
         },
         ui: { ...next.ui, isDirty: revision !== state.document.savedRevision }

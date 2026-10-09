@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { flushSync } from 'react-dom';
+import { flushActiveField } from './editBarrierDom';
 import { isElectron, onWindowCloseRequested, resolveWindowClose } from '../platform/electron';
 import { useProjectSession } from '../store/context';
 
@@ -16,22 +16,7 @@ export function useWindowClose(): void {
       void (async () => {
         let approved = false;
         try {
-          flushSync(() => {
-            const field = document.activeElement;
-            if (!(field instanceof HTMLElement)) return;
-            let committed = false;
-            const markBlur = () => {
-              committed = true;
-            };
-            field.addEventListener('focusout', markBlur);
-            try {
-              field.blur();
-              // 后台窗口的 blur 可能不派发 DOM 事件；React onBlur 依赖 focusout。
-              if (!committed) field.dispatchEvent(new FocusEvent('focusout', { bubbles: true }));
-            } finally {
-              field.removeEventListener('focusout', markBlur);
-            }
-          });
+          flushActiveField();
           approved = await session.requestClose(
             () => resolveWindowClose(requestId, true),
             lifetime.signal,

@@ -1,0 +1,382 @@
+{
+  "verifiedAt": "2026-10-09T09:20:16.701Z",
+  "archiveValid": true,
+  "installer": "E:\\Projects\\Web Projects\\puzzle-editor\\release\\desktop\\C10\\Puzzle Editor Setup 1.0.0-beta.exe",
+  "installerSha256": "184cace90b7a77d4a1b1ebfe1f05d57f4bcca6cd557d1fa35d095816028696bc",
+  "extractedDirectory": "D:\\Temp\\puzzle-c10-installer-SApYUA",
+  "comparedFiles": 74,
+  "allMatch": true,
+  "files": [
+    {
+      "path": "LICENSE.electron.txt",
+      "size": 1096,
+      "sha256": "5154e165bd6c2cc0cfbcd8916498c7abab0497923bafcd5cb07673fe8480087d"
+    },
+    {
+      "path": "LICENSES.chromium.html",
+      "size": 11175275,
+      "sha256": "2f9bd7e8103b2f509abfcce2eac0a9e6a5e367987b8167dac612fd36fd3c0d9d"
+    },
+    {
+      "path": "Puzzle Editor.exe",
+      "size": 190557184,
+      "sha256": "7ec469761a4d6427d6fe3d89055aeae2741eb683960d8cc481ca6c68e73d578f"
+    },
+    {
+      "path": "chrome_100_percent.pak",
+      "size": 147398,
+      "sha256": "0b84b7680630dd51cb36a2fcdd7cc3b031636fe6b91f81772822be9e514132fe"
+    },
+    {
+      "path": "chrome_200_percent.pak",
+      "size": 219772,
+      "sha256": "8e2afd2ad5bd4f4edfe739ad503ff6896410d097665d40e99c56c440a8ebc36e"
+    },
+    {
+      "path": "d3dcompiler_47.dll",
+      "size": 4916728,
+      "sha256": "af7b99be1b8770c0e4d18e43b04e81d11bdeb667fa6b07ade7a88f4c5676bf9a"
+    },
+    {
+      "path": "ffmpeg.dll",
+      "size": 2976768,
+      "sha256": "62937d8c1c2f7924d7369c08d15f8cdbb7dc4d1bdc5618ff5603fea873343a6a"
+    },
+    {
+      "path": "icudtl.dat",
+      "size": 10464144,
+      "sha256": "9192f5453665fcfde180f1283f2fbccc477f4daa0081e3903ec02d9242721860"
+    },
+    {
+      "path": "libEGL.dll",
+      "size": 491008,
+      "sha256": "bd174fd289918d12e3d4ef63f5243e259bdfcef1aaab3613681544d2ef7e1efa"
+    },
+    {
+      "path": "libGLESv2.dll",
+      "size": 8110592,
+      "sha256": "66788a90b70bafbecb5b1292ed83d98639b58a5b1a5c090170f7baff59da023f"
+    },
+    {
+      "path": "locales/af.pak",
+      "size": 545943,
+      "sha256": "8e6af9fa4332e027ed629ebcac60630294e23738706ff35e77432a8ca1304f50"
+    },
+    {
+      "path": "locales/am.pak",
+      "size": 882232,
+      "sha256": "eef0ae38c894b68003537e399c47aea82e99586a43791c3eb53a8a4957564e8e"
+    },
+    {
+      "path": "locales/ar.pak",
+      "size": 967938,
+      "sha256": "f6da2618f6389d3174e4140956505d40db040b030b4333c91ab07d72a738272b"
+    },
+    {
+      "path": "locales/bg.pak",
+      "size": 1007566,
+      "sha256": "a276850b8f2633189659e41d693d2f9c0fd5876428c5275d7a758fa6b20ed774"
+    },
+    {
+      "path": "locales/bn.pak",
+      "size": 1298436,
+      "sha256": "c9796601ff3ebf43751c2fca26ca9fc220fdb440a9e83ce321e0df3eb8740929"
+    },
+    {
+      "path": "locales/ca.pak",
+      "size": 612676,
+      "sha256": "f6a02fae2296663a089778715a355472a52307302c8465f2a49188b9978ce70f"
+    },
+    {
+      "path": "locales/cs.pak",
+      "size": 632449,
+      "sha256": "02ed6cfd8c3eb3c0e65c758966b2406559632da2639d894859758de620b2e6d0"
+    },
+    {
+      "path": "locales/da.pak",
+      "size": 571795,
+      "sha256": "419e9e15ee67fdeb6c2e4c36b023c10776b6b5605c2de6643c20da3331adfcfe"
+    },
+    {
+      "path": "locales/de.pak",
+      "size": 611312,
+      "sha256": "35340d00cb772026dce087fc54c3e918261d44d6890511e5909975edac435300"
+    },
+    {
+      "path": "locales/el.pak",
+      "size": 1103668,
+      "sha256": "1acee2644bc48d4aa618db2bdba6da2e384cad19589e65057fe0e7d9d6549446"
+    },
+    {
+      "path": "locales/en-GB.pak",
+      "size": 496743,
+      "sha256": "ec37dd701c2dc31ff0d3bedcaa91cd30befcce313d863e378247c9673be3b7a4"
+    },
+    {
+      "path": "locales/en-US.pak",
+      "size": 501514,
+      "sha256": "db534d724d2f9906804a239f8728d0c23dbb3419a51c1f4152c6384b5a0a9dec"
+    },
+    {
+      "path": "locales/es-419.pak",
+      "size": 603446,
+      "sha256": "48a946f493bf1c359fb6063081023c9fdf92a85c8d78caf24ba9f7e6d629d70d"
+    },
+    {
+      "path": "locales/es.pak",
+      "size": 602486,
+      "sha256": "cd382085daf35f5f1a4c5ddc42dda39e285fbfb8a11bc3081cfd51854eb77d71"
+    },
+    {
+      "path": "locales/et.pak",
+      "size": 549196,
+      "sha256": "53af370860a31b23d1839058e5d0e45876b7a769ef306bcbe7b0a6b9fb0fc990"
+    },
+    {
+      "path": "locales/fa.pak",
+      "size": 898401,
+      "sha256": "6905c3fa1df7efc9d9510b3c414f049215f03fbf54aaeebae5cf299ff384268c"
+    },
+    {
+      "path": "locales/fi.pak",
+      "size": 560067,
+      "sha256": "8fb9e0e8c890d8ed8e961917fabc9f905d042d043764a8c7ad70f0cbd1d3a2f5"
+    },
+    {
+      "path": "locales/fil.pak",
+      "size": 633637,
+      "sha256": "88a8409e40ce45aa16acc6c7ada97f1b4dcfa207eff3a149b1acc6bc4b82b4d3"
+    },
+    {
+      "path": "locales/fr.pak",
+      "size": 652577,
+      "sha256": "04e101e4507a6445029b8c21a9a4cbd7edcba7c1fd27a315fd2105daf83cd441"
+    },
+    {
+      "path": "locales/gu.pak",
+      "size": 1281645,
+      "sha256": "cf0f18e7eaf1b642846dc9907be34a408677812c0ff0540a9b82909226b0b580"
+    },
+    {
+      "path": "locales/he.pak",
+      "size": 789701,
+      "sha256": "3bb07277b73ff0ba8663f43bcb911795a98f778b503ffc38f0a0341db3ba079a"
+    },
+    {
+      "path": "locales/hi.pak",
+      "size": 1352368,
+      "sha256": "42d674c5fb63731074b5538e17068eb354b7464261f9b884f5234c0315417ba8"
+    },
+    {
+      "path": "locales/hr.pak",
+      "size": 609487,
+      "sha256": "74d692fb16736e01b6942d845424ae8cfe1e23bf62b7925a695b3d77c1fc986e"
+    },
+    {
+      "path": "locales/hu.pak",
+      "size": 656971,
+      "sha256": "0e40ffb914602e85fd9f6d9f7d77d43e7a500b2dcddcb56e3cbce6e52f0d60c6"
+    },
+    {
+      "path": "locales/id.pak",
+      "size": 541718,
+      "sha256": "890154dcb53f6da0e76f5ed29c461b9671fff97c5f38fc37276fec8ab10274d8"
+    },
+    {
+      "path": "locales/it.pak",
+      "size": 594394,
+      "sha256": "0c4dec4a104c03da1d69fd9e298a6d7135c8bdba188add73ca81f1ef1a43e36f"
+    },
+    {
+      "path": "locales/ja.pak",
+      "size": 724187,
+      "sha256": "64fffde258aba44b0b647fe24871e91b0a3969ddf6f3a37ef204be27a73c53e8"
+    },
+    {
+      "path": "locales/kn.pak",
+      "size": 1463263,
+      "sha256": "9f2581c11b215b1c87682c76d47932ee6356095e4c0d6c6c1af6327ee8fcfc67"
+    },
+    {
+      "path": "locales/ko.pak",
+      "size": 613609,
+      "sha256": "ab7ddb6945db9c84970bf459e6e77374be541628da4804ab2f53fe15465cd466"
+    },
+    {
+      "path": "locales/lt.pak",
+      "size": 660230,
+      "sha256": "66a62c6933f57f17240eb1506b899b09331bdd308136a5016dd902945ab165d9"
+    },
+    {
+      "path": "locales/lv.pak",
+      "size": 658780,
+      "sha256": "aaf560ade10b1630f3771df0b749503543ae17d30bc7b5db0b2e08b7f8aa235c"
+    },
+    {
+      "path": "locales/ml.pak",
+      "size": 1519586,
+      "sha256": "d0ddcd2e229f06593bc83b94aea67431126d0eb0d05dcc7bb72e8afbd384c904"
+    },
+    {
+      "path": "locales/mr.pak",
+      "size": 1254664,
+      "sha256": "c10a844cb487474a45c91ea6386cef640fd864d26545e3d1a8882827f5004939"
+    },
+    {
+      "path": "locales/ms.pak",
+      "size": 568567,
+      "sha256": "84b1668e5e9c3a8d778c76bfeec1e1a3ddd0cfb99e7c64a6957c8fa345c4183b"
+    },
+    {
+      "path": "locales/nb.pak",
+      "size": 550039,
+      "sha256": "17ca8717012fb4abee9983d91ebf54bab2f4bd45ef977130c2be297f1cf96b53"
+    },
+    {
+      "path": "locales/nl.pak",
+      "size": 569717,
+      "sha256": "c2435e6a8f139d0f44cd1412c02a36d5366f49e8092fffc0c65c6730655283ee"
+    },
+    {
+      "path": "locales/pl.pak",
+      "size": 634327,
+      "sha256": "8c90cb575a3cdcb036168c2276d42d94c717da6fc14e40a2367f327c3d833d9a"
+    },
+    {
+      "path": "locales/pt-BR.pak",
+      "size": 595165,
+      "sha256": "d26c40517d5ea7230f742e9b3ac3f6a1fc3d4e169510cd0588ecff3ba36c0c0c"
+    },
+    {
+      "path": "locales/pt-PT.pak",
+      "size": 599243,
+      "sha256": "f0d6ef5b65e350c598006782228fe6f65b39cfcba719cd238e64df8cfbdec794"
+    },
+    {
+      "path": "locales/ro.pak",
+      "size": 620746,
+      "sha256": "33397ba4c208fe1cdda8733bef51078e5dab14ccaa781aacc56c200c85dd39a0"
+    },
+    {
+      "path": "locales/ru.pak",
+      "size": 1021508,
+      "sha256": "662755dba2c78f9eb1e6a9e8785389afb22ec3412ad895e52bd8d7a069ffdb7d"
+    },
+    {
+      "path": "locales/sk.pak",
+      "size": 642856,
+      "sha256": "a0c55188355c10da5d3e9fbe13415cd259dd25c8412f9d67d3f95f623a76f934"
+    },
+    {
+      "path": "locales/sl.pak",
+      "size": 616550,
+      "sha256": "a23c4a9b68487052fbc6be29eb883108749b8091b48d5bdd0bad175e6bdabc8f"
+    },
+    {
+      "path": "locales/sr.pak",
+      "size": 949158,
+      "sha256": "3c1b8c23446c30a384699efcc0f550b8505c054bbef55bbb9ecf1a069c1535fd"
+    },
+    {
+      "path": "locales/sv.pak",
+      "size": 553636,
+      "sha256": "a278142578e651d355e02e32111156ff3526e3af64d7a2ea5875de194e32507a"
+    },
+    {
+      "path": "locales/sw.pak",
+      "size": 584260,
+      "sha256": "650a8d43bef6807049db47031e0743503596766937a255932dffd630e5a0dae5"
+    },
+    {
+      "path": "locales/ta.pak",
+      "size": 1507096,
+      "sha256": "e2acffb7523dbc1f9c71249a39444bb3dbaeb8515ec6fb56fb432ff74c3cd404"
+    },
+    {
+      "path": "locales/te.pak",
+      "size": 1395141,
+      "sha256": "ffb6b4aa264989e92b0e99038e0680e5bb7e4098db408acbac8cdc8118e0f850"
+    },
+    {
+      "path": "locales/th.pak",
+      "size": 1172114,
+      "sha256": "c31b4fb659bc23ae00fa793129a49ca3fe01dbaa0c917f60e3a0902814dcb5aa"
+    },
+    {
+      "path": "locales/tr.pak",
+      "size": 595104,
+      "sha256": "1e0c94ebca5a4cfc2924dfae38013269a80fdd94fdb7fa0d1f68d84d63a4566e"
+    },
+    {
+      "path": "locales/uk.pak",
+      "size": 1023402,
+      "sha256": "0d005d3c0ea2f608a87394252984dc25d954598b4705bc4b0d940acb206affad"
+    },
+    {
+      "path": "locales/ur.pak",
+      "size": 893135,
+      "sha256": "1e278a5ac3d6e9987bb48e0bc8b06b967d366fe2d896507663c5c7e92fe45c88"
+    },
+    {
+      "path": "locales/vi.pak",
+      "size": 705694,
+      "sha256": "daa6be6a13afd82d371400d596786dc6b66df750cc0a92377ab04b1862a14009"
+    },
+    {
+      "path": "locales/zh-CN.pak",
+      "size": 507439,
+      "sha256": "5e67fad52a8d6c6f5d19b90abff8604d130e22ed765d8aa78644eb3f6d8e30ec"
+    },
+    {
+      "path": "locales/zh-TW.pak",
+      "size": 501984,
+      "sha256": "8eaf37dea0f7dca117878bd779a7098d8ebfc3f260c80fad7bd6680fdb654f2a"
+    },
+    {
+      "path": "resources.pak",
+      "size": 5801405,
+      "sha256": "f54a70581b4e9c0e0a8034a55d9327678bffa4c879c2bea88f1c414a5bce208a"
+    },
+    {
+      "path": "resources/app-update.yml",
+      "size": 104,
+      "sha256": "5ef8de40679fb6272e649141b7a30e7791f714098e908df6db696fd514c5dba7"
+    },
+    {
+      "path": "resources/app.asar",
+      "size": 44569613,
+      "sha256": "cd2d4c640f8d2c2db8ab3ae4eacfa773b056f5208fba47e1a85a6958ed380861"
+    },
+    {
+      "path": "resources/elevate.exe",
+      "size": 107520,
+      "sha256": "9b1fbf0c11c520ae714af8aa9af12cfd48503eedecd7398d8992ee94d1b4dc37"
+    },
+    {
+      "path": "snapshot_blob.bin",
+      "size": 320614,
+      "sha256": "22bca5f8a1f0f2c373c4028f3207f229644bd406915a10cd3d53bd0c6efba4f0"
+    },
+    {
+      "path": "v8_context_snapshot.bin",
+      "size": 693457,
+      "sha256": "09cb09f57583ad9d604c4f35e47a533bfd3ae58dfeca049e949fb0e4d9a2c9fe"
+    },
+    {
+      "path": "vk_swiftshader.dll",
+      "size": 5506560,
+      "sha256": "bbed1f5b6c20266602188127fa5f5643cd11d6f5f20494ebacc49da1c0ed70b8"
+    },
+    {
+      "path": "vk_swiftshader_icd.json",
+      "size": 106,
+      "sha256": "32d83ff113fef532a9f97e0d2831f8656628ab1c99e9060f0332b1532839afd9"
+    },
+    {
+      "path": "vulkan-1.dll",
+      "size": 897536,
+      "sha256": "de8802db77e0d421a8fabb636a7102fbac72d229b0a3e82d08b26812d36b3d31"
+    }
+  ],
+  "installationExecuted": false
+}

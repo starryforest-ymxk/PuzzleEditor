@@ -12,6 +12,7 @@ export interface ProjectCandidate {
   create?: boolean;
   importNotices?: ImportNotice[];
   validationResults?: ValidationResult[];
+  sourceContent?: string;
 }
 
 export function projectUI(ui: EditorUIState): EditorUIState {
@@ -57,5 +58,6 @@ export function prepareProject(content: string, sourcePath: string | null): Proj
     saved: editableFile && writableSource && !imported.migrated,
     importNotices: imported.notices,
     validationResults: validateProject(imported.project),
+    sourceContent: content,
   };
 }

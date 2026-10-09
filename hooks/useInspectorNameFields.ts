@@ -9,6 +9,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAutoTranslateAssetName } from './useAutoTranslateAssetName';
 import { isValidAssetName } from '../utils/assetNameValidation';
+import { useEditGuard } from './useEditGuard';
 
 // ========== 类型定义 ==========
 
@@ -61,6 +62,9 @@ export function useInspectorNameFields({
 }: UseInspectorNameFieldsOptions): UseInspectorNameFieldsReturn {
     const [localName, setLocalName] = useState('');
     const [localAssetName, setLocalAssetName] = useState('');
+    useEditGuard(Boolean(entity && (localName !== entity.name || localAssetName !== (entity.assetName ?? ''))),
+        Boolean(entity && ((localName !== entity.name && !allowEmptyName && !localName.trim())
+            || (localAssetName !== (entity.assetName ?? '') && !isValidAssetName(localAssetName.trim())))));
 
     const entityId = entity?.id;
     const entityName = entity?.name;

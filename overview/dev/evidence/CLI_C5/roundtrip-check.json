@@ -1,0 +1,20 @@
+{
+  "sourceUnchanged": true,
+  "candidateBytesPreserved": true,
+  "rawRetry": "already-applied",
+  "guiExportEqualsCliExportOfGuiSave": true,
+  "guiEditEqualsCliDomainEdit": true,
+  "sourceSha256": "032e3c0219bc7e047fb389111160c597c30b2b96aae597c6cccf8c6261c694e5",
+  "candidateSha256": "c3567dfc7705ad8988289f84958ffea346a68d7ecc9dffd0dac538c4f75fc859",
+  "consoleErrorsAndWarnings": [],
+  "guiSteps": [
+    "Open raw CLI output",
+    "Restore Shared Leaf editor state",
+    "Select Leaf Wait and change 1.25 to 1.5",
+    "Save Project",
+    "Validate: 0 Errors, 0 Warnings",
+    "Export",
+    "Open Door FSM, Idle and Replay",
+    "Open linked branch/parallel graph and inspect script constant plus StageLocal reference"
+  ]
+}

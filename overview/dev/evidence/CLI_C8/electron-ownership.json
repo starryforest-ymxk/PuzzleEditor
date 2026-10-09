@@ -1,0 +1,26 @@
+{
+  "success": true,
+  "checks": [
+    "Create A",
+    "Create B",
+    "Real CLI preview: D:\\Temp\\puzzle-c8-electron-uO5G52\\A.puzzle.json",
+    "First desktop owns A",
+    "Clean open desktop blocks CLI",
+    "Second desktop cannot own A",
+    "Second desktop owns B",
+    "Unsaved desktop blocks CLI",
+    "Failed switch preserves document/history/path/dirty",
+    "Failed switch retains old ownership",
+    "Cancelled switch stays in old session",
+    "Window destroyed releases target; switch succeeds",
+    "Successful switch releases previous A to CLI",
+    "Memory project releases previous file",
+    "Save As claim conflict preserves unsaved session",
+    "Save As succeeds after target released",
+    "Real CLI preview: D:\\Temp\\puzzle-c8-electron-uO5G52\\C.puzzle.json",
+    "Save As retains new file ownership",
+    "Cancel close preserves active session",
+    "Cancel close retains file ownership",
+    "Killed Electron releases OS ownership without stale PID cleanup"
+  ]
+}

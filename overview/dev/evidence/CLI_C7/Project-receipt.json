@@ -1,0 +1,23 @@
+{
+  "apiVersion": "1.0.0",
+  "kind": "import-preview",
+  "converterVersion": "C7.1",
+  "policyVersion": "C6",
+  "requiredCapabilities": [],
+  "source": {
+    "path": "E:\\Projects\\Web Projects\\puzzle-editor\\overview\\dev\\evidence\\CLI_C7\\Project-source.json",
+    "sha256": "e3c7ab6b09104abe1fc5363dce406afa1d663b9a28ee42f044e6c6438230b77f"
+  },
+  "names": null,
+  "output": {
+    "path": "E:\\Projects\\Web Projects\\puzzle-editor\\overview\\dev\\evidence\\CLI_C7\\Project-converted.puzzle.json",
+    "mode": "create-new",
+    "expected": "absent"
+  },
+  "context": {
+    "now": "2026-10-09T06:15:52.880Z",
+    "runtimeProjectId": "proj-imported-8d1a72a1-8df1-4d77-aa97-55d127cc21ae"
+  },
+  "detectedFormat": "project",
+  "candidateHash": "1d11cea7145b990f65c074e8e66347e86e971d7fd1368b48738afa5c9db504c8"
+}

@@ -1,3 +1,4 @@
+import { createPresentationGraph } from '../utils/presentation';
 import { useEditorDispatch } from '../store/context';
 import type { ProjectData } from '../types/project';
 import type { VariableDefinition, EventDefinition, LocalVarWithScope } from '../types/blackboard';
@@ -116,13 +117,7 @@ export function useBlackboardActions(project: ProjectData) {
   const handleAddPresentationGraph = () => {
     // 使用统一 ID 格式：GRAPH_{N}
     const id = generateGraphId(project);
-    const newGraph = {
-      id,
-      name: 'New Presentation Graph',
-      description: '',
-      startNodeId: null,
-      nodes: {},
-    };
+    const newGraph = createPresentationGraph({ id, name: 'New Presentation Graph' });
     dispatch({ type: 'ADD_PRESENTATION_GRAPH', payload: { graph: newGraph } });
     dispatch({ type: 'SELECT_OBJECT', payload: { type: 'PRESENTATION_GRAPH', id } });
   };

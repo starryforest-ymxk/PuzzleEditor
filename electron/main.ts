@@ -5,10 +5,11 @@
 
 import { app, BrowserWindow, ipcMain, Menu, nativeTheme } from 'electron';
 import * as path from 'path';
-import { fileURLToPath } from 'url';
+import { fileURLToPath, pathToFileURL } from 'url';
 import { registerIpcHandlers } from './ipc/handlers.js';
 import { fileWatcherService } from './ipc/watcherService.js';
 import { registerWindowCloseGuard } from './windowCloseGuard.js';
+import { registerSessionBridge } from './sessionBridge.js';
 
 // ESM 模式下获取 __dirname
 const __filename = fileURLToPath(import.meta.url);
@@ -53,6 +54,7 @@ function createWindow(): void {
 
     // 在加载页面前拦截原生关闭；保存与放弃的决定由项目会话作出。
     registerWindowCloseGuard(mainWindow);
+    registerSessionBridge(mainWindow, isDev ? 'http://localhost:3000/' : pathToFileURL(path.join(__dirname, '../dist/index.html')).href);
 
     // 窗口准备好后显示，避免白屏闪烁
     mainWindow.once('ready-to-show', () => {

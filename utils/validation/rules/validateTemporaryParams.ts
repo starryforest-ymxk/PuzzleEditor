@@ -14,6 +14,8 @@ import type { CodedValidationResult as ValidationResult } from '../../../types/v
 import { ProjectData } from '../../../types/project';
 import { PresentationBinding, ParameterBinding, VariableType } from '../../../types/common';
 import { ASSET_NAME_REGEX } from '../../assetNameValidation';
+import { variableValueMatches } from '../../parameterCompatibility';
+import { ownEntry } from '../../recordLookup';
 
 // 允许的 Temporary 参数类型白名单
 const ALLOWED_TEMP_TYPES: Set<string> = new Set(['boolean', 'integer', 'float', 'string']);
@@ -56,7 +58,7 @@ export const validateTemporaryParams = (project: ProjectData): ValidationResult[
     if (tempParams.length === 0 || binding?.type !== 'Script') return;
 
     const scriptId = binding.scriptId;
-    const scriptDef = project.scripts?.scripts[scriptId];
+    const scriptDef = ownEntry(project.scripts?.scripts, scriptId);
     const scriptName = scriptDef?.name || scriptId;
 
     tempParams.forEach((param, idx) => {
@@ -106,6 +108,21 @@ export const validateTemporaryParams = (project: ProjectData): ValidationResult[
         });
       }
 
+      // 常量与声明类型一致；变量来源的类型及作用域由 validateVariables 在调用上下文中校验。
+      if (
+        param.source?.type === 'Constant' &&
+        ALLOWED_TEMP_TYPES.has(param.tempVariable.type) &&
+        !variableValueMatches(param.tempVariable.type, param.source.value)
+      ) {
+        results.push({
+          code: 'ERR_TEMP_VALUE_TYPE',
+          id: `err-temp-value-type-${locationContext.objectId}-${idx}`,
+          level: 'error',
+          message: `Temporary parameter "${param.paramName}" requires a ${param.tempVariable.type} constant.`,
+          ...locationContext,
+        });
+      }
+
       // 记录用于 #61 冲突检测
       allTempParams.push({
         scriptId,
@@ -134,11 +151,11 @@ export const validateTemporaryParams = (project: ProjectData): ValidationResult[
   // 2. 遍历 Node → FSM → Transition 的演出绑定
   // =========================================================================
   Object.values(project.nodes).forEach((node) => {
-    const fsm = project.stateMachines[node.stateMachineId];
+    const fsm = ownEntry(project.stateMachines, node.stateMachineId);
     if (!fsm) return;
 
     Object.values(fsm.transitions || {}).forEach((trans) => {
-      const fromState = fsm.states[trans.fromStateId];
+      const fromState = ownEntry(fsm.states, trans.fromStateId);
       const transCtx = {
         objectType: 'TRANSITION' as const,
         objectId: trans.id,
@@ -155,8 +172,10 @@ export const validateTemporaryParams = (project: ProjectData): ValidationResult[
   Object.values(project.presentationGraphs || {}).forEach((graph) => {
     Object.values(graph.nodes || {}).forEach((pNode) => {
       const nodeCtx = {
-        objectType: 'PRESENTATION_GRAPH' as const,
-        objectId: graph.id,
+        objectType: 'PRESENTATION_NODE' as const,
+        objectId: pNode.id,
+        graphId: graph.id,
+        contextId: graph.id,
         location: `Graph: ${graph.name} > Node: ${pNode.name || pNode.id}`,
       };
       validateBinding(pNode.presentation, nodeCtx);

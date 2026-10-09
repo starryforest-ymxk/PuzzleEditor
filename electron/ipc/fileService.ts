@@ -65,7 +65,10 @@ class FileService {
    * 创建新项目
    * @param params 项目创建参数
    */
-  async createProject(params: CreateProjectParams): Promise<CreateProjectResult> {
+  async createProject(
+    params: CreateProjectParams,
+    writer: FileService['writeFile'] = this.writeFile.bind(this),
+  ): Promise<CreateProjectResult> {
     const { name, description } = params;
 
     // 获取项目目录
@@ -120,7 +123,7 @@ class FileService {
 
     // 写入项目文件
     const content = JSON.stringify(projectData, null, 2);
-    await this.writeFile(projectPath, content, { exclusive: true });
+    await writer(projectPath, content, { exclusive: true });
 
     // 更新最近项目列表
     await preferencesService.updateRecentProjects(projectPath, name);

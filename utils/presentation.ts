@@ -3,13 +3,13 @@
  * - 保证必需字段存在（nextIds / duration）
  * - 按类型裁剪无关字段（仅 PresentationNode 允许携带 presentation；Wait 才保留 duration）
  */
-import { PresentationNode } from '../types/presentation';
+import { PresentationGraph, PresentationNode } from '../types/presentation';
 import { PresentationBinding } from '../types/common';
 
 export const normalizePresentationNode = (node: PresentationNode): PresentationNode => {
   const base: PresentationNode = {
     ...node,
-    nextIds: node.nextIds || []
+    nextIds: node.nextIds || [],
   };
 
   // 严格模式：不再迁移/兼容旧字段（scriptId/parameters）。
@@ -20,7 +20,7 @@ export const normalizePresentationNode = (node: PresentationNode): PresentationN
     if (binding.type === 'Script') {
       return {
         ...binding,
-        parameters: Array.isArray(binding.parameters) ? binding.parameters : []
+        parameters: Array.isArray(binding.parameters) ? binding.parameters : [],
       };
     }
     return binding;
@@ -31,7 +31,7 @@ export const normalizePresentationNode = (node: PresentationNode): PresentationN
       return {
         ...base,
         presentation: normalizedPresentation,
-        duration: undefined
+        duration: undefined,
       };
     case 'Wait':
       return {
@@ -45,7 +45,19 @@ export const normalizePresentationNode = (node: PresentationNode): PresentationN
       return {
         ...base,
         presentation: undefined,
-        duration: undefined
+        duration: undefined,
       };
   }
 };
+
+/** GUI 与离线命令共用默认值，ID/名称始终由调用方提供。 */
+export function createPresentationGraph(
+  input: Pick<PresentationGraph, 'id' | 'name'> & Partial<PresentationGraph>,
+): PresentationGraph {
+  return { description: '', nodes: {}, startNodeId: null, ...input };
+}
+export function createPresentationNode(
+  input: Pick<PresentationNode, 'id' | 'name' | 'type' | 'position'> & Partial<PresentationNode>,
+): PresentationNode {
+  return normalizePresentationNode({ nextIds: [], ...input });
+}

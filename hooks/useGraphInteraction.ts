@@ -6,6 +6,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Side, Vector2 } from '../types/common';
 import * as Geom from '../utils/geometry';
+import { useEditGuard } from './useEditGuard';
 
 // ========== 类型定义 ==========
 interface SnapPoint {
@@ -68,6 +69,7 @@ export const useGraphInteraction = ({
     // === 框选状态 ===
     const [boxSelectRect, setBoxSelectRect] = useState<BoxSelectRect | null>(null);
     const boxSelectActive = useRef(false);
+    useEditGuard(false, false, Boolean(draggingNodeId || isDraggingMultiple || linkingState || modifyingTransition || boxSelectRect));
 
     // === 反馈状态 ===
     const [activeSnapPoint, setActiveSnapPoint] = useState<SnapPoint | null>(null);

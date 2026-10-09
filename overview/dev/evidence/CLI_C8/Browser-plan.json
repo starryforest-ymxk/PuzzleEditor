@@ -1,0 +1,16 @@
+{
+  "apiVersion": "1.0.0",
+  "sourceHash": "04b56bc38aec7d2e1b7332520875f7abba9cb3a608ac66eb52b9b419cd6a7c7b",
+  "scope": {
+    "project": true
+  },
+  "commands": [
+    {
+      "op": "project.update",
+      "changes": {
+        "name": "C8 Browser Verification",
+        "description": "Authorized overwrite verified in the browser"
+      }
+    }
+  ]
+}

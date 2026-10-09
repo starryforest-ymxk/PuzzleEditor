@@ -1,0 +1,16 @@
+  • server doesn't support ranges  
+  • downloading     url=http://127.0.0.1:8470/nsis-resources-3.4.1.7z size=731 kB parts=1
+  • downloaded      url=http://127.0.0.1:8470/nsis-resources-3.4.1.7z duration=18ms
+C:\Users\吴迪\AppData\Local\electron-builder\Cache\nsis\nsis-resources-3.4.1
+Official NSIS resources checksum verified: Dqd6g+2buwwvoG1Vyf6BHR1b+25QMmPcwZx40atOT57gH27rkjOei1L0JTldxZu4NFoEmW4kJgZ3DlSWVON3+Q==
+  • electron-builder  version=25.1.8 os=10.0.26300
+  • loaded configuration  file=package.json ("build" field)
+  • description is missed in the package.json  appPackageFile=E:\Projects\Web Projects\puzzle-editor\package.json
+  • author is missed in the package.json  appPackageFile=E:\Projects\Web Projects\puzzle-editor\package.json
+  • building        target=nsis file=release\desktop\C10\Puzzle Editor Setup 1.0.0-beta.exe archs=x64 oneClick=false perMachine=false
+  • signing with signtool.exe  path=release\desktop\C10\__uninstaller-nsis-puzzle-editor.exe
+  • no signing info identified, signing is skipped  signHook=false cscInfo=null
+  • signing with signtool.exe  path=release\desktop\C10\Puzzle Editor Setup 1.0.0-beta.exe
+  • no signing info identified, signing is skipped  signHook=false cscInfo=null
+  • building block map  blockMapFile=release\desktop\C10\Puzzle Editor Setup 1.0.0-beta.exe.blockmap
+Tested desktop EXE and ASAR unchanged after NSIS build.

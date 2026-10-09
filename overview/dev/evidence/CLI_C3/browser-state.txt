@@ -1,0 +1,382 @@
+Browser tab: 3, Title: "Puzzle Editor", URL: "http://127.0.0.1:4179/".
+0 AXWebArea Puzzle Editor, URL: 127.0.0.1:4179/
+	1 container root
+		2 container
+			3 image Puzzle Editor
+			4 text PUZZLE EDITOR v 1.0.0-beta Project CLI C3 Regression v 1.0.0
+			40 text *
+			5 button EDITOR
+			6 button BLACKBOARD
+			7 button Project
+			8 button Preferences
+			9 button Messages 2
+				19 text Messages
+				20 text 2
+		10 container
+			11 text EXPLORER STAGES
+			21 text Root Stage
+			22 text Room
+			23 text Side
+			12 text NODES Door
+			13 button ←, Help: Go Back
+			14 text CLI C3 Regression / Root Stage / Room / Inner / Door
+			24 container
+				25 text FSM Editor
+				26 text Door
+				27 text Shortcuts
+				28 button Show
+				29 container
+					30 image
+						31 image
+						32 image
+						33 image
+					34 text Failure Retry Unlock > Locked
+					35 text The initial state of this puzzle node
+					36 text Unlocked
+					37 text Edited in browser after CLI creation
+					38 text Failed
+					39 text No description
+			18 text INSPECTOR
+			41 text TRANSITION
+			42 button Delete this transition
+			43 text field (settable) Unlock
+			44 text BASIC INFO
+			45 text ID
+			46 text TRANS_1
+			47 text From
+			48 text Locked
+			49 text To
+			50 text Unlocked
+			51 text Priority
+			52 stepper (settable, integer) 13
+			53 text Description
+			54 text entry area (settable) CLI verified success
+			55 text TRIGGER
+			56 container
+				57 text Type
+				58 pop up button (collapsed, settable) Value: On Event, Secondary Actions: Expand
+					59 menu
+						60 Always
+						61 (selected) On Event
+						62 Custom Script
+						63 Handled By Script
+				64 button × Remove, Help: Remove Trigger
+				65 pop up button (collapsed, settable) Value: Open, Secondary Actions: Expand
+					66 menu
+						67 (disabled) Select event
+						68 (selected) Open
+				69 button ×, Help: Clear selection
+				70 text Open EVENT_1 State: Draft
+			71 container
+				72 text Type
+				73 pop up button (collapsed, settable) Value: Custom Script, Secondary Actions: Expand
+					74 menu
+						75 Always
+						76 On Event
+						77 (selected) Custom Script
+						78 Handled By Script
+				79 button × Remove, Help: Remove Trigger
+				80 pop up button (collapsed, settable) Value: Trigger, Secondary Actions: Expand
+					81 menu
+						82 (disabled) Select trigger script
+						83 (selected) Trigger
+				84 button ×, Help: Clear selection
+				85 text Trigger SCRIPT_TRIG_1 State: Draft
+			86 container
+				87 text Type
+				88 pop up button (collapsed, settable) Value: Handled By Script, Secondary Actions: Expand
+					89 menu
+						90 Always
+						91 On Event
+						92 Custom Script
+						93 (selected) Handled By Script
+				94 button × Remove, Help: Remove Trigger
+			95 container
+				96 text Type
+				97 pop up button (collapsed, settable) Value: Always, Secondary Actions: Expand
+					98 menu
+						99 (selected) Always
+						100 On Event
+						101 Custom Script
+						102 Handled By Script
+				103 button × Remove, Help: Remove Trigger
+			104 button + Add Trigger
+			105 text CONDITION
+			106 container
+				107 button Collapse group
+				108 button And
+				109 button Or
+				110 button Not
+				111 text ( 4 )
+				112 button 🗑, Help: Delete Group
+				113 container
+					114 text ⋮⋮
+					115 pop up button (collapsed, settable) Value: Compare, Secondary Actions: Expand
+						116 menu
+							117 (selected) Compare
+							118 Script
+							119 Literal
+					120 button ×, Help: Remove Condition
+					121 pop up button (collapsed) Power boolean Global, Secondary Actions: Expand
+						122 text Power
+						123 text boolean
+						124 text Global
+					125 pop up button (collapsed, settable) Value: ==, Secondary Actions: Expand
+						126 menu
+							127 (selected) ==
+							128 !=
+					129 pop up button (collapsed, settable) Value: Constant, Secondary Actions: Expand
+						130 menu
+							131 (selected) Constant
+							132 Variable Ref
+					133 pop up button (collapsed, settable) Value: False, Secondary Actions: Expand
+						134 menu
+							135 True
+							136 (selected) False
+				137 container
+					138 button Collapse group
+					139 text ⋮⋮
+					140 button And
+					141 button Or
+					142 button Not
+					143 text ( 2 )
+					144 button 🗑, Help: Delete Group
+					145 container
+						146 text ⋮⋮
+						147 pop up button (collapsed, settable) Value: Script, Secondary Actions: Expand
+							148 menu
+								149 Compare
+								150 (selected) Script
+								151 Literal
+						152 pop up button (collapsed, settable) Value: Condition, Secondary Actions: Expand
+							153 menu
+								154 (disabled) Select condition script
+								155 (selected) Condition
+						156 button ×, Help: Remove Condition
+						157 text Condition SCRIPT_COND_1 State: Draft
+					158 container
+						159 button Collapse group
+						160 text ⋮⋮
+						161 button And
+						162 button Or
+						163 button Not
+						164 text ( 1 )
+						165 button 🗑, Help: Delete Group
+						166 container
+							167 text ⋮⋮
+							168 pop up button (collapsed, settable) Value: Literal, Secondary Actions: Expand
+								169 menu
+									170 Compare
+									171 Script
+									172 (selected) Literal
+							173 pop up button (collapsed, settable) Value: Always False, Secondary Actions: Expand
+								174 menu
+									175 Always True
+									176 (selected) Always False
+							177 button ×, Help: Remove Condition
+						178 button (disabled) + Add ▼, Help: Not group allows only one condition
+							179 text + Add ▼
+					180 button + Add ▼
+						181 text + Add
+						182 text ▼
+				183 container
+					184 text ⋮⋮
+					185 pop up button (collapsed, settable) Value: Compare, Secondary Actions: Expand
+						186 menu
+							187 (selected) Compare
+							188 Script
+							189 Literal
+					190 button ×, Help: Remove Condition
+					191 pop up button (collapsed) Keys integer StageLocal, Secondary Actions: Expand
+						192 text Keys
+						193 text integer
+						194 text StageLocal
+					195 pop up button (collapsed, settable) Value: >=, Secondary Actions: Expand
+						196 menu
+							197 ==
+							198 !=
+							199 >
+							200 <
+							201 (selected) >=
+							202 <=
+					203 pop up button (collapsed, settable) Value: Constant, Secondary Actions: Expand
+						204 menu
+							205 (selected) Constant
+							206 Variable Ref
+					207 stepper (settable, integer) 0
+				208 container
+					209 text ⋮⋮
+					210 pop up button (collapsed, settable) Value: Compare, Secondary Actions: Expand
+						211 menu
+							212 (selected) Compare
+							213 Script
+							214 Literal
+					215 button ×, Help: Remove Condition
+					216 pop up button (collapsed) Found boolean NodeLocal, Secondary Actions: Expand
+						217 text Found
+						218 text boolean
+						219 text NodeLocal
+					220 pop up button (collapsed, settable) Value: ==, Secondary Actions: Expand
+						221 menu
+							222 (selected) ==
+							223 !=
+					224 pop up button (collapsed, settable) Value: Constant, Secondary Actions: Expand
+						225 menu
+							226 (selected) Constant
+							227 Variable Ref
+					228 pop up button (collapsed, settable) Value: True, Secondary Actions: Expand
+						229 menu
+							230 (selected) True
+							231 False
+				232 button + Add ▼
+					233 text + Add
+					234 text ▼
+			235 text PRESENTATION
+			236 text On Transition
+			237 text Type:
+			238 pop up button (collapsed, settable) Value: Script, Secondary Actions: Expand
+				239 menu
+					240 None
+					241 (selected) Script
+					242 Graph
+			243 pop up button (collapsed, settable) Value: Open effect, Secondary Actions: Expand
+				244 menu
+					245 (disabled) Select performance script
+					246 (selected) Open effect
+			247 button ×, Help: Clear selection
+			248 text Open effect SCRIPT_PERF_1 State: Draft
+			249 text PARAMETERS
+			250 text field (settable) KeyCount
+			251 button Remove
+			252 text Variable
+			253 pop up button (collapsed) Keys integer StageLocal, Secondary Actions: Expand
+				254 text Keys
+				255 text integer
+				256 text StageLocal
+			257 text Description
+			258 text field (settable)
+			259 text field (settable) Duration
+			260 button Remove
+			261 text Type
+			262 pop up button (collapsed, settable) Value: Float, Secondary Actions: Expand
+				263 menu
+					264 String
+					265 Integer
+					266 (selected) Float
+					267 Boolean
+			268 text Value Source Type
+			269 pop up button (collapsed, settable) Value: Constant, Secondary Actions: Expand
+				270 menu
+					271 (selected) Constant
+					272 Variable Ref
+			273 text Value
+			274 stepper (settable, integer) 0
+			275 text Description
+			276 text field (settable)
+			277 text field (settable) Enabled
+			278 button Remove
+			279 text Type
+			280 pop up button (collapsed, settable) Value: Boolean, Secondary Actions: Expand
+				281 menu
+					282 String
+					283 Integer
+					284 Float
+					285 (selected) Boolean
+			286 text Value Source Type
+			287 pop up button (collapsed, settable) Value: Constant, Secondary Actions: Expand
+				288 menu
+					289 (selected) Constant
+					290 Variable Ref
+			291 text Value
+			292 pop up button (collapsed, settable) Value: False, Secondary Actions: Expand
+				293 menu
+					294 True
+					295 (selected) False
+			296 text Description
+			297 text field (settable)
+			298 text field (settable) HasKey
+			299 button Remove
+			300 text Type
+			301 pop up button (collapsed, settable) Value: Boolean, Secondary Actions: Expand
+				302 menu
+					303 String
+					304 Integer
+					305 Float
+					306 (selected) Boolean
+			307 text Value Source Type
+			308 pop up button (collapsed, settable) Value: Variable Ref, Secondary Actions: Expand
+				309 menu
+					310 Constant
+					311 (selected) Variable Ref
+			312 text Value
+			313 pop up button (collapsed) Found boolean NodeLocal, Secondary Actions: Expand
+				314 text Found
+				315 text boolean
+				316 text NodeLocal
+			317 text Description
+			318 text field (settable)
+			319 button + Add Parameter
+			320 button + Temporary Parameter
+			321 text EVENT INVOKER
+			322 pop up button (collapsed, settable) Value: Open, Secondary Actions: Expand
+				323 menu
+					324 (disabled) Select event to invoke
+					325 (selected) Open
+			326 button × Remove, Help: Remove Event Invoker
+			327 text Open EVENT_1 State: Draft
+			328 button + Add Event Invoker
+			329 text PARAMETER MODIFIER
+			330 container
+				331 button × Remove, Help: Remove Modifier
+				332 pop up button (collapsed) Found boolean NodeLocal, Secondary Actions: Expand
+					333 text Found
+					334 text boolean
+					335 text NodeLocal
+				336 pop up button (collapsed, settable) Value: Set, Secondary Actions: Expand
+					337 menu
+						338 (selected) Set
+						339 Toggle
+				340 pop up button (collapsed, settable) Value: Constant, Secondary Actions: Expand
+					341 menu
+						342 (selected) Constant
+						343 Variable Ref
+				344 pop up button (collapsed, settable) Value: False, Secondary Actions: Expand
+					345 menu
+						346 True
+						347 (selected) False
+			348 container
+				349 button × Remove, Help: Remove Modifier
+				350 pop up button (collapsed) Keys integer StageLocal, Secondary Actions: Expand
+					351 text Keys
+					352 text integer
+					353 text StageLocal
+				354 pop up button (collapsed, settable) Value: Multiply, Secondary Actions: Expand
+					355 menu
+						356 Set
+						357 Add
+						358 Subtract
+						359 (selected) Multiply
+						360 Divide
+				361 pop up button (collapsed, settable) Value: Constant, Secondary Actions: Expand
+					362 menu
+						363 (selected) Constant
+						364 Variable Ref
+				365 stepper (settable, integer) 2
+			366 container
+				367 button × Remove, Help: Remove Modifier
+				368 pop up button (collapsed) Power boolean Global, Secondary Actions: Expand
+					369 text Power
+					370 text boolean
+					371 text Global
+				372 pop up button (collapsed, settable) Value: Toggle, Secondary Actions: Expand
+					373 menu
+						374 Set
+						375 (selected) Toggle
+				376 text (inverts current value)
+			377 button + Add Parameter Modifier
+			378 text 0  Errors 0  Warnings
+			379 button Recheck
+			380 button Close validation panel
+			381 text No validation issues found.
+
+The focused UI element is 0 AXWebArea Puzzle Editor, URL: 127.0.0.1:4179/

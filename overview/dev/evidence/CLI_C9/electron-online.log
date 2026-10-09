@@ -1,0 +1,124 @@
+
+> puzzle-editor@1.0.0-beta test:electron:online
+> npm run cli:build && npm run build && npm run electron:compile && node tests/electron/run-online-smoke.mjs
+
+
+> puzzle-editor@1.0.0-beta cli:build
+> npm run node:build && vite build --config vite.cli.config.ts
+
+
+> puzzle-editor@1.0.0-beta node:build
+> tsc -p platform/node/tsconfig.json
+
+vite v6.4.1 building SSR bundle for production...
+transforming...
+node_modules/zod/v4/core/util.js (400:0): A comment
+
+"// Wrapped in a `@__PURE__` IIFE: esbuild never tree-shakes a top-level initializer that contains a member access on `Number`, so the bare object literal survived into every bundle."
+
+in "node_modules/zod/v4/core/util.js" contains an annotation that Rollup cannot interpret due to the position of the comment. The comment will be removed to avoid issues.
+node_modules/zod/v4/core/regexes.js (74:0): A comment
+
+"/** Anchors a pattern source. The interpolation lives here rather than at the call site because
+ * esbuild will not drop a `@__PURE__` call whose own argument interpolates a variable, but it
+ * will drop `anchor(dateSource)`. Keeping it inline pinned `date` into every bundle. */"
+
+in "node_modules/zod/v4/core/regexes.js" contains an annotation that Rollup cannot interpret due to the position of the comment. The comment will be removed to avoid issues.
+✓ 190 modules transformed.
+rendering chunks...
+dist-cli/package.json    0.03 kB
+dist-cli/cli.js        568.21 kB
+✓ built in 780ms
+
+> puzzle-editor@1.0.0-beta build
+> vite build
+
+vite v6.4.1 building for production...
+transforming...
+node_modules/zod/v4/core/util.js (400:0): A comment
+
+"// Wrapped in a `@__PURE__` IIFE: esbuild never tree-shakes a top-level initializer that contains a member access on `Number`, so the bare object literal survived into every bundle."
+
+in "node_modules/zod/v4/core/util.js" contains an annotation that Rollup cannot interpret due to the position of the comment. The comment will be removed to avoid issues.
+node_modules/zod/v4/core/regexes.js (74:0): A comment
+
+"/** Anchors a pattern source. The interpolation lives here rather than at the call site because
+ * esbuild will not drop a `@__PURE__` call whose own argument interpolates a variable, but it
+ * will drop `anchor(dateSource)`. Keeping it inline pinned `date` into every bundle. */"
+
+in "node_modules/zod/v4/core/regexes.js" contains an annotation that Rollup cannot interpret due to the position of the comment. The comment will be removed to avoid issues.
+✓ 2023 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                   1.27 kB │ gzip:   0.66 kB
+dist/assets/index-pQ43cpZA.css   41.41 kB │ gzip:   8.13 kB
+dist/assets/index-C89FPe_D.js   767.62 kB │ gzip: 211.83 kB │ map: 3,349.61 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 2.97s
+
+> puzzle-editor@1.0.0-beta electron:compile
+> npm run node:build && tsc -p electron/tsconfig.json
+
+
+> puzzle-editor@1.0.0-beta node:build
+> tsc -p platform/node/tsconfig.json
+
+C9 online evidence: D:\Temp\puzzle C9 desktop 中文 PG6lwn
+PASS Create isolated First
+PASS Create isolated Second
+DESKTOP one: 
+DESKTOP one: IPC handlers registered successfully
+DESKTOP two: 
+DESKTOP two: IPC handlers registered successfully
+DISCOVERY {"code":0,"apiVersion":"1.0.0","ok":true,"command":"session list","data":{"sessions":[]},"diagnostics":[]}
+DESKTOP one: [FileWatcher] Start watching: D:\Temp\puzzle C9 desktop 中文 PG6lwn\A.puzzle.json
+DESKTOP one: Preferences saved to: D:\Temp\puzzle C9 desktop 中文 PG6lwn\one\appdata\StarryTree\PuzzleEditor\preferences.json
+DESKTOP two: [FileWatcher] Start watching: D:\Temp\puzzle C9 desktop 中文 PG6lwn\B.puzzle.json
+DESKTOP two: Preferences saved to: D:\Temp\puzzle C9 desktop 中文 PG6lwn\two\appdata\StarryTree\PuzzleEditor\preferences.json
+DISCOVERY {"code":0,"apiVersion":"1.0.0","ok":true,"command":"session list","data":{"sessions":[]},"diagnostics":[]}
+PASS Two production desktop sessions discovered without guessing
+PASS Preview against live token
+PASS Dropped connection after request delivery preserves the committed transaction
+PASS CLI applies one atomic GUI undo transaction
+PASS Production Inspector immediately displays CLI edit
+PASS Same ID retry after real disconnect returns original result without duplicate commit
+PASS Other desktop remains unchanged
+PASS Auto-save restriction visible in live status
+PASS Real GUI Ctrl+Z undoes whole Agent batch
+PASS Real GUI redo restores auto-save restriction
+PASS Old token rejected after GUI undo/redo
+PASS Draft test preview
+PASS Focus real Inspector field in hidden/background window
+PASS Read-only reports pending draft and committed content separately
+PASS Apply flushes background field then rejects stale preview
+PASS Human field commit remains in shared history
+PASS Human draft preserved visibly
+PASS Online preview does not interrupt an open modal
+PASS Current-file save requires chat overwrite declaration
+DESKTOP one: Failed to write project: The disk project differs from expectedDiskHash. No write was performed.
+PASS Disk hash conflict leaves memory dirty and disk untouched
+Waiting for the real one-minute auto-save tick with unauthorized Agent content...
+PASS Real auto-save timer performs zero unauthorized disk overwrite
+PASS Auto-save preference remains enabled
+PASS Authorized current-file save acknowledges captured content
+PASS Saved disk contains latest human and Agent content
+PASS Preview next task
+PASS Apply next task
+PASS Previous authorization does not allow next task auto-save
+DESKTOP one: [FileWatcher] Stop watching: D:\Temp\puzzle C9 desktop 中文 PG6lwn\A.puzzle.json
+DESKTOP one: [FileWatcher] Start watching: D:\Temp\puzzle C9 desktop 中文 PG6lwn\New copy.puzzle.json
+DESKTOP one: Preferences saved to: D:\Temp\puzzle C9 desktop 中文 PG6lwn\one\appdata\StarryTree\PuzzleEditor\preferences.json
+PASS Explicit new path saves through ownership and session queue
+PASS New copy contains expected current snapshot
+DESKTOP one: [FileWatcher] Stop watching: D:\Temp\puzzle C9 desktop 中文 PG6lwn\New copy.puzzle.json
+DESKTOP one: [FileWatcher] Start watching: D:\Temp\puzzle C9 desktop 中文 PG6lwn\A.puzzle.json
+DESKTOP one: Preferences saved to: D:\Temp\puzzle C9 desktop 中文 PG6lwn\one\appdata\StarryTree\PuzzleEditor\preferences.json
+PASS Switching project invalidates old session identity
+DESKTOP one: [FileWatcher] Stop watching: D:\Temp\puzzle C9 desktop 中文 PG6lwn\A.puzzle.json
+DESKTOP two: [FileWatcher] Stop watching: D:\Temp\puzzle C9 desktop 中文 PG6lwn\B.puzzle.json
+PASS Closed desktop registrations are removed
+C9 real desktop online smoke passed (33 checks).

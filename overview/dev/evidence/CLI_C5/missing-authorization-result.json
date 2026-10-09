@@ -1,0 +1,1 @@
+{"apiVersion":"1.0.0","ok":false,"command":"json apply","data":null,"diagnostics":[],"error":{"code":"RAW_JSON_AUTHORIZATION_REQUIRED","message":"Obtain explicit user authorization in the agent chat, then supply --allow-raw-json-write within that scope.","retryable":false}}

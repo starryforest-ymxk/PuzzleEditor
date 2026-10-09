@@ -210,3 +210,49 @@ export function canMoveStage(
 
     return true;
 }
+
+/**
+ * 助手函数：更新父节点下的一组子节点的初始状态
+ * 约束：父节点的第一个子节点必须是 Initial Stage，且没有解锁条件；其他子节点非 Initial。
+ * 返回更新后的 stages 对象（如果不需更新则返回原对象）
+ */
+export const updateInitialStatusByParent = (
+    stages: Record<string, StageNode>,
+    parentId: StageId
+): Record<string, StageNode> => {
+    const parent = stages[parentId];
+    if (!parent || parent.childrenIds.length === 0) return stages;
+
+    let hasChanges = false;
+    const newStages = { ...stages };
+
+    // 遍历所有子节点
+    parent.childrenIds.forEach((childId, index) => {
+        const child = newStages[childId];
+        if (!child) return;
+
+        if (index === 0) {
+            // 第一个子节点：必须是 isInitial=true，且无解锁条件
+            if (!child.isInitial || (child.unlockTriggers && child.unlockTriggers.length > 0) || child.unlockCondition) {
+                newStages[childId] = {
+                    ...child,
+                    isInitial: true,
+                    unlockTriggers: [],
+                    unlockCondition: undefined
+                };
+                hasChanges = true;
+            }
+        } else {
+            // 其他子节点：必须是 isInitial=false
+            if (child.isInitial) {
+                newStages[childId] = {
+                    ...child,
+                    isInitial: false
+                };
+                hasChanges = true;
+            }
+        }
+    });
+
+    return hasChanges ? newStages : stages;
+};

@@ -8,6 +8,14 @@ import { IPC_CHANNELS, } from './types.js';
  * 暴露给渲染进程的 API 实现
  */
 const electronAPI = {
+    startOnlineSession: () => ipcRenderer.invoke(IPC_CHANNELS.SESSION_START),
+    stopOnlineSession: instanceId => ipcRenderer.invoke(IPC_CHANNELS.SESSION_STOP, instanceId),
+    onOnlineSessionRequest: callback => {
+        const listener = (_event, request) => callback(request);
+        ipcRenderer.on(IPC_CHANNELS.SESSION_REQUEST, listener);
+        return () => { ipcRenderer.removeListener(IPC_CHANNELS.SESSION_REQUEST, listener); };
+    },
+    respondOnlineSession: (instanceId, requestId, response) => ipcRenderer.invoke(IPC_CHANNELS.SESSION_RESPONSE, instanceId, requestId, response),
     // 先安装监听再报告就绪，防止主进程请求落在订阅空隙。
     onWindowCloseRequested: (callback) => {
         const listener = (_, requestId) => callback(requestId);
@@ -52,8 +60,14 @@ const electronAPI = {
     writeProject: (filePath, data, options) => {
         return ipcRenderer.invoke(IPC_CHANNELS.PROJECT_WRITE, filePath, data, options);
     },
-    activateProject: (filePath, name) => {
-        return ipcRenderer.invoke(IPC_CHANNELS.PROJECT_ACTIVATE, filePath, name);
+    claimProject: (filePath, expectedContent, create) => {
+        return ipcRenderer.invoke(IPC_CHANNELS.PROJECT_CLAIM, filePath, expectedContent, create);
+    },
+    releaseProjectClaim: (token) => {
+        return ipcRenderer.invoke(IPC_CHANNELS.PROJECT_RELEASE_CLAIM, token);
+    },
+    activateProject: (filePath, name, token) => {
+        return ipcRenderer.invoke(IPC_CHANNELS.PROJECT_ACTIVATE, filePath, name, token);
     },
     /**
      * 导出项目文件

@@ -30,7 +30,8 @@ export function domainDiagnostics(
         item.ref.id === id &&
         (!result.ownerType ||
           (item.ref.ownerType === result.ownerType && item.ref.ownerId === result.ownerId)) &&
-        (!result.fsmId || type === 'fsm' || item.ref.ownerId === result.fsmId),
+        (!result.fsmId || type === 'fsm' || item.ref.ownerId === result.fsmId) &&
+        (!result.graphId || item.ref.ownerId === result.graphId),
     );
     const entity = matches.length === 1 ? matches[0] : undefined;
     return {

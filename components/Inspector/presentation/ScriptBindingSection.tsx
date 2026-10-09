@@ -146,18 +146,30 @@ const ScriptParameterRow: React.FC<{
         <div style={{ display: 'flex', gap: '8px', minWidth: 0 }}>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: '10px', color: '#888', marginBottom: '4px', ...noWrapText }}>
-              Variable
+              {param.source.type === 'Constant' ? 'Constant' : 'Variable'}
             </div>
-            <VariableSelector
-              value={param.source.type === 'VariableRef' ? param.source.variableId : ''}
-              variables={variables}
-              onChange={(id, scope) => {
-                const nextSource: ValueSource = { type: 'VariableRef', variableId: id, scope };
-                upsertParam(key, (prev) => ({ ...prev, kind: 'Variable', source: nextSource }));
-              }}
-              placeholder="Select variable"
-              height={CONTROL_HEIGHT}
-            />
+            {/* CLI/导入的普通常量保留原类型并展示，不能误显示为未选变量或自动改写。 */}
+            {param.source.type === 'Constant' ? (
+              <textarea
+                className="ui-control"
+                aria-label={`${param.paramName} constant value`}
+                value={JSON.stringify(param.source.value, null, 2)}
+                readOnly
+                rows={3}
+                style={{ width: '100%' }}
+              />
+            ) : (
+              <VariableSelector
+                value={param.source.type === 'VariableRef' ? param.source.variableId : ''}
+                variables={variables}
+                onChange={(id, scope) => {
+                  const nextSource: ValueSource = { type: 'VariableRef', variableId: id, scope };
+                  upsertParam(key, (prev) => ({ ...prev, kind: 'Variable', source: nextSource }));
+                }}
+                placeholder="Select variable"
+                height={CONTROL_HEIGHT}
+              />
+            )}
           </div>
         </div>
 

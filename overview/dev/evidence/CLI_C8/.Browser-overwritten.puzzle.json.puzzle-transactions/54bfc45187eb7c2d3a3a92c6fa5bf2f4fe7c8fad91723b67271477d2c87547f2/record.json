@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "requestHash": "f2e2d65b38bf1dade4e6288f8cff09d8837b9363a79e80f400bdd95b3ddfe1b4",
+  "source": {
+    "mode": "overwrite-source",
+    "path": "E:\\Projects\\Web Projects\\puzzle-editor\\overview\\dev\\evidence\\CLI_C8\\Browser-overwritten.puzzle.json",
+    "sha256": "04b56bc38aec7d2e1b7332520875f7abba9cb3a608ac66eb52b9b419cd6a7c7b",
+    "identity": {
+      "dev": "2624599816",
+      "ino": "2814749767167432",
+      "size": "10348",
+      "mtimeNs": "1791530097860684500",
+      "ctimeNs": "1791530097860684500"
+    }
+  },
+  "afterHash": "c64453e753e15eab718f8562459f7cda402723d372af96c348604bcaa0e9f5ba",
+  "phase": "written",
+  "createdAt": "2026-10-09T07:14:58.084Z"
+}

@@ -1,0 +1,17 @@
+{
+  "apiVersion": "1.0.0",
+  "kind": "domain-preview",
+  "source": {
+    "path": "E:\\Projects\\Web Projects\\puzzle-editor\\overview\\dev\\evidence\\CLI_C4\\C4 Presentation.puzzle.json",
+    "sha256": "895c41c5822b532da595a3f3015d6d68cbbdc02ad5c2ff7fce572a92fb8525e9"
+  },
+  "planHash": "8365e97cfdefd18148188a13612a131975cb536e67225f2696926300858dfb53",
+  "savedAt": "2026-10-08T15:53:36.579Z",
+  "candidateHash": "82b5817cffb3616caa8adecc3ecf9e66c7b41a4431080388d8ffba57e71575cb",
+  "allocations": {
+    "root": {
+      "type": "stage",
+      "id": "STAGE_1"
+    }
+  }
+}

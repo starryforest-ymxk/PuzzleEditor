@@ -1,12 +1,27 @@
-import type { Action, EditorState, HistoryEntry, ProjectContent, SaveAcknowledgement } from './types';
-import type { ResourceState } from '../types/common';
+import type { Action, EditorState, HistoryEntry, HistorySnapshot, ProjectContent, SaveAcknowledgement } from './types';
+import { compareProjectResources } from '../utils/projectResources';
 import { reconcileHistoryUi } from './historyUi';
 
 export const MAX_HISTORY_LENGTH = 50;
 
-export function getHistoryEntry(state: EditorState): HistoryEntry {
+export function getHistoryEntry(state: EditorState): HistorySnapshot {
     const { stageTree, nodes, stateMachines, presentationGraphs, blackboard, meta, scripts } = state.project;
-    return { content: { stageTree, nodes, stateMachines, presentationGraphs, blackboard, meta, scripts }, revision: state.document.revision };
+    return { content: { stageTree, nodes, stateMachines, presentationGraphs, blackboard, meta, scripts }, revision: state.document.revision, restrictedRevisions: state.document.restrictedRevisions };
+}
+
+/** 记录的是内容变动这一条操作；稳定身份不随撤销、重做或保存重新分配。 */
+export function recordHistoryEntry(state: EditorState, action: Action): HistoryEntry {
+    const agent = action.type === 'COMMIT_AUTOMATION';
+    return { ...getHistoryEntry(state), operation: {
+        entryId: `${state.document.sessionId}:${state.document.nextRevision}`,
+        source: agent ? 'agent' : action.type === 'SYNC_RESOURCE_STATES' ? 'system' : 'human',
+        summary: agent ? action.history?.summary ?? 'Apply domain plan' : action.type.toLowerCase().replaceAll('_', ' '),
+        requiredCapabilities: agent ? [...(action.history?.requiredCapabilities ?? [])] : []
+    } };
+}
+
+export function historyTop(state: EditorState, direction: 'UNDO' | 'REDO'): HistoryEntry | undefined {
+    return direction === 'UNDO' ? state.history.past.at(-1) : state.history.future[0];
 }
 
 /** 成功加载/重置生成新会话，旧异步结果即使项目 ID 相同也不能确认这次保存。 */
@@ -34,11 +49,16 @@ export function acknowledgeSave(state: EditorState, saved: SaveAcknowledgement):
     };
 }
 
-export function restoreHistory(state: EditorState, direction: 'UNDO' | 'REDO'): EditorState {
+export function restoreHistory(state: EditorState, direction: 'UNDO' | 'REDO', agent?: Extract<Action, { type: 'RESTORE_AUTOMATION_HISTORY' }>): EditorState {
     const { past, future } = state.history;
-    const entry = direction === 'UNDO' ? past[past.length - 1] : future[0];
-    if (!entry) return state;
-    const current = getHistoryEntry(state);
+    const entry = historyTop(state, direction);
+    if (!entry || (agent && entry.operation.entryId !== agent.entryId)) return state;
+    const current = { ...getHistoryEntry(state), operation: entry.operation };
+    // Agent 的每次历史移动分配新限制，不能复用已被一次主动保存认可的标记。
+    const restriction = agent?.restrictAutoSave ? state.document.nextRevision : null;
+    const restrictedRevisions = restriction === null ? entry.restrictedRevisions
+        : [...(entry.restrictedRevisions ?? []), restriction];
+    const barrier = isPermanentResourceDeletion(state.project, entry.content);
     return {
         ...state,
         project: {
@@ -47,32 +67,19 @@ export function restoreHistory(state: EditorState, direction: 'UNDO' | 'REDO'): 
             meta: { ...entry.content.meta, updatedAt: state.project.meta.updatedAt }
         },
         manifest: { ...state.manifest, scripts: Object.values(entry.content.scripts.scripts) },
-        document: { ...state.document, revision: entry.revision },
-        history: direction === 'UNDO'
+        document: { ...state.document, revision: entry.revision, restrictedRevisions,
+            nextRevision: restriction === null ? state.document.nextRevision : restriction + 1 },
+        history: barrier ? { past: [], future: [] } : direction === 'UNDO'
             ? { past: past.slice(0, -1), future: [current, ...future] }
             : { past: [...past, current].slice(-MAX_HISTORY_LENGTH), future: future.slice(1) },
-        ui: { ...reconcileHistoryUi(state.ui, entry.content), isDirty: entry.revision !== state.document.savedRevision }
+        ui: { ...reconcileHistoryUi(state.ui, entry.content),
+            ...(agent ? { validationResults: agent.validationResults } : {}),
+            isDirty: entry.revision !== state.document.savedRevision }
     };
 }
 
-function deletionTarget(project: ProjectContent, action: Action): { state: ResourceState } | undefined {
-    switch (action.type) {
-        case 'SOFT_DELETE_GLOBAL_VARIABLE':
-        case 'APPLY_DELETE_GLOBAL_VARIABLE': return project.blackboard.globalVariables[action.payload.id];
-        case 'SOFT_DELETE_EVENT':
-        case 'APPLY_DELETE_EVENT': return project.blackboard.events[action.payload.id];
-        case 'SOFT_DELETE_SCRIPT':
-        case 'APPLY_DELETE_SCRIPT': return project.scripts.scripts[action.payload.id];
-        case 'SOFT_DELETE_STAGE_VARIABLE':
-        case 'APPLY_DELETE_STAGE_VARIABLE':
-        case 'DELETE_STAGE_VARIABLE': return project.stageTree.stages[action.payload.stageId]?.localVariables?.[action.payload.varId];
-        case 'DELETE_NODE_PARAM': return project.nodes[action.payload.nodeId]?.localVariables?.[action.payload.varId];
-        default: return undefined;
-    }
-}
-
-/** 同一删除入口也可能用于 Draft；仅实际移除非 Draft 资源才形成不可撤销边界。 */
-export function isPermanentResourceDeletion(before: ProjectContent, after: ProjectContent, action: Action): boolean {
-    const target = deletionTarget(before, action);
-    return !!target && target.state !== 'Draft' && !deletionTarget(after, action);
+/** 按实际前后资源差异建立边界，父级级联与整体替换也不能被 Undo 恢复。 */
+export function isPermanentResourceDeletion(before: ProjectContent, after: ProjectContent): boolean {
+    if (before.stageTree === after.stageTree && before.nodes === after.nodes && before.blackboard === after.blackboard && before.scripts === after.scripts) return false;
+    return compareProjectResources(before, after).permanent.length > 0;
 }

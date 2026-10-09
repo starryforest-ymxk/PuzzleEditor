@@ -7,9 +7,11 @@ import { setTimeout as delay } from 'node:timers/promises';
 import { registerIpcHandlers } from '../../dist-electron/ipc/handlers.js';
 import { fileWatcherService } from '../../dist-electron/ipc/watcherService.js';
 import { registerWindowCloseGuard } from '../../dist-electron/windowCloseGuard.js';
+import { registerSessionBridge } from '../../dist-electron/sessionBridge.js';
 
 const config = JSON.parse(readFileSync(process.argv[2], 'utf8'));
 const { scenario, root, isolated, userData, documents, projectPath, savePath, rootId } = config;
+process.env.PUZZLE_EDITOR_SESSION_DIR = join(isolated, 'sessions');
 app.setPath('userData', userData);
 app.setPath('documents', documents);
 const checks = [];
@@ -104,6 +106,7 @@ app
     });
     window.on('page-title-updated', (event) => event.preventDefault());
     registerWindowCloseGuard(window);
+    registerSessionBridge(window, pathToFileURL(join(root, 'dist/index.html')).href);
     fileWatcherService.setMainWindow(window);
     ipcMain.on('close-smoke:requested', (event, id) => {
       if (event.sender === window.webContents) {

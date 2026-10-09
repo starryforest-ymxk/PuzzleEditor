@@ -51,6 +51,8 @@ function setup() {
     ...projectPlatform,
     write,
     chooseSave: async () => 'C:/test/close.puzzle.json',
+    claim: async () => ({ success: true, data: 'close-save-claim' }),
+    releaseClaim: async () => ({ success: true }),
     activate: async () => ({ success: true }),
   });
   function Editor() {

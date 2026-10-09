@@ -4,6 +4,7 @@
  */
 
 import type { ValidationResult } from '../types/validation';
+import type { RequiredCapability } from '../contracts/automation/permissions';
 import { StageTreeData } from '../types/stage';
 import { PuzzleNode } from '../types/puzzleNode';
 import { ScriptsManifest, ScriptDefinition } from '../types/manifest';
@@ -37,11 +38,25 @@ export interface DocumentState {
   revision: number;
   nextRevision: number;
   savedRevision: number | null;
+  /** 未取得覆盖许可的 Agent 修订随内容历史恢复，不写入工程文件。 */
+  restrictedRevisions?: number[];
 }
 
-export interface HistoryEntry {
+export interface HistorySnapshot {
   content: ProjectContent;
   revision: number;
+  restrictedRevisions?: number[];
+}
+
+/** 操作身份跟随 past/future 移动；仅在当前会话内使用，不进入工程文件。 */
+export interface HistoryOperation {
+  entryId: string;
+  source: 'human' | 'agent' | 'system';
+  summary: string;
+  requiredCapabilities: RequiredCapability[];
+}
+export interface HistoryEntry extends HistorySnapshot {
+  operation: HistoryOperation;
 }
 
 /** 保存前捕获身份，异步完成时只确认实际写入的那一版。 */
@@ -228,6 +243,8 @@ export const INITIAL_STATE: EditorState = {
 
 // ========== Action 类型定义 ==========
 export type Action =
+  | { type: 'COMMIT_AUTOMATION'; payload: ProjectContent; validationResults: ValidationResult[]; restrictAutoSave: boolean; history?: Pick<HistoryOperation, 'summary' | 'requiredCapabilities'> }
+  | { type: 'RESTORE_AUTOMATION_HISTORY'; direction: 'UNDO' | 'REDO'; entryId: string; restrictAutoSave: boolean; validationResults: ValidationResult[] }
   | { type: 'UNDO' }
   | { type: 'REDO' }
   | { type: 'INIT_START' }

@@ -1,0 +1,226 @@
+
+> puzzle-editor@1.0.0-beta check
+> npm run check:encoding && npm run typecheck && npm run lint && npm run format:check && npm run check:ui && npm run check:guards && npm run test:run
+
+
+> puzzle-editor@1.0.0-beta check:encoding
+> node scripts/check-encoding.mjs
+
+UTF-8 check passed (360 source/configuration files).
+
+> puzzle-editor@1.0.0-beta typecheck
+> npm run node:build && tsc --noEmit && tsc -p electron/tsconfig.json --noEmit && tsc -p cli/tsconfig.json
+
+
+> puzzle-editor@1.0.0-beta node:build
+> tsc -p platform/node/tsconfig.json
+
+
+> puzzle-editor@1.0.0-beta lint
+> eslint . --max-warnings 0
+
+
+> puzzle-editor@1.0.0-beta format:check
+> node scripts/check-format.mjs
+
+Format check passed (269 files in the documented scope).
+
+> puzzle-editor@1.0.0-beta check:ui
+> node scripts/check-ui-style.mjs
+
+UI ownership check passed (110 files, no copied decorative profiles).
+
+> puzzle-editor@1.0.0-beta check:guards
+> node scripts/check-guards.mjs
+
+Guard checks passed: 15 lint probes, 7 type contracts, 3 encoding failures, 1 formatting failure.
+UI guard checks passed: 10 negative probes, 2 allowed layout/token probes.
+
+> puzzle-editor@1.0.0-beta test:run
+> npm run cli:build && vitest run
+
+
+> puzzle-editor@1.0.0-beta cli:build
+> npm run node:build && vite build --config vite.cli.config.ts
+
+
+> puzzle-editor@1.0.0-beta node:build
+> tsc -p platform/node/tsconfig.json
+
+vite v6.4.1 building SSR bundle for production...
+transforming...
+node_modules/zod/v4/core/util.js (400:0): A comment
+
+"// Wrapped in a `@__PURE__` IIFE: esbuild never tree-shakes a top-level initializer that contains a member access on `Number`, so the bare object literal survived into every bundle."
+
+in "node_modules/zod/v4/core/util.js" contains an annotation that Rollup cannot interpret due to the position of the comment. The comment will be removed to avoid issues.
+node_modules/zod/v4/core/regexes.js (74:0): A comment
+
+"/** Anchors a pattern source. The interpolation lives here rather than at the call site because
+ * esbuild will not drop a `@__PURE__` call whose own argument interpolates a variable, but it
+ * will drop `anchor(dateSource)`. Keeping it inline pinned `date` into every bundle. */"
+
+in "node_modules/zod/v4/core/regexes.js" contains an annotation that Rollup cannot interpret due to the position of the comment. The comment will be removed to avoid issues.
+✓ 183 modules transformed.
+rendering chunks...
+dist-cli/package.json    0.03 kB
+dist-cli/cli.js        547.11 kB
+✓ built in 766ms
+
+ RUN  v3.2.7 E:/Projects/Web Projects/puzzle-editor
+
+ ✓ tests/electron/fileService.test.ts (3 tests) 37ms
+ ✓ tests/cli/exportPreparation.test.ts (3 tests) 18ms
+ ✓ tests/cli/c8FileTransactions.test.ts (10 tests) 421ms
+ ✓ tests/services/projectImport.test.ts (41 tests) 80ms
+ ✓ tests/cli/c4Domain.test.ts (11 tests) 31ms
+ ✓ tests/batch5/export.test.ts (4 tests) 27ms
+ ✓ tests/cli/c7Domain.test.ts (11 tests) 61ms
+ ✓ tests/cli/c6Domain.test.ts (22 tests) 54ms
+ ✓ tests/hooks/useProjectActions.test.ts (6 tests) 143ms
+ ✓ tests/cli/contracts.test.ts (17 tests) 21ms
+ ✓ tests/store/documentHistory.test.ts (21 tests) 19ms
+ ✓ tests/store/resourceHistory.test.ts (17 tests) 19ms
+ ✓ tests/services/variableScope.test.ts (8 tests) 7ms
+ ✓ tests/store/reducer.test.ts (15 tests) 17ms
+ ✓ tests/batch5/domain.test.ts (10 tests) 17ms
+ ✓ tests/services/validationNavigation.test.ts (6 tests) 10ms
+ ✓ tests/store/provider.test.tsx (1 test) 10ms
+ ✓ tests/performance/references.test.ts (6 tests) 1386ms
+   ✓ 引用计数与批量引用查询一致 > large 夹具校验无 error、可往返，全部计数一致  699ms
+   ✓ 引用计数与批量引用查询一致 > 编辑、标记删除、恢复、Undo/Redo 与切换项目均重新计算正确  336ms
+ ✓ tests/services/projectSession.test.ts (49 tests) 2678ms
+ ✓ tests/components/uiConsistency.test.tsx (8 tests) 308ms
+ ✓ tests/performance/blackboardData.test.tsx (1 test) 554ms
+   ✓ 黑板引用计算的更新边界 > 筛选/选择复用统计，业务修改/撤销/切换更新，卸载不保留项目缓存  553ms
+ ✓ tests/components/dialogs.test.tsx (12 tests) 893ms
+stdout | tests/batch5/components.test.tsx > 演出画布真实组件手势 > Ctrl 拖动剪线删除交叉边，撤销恢复连接
+[Cutting] Started at { x: 220, y: 0 }
+
+ ✓ tests/components/editorInteractions.test.tsx (6 tests) 360ms
+ ✓ tests/components/windowClose.test.tsx (5 tests) 706ms
+   ✓ 关闭弹窗与应用接线 > 原生关闭先提交实际 Inspector 名称草稿（后台无 blur=false），取消保留修改  315ms
+ ✓ tests/batch5/components.test.tsx (12 tests) 812ms
+ ✓ tests/cli/process.test.ts (23 tests) 7069ms
+   ✓ 编译产物的真实命令行行为 > 帮助、能力和权限如实区分领域写与 C6 聊天授权能力  418ms
+   ✓ 编译产物的真实命令行行为 > 完整读取保留未知字段、文件封装和 editorState，源文件/偏好零修改  468ms
+   ✓ 编译产物的真实命令行行为 > 原文模式逐字输出，损坏 JSON 仍可读取且不追加换行  472ms
+   ✓ 编译产物的真实命令行行为 > 结构歧义原文完整保留，结构化工程操作拒绝静默接受  392ms
+   ✓ 编译产物的真实命令行行为 > 大文件经过 stdout 管道仍完整返回  472ms
+   ✓ 编译产物的真实命令行行为 > 非法 UTF-8 和不存在路径有稳定错误及原文错误通道  471ms
+   ✓ 领域查询、上下文和机器诊断 > 树深度/列表分页有明确边界，指纹变化后拒绝后续页  612ms
+   ✓ 领域查询、上下文和机器诊断 > FSM/演出图详情保留完整字段，引用查询复用编辑器扫描  401ms
+   ✓ 领域查询、上下文和机器诊断 > 父链/子链环不会让校验、变量或引用查询无限运行  513ms
+ ✓ tests/cli/c8Process.test.ts (18 tests) 11375ms
+   ✓ C8 覆盖的权限、原文与可重试交付 > 领域覆盖保留其他数据与编辑状态、备份原字节，并发同回执不重复执行  1629ms
+   ✓ C8 覆盖的权限、原文与可重试交付 > raw 覆盖保留候选 BOM/缩进/换行及时间，重试也需两项许可  1216ms
+   ✓ C8 覆盖的权限、原文与可重试交付 > raw+覆盖+永久删除三能力按实际效果组合，缺任一项不创建备份或改源  1654ms
+   ✓ C8 覆盖的权限、原文与可重试交付 > 领域 purge+覆盖缺声明不读取源；提供两项许可后提交  674ms
+   ✓ C8 覆盖的权限、原文与可重试交付 > 模式互斥，旧另存回执与覆盖回执不能互换，import/export 无覆盖参数  1068ms
+   ✓ C8 覆盖的权限、原文与可重试交付 > source 改动使覆盖拒绝且无事务目录  320ms
+   ✓ C8 覆盖的权限、原文与可重试交付 > plan 改动使覆盖拒绝且无事务目录  323ms
+   ✓ C8 覆盖的权限、原文与可重试交付 > receipt 改动使覆盖拒绝且无事务目录  309ms
+   ✓ C8 覆盖的权限、原文与可重试交付 > candidateHash 改动使覆盖拒绝且无事务目录  321ms
+   ✓ C8 覆盖的权限、原文与可重试交付 > 相同字节但 inode 替换也不冒充原版本；硬链接源拒绝覆盖  422ms
+   ✓ C8 覆盖的权限、原文与可重试交付 > 已写入后的第三方改动拒绝重试，不自动还原备份  555ms
+   ✓ C8 覆盖的权限、原文与可重试交付 > raw 候选或回执改变后不能重试；丢失备份不能假报完成  617ms
+   ✓ C8 覆盖的权限、原文与可重试交付 > 存活桌面所有者与未知/无响应所有者均拒绝，释放后可继续  573ms
+   ✓ C8 覆盖的权限、原文与可重试交付 > 进程在 after-backup 被终止，OS 释放锁且同回执能核验恢复  457ms
+   ✓ C8 覆盖的权限、原文与可重试交付 > 进程在 after-replace 被终止，OS 释放锁且同回执能核验恢复  454ms
+ ✓ tests/cli/c4Process.test.ts (42 tests) 11574ms
+   ✓ C4 真实 CLI 演出图事务与查询 > 从新工程创建完整图、前向 alias、共享子图、零值/布尔参数并导出往返  977ms
+   ✓ C4 真实 CLI 演出图事务与查询 > 断开 True 不移动 False、清理对应样式，源字节/时间/编辑状态保留并可重试  814ms
+   ✓ C4 真实 CLI 演出图事务与查询 > 改接原槽保留另一端样式；样式 null 只清除指定项  432ms
+   ✓ C4 真实 CLI 演出图事务与查询 > Parallel 插入、删除、改接保留显式顺序  413ms
+   ✓ C4 真实 CLI 演出图事务与查询 > 断开后的 False 单独存在可被导出、再导入，不压缩空 True  571ms
+   ✓ C4 真实 CLI 演出图事务与查询 > 图内重复局部 ID 只修改指定图，入口和元数据显式编辑  563ms
+   ✓ C4 真实 CLI 演出图事务与查询 > 删除节点显式清理入出边和入口；最后节点删除后为空图  416ms
+   ✓ C4 真实 CLI 演出图事务与查询 > 删除 True 目标保留 False；创建图使用显式 alias scope  782ms
+   ✓ C4 真实 CLI 演出图事务与查询 > 显式清空类型相关字段可转换类型，不修改其坐标  359ms
+   ✓ C4 真实 CLI 演出图事务与查询 > 共享子图预览列出所有直接/间接调用者和资源影响  318ms
+   ✓ C4 真实 CLI 演出图事务与查询 > 引用查询包括嵌套条件脚本及事件派发，并报告局部变量的真正所有者  549ms
+   ✓ C4 拒绝非法编辑并保留源文件 > 跨图 alias、缺少新图权限明确拒绝  346ms
+   ✓ C4 拒绝非法编辑并保留源文件 > 递归条件中的局部变量逐个调用者验证；第二个错误不能被旧错误基线掩盖  403ms
+   ✓ C4 拒绝非法编辑并保留源文件 > 解除绑定后删除图、跨范围调用者修改仍需其自身权限  431ms
+   ✓ C4 拒绝非法编辑并保留源文件 > 后续失败时不生成项目/回执；回执修改和源文件过期均拒绝 apply  534ms
+ ✓ tests/cli/c3Process.test.ts (54 tests) 12286ms
+   ✓ C3 完整 FSM 的真实 CLI 往返 > 新工程前向 alias、完整效果、画布校验、保存导出及重导入一致  786ms
+   ✓ C3 完整 FSM 的真实 CLI 往返 > 局部 ID 只在指定 FSM 更新，编辑状态与源文件保留，apply 重试无重复  914ms
+   ✓ C3 完整 FSM 的真实 CLI 往返 > 清空字段、事件和演出绑定可往返；Graph 绑定复用现有资源  837ms
+   ✓ C3 完整 FSM 的真实 CLI 往返 > 并行边和自环保持独立身份，redirect 保留原效果  397ms
+   ✓ C3 完整 FSM 的真实 CLI 往返 > 显式替换初始状态并删除关联边，preview 披露所有删除  508ms
+   ✓ C3 完整 FSM 的真实 CLI 往返 > 先切换初始、删边再删状态按顺序执行，同批资源修复只校验最终候选  459ms
+   ✓ C3 完整 FSM 的真实 CLI 往返 > 新建再删除编号不复用，已删除 alias 不能再次成为目标  568ms
+   ✓ C3 契约和归属边界 > 最后状态、独立 Puzzle 范围、跨 FSM alias、重复嵌套 alias 都被保护  606ms
+   ✓ C3 契约和归属边界 > 新 FSM 继承 Stage 范围，后创建的其他 FSM alias 不能作为连线端点  426ms
+   ✓ C3 复用工程校验，定位错误的所属 FSM > 拒绝状态的重复资产名、错误生命周期目标、无脚本 InvokeScript；允许合法同名跨 FSM  469ms
+ ✓ tests/cli/c2Process.test.ts (41 tests) 12767ms
+   ✓ C2 编译产物完整写入链路 > 无 plan 创建只含外部命名根 Stage 的合法空项目  385ms
+   ✓ C2 编译产物完整写入链路 > 前向 alias、多层 Stage、不同层 Puzzle、资源创建与导出完整闭环  844ms
+   ✓ C2 编译产物完整写入链路 > 默认预览零写入，回执重建同一候选且重试确认已有输出  804ms
+   ✓ C2 编译产物完整写入链路 > 局部更新保留资产名、完整 FSM/演出和 editorState  419ms
+   ✓ C2 编译产物完整写入链路 > stdin 计划在预览和提交中使用相同原始指纹  403ms
+   ✓ C2 编译产物完整写入链路 > Stage 重排和移动更新两边初始项，清除的解锁配置出现在预览中  406ms
+   ✓ C2 编译产物完整写入链路 > 同批删除不复用编号，局部变量移动与更新保留身份  615ms
+   ✓ C2 拒绝非法操作且保留源工程 > 根资产名必填且格式非法时不创建输出目录  377ms
+   ✓ C2 拒绝非法操作且保留源工程 > 前向 alias 类型错误、未知和父级环明确失败  361ms
+   ✓ C2 拒绝非法操作且保留源工程 > 错误基线允许保留旧缺名并修复；不允许新增错误  558ms
+   ✓ C2 拒绝非法操作且保留源工程 > 移动 Puzzle 离开局部变量可见范围拒绝；显式清理后允许且 ID 保持  442ms
+   ✓ C2 拒绝非法操作且保留源工程 > Draft 删除、Implemented 标删、Marked 恢复；禁止状态参数绕过  360ms
+   ✓ C2 拒绝非法操作且保留源工程 > 脚本类别和生命周期目标必须匹配，更新脚本也不能破坏已有绑定  400ms
+   ✓ C2 拒绝非法操作且保留源工程 > 参数修改器与 GUI 共用类型规则，false/0 不丢失且 Toggle 不消费来源  534ms
+   ✓ C2 文件一致性与失败策略 > 原型成员不能冒充实体 ID 或有效引用  374ms
+   ✓ C2 文件一致性与失败策略 > 拒绝源/计划/回执别名、硬链接以及已有不同内容输出  652ms
+   ✓ C2 文件一致性与失败策略 > 已有目标、导出后缀与 IO 失败不覆盖任何输入  477ms
+   ✓ C2 文件一致性与失败策略 > 计划严格 Schema 可导出且拒绝通用字段，未知文件字段仍只能完整读取  316ms
+ ✓ tests/cli/c6Process.test.ts (28 tests) 13064ms
+   ✓ C6 领域删除与交付 > 新版目录保留 C6 的 47 种操作和同级独立能力，覆盖能力可调用但不能用于另存模式  799ms
+   ✓ C6 领域删除与交付 > 预览包含整棵子树和局部 FSM 实体，普通删除另存可重试且源原文保持  1219ms
+   ✓ C6 领域删除与交付 > Implemented 级联预览可读，缺声明零写入，授权声明后成功  634ms
+   ✓ C6 领域删除与交付 > MarkedForDelete 级联预览可读，缺声明零写入，授权声明后成功  750ms
+   ✓ C6 领域删除与交付 > Puzzle 删除的局部受保护变量同样要求永久删除能力  624ms
+   ✓ C6 领域删除与交付 > 删除后失败不发布，scope 不足不扩大父级范围  329ms
+   ✓ C6 显式 purge > Implemented 'global' purge 需授权并只删除目标  589ms
+   ✓ C6 显式 purge > Implemented 'stage' purge 需授权并只删除目标  577ms
+   ✓ C6 显式 purge > Implemented 'node' purge 需授权并只删除目标  562ms
+   ✓ C6 显式 purge > Implemented 'event' purge 需授权并只删除目标  564ms
+   ✓ C6 显式 purge > Implemented 'script' purge 需授权并只删除目标  531ms
+   ✓ C6 显式 purge > MarkedForDelete 'global' purge 需授权并只删除目标  543ms
+   ✓ C6 显式 purge > MarkedForDelete 'stage' purge 需授权并只删除目标  625ms
+   ✓ C6 显式 purge > MarkedForDelete 'node' purge 需授权并只删除目标  533ms
+   ✓ C6 显式 purge > MarkedForDelete 'event' purge 需授权并只删除目标  519ms
+   ✓ C6 显式 purge > MarkedForDelete 'script' purge 需授权并只删除目标  521ms
+   ✓ C6 显式 purge > 普通 delete 仍标删，重复 delete 不会变成 purge，Draft 不用 purge  547ms
+   ✓ C6 显式 purge > 显式 purge 缺声明在工程/回执读取前拒绝，scope/回执不能代替授权  347ms
+   ✓ C6 显式 purge > 受引用资源需同批显式修复，授权不会关闭引用校验  370ms
+   ✓ C6 备用 JSON 权限组合与回执 > raw 删除父对象不能绕过永久删除声明，两项均声明后原文交付  461ms
+ ✓ tests/cli/c5Process.test.ts (50 tests) 13572ms
+   ✓ C5 真实整文件往返与授权声明 > 完整字节、BOM/换行/时间/编辑状态保持，图引用影响可读并可导出重开  1139ms
+   ✓ C5 真实整文件往返与授权声明 > 默认预览不写任何文件，回执明确不是聊天授权  319ms
+   ✓ C5 真实整文件往返与授权声明 > 普通入口不接受 raw 权限，重复启用参数也报错  307ms
+   ✓ C5 真实整文件往返与授权声明 > 同一回执重试与并发提交只交付同一候选，不重复写入或改变时间  607ms
+   ✓ C5 候选完整性与共同校验 > 不清空或自动修正 puzzle 的资产名  312ms
+   ✓ C5 候选完整性与共同校验 > 新增资产缺名拒绝；补齐外部资产名后可创建  540ms
+   ✓ C5 整文件替换仍遵守生命周期 > 未获永久删除许可不能移除 Implemented 资源或借改 ID 伪装  882ms
+   ✓ C5 整文件替换仍遵守生命周期 > 未获永久删除许可不能移除 MarkedForDelete 资源或借改 ID 伪装  835ms
+   ✓ C5 整文件替换仍遵守生命周期 > 局部变量可明确移动并保持状态，但不能顺带删除受保护声明  551ms
+   ✓ C5 指纹、路径与故障保护 > expected-hash 前提错误拒绝；修改后重新预览允许继续  364ms
+   ✓ C5 指纹、路径与故障保护 > 回执不能占用源、候选或输出路径  347ms
+   ✓ C5 指纹、路径与故障保护 > 已有目标在 preview/apply 都受保护  340ms
+   ✓ C5 指纹、路径与故障保护 > 回执类型、额外批准字段和重复键不能混用  382ms
+ ✓ tests/cli/c7Process.test.ts (48 tests) 14099ms
+   ✓ C7 支持格式、命名与往返 > 能力发现提供两入口、映射/回执 Schema，拒绝其他权限与通用编辑参数  1496ms
+   ✓ C7 支持格式、命名与往返 > project 预览提交并导出，与 GUI 导入相同，原 ID/状态/0/false 保留  1087ms
+   ✓ C7 支持格式、命名与往返 > export 预览提交并导出，与 GUI 导入相同，原 ID/状态/0/false 保留  1093ms
+   ✓ C7 支持格式、命名与往返 > raw 预览提交并导出，与 GUI 导入相同，原 ID/状态/0/false 保留  954ms
+   ✓ C7 支持格式、命名与往返 > legacy-manifest 预览提交并导出，与 GUI 导入相同，原 ID/状态/0/false 保留  820ms
+   ✓ C7 支持格式、命名与往返 > 源未保存的元数据时间、参数辅助 ID 和布局重建后与预览字节一致  307ms
+   ✓ C7 支持格式、命名与往返 > 完整覆盖命名域，局部同 ID 精确匹配；全局 owner 不依赖随机项目 UUID  313ms
+   ✓ C7 支持格式、命名与往返 > 旧缺名和业务错误可原样转换；外部名称补齐后导出恢复  880ms
+   ✓ C7 回执、文件所有权与重试 > 同一回执并发发布只产生一个文件，已有不同目标不覆盖  327ms
+
+ Test Files  33 passed (33)
+      Tests  609 passed (609)
+   Start at  15:12:10
+   Duration  15.20s (transform 6.33s, setup 0ms, collect 20.14s, tests 104.49s, environment 8.46s, prepare 6.80s)
+

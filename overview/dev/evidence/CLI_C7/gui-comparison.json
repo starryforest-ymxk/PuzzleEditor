@@ -1,0 +1,40 @@
+{
+  "projectComparison": true,
+  "excluded": [
+    "meta.id",
+    "meta.createdAt",
+    "meta.updatedAt",
+    "editorState"
+  ],
+  "runtimeComparison": true,
+  "zeroWait": 0,
+  "validation": {
+    "apiVersion": "1.0.0",
+    "ok": true,
+    "command": "validate",
+    "data": {
+      "source": {
+        "path": "E:\\Projects\\Web Projects\\puzzle-editor\\overview\\dev\\evidence\\CLI_C7\\GUI-Zero-save.puzzle.json",
+        "sha256": "a162331150d421bb8c7e734a5d6d8b0f226cda657e2476cead8ef8c688134570",
+        "size": 10335,
+        "modifiedAt": "2026-10-09T06:26:14.813Z"
+      },
+      "sourceFormat": "project",
+      "importNotices": [],
+      "valid": true,
+      "errors": 0,
+      "warnings": 0,
+      "warningsAsErrors": false
+    },
+    "diagnostics": []
+  },
+  "namesRoundTrip": {
+    "projectComparison": true,
+    "excluded": [
+      "meta.updatedAt",
+      "editorState"
+    ],
+    "externalAssetName": "ExternalDoor",
+    "protectedState": "MarkedForDelete"
+  }
+}

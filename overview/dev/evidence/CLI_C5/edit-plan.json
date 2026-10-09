@@ -1,0 +1,25 @@
+{
+  "apiVersion": "1.0.0",
+  "sourceHash": "c3567dfc7705ad8988289f84958ffea346a68d7ecc9dffd0dac538c4f75fc859",
+  "scope": {
+    "presentations": [
+      {
+        "id": "GRAPH_3"
+      }
+    ]
+  },
+  "commands": [
+    {
+      "op": "presentationNode.update",
+      "graph": {
+        "id": "GRAPH_3"
+      },
+      "target": {
+        "id": "PNODE_8"
+      },
+      "changes": {
+        "duration": 1.5
+      }
+    }
+  ]
+}

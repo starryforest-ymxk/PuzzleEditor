@@ -5,22 +5,27 @@ import type { VariableDefinition } from '../../../types/blackboard';
 import type { ScriptDefinition } from '../../../types/manifest';
 import type { ResourceState } from '../../../types/common';
 import { ownEntry } from '../../../utils/recordLookup';
+import { variableValueMatches } from '../../../utils/parameterCompatibility';
 import { createDefaultStage, canMoveStage } from '../../../utils/stageTreeUtils';
 import { createNodeWithStateMachine } from '../../../utils/puzzleNodeUtils';
-import { resolveDeleteAction, canTransitionResourceState } from '../../../utils/resourceLifecycle';
+import { planHierarchyDeletion } from '../../../utils/hierarchyDeletion';
+import {
+  resolveDeleteAction,
+  canTransitionResourceStateFromAutomation,
+} from '../../../utils/resourceLifecycle';
 import { CommandContext, CommandFailure, fail } from './context';
 import { stageFields, puzzleFields } from './bindings';
+import { createFsmEntity, editFsm, isFsmOperation } from './fsm';
+import {
+  createPresentationEntity,
+  editPresentation,
+  isPresentationOperation,
+} from './presentation';
 
 export { CommandFailure } from './context';
 export function assertVariableValue(variable: Pick<VariableDefinition, 'type' | 'value'>) {
   const { type, value } = variable;
-  const valid =
-    type === 'integer'
-      ? typeof value === 'number' && Number.isSafeInteger(value)
-      : type === 'float'
-        ? typeof value === 'number' && Number.isFinite(value)
-        : typeof value === type;
-  if (!valid)
+  if (!variableValueMatches(type, value))
     fail(
       'VARIABLE_VALUE_TYPE',
       `Value must match variable type ${type}; no coercion is performed.`,
@@ -41,13 +46,23 @@ function deleteState(state: ResourceState): ResourceState | null {
   if (state === 'MarkedForDelete')
     fail(
       'PERMANENT_DELETE_FORBIDDEN',
-      'Permanent deletion of implemented resources is not available.',
+      'Ordinary delete cannot permanently remove marked resources. Use an explicit purge operation with agent-chat authorization.',
     );
   const result = resolveDeleteAction(state);
   return result.shouldRemove ? null : result.nextState;
 }
+function assertPurge(state: ResourceState) {
+  if (state === 'Draft')
+    fail(
+      'PURGE_REQUIRES_PROTECTED_RESOURCE',
+      'Use ordinary delete for Draft resources; purge requires Implemented or MarkedForDelete.',
+    );
+}
 function restoreState(state: ResourceState): ResourceState {
-  if (state !== 'MarkedForDelete' || !canTransitionResourceState(state, 'Implemented'))
+  if (
+    state !== 'MarkedForDelete' ||
+    !canTransitionResourceStateFromAutomation(state, 'Implemented')
+  )
     fail('INVALID_RESOURCE_TRANSITION', 'Only marked resources can be restored.');
   return 'Implemented';
 }
@@ -57,6 +72,8 @@ function unlockedInitial(isInitial: boolean | undefined, data: ReturnType<typeof
 }
 function create(ctx: CommandContext, op: Operation): boolean {
   if (!('alias' in op)) return true;
+  if (isFsmOperation(op)) return createFsmEntity(ctx, op);
+  if (isPresentationOperation(op)) return createPresentationEntity(ctx, op);
   const allocated = ctx.allocations[op.alias];
   if (op.op === 'stage.create') {
     const parentId = ctx.resolve(op.parent, 'stage');
@@ -83,9 +100,10 @@ function create(ctx: CommandContext, op: Operation): boolean {
       op.data.name,
       order,
     );
+    const { alias: _initialAlias, ...initialData } = op.initialState;
     const initial = {
       ...Object.values(defaults.stateMachine.states)[0],
-      ...op.initialState,
+      ...initialData,
       id: allocated.initialStateId!,
     };
     const stateMachine = {
@@ -130,6 +148,25 @@ function create(ctx: CommandContext, op: Operation): boolean {
 }
 function edit(ctx: CommandContext, op: Operation): void {
   if ('alias' in op) return;
+  if (isFsmOperation(op)) return editFsm(ctx, op);
+  if (isPresentationOperation(op)) return editPresentation(ctx, op);
+  if (op.op === 'stage.delete' || op.op === 'puzzle.delete') {
+    const target =
+      op.op === 'stage.delete'
+        ? { type: 'stage' as const, id: ctx.resolve(op.target, 'stage'), cascade: op.cascade }
+        : { type: 'puzzle' as const, id: ctx.resolve(op.target, 'puzzle') };
+    const deletion = planHierarchyDeletion(ctx.project, target);
+    if (!deletion.ok) throw new CommandFailure(deletion.code, deletion.message, deletion.details);
+    // 父级 childrenIds 和后继初始项也是实际改动，不因删除子树自动扩大 scope。
+    deletion.affectedStageIds.forEach((id) => ctx.allowStage(id));
+    deletion.puzzleIds.forEach((id) => ctx.allowPuzzle(id));
+    ctx.dispatch(
+      target.type === 'stage'
+        ? { type: 'DELETE_STAGE', payload: { stageId: target.id } }
+        : { type: 'DELETE_PUZZLE_NODE', payload: { nodeId: target.id } },
+    );
+    return;
+  }
   if (op.op === 'project.update') {
     if (!ctx.plan.scope.project)
       fail('SCOPE_VIOLATION', 'Project metadata requires project scope.');
@@ -215,6 +252,7 @@ function edit(ctx: CommandContext, op: Operation): void {
     op.op === 'variable.update' ||
     op.op === 'variable.move' ||
     op.op === 'variable.delete' ||
+    op.op === 'variable.purge' ||
     op.op === 'variable.restore'
   ) {
     const id = ctx.resolve(op.target, 'variable'),
@@ -234,6 +272,9 @@ function edit(ctx: CommandContext, op: Operation): void {
         fail('ENTITY_CONFLICT', 'A variable with the same ID exists in the destination.');
       ctx.removeVariable(owner, id);
       ctx.addVariable(destination, { ...variable, scope: ctx.variableScope(destination) });
+    } else if (op.op === 'variable.purge') {
+      assertPurge(variable.state);
+      ctx.removeVariable(owner, id);
     } else if (op.op === 'variable.restore')
       ctx.updateVariable(owner, id, { state: restoreState(variable.state) });
     else {
@@ -243,7 +284,12 @@ function edit(ctx: CommandContext, op: Operation): void {
     }
     return;
   }
-  if (op.op === 'event.update' || op.op === 'event.delete' || op.op === 'event.restore') {
+  if (
+    op.op === 'event.update' ||
+    op.op === 'event.delete' ||
+    op.op === 'event.restore' ||
+    op.op === 'event.purge'
+  ) {
     ctx.allowGlobal('event');
     const id = ctx.resolve(op.target, 'event'),
       event =
@@ -251,7 +297,10 @@ function edit(ctx: CommandContext, op: Operation): void {
         fail('ENTITY_NOT_FOUND', `Event ${id} does not exist.`);
     if (op.op === 'event.update')
       ctx.dispatch({ type: 'UPDATE_EVENT', payload: { id, data: op.changes } });
-    else if (op.op === 'event.restore')
+    else if (op.op === 'event.purge') {
+      assertPurge(event.state);
+      ctx.dispatch({ type: 'APPLY_DELETE_EVENT', payload: { id } });
+    } else if (op.op === 'event.restore')
       ctx.dispatch({
         type: 'UPDATE_EVENT',
         payload: { id, data: { state: restoreState(event.state) } },
@@ -262,7 +311,12 @@ function edit(ctx: CommandContext, op: Operation): void {
     }
     return;
   }
-  if (op.op === 'script.update' || op.op === 'script.delete' || op.op === 'script.restore') {
+  if (
+    op.op === 'script.update' ||
+    op.op === 'script.delete' ||
+    op.op === 'script.restore' ||
+    op.op === 'script.purge'
+  ) {
     ctx.allowGlobal('script');
     const id = ctx.resolve(op.target, 'script'),
       script =
@@ -276,6 +330,9 @@ function edit(ctx: CommandContext, op: Operation): void {
       };
       assertScript({ ...script, ...data });
       ctx.dispatch({ type: 'UPDATE_SCRIPT', payload: { id, data } });
+    } else if (op.op === 'script.purge') {
+      assertPurge(script.state);
+      ctx.dispatch({ type: 'APPLY_DELETE_SCRIPT', payload: { id } });
     } else if (op.op === 'script.restore')
       ctx.dispatch({
         type: 'UPDATE_SCRIPT',
@@ -303,7 +360,7 @@ export function executePlan(source: ProjectData, plan: Plan) {
     if (next.length === pending.length) {
       const error = new CommandFailure(
         'CREATION_DEPENDENCY',
-        'A creation owner is missing or the stage parent declarations form a cycle.',
+        'A creation owner or endpoint is missing, or the declarations form a dependency cycle.',
       );
       error.operationIndex = next[0].i;
       throw error;

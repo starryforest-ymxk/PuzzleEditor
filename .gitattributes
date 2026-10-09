@@ -1,3 +1,4 @@
 # 保留 CLI 验收文件的实际字节，避免换行转换使指纹和回执失效。
-overview/dev/evidence/CLI_*/** -text
-overview/dev/evidence/CLI_*/*.log whitespace=cr-at-eol,-blank-at-eof
+# 原始日志的空白和 CRLF 也是证据，不按源码规则修改归档字节。
+overview/dev/evidence/CLI_*/** -text -whitespace
+overview/dev/evidence/Release_*/** -text -whitespace

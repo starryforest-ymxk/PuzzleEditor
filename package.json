@@ -15,7 +15,8 @@
     "typecheck:cli": "npm run node:build && tsc -p cli/tsconfig.json",
     "test:cli": "npm run cli:build && vitest run tests/cli",
     "bench": "node tests/performance/run.mjs",
-    "test:electron": "npm run electron:compile && node tests/electron/run-session-smoke.mjs && node tests/electron/run-close-smoke.mjs",
+    "test:electron": "npm run cli:build && npm run electron:compile && node tests/electron/run-session-smoke.mjs && node tests/electron/run-close-smoke.mjs && node tests/electron/run-ownership-smoke.mjs",
+    "test:electron:online": "npm run cli:build && npm run build && npm run electron:compile && node tests/electron/run-online-smoke.mjs",
     "electron:compile": "npm run node:build && tsc -p electron/tsconfig.json",
     "electron:dev": "npm run electron:compile && concurrently -k \"npm run dev\" \"wait-on http://localhost:3000 && electron .\"",
     "electron:build": "npm run build && npm run electron:compile && electron-builder",
@@ -27,7 +28,9 @@
     "check:encoding": "node scripts/check-encoding.mjs",
     "check:guards": "node scripts/check-guards.mjs",
     "check:ui": "node scripts/check-ui-style.mjs",
-    "check": "npm run check:encoding && npm run typecheck && npm run lint && npm run format:check && npm run check:ui && npm run check:guards && npm run test:run"
+    "check": "npm run check:encoding && npm run typecheck && npm run lint && npm run format:check && npm run check:ui && npm run check:guards && npm run test:run",
+    "cli:package": "npm run cli:build && node scripts/package-cli.mjs",
+    "test:cli:package": "node scripts/verify-cli-package.mjs"
   },
   "dependencies": {
     "chokidar": "^4.0.3",

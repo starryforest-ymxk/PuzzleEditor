@@ -1,0 +1,139 @@
+{
+  "fileType": "puzzle-project",
+  "editorVersion": "1.0.0",
+  "savedAt": "2026-10-09T05:48:18.703Z",
+  "project": {
+    "meta": {
+      "id": "PROJECT_1",
+      "name": "C6 Protected Regression",
+      "description": "",
+      "version": "1.0.0",
+      "createdAt": "2026-10-08T00:00:00.000Z",
+      "updatedAt": "2026-10-09T05:48:18.703Z"
+    },
+    "blackboard": {
+      "globalVariables": {
+        "flag": {
+          "id": "flag",
+          "name": "Flag",
+          "assetName": "Flag",
+          "type": "boolean",
+          "value": false,
+          "state": "Draft",
+          "scope": "Global"
+        }
+      },
+      "events": {
+        "open": {
+          "id": "open",
+          "name": "Open",
+          "assetName": "OpenEvent",
+          "state": "Draft"
+        }
+      }
+    },
+    "scripts": {
+      "version": "1.0.0",
+      "scripts": {
+        "effect": {
+          "id": "effect",
+          "name": "Effect",
+          "assetName": "Effect",
+          "category": "Performance",
+          "state": "Draft"
+        },
+        "deleted": {
+          "id": "deleted",
+          "name": "Deleted",
+          "assetName": "Deleted",
+          "category": "Performance",
+          "state": "MarkedForDelete"
+        }
+      }
+    },
+    "stageTree": {
+      "rootId": "STAGE_1",
+      "stages": {
+        "STAGE_1": {
+          "id": "STAGE_1",
+          "name": "Root Stage",
+          "description": "Project root stage",
+          "assetName": "RootStage",
+          "eventListeners": [],
+          "parentId": null,
+          "childrenIds": [
+            "sibling"
+          ],
+          "localVariables": {
+            "shared": {
+              "id": "shared",
+              "name": "Parent Key",
+              "assetName": "ParentKey",
+              "type": "integer",
+              "value": 0,
+              "state": "Draft",
+              "scope": "StageLocal"
+            }
+          },
+          "isInitial": true,
+          "isExpanded": true,
+          "onEnterPresentation": {
+            "type": "Graph",
+            "graphId": "intro"
+          }
+        },
+        "sibling": {
+          "id": "sibling",
+          "name": "Sibling",
+          "assetName": "Sibling",
+          "eventListeners": [],
+          "parentId": "STAGE_1",
+          "childrenIds": [],
+          "localVariables": {},
+          "isInitial": true,
+          "unlockTriggers": []
+        }
+      }
+    },
+    "nodes": {},
+    "stateMachines": {},
+    "presentationGraphs": {
+      "intro": {
+        "id": "intro",
+        "name": "Intro",
+        "startNodeId": "start",
+        "nodes": {
+          "start": {
+            "id": "start",
+            "name": "Intro Step",
+            "position": {
+              "x": 0,
+              "y": 0
+            },
+            "nextIds": [],
+            "type": "PresentationNode",
+            "presentation": {
+              "type": "Script",
+              "scriptId": "effect",
+              "parameters": []
+            }
+          }
+        }
+      }
+    }
+  },
+  "editorState": {
+    "panelSizes": {
+      "explorerWidth": 250,
+      "inspectorWidth": 300,
+      "stagesHeight": 250
+    },
+    "stageExpanded": {
+      "STAGE_1": true
+    },
+    "currentStageId": "room",
+    "currentNodeId": "door",
+    "currentGraphId": null,
+    "view": "EDITOR"
+  }
+}

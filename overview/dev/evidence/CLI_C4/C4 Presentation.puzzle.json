@@ -1,0 +1,325 @@
+{
+  "fileType": "puzzle-project",
+  "editorVersion": "1.0.0",
+  "savedAt": "2026-10-08T15:44:45.375Z",
+  "project": {
+    "meta": {
+      "id": "PROJECT_1",
+      "name": "C4 Presentation Regression",
+      "description": "",
+      "version": "1.0.0",
+      "createdAt": "2026-10-08T15:44:45.375Z",
+      "updatedAt": "2026-10-08T15:44:45.375Z"
+    },
+    "blackboard": {
+      "globalVariables": {
+        "VAR_1": {
+          "name": "Flag",
+          "assetName": "Flag",
+          "type": "boolean",
+          "value": false,
+          "id": "VAR_1",
+          "scope": "Global",
+          "state": "Draft"
+        }
+      },
+      "events": {}
+    },
+    "scripts": {
+      "version": "1.0.0",
+      "scripts": {
+        "SCRIPT_PERF_1": {
+          "name": "Play Effect",
+          "assetName": "PlayEffect",
+          "category": "Performance",
+          "id": "SCRIPT_PERF_1",
+          "state": "Draft"
+        },
+        "SCRIPT_COND_1": {
+          "name": "Check Flag",
+          "assetName": "CheckFlag",
+          "category": "Condition",
+          "id": "SCRIPT_COND_1",
+          "state": "Draft"
+        }
+      }
+    },
+    "stageTree": {
+      "rootId": "STAGE_1",
+      "stages": {
+        "STAGE_1": {
+          "id": "STAGE_1",
+          "name": "Root Stage",
+          "description": "Project root stage",
+          "parentId": null,
+          "childrenIds": [],
+          "localVariables": {
+            "STAGEVAR_1": {
+              "name": "Count",
+              "assetName": "Count",
+              "type": "integer",
+              "value": 0,
+              "id": "STAGEVAR_1",
+              "scope": "StageLocal",
+              "state": "Draft"
+            }
+          },
+          "eventListeners": [],
+          "isExpanded": true,
+          "isInitial": true,
+          "assetName": "C4Root",
+          "onEnterPresentation": {
+            "type": "Graph",
+            "graphId": "GRAPH_1"
+          }
+        }
+      }
+    },
+    "nodes": {
+      "NODE_1": {
+        "id": "NODE_1",
+        "name": "Door",
+        "description": "",
+        "stageId": "STAGE_1",
+        "stateMachineId": "FSM_1",
+        "localVariables": {},
+        "eventListeners": [],
+        "displayOrder": 0,
+        "assetName": "Door"
+      }
+    },
+    "stateMachines": {
+      "FSM_1": {
+        "id": "FSM_1",
+        "initialStateId": "STATE_1",
+        "states": {
+          "STATE_1": {
+            "eventListeners": [],
+            "id": "STATE_1",
+            "name": "Idle",
+            "description": "The initial state of this puzzle node",
+            "position": {
+              "x": 200,
+              "y": 150
+            },
+            "assetName": "Idle"
+          }
+        },
+        "transitions": {
+          "TRANS_1": {
+            "priority": 0,
+            "triggers": [
+              {
+                "type": "Always"
+              }
+            ],
+            "parameterModifiers": [],
+            "name": "Replay",
+            "presentation": {
+              "type": "Graph",
+              "graphId": "GRAPH_1"
+            },
+            "id": "TRANS_1",
+            "fromStateId": "STATE_1",
+            "toStateId": "STATE_1"
+          }
+        }
+      }
+    },
+    "presentationGraphs": {
+      "GRAPH_1": {
+        "description": "CLI presentation graph regression",
+        "nodes": {
+          "PNODE_2": {
+            "nextIds": [
+              "PNODE_4"
+            ],
+            "name": "True Wait",
+            "type": "Wait",
+            "position": {
+              "x": 250,
+              "y": 20
+            },
+            "duration": 0,
+            "id": "PNODE_2"
+          },
+          "PNODE_3": {
+            "nextIds": [
+              "PNODE_4"
+            ],
+            "name": "False Wait",
+            "type": "Wait",
+            "position": {
+              "x": 250,
+              "y": 340
+            },
+            "duration": 2,
+            "id": "PNODE_3"
+          },
+          "PNODE_4": {
+            "nextIds": [
+              "PNODE_5",
+              "PNODE_6"
+            ],
+            "name": "Parallel Paths",
+            "type": "Parallel",
+            "position": {
+              "x": 500,
+              "y": 180
+            },
+            "id": "PNODE_4"
+          },
+          "PNODE_5": {
+            "nextIds": [],
+            "name": "Play Effect",
+            "type": "PresentationNode",
+            "position": {
+              "x": 750,
+              "y": 20
+            },
+            "presentation": {
+              "type": "Script",
+              "scriptId": "SCRIPT_PERF_1",
+              "parameters": [
+                {
+                  "paramName": "Payload",
+                  "source": {
+                    "type": "Constant",
+                    "value": {
+                      "alias": "choose",
+                      "value": false
+                    }
+                  }
+                },
+                {
+                  "paramName": "Iterations",
+                  "kind": "Temporary",
+                  "source": {
+                    "type": "VariableRef",
+                    "variableId": "STAGEVAR_1",
+                    "scope": "StageLocal"
+                  },
+                  "tempVariable": {
+                    "name": "Iterations",
+                    "type": "integer",
+                    "id": "TEMP_2"
+                  }
+                }
+              ]
+            },
+            "id": "PNODE_5"
+          },
+          "PNODE_6": {
+            "nextIds": [],
+            "name": "Shared Child",
+            "type": "PresentationNode",
+            "position": {
+              "x": 750,
+              "y": 340
+            },
+            "presentation": {
+              "type": "Graph",
+              "graphId": "GRAPH_2"
+            },
+            "id": "PNODE_6"
+          },
+          "PNODE_1": {
+            "nextIds": [
+              "PNODE_2",
+              "PNODE_3"
+            ],
+            "name": "Choose Path",
+            "type": "Branch",
+            "position": {
+              "x": 0,
+              "y": 180
+            },
+            "condition": {
+              "type": "And",
+              "children": [
+                {
+                  "type": "ScriptRef",
+                  "scriptId": "SCRIPT_COND_1"
+                },
+                {
+                  "type": "Not",
+                  "operand": {
+                    "type": "Comparison",
+                    "operator": "==",
+                    "left": {
+                      "type": "VariableRef",
+                      "variableId": "VAR_1",
+                      "scope": "Global"
+                    },
+                    "right": {
+                      "type": "Constant",
+                      "value": true
+                    }
+                  }
+                }
+              ]
+            },
+            "id": "PNODE_1"
+          }
+        },
+        "startNodeId": "PNODE_1",
+        "id": "GRAPH_1",
+        "name": "C4 Branch and Parallel",
+        "displayOrder": 0,
+        "edgeProperties": {
+          "PNODE_1->PNODE_2": {
+            "fromSide": "right",
+            "toSide": "left"
+          },
+          "PNODE_1->PNODE_3": {
+            "fromSide": "bottom",
+            "toSide": "left"
+          }
+        }
+      },
+      "GRAPH_2": {
+        "description": "",
+        "nodes": {
+          "PNODE_7": {
+            "nextIds": [],
+            "name": "Shared Leaf",
+            "type": "PresentationNode",
+            "position": {
+              "x": 0,
+              "y": 0
+            },
+            "presentation": {
+              "type": "Graph",
+              "graphId": "GRAPH_3"
+            },
+            "id": "PNODE_7"
+          }
+        },
+        "startNodeId": "PNODE_7",
+        "id": "GRAPH_2",
+        "name": "Shared Child",
+        "displayOrder": 1
+      },
+      "GRAPH_3": {
+        "description": "",
+        "nodes": {
+          "PNODE_8": {
+            "nextIds": [],
+            "name": "Leaf Wait",
+            "type": "Wait",
+            "position": {
+              "x": 0,
+              "y": 0
+            },
+            "duration": 0.5,
+            "id": "PNODE_8"
+          }
+        },
+        "startNodeId": "PNODE_8",
+        "id": "GRAPH_3",
+        "name": "Shared Leaf",
+        "displayOrder": 2
+      }
+    }
+  }
+}

@@ -11,12 +11,13 @@
 
 import { useCallback } from 'react';
 import { useEditorState, useEditorDispatch } from '../store/context';
-import { hasStageContent } from '../utils/stageTreeUtils';
+import { planHierarchyDeletion, type HierarchyDeleteTarget } from '../utils/hierarchyDeletion';
+import { compareProjectResources } from '../utils/projectResources';
+import { findDeletionReferenceConflicts } from '../utils/deletionReferences';
 import { findGlobalVariableReferences } from '../utils/validation/globalVariableReferences';
 import { findScriptReferences } from '../utils/validation/scriptReferences';
 import { findEventReferences } from '../utils/validation/eventReferences';
 import { findPresentationGraphReferences } from '../utils/validation/presentationGraphReferences';
-import type { StageId } from '../types/common';
 import { usePushMessage } from './usePushMessage';
 
 export function useDeleteHandler() {
@@ -26,29 +27,37 @@ export function useDeleteHandler() {
     // 消息推送（复用共享 Hook）
     const pushMessage = usePushMessage();
 
+    // 预检和 Slice 消费同一纯计划；软件内确认仍属于用户 GUI 流程。
+    const prepareHierarchyDelete = useCallback((target: HierarchyDeleteTarget) => {
+        const deletion = planHierarchyDeletion(project, target);
+        if (!deletion.ok) { pushMessage('error', deletion.message); return null; }
+        const conflicts = findDeletionReferenceConflicts(project, deletion.project);
+        if (conflicts.length) {
+            pushMessage('error', 'Cannot delete this content while retained content references its local resources. Fix those references first.');
+            return null;
+        }
+        return { ...deletion, permanent: compareProjectResources(project, deletion.project).permanent };
+    }, [project, pushMessage]);
+
     // ========== Stage 删除 ==========
     const deleteStage = useCallback((stageId: string) => {
         const stage = project.stageTree.stages[stageId];
         if (!stage) return;
-
-        const contentInfo = hasStageContent(project.stageTree, project.nodes, stageId as StageId);
-
-        if (contentInfo.hasChildren || contentInfo.totalDescendantStages > 0 || contentInfo.totalDescendantNodes > 0) {
+        const deletion = prepareHierarchyDelete({ type: 'stage', id: stageId, cascade: true });
+        if (!deletion) return;
+        const protectedCount = deletion.permanent.length;
+        if (deletion.stageIds.length > 1 || deletion.puzzleIds.length > 0 || protectedCount) {
             dispatch({
                 type: 'SET_CONFIRM_DIALOG',
                 payload: {
-                    isOpen: true,
-                    title: 'Delete Stage',
-                    message: `Are you sure you want to delete "${stage.name}"? This will also delete all child content. This action cannot be undone.`,
+                    isOpen: true, title: 'Delete Stage',
+                    message: `Delete "${stage.name}" and its child content (${deletion.stageIds.length} stage(s), ${deletion.puzzleIds.length} puzzle(s), ${deletion.fsmIds.length} FSM(s))? ${protectedCount ? `This permanently removes ${protectedCount} implemented or marked local resource(s) and clears Undo/Redo history.` : 'You can undo this deletion.'}`,
                     confirmAction: { type: 'DELETE_STAGE', payload: { stageId } },
-                    danger: true,
-                    references: undefined  // 显式清空
+                    danger: true, references: undefined
                 }
             });
-        } else {
-            dispatch({ type: 'DELETE_STAGE', payload: { stageId } });
-        }
-    }, [project.stageTree, project.nodes, dispatch]);
+        } else dispatch({ type: 'DELETE_STAGE', payload: { stageId } });
+    }, [project.stageTree, prepareHierarchyDelete, dispatch]);
 
     // ========== Global Variable 删除 ==========
     const deleteGlobalVariable = useCallback((variableId: string) => {
@@ -216,20 +225,19 @@ export function useDeleteHandler() {
     const deleteNode = useCallback((nodeId: string) => {
         const node = project.nodes[nodeId];
         if (!node) return;
-
-
+        const deletion = prepareHierarchyDelete({ type: 'puzzle', id: nodeId });
+        if (!deletion) return;
+        const protectedCount = deletion.permanent.length;
         dispatch({
             type: 'SET_CONFIRM_DIALOG',
             payload: {
-                isOpen: true,
-                title: 'Delete Puzzle Node',
-                message: `Are you sure you want to delete "${node.name}"? This will also remove its state machine. This action cannot be undone.`,
+                isOpen: true, title: 'Delete Puzzle Node',
+                message: `Delete "${node.name}" and its state machine? ${protectedCount ? `This permanently removes ${protectedCount} implemented or marked local resource(s) and clears Undo/Redo history.` : 'You can undo this deletion.'}`,
                 confirmAction: { type: 'DELETE_PUZZLE_NODE', payload: { nodeId } },
-                danger: true,
-                references: undefined // Explicitly clear references
+                danger: true, references: undefined
             }
         });
-    }, [project.nodes, dispatch]);
+    }, [project.nodes, prepareHierarchyDelete, dispatch]);
 
     // ========== Presentation Graph 删除 ==========
     const deletePresentationGraph = useCallback((graphId: string) => {

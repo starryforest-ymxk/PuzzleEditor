@@ -56,7 +56,7 @@ class FileService {
      * 创建新项目
      * @param params 项目创建参数
      */
-    async createProject(params) {
+    async createProject(params, writer = this.writeFile.bind(this)) {
         const { name, description } = params;
         // 获取项目目录
         const projectsDir = await preferencesService.ensureProjectsDirectoryExists();
@@ -106,7 +106,7 @@ class FileService {
         };
         // 写入项目文件
         const content = JSON.stringify(projectData, null, 2);
-        await this.writeFile(projectPath, content, { exclusive: true });
+        await writer(projectPath, content, { exclusive: true });
         // 更新最近项目列表
         await preferencesService.updateRecentProjects(projectPath, name);
         console.log('New project created:', projectPath);

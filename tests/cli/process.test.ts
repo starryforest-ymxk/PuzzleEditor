@@ -69,8 +69,8 @@ async function json(args: string[], entry = binary) {
 }
 
 describe('编译产物的真实命令行行为', () => {
-  it('帮助、能力和权限如实区分 C2 与未来 JSON 写命令', async () => {
-    expect((await run(['--help'])).stdout).toContain('C2 offline');
+  it('帮助、能力和权限如实区分领域写与 C6 聊天授权能力', async () => {
+    expect((await run(['--help'])).stdout).toContain('C10 offline');
     const { code, data } = await json(['describe']);
     expect(code).toBe(0);
     expect(data.capabilities).toEqual(
@@ -78,14 +78,14 @@ describe('编译产物的真实命令行行为', () => {
         expect.objectContaining({ operation: 'json read', implemented: true, permission: 'read' }),
         expect.objectContaining({
           operation: 'json apply',
-          implemented: false,
+          implemented: true,
           permission: 'raw_json_write',
           requiresDirectUserConfirmation: true,
         }),
       ]),
     );
     expect(data.namingContracts).toMatchObject({
-      status: 'enforced-by-C2-plan-contracts',
+      status: 'enforced-by-domain-plan-contracts',
       schemas: { projectIdentity: { required: ['name', 'rootAssetName'] } },
     });
   });
@@ -202,10 +202,10 @@ describe('编译产物的真实命令行行为', () => {
   it.each([
     ['json', 'preview'],
     ['json', 'apply'],
-  ])('拒绝未实现写入口 %j', async (...command) => {
+  ])('备用入口拒绝未经定义的强制参数 %j', async (...command) => {
     const original = await readFile(sourcePath);
     expect((await json([...command, sourcePath, '--force'])).result.error?.code).toBe(
-      'COMMAND_NOT_AVAILABLE',
+      'INVALID_ARGUMENT',
     );
     expect(await readFile(sourcePath)).toEqual(original);
     expect(await readdir(directory)).toHaveLength(2);

@@ -14,6 +14,8 @@ const view = { changesContent: false, history: 'preserve', allowReadOnly: true }
 const resourceDelete = { ...edit, history: 'resource-delete' } as const;
 
 export const ACTION_POLICIES = {
+    COMMIT_AUTOMATION: { ...edit, domain: 'document' },
+    RESTORE_AUTOMATION_HISTORY: { ...edit, domain: 'history' },
     UNDO: { ...edit, domain: 'history' },
     REDO: { ...edit, domain: 'history' },
     INIT_START: { ...view, domain: 'core' },

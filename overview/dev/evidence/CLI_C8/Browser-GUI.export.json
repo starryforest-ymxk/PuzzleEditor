@@ -1,0 +1,354 @@
+{
+  "fileType": "puzzle-export",
+  "manifestVersion": "1.0.0",
+  "exportedAt": "2026-10-09T07:16:55.882Z",
+  "projectName": "C8 Browser Verification",
+  "projectVersion": "1.0.0",
+  "data": {
+    "blackboard": {
+      "globalVariables": {
+        "flag": {
+          "id": "flag",
+          "name": "Flag",
+          "assetName": "Flag",
+          "type": "boolean",
+          "value": false,
+          "state": "Draft",
+          "scope": "Global"
+        }
+      },
+      "events": {
+        "open": {
+          "id": "open",
+          "name": "Open",
+          "assetName": "OpenEvent",
+          "state": "Implemented"
+        }
+      }
+    },
+    "scripts": {
+      "version": "1.0.0",
+      "scripts": {
+        "effect": {
+          "id": "effect",
+          "name": "Effect",
+          "assetName": "Effect",
+          "category": "Performance",
+          "state": "Implemented"
+        },
+        "deleted": {
+          "id": "deleted",
+          "name": "Deleted",
+          "assetName": "Deleted",
+          "category": "Performance",
+          "state": "MarkedForDelete"
+        },
+        "check": {
+          "id": "check",
+          "name": "Check",
+          "assetName": "CheckFlag",
+          "category": "Condition",
+          "state": "Draft"
+        }
+      }
+    },
+    "stageTree": {
+      "rootId": "STAGE_1",
+      "stages": {
+        "STAGE_1": {
+          "id": "STAGE_1",
+          "name": "Root Stage",
+          "description": "Project root stage",
+          "assetName": "RootStage",
+          "eventListeners": [],
+          "parentId": null,
+          "childrenIds": [
+            "room"
+          ],
+          "localVariables": {
+            "shared": {
+              "id": "shared",
+              "name": "Parent Key",
+              "assetName": "ParentKey",
+              "type": "integer",
+              "value": 0,
+              "state": "Draft",
+              "scope": "StageLocal"
+            }
+          },
+          "isInitial": true,
+          "onEnterPresentation": {
+            "type": "Graph",
+            "graphId": "intro"
+          }
+        },
+        "room": {
+          "id": "room",
+          "name": "Room",
+          "assetName": "Room",
+          "eventListeners": [],
+          "parentId": "STAGE_1",
+          "childrenIds": [],
+          "localVariables": {
+            "shared": {
+              "id": "shared",
+              "name": "Room Key",
+              "assetName": "RoomKey",
+              "type": "integer",
+              "value": 1,
+              "state": "Draft",
+              "scope": "StageLocal"
+            }
+          },
+          "isInitial": true
+        }
+      }
+    },
+    "nodes": {
+      "door": {
+        "id": "door",
+        "name": "Shared Display Name",
+        "assetName": "ExternalDoor",
+        "eventListeners": [],
+        "stageId": "room",
+        "stateMachineId": "door-fsm",
+        "localVariables": {
+          "shared": {
+            "id": "shared",
+            "name": "Node Key",
+            "assetName": "NodeKey",
+            "type": "integer",
+            "value": 0,
+            "state": "MarkedForDelete",
+            "scope": "NodeLocal"
+          }
+        }
+      },
+      "lock": {
+        "id": "lock",
+        "name": "Shared Display Name",
+        "assetName": "Lock",
+        "eventListeners": [],
+        "stageId": "room",
+        "stateMachineId": "lock-fsm",
+        "localVariables": {}
+      }
+    },
+    "stateMachines": {
+      "door-fsm": {
+        "id": "door-fsm",
+        "initialStateId": "idle",
+        "states": {
+          "idle": {
+            "id": "idle",
+            "name": "Idle",
+            "assetName": "Idle",
+            "eventListeners": []
+          },
+          "done": {
+            "id": "done",
+            "name": "Done",
+            "assetName": "Done",
+            "eventListeners": []
+          }
+        },
+        "transitions": {
+          "go": {
+            "id": "go",
+            "name": "Go",
+            "fromStateId": "idle",
+            "toStateId": "done",
+            "priority": 0,
+            "triggers": [
+              {
+                "eventId": "open",
+                "type": "OnEvent"
+              }
+            ],
+            "condition": {
+              "type": "Comparison",
+              "operator": "==",
+              "left": {
+                "type": "VariableRef",
+                "variableId": "flag",
+                "scope": "Global"
+              },
+              "right": {
+                "type": "Constant",
+                "value": false
+              }
+            },
+            "presentation": {
+              "type": "Graph",
+              "graphId": "intro"
+            },
+            "parameterModifiers": []
+          }
+        }
+      },
+      "lock-fsm": {
+        "id": "lock-fsm",
+        "initialStateId": "idle",
+        "states": {
+          "idle": {
+            "id": "idle",
+            "name": "Idle",
+            "assetName": "Idle",
+            "eventListeners": []
+          },
+          "done": {
+            "id": "done",
+            "name": "Done",
+            "assetName": "Done",
+            "eventListeners": []
+          }
+        },
+        "transitions": {
+          "go": {
+            "id": "go",
+            "name": "Go",
+            "fromStateId": "idle",
+            "toStateId": "done",
+            "priority": 0,
+            "triggers": [
+              {
+                "eventId": "open",
+                "type": "OnEvent"
+              }
+            ],
+            "condition": {
+              "type": "Comparison",
+              "operator": "==",
+              "left": {
+                "type": "VariableRef",
+                "variableId": "flag",
+                "scope": "Global"
+              },
+              "right": {
+                "type": "Constant",
+                "value": false
+              }
+            },
+            "parameterModifiers": []
+          }
+        }
+      }
+    },
+    "presentationGraphs": {
+      "intro": {
+        "id": "intro",
+        "name": "Branch and Parallel",
+        "startNodeId": "branch",
+        "nodes": {
+          "branch": {
+            "id": "branch",
+            "name": "Choose",
+            "nextIds": [
+              "yes",
+              "no"
+            ],
+            "condition": {
+              "type": "Literal",
+              "value": true
+            },
+            "type": "Branch"
+          },
+          "yes": {
+            "id": "yes",
+            "name": "True Wait",
+            "nextIds": [
+              "parallel"
+            ],
+            "type": "Wait",
+            "duration": 1
+          },
+          "no": {
+            "id": "no",
+            "name": "False Wait",
+            "nextIds": [
+              "parallel"
+            ],
+            "type": "Wait",
+            "duration": 2
+          },
+          "parallel": {
+            "id": "parallel",
+            "name": "Both",
+            "nextIds": [
+              "call",
+              "finish"
+            ],
+            "type": "Parallel"
+          },
+          "call": {
+            "id": "call",
+            "name": "Shared Child",
+            "nextIds": [],
+            "type": "PresentationNode",
+            "presentation": {
+              "type": "Graph",
+              "graphId": "child"
+            }
+          },
+          "finish": {
+            "id": "finish",
+            "name": "Finish",
+            "nextIds": [],
+            "type": "PresentationNode",
+            "presentation": {
+              "type": "Script",
+              "scriptId": "effect",
+              "parameters": [
+                {
+                  "paramName": "Literal",
+                  "source": {
+                    "type": "Constant",
+                    "value": {
+                      "alias": "untouched",
+                      "id": "flag"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      },
+      "child": {
+        "id": "child",
+        "name": "Child",
+        "startNodeId": "call",
+        "nodes": {
+          "call": {
+            "id": "call",
+            "name": "Leaf Call",
+            "nextIds": [],
+            "type": "PresentationNode",
+            "presentation": {
+              "type": "Graph",
+              "graphId": "leaf"
+            }
+          }
+        }
+      },
+      "leaf": {
+        "id": "leaf",
+        "name": "Leaf",
+        "startNodeId": "call",
+        "nodes": {
+          "call": {
+            "id": "call",
+            "name": "Effect",
+            "nextIds": [],
+            "type": "PresentationNode",
+            "presentation": {
+              "type": "Script",
+              "scriptId": "effect",
+              "parameters": []
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -472,6 +472,32 @@ export const validateStructure = (project: ProjectData): ValidationResult[] => {
 
     Object.values(graph.nodes || {}).forEach((pNode) => {
       const nodeLocation = `Graph: ${graph.name || graph.id} > Node: ${pNode.name || pNode.id}`;
+      const nodeContext = {
+        objectType: 'PRESENTATION_NODE' as const,
+        objectId: pNode.id,
+        graphId: graph.id,
+        contextId: graph.id,
+        location: nodeLocation,
+      };
+      if (pNode.type === 'Branch' && pNode.nextIds.length > 2)
+        results.push({
+          code: 'ERR_BRANCH_OUTPUT_SLOTS',
+          id: `err-branch-slots-${graph.id}-${pNode.id}`,
+          level: 'error',
+          message: 'Branch output slots must be True (0) and False (1).',
+          ...nodeContext,
+        });
+      if (
+        pNode.type === 'Wait' &&
+        (pNode.duration === undefined || !Number.isFinite(pNode.duration) || pNode.duration < 0)
+      )
+        results.push({
+          code: 'ERR_WAIT_DURATION',
+          id: `err-wait-duration-${graph.id}-${pNode.id}`,
+          level: 'error',
+          message: 'Wait duration must be a finite nonnegative number.',
+          ...nodeContext,
+        });
 
       // #29: 节点缺少 type
       if (!pNode.type) {

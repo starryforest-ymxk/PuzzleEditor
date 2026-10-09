@@ -1,0 +1,143 @@
+
+> puzzle-editor@1.0.0-beta check
+> npm run check:encoding && npm run typecheck && npm run lint && npm run format:check && npm run check:ui && npm run check:guards && npm run test:run
+
+
+> puzzle-editor@1.0.0-beta check:encoding
+> node scripts/check-encoding.mjs
+
+UTF-8 check passed (327 source/configuration files).
+
+> puzzle-editor@1.0.0-beta typecheck
+> npm run node:build && tsc --noEmit && tsc -p electron/tsconfig.json --noEmit && tsc -p cli/tsconfig.json
+
+
+> puzzle-editor@1.0.0-beta node:build
+> tsc -p platform/node/tsconfig.json
+
+
+> puzzle-editor@1.0.0-beta lint
+> eslint . --max-warnings 0
+
+
+> puzzle-editor@1.0.0-beta format:check
+> node scripts/check-format.mjs
+
+Format check passed (235 files in the documented scope).
+
+> puzzle-editor@1.0.0-beta check:ui
+> node scripts/check-ui-style.mjs
+
+UI ownership check passed (110 files, no copied decorative profiles).
+
+> puzzle-editor@1.0.0-beta check:guards
+> node scripts/check-guards.mjs
+
+Guard checks passed: 15 lint probes, 7 type contracts, 3 encoding failures, 1 formatting failure.
+UI guard checks passed: 10 negative probes, 2 allowed layout/token probes.
+
+> puzzle-editor@1.0.0-beta test:run
+> npm run cli:build && vitest run
+
+
+> puzzle-editor@1.0.0-beta cli:build
+> npm run node:build && vite build --config vite.cli.config.ts
+
+
+> puzzle-editor@1.0.0-beta node:build
+> tsc -p platform/node/tsconfig.json
+
+vite v6.4.1 building SSR bundle for production...
+transforming...
+node_modules/zod/v4/core/regexes.js (74:0): A comment
+
+"/** Anchors a pattern source. The interpolation lives here rather than at the call site because
+ * esbuild will not drop a `@__PURE__` call whose own argument interpolates a variable, but it
+ * will drop `anchor(dateSource)`. Keeping it inline pinned `date` into every bundle. */"
+
+in "node_modules/zod/v4/core/regexes.js" contains an annotation that Rollup cannot interpret due to the position of the comment. The comment will be removed to avoid issues.
+node_modules/zod/v4/core/util.js (400:0): A comment
+
+"// Wrapped in a `@__PURE__` IIFE: esbuild never tree-shakes a top-level initializer that contains a member access on `Number`, so the bare object literal survived into every bundle."
+
+in "node_modules/zod/v4/core/util.js" contains an annotation that Rollup cannot interpret due to the position of the comment. The comment will be removed to avoid issues.
+✓ 165 modules transformed.
+rendering chunks...
+dist-cli/package.json    0.03 kB
+dist-cli/cli.js        482.14 kB
+✓ built in 683ms
+
+ RUN  v3.2.7 E:/Projects/Web Projects/puzzle-editor
+
+ ✓ tests/electron/fileService.test.ts (3 tests) 25ms
+ ✓ tests/cli/contracts.test.ts (17 tests) 12ms
+ ✓ tests/cli/exportPreparation.test.ts (3 tests) 19ms
+ ✓ tests/services/validationNavigation.test.ts (6 tests) 8ms
+ ✓ tests/store/reducer.test.ts (15 tests) 14ms
+ ✓ tests/store/resourceHistory.test.ts (17 tests) 17ms
+ ✓ tests/store/documentHistory.test.ts (21 tests) 17ms
+ ✓ tests/cli/c4Domain.test.ts (11 tests) 24ms
+ ✓ tests/services/projectImport.test.ts (41 tests) 78ms
+ ✓ tests/services/variableScope.test.ts (8 tests) 7ms
+ ✓ tests/batch5/export.test.ts (4 tests) 22ms
+ ✓ tests/store/provider.test.tsx (1 test) 10ms
+ ✓ tests/batch5/domain.test.ts (10 tests) 16ms
+ ✓ tests/hooks/useProjectActions.test.ts (6 tests) 144ms
+ ✓ tests/performance/references.test.ts (6 tests) 999ms
+   ✓ 引用计数与批量引用查询一致 > large 夹具校验无 error、可往返，全部计数一致  525ms
+ ✓ tests/components/uiConsistency.test.tsx (8 tests) 162ms
+ ✓ tests/performance/blackboardData.test.tsx (1 test) 346ms
+   ✓ 黑板引用计算的更新边界 > 筛选/选择复用统计，业务修改/撤销/切换更新，卸载不保留项目缓存  344ms
+ ✓ tests/components/dialogs.test.tsx (12 tests) 579ms
+ ✓ tests/services/projectSession.test.ts (44 tests) 2535ms
+stdout | tests/batch5/components.test.tsx > 演出画布真实组件手势 > Ctrl 拖动剪线删除交叉边，撤销恢复连接
+[Cutting] Started at { x: 220, y: 0 }
+
+ ✓ tests/components/editorInteractions.test.tsx (6 tests) 243ms
+ ✓ tests/components/windowClose.test.tsx (5 tests) 535ms
+ ✓ tests/batch5/components.test.tsx (12 tests) 579ms
+ ✓ tests/cli/process.test.ts (23 tests) 4936ms
+   ✓ 编译产物的真实命令行行为 > 帮助、能力和权限如实区分 C4 与未来 JSON 写命令  321ms
+   ✓ 编译产物的真实命令行行为 > 完整读取保留未知字段、文件封装和 editorState，源文件/偏好零修改  333ms
+   ✓ 编译产物的真实命令行行为 > 大文件经过 stdout 管道仍完整返回  335ms
+   ✓ 编译产物的真实命令行行为 > 非法 UTF-8 和不存在路径有稳定错误及原文错误通道  350ms
+   ✓ 领域查询、上下文和机器诊断 > 树深度/列表分页有明确边界，指纹变化后拒绝后续页  430ms
+   ✓ 领域查询、上下文和机器诊断 > 父链/子链环不会让校验、变量或引用查询无限运行  364ms
+ ✓ tests/cli/c4Process.test.ts (42 tests) 8159ms
+   ✓ C4 真实 CLI 演出图事务与查询 > 从新工程创建完整图、前向 alias、共享子图、零值/布尔参数并导出往返  740ms
+   ✓ C4 真实 CLI 演出图事务与查询 > 断开 True 不移动 False、清理对应样式，源字节/时间/编辑状态保留并可重试  492ms
+   ✓ C4 真实 CLI 演出图事务与查询 > 改接原槽保留另一端样式；样式 null 只清除指定项  322ms
+   ✓ C4 真实 CLI 演出图事务与查询 > 断开后的 False 单独存在可被导出、再导入，不压缩空 True  407ms
+   ✓ C4 真实 CLI 演出图事务与查询 > 图内重复局部 ID 只修改指定图，入口和元数据显式编辑  333ms
+   ✓ C4 真实 CLI 演出图事务与查询 > 删除 True 目标保留 False；创建图使用显式 alias scope  536ms
+   ✓ C4 真实 CLI 演出图事务与查询 > 引用查询包括嵌套条件脚本及事件派发，并报告局部变量的真正所有者  385ms
+   ✓ C4 拒绝非法编辑并保留源文件 > 递归条件中的局部变量逐个调用者验证；第二个错误不能被旧错误基线掩盖  308ms
+   ✓ C4 拒绝非法编辑并保留源文件 > 解除绑定后删除图、跨范围调用者修改仍需其自身权限  311ms
+   ✓ C4 拒绝非法编辑并保留源文件 > 后续失败时不生成项目/回执；回执修改和源文件过期均拒绝 apply  407ms
+ ✓ tests/cli/c3Process.test.ts (54 tests) 8825ms
+   ✓ C3 完整 FSM 的真实 CLI 往返 > 新工程前向 alias、完整效果、画布校验、保存导出及重导入一致  607ms
+   ✓ C3 完整 FSM 的真实 CLI 往返 > 局部 ID 只在指定 FSM 更新，编辑状态与源文件保留，apply 重试无重复  527ms
+   ✓ C3 完整 FSM 的真实 CLI 往返 > 清空字段、事件和演出绑定可往返；Graph 绑定复用现有资源  614ms
+   ✓ C3 完整 FSM 的真实 CLI 往返 > 显式替换初始状态并删除关联边，preview 披露所有删除  322ms
+   ✓ C3 完整 FSM 的真实 CLI 往返 > 先切换初始、删边再删状态按顺序执行，同批资源修复只校验最终候选  311ms
+   ✓ C3 完整 FSM 的真实 CLI 往返 > 新建再删除编号不复用，已删除 alias 不能再次成为目标  415ms
+   ✓ C3 契约和归属边界 > 最后状态、独立 Puzzle 范围、跨 FSM alias、重复嵌套 alias 都被保护  385ms
+   ✓ C3 契约和归属边界 > 新 FSM 继承 Stage 范围，后创建的其他 FSM alias 不能作为连线端点  310ms
+   ✓ C3 复用工程校验，定位错误的所属 FSM > 拒绝状态的重复资产名、错误生命周期目标、无脚本 InvokeScript；允许合法同名跨 FSM  408ms
+ ✓ tests/cli/c2Process.test.ts (41 tests) 9158ms
+   ✓ C2 编译产物完整写入链路 > 无 plan 创建只含外部命名根 Stage 的合法空项目  334ms
+   ✓ C2 编译产物完整写入链路 > 前向 alias、多层 Stage、不同层 Puzzle、资源创建与导出完整闭环  516ms
+   ✓ C2 编译产物完整写入链路 > 默认预览零写入，回执重建同一候选且重试确认已有输出  501ms
+   ✓ C2 编译产物完整写入链路 > 局部更新保留资产名、完整 FSM/演出和 editorState  302ms
+   ✓ C2 编译产物完整写入链路 > 同批删除不复用编号，局部变量移动与更新保留身份  332ms
+   ✓ C2 拒绝非法操作且保留源工程 > 错误基线允许保留旧缺名并修复；不允许新增错误  408ms
+   ✓ C2 拒绝非法操作且保留源工程 > 移动 Puzzle 离开局部变量可见范围拒绝；显式清理后允许且 ID 保持  314ms
+   ✓ C2 拒绝非法操作且保留源工程 > 参数修改器与 GUI 共用类型规则，false/0 不丢失且 Toggle 不消费来源  409ms
+   ✓ C2 文件一致性与失败策略 > 拒绝源/计划/回执别名、硬链接以及已有不同内容输出  513ms
+   ✓ C2 文件一致性与失败策略 > 已有目标、导出后缀与 IO 失败不覆盖任何输入  411ms
+
+ Test Files  26 passed (26)
+      Tests  417 passed (417)
+   Start at  00:02:20
+   Duration  10.12s (transform 4.31s, setup 0ms, collect 15.48s, tests 37.47s, environment 7.00s, prepare 4.95s)
+

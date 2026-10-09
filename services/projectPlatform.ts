@@ -10,10 +10,20 @@ export interface ProjectPlatform {
   chooseOpen(): Promise<ProjectSource | null>;
   read(path: string): Promise<IPCResult<string>>;
   chooseSave(name: string): Promise<string | null>;
-  write(path: string, content: string, options?: { exclusive?: boolean }): Promise<IPCResult>;
+  write(
+    path: string,
+    content: string,
+    options?: { exclusive?: boolean; expectedHash?: string },
+  ): Promise<IPCResult>;
   chooseExport(defaultPath: string, name: string): Promise<string | null>;
   exportFile(path: string, content: string): Promise<IPCResult>;
-  activate(path: string | null, name: string): Promise<IPCResult>;
+  activate(path: string | null, name: string, token?: string): Promise<IPCResult>;
+  claim?(
+    path: string | null,
+    expectedContent?: string,
+    create?: boolean,
+  ): Promise<IPCResult<string>>;
+  releaseClaim?(token: string): Promise<IPCResult>;
   download(content: string, name: string): void;
 }
 
@@ -87,5 +97,7 @@ export const projectPlatform: ProjectPlatform = {
   },
   exportFile: electron.exportProject,
   activate: electron.activateProject,
+  claim: electron.claimProject,
+  releaseClaim: electron.releaseProjectClaim,
   download: downloadJSON,
 };

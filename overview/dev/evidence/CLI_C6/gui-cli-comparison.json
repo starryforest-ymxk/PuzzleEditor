@@ -1,0 +1,25 @@
+{
+  "success": true,
+  "sourceHashesUnchanged": true,
+  "compared": "Full project except meta.updatedAt; editorState and wrapper timestamps excluded",
+  "comparisons": [
+    {
+      "case": "Draft",
+      "projectEqualExceptUpdatedAt": true,
+      "diagnostics": [],
+      "valid": true
+    },
+    {
+      "case": "Protected",
+      "projectEqualExceptUpdatedAt": true,
+      "diagnostics": [],
+      "valid": true
+    },
+    {
+      "case": "Puzzle",
+      "projectEqualExceptUpdatedAt": true,
+      "diagnostics": [],
+      "valid": true
+    }
+  ]
+}

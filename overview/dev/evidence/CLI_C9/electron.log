@@ -1,0 +1,124 @@
+
+> puzzle-editor@1.0.0-beta test:electron
+> npm run cli:build && npm run electron:compile && node tests/electron/run-session-smoke.mjs && node tests/electron/run-close-smoke.mjs && node tests/electron/run-ownership-smoke.mjs
+
+
+> puzzle-editor@1.0.0-beta cli:build
+> npm run node:build && vite build --config vite.cli.config.ts
+
+
+> puzzle-editor@1.0.0-beta node:build
+> tsc -p platform/node/tsconfig.json
+
+vite v6.4.1 building SSR bundle for production...
+transforming...
+node_modules/zod/v4/core/regexes.js (74:0): A comment
+
+"/** Anchors a pattern source. The interpolation lives here rather than at the call site because
+ * esbuild will not drop a `@__PURE__` call whose own argument interpolates a variable, but it
+ * will drop `anchor(dateSource)`. Keeping it inline pinned `date` into every bundle. */"
+
+in "node_modules/zod/v4/core/regexes.js" contains an annotation that Rollup cannot interpret due to the position of the comment. The comment will be removed to avoid issues.
+node_modules/zod/v4/core/util.js (400:0): A comment
+
+"// Wrapped in a `@__PURE__` IIFE: esbuild never tree-shakes a top-level initializer that contains a member access on `Number`, so the bare object literal survived into every bundle."
+
+in "node_modules/zod/v4/core/util.js" contains an annotation that Rollup cannot interpret due to the position of the comment. The comment will be removed to avoid issues.
+✓ 190 modules transformed.
+rendering chunks...
+dist-cli/package.json    0.03 kB
+dist-cli/cli.js        567.84 kB
+✓ built in 753ms
+
+> puzzle-editor@1.0.0-beta electron:compile
+> npm run node:build && tsc -p electron/tsconfig.json
+
+
+> puzzle-editor@1.0.0-beta node:build
+> tsc -p platform/node/tsconfig.json
+
+Isolated Electron evidence directory: D:\Temp\puzzle-batch2-electron-SARIGO
+
+IPC handlers registered successfully
+[FileWatcher] Start watching: D:/Temp/puzzle-batch2-electron-SARIGO/projects/IPC Verification.puzzle.json
+Preferences file not found, creating default preferences
+Preferences saved to: D:\Temp\puzzle-batch2-electron-SARIGO\appdata\StarryTree\PuzzleEditor\preferences.json
+Preferences saved to: D:\Temp\puzzle-batch2-electron-SARIGO\appdata\StarryTree\PuzzleEditor\preferences.json
+Preferences saved to: D:\Temp\puzzle-batch2-electron-SARIGO\appdata\StarryTree\PuzzleEditor\preferences.json
+Preferences saved to: D:\Temp\puzzle-batch2-electron-SARIGO\appdata\StarryTree\PuzzleEditor\preferences.json
+Preferences saved to: D:\Temp\puzzle-batch2-electron-SARIGO\appdata\StarryTree\PuzzleEditor\preferences.json
+[FileWatcher] Stop watching: D:/Temp/puzzle-batch2-electron-SARIGO/projects/IPC Verification.puzzle.json
+Preferences saved to: D:\Temp\puzzle-batch2-electron-SARIGO\appdata\StarryTree\PuzzleEditor\preferences.json
+[FileWatcher] Start watching: D:/Temp/puzzle-batch2-electron-SARIGO/projects/Imported Copy.puzzle.json
+Preferences saved to: D:\Temp\puzzle-batch2-electron-SARIGO\appdata\StarryTree\PuzzleEditor\preferences.json
+Preferences saved to: D:\Temp\puzzle-batch2-electron-SARIGO\appdata\StarryTree\PuzzleEditor\preferences.json
+ELECTRON_SMOKE_RESULT {"success":true,"path":"D:/Temp/puzzle-batch2-electron-SARIGO/projects/IPC Verification.puzzle.json","graphName":"Keep Local Edit","checks":["create","edit/save","reopen","complete settings save","exclusive-create failure preserves current session and disk","internal write echo filtered","cancelled candidate does not change watched path","external resource sync preserves local edits","invalid import preserves document/history/path","runtime import requires a separate project save","runtime copy round trip preserves data and source file"]}
+[FileWatcher] Stop watching: D:/Temp/puzzle-batch2-electron-SARIGO/projects/Imported Copy.puzzle.json
+Close verification evidence: D:\Temp\puzzle-close-electron-NwoM1x
+
+IPC handlers registered successfully
+Error occurred in handler for 'session:start': Error: No handler registered for 'session:start'
+    at WebContents.<anonymous> (node:electron/js2c/browser_init:2:87541)
+    at WebContents.emit (node:events:524:28)
+CLOSE_SMOKE empty: passed (1 checks)
+
+IPC handlers registered successfully
+Error occurred in handler for 'session:start': Error: No handler registered for 'session:start'
+    at WebContents.<anonymous> (node:electron/js2c/browser_init:2:87541)
+    at WebContents.emit (node:events:524:28)
+[FileWatcher] Start watching: D:\Temp\puzzle-close-electron-NwoM1x\clean\project.puzzle.json
+Preferences saved to: D:\Temp\puzzle-close-electron-NwoM1x\clean\appdata\StarryTree\PuzzleEditor\preferences.json
+[FileWatcher] Stop watching: D:\Temp\puzzle-close-electron-NwoM1x\clean\project.puzzle.json
+CLOSE_SMOKE clean: passed (1 checks)
+[45908:1009/160413.014:ERROR:command_buffer_proxy_impl.cc(331)] GPU state invalid after WaitForGetOffsetInRange.
+[45908:1009/160413.014:ERROR:command_buffer_proxy_impl.cc(331)] GPU state invalid after WaitForGetOffsetInRange.
+
+IPC handlers registered successfully
+Error occurred in handler for 'session:start': Error: No handler registered for 'session:start'
+    at WebContents.<anonymous> (node:electron/js2c/browser_init:2:87541)
+    at WebContents.emit (node:events:524:28)
+[FileWatcher] Start watching: D:\Temp\puzzle-close-electron-NwoM1x\save\project.puzzle.json
+Preferences saved to: D:\Temp\puzzle-close-electron-NwoM1x\save\appdata\StarryTree\PuzzleEditor\preferences.json
+[FileWatcher] Stop watching: D:\Temp\puzzle-close-electron-NwoM1x\save\project.puzzle.json
+CLOSE_SMOKE save: passed (10 checks)
+
+IPC handlers registered successfully
+Error occurred in handler for 'session:start': Error: No handler registered for 'session:start'
+    at WebContents.<anonymous> (node:electron/js2c/browser_init:2:87541)
+    at WebContents.emit (node:events:524:28)
+[FileWatcher] Start watching: D:\Temp\puzzle-close-electron-NwoM1x\discard\project.puzzle.json
+Preferences saved to: D:\Temp\puzzle-close-electron-NwoM1x\discard\appdata\StarryTree\PuzzleEditor\preferences.json
+[FileWatcher] Stop watching: D:\Temp\puzzle-close-electron-NwoM1x\discard\project.puzzle.json
+CLOSE_SMOKE discard: passed (4 checks)
+
+IPC handlers registered successfully
+Error occurred in handler for 'session:start': Error: No handler registered for 'session:start'
+    at WebContents.<anonymous> (node:electron/js2c/browser_init:2:87541)
+    at WebContents.emit (node:events:524:28)
+[FileWatcher] Start watching: D:\Temp\puzzle-close-electron-NwoM1x\failed-save\project.puzzle.json
+Preferences saved to: D:\Temp\puzzle-close-electron-NwoM1x\failed-save\appdata\StarryTree\PuzzleEditor\preferences.json
+[FileWatcher] Stop watching: D:\Temp\puzzle-close-electron-NwoM1x\failed-save\project.puzzle.json
+Failed to write project: Project ownership requires a regular file with exactly one hard link.
+CLOSE_SMOKE failed-save: passed (6 checks)
+
+IPC handlers registered successfully
+Error occurred in handler for 'session:start': Error: No handler registered for 'session:start'
+    at WebContents.<anonymous> (node:electron/js2c/browser_init:2:87541)
+    at WebContents.emit (node:events:524:28)
+Preferences saved to: D:\Temp\puzzle-close-electron-NwoM1x\save-as\appdata\StarryTree\PuzzleEditor\preferences.json
+[FileWatcher] Start watching: D:\Temp\puzzle-close-electron-NwoM1x\save-as\saved-copy.puzzle.json
+Preferences saved to: D:\Temp\puzzle-close-electron-NwoM1x\save-as\appdata\StarryTree\PuzzleEditor\preferences.json
+[FileWatcher] Stop watching: D:\Temp\puzzle-close-electron-NwoM1x\save-as\saved-copy.puzzle.json
+CLOSE_SMOKE save-as: passed (6 checks)
+
+IPC handlers registered successfully
+Error occurred in handler for 'session:start': Error: No handler registered for 'session:start'
+    at WebContents.<anonymous> (node:electron/js2c/browser_init:2:87541)
+    at WebContents.emit (node:events:524:28)
+[FileWatcher] Start watching: D:\Temp\puzzle-close-electron-NwoM1x\quit\project.puzzle.json
+Preferences saved to: D:\Temp\puzzle-close-electron-NwoM1x\quit\appdata\StarryTree\PuzzleEditor\preferences.json
+[FileWatcher] Stop watching: D:\Temp\puzzle-close-electron-NwoM1x\quit\project.puzzle.json
+CLOSE_SMOKE quit: passed (4 checks)
+Electron close verification passed (7 scenarios).
+C8 ownership evidence directory: D:\Temp\puzzle-c8-electron-YMQhDd
+C8_ELECTRON_OWNERSHIP_RESULT {"success":true,"checks":["Create A","Create B","Real CLI preview: D:\\Temp\\puzzle-c8-electron-YMQhDd\\A.puzzle.json","First desktop owns A","Clean open desktop blocks CLI","Second desktop cannot own A","Second desktop owns B","Unsaved desktop blocks CLI","Failed switch preserves document/history/path/dirty","Failed switch retains old ownership","Cancelled switch stays in old session","Window destroyed releases target; switch succeeds","Successful switch releases previous A to CLI","Memory project releases previous file","Save As claim conflict preserves unsaved session","Save As succeeds after target released","Real CLI preview: D:\\Temp\\puzzle-c8-electron-YMQhDd\\C.puzzle.json","Save As retains new file ownership","Cancel close preserves active session","Cancel close retains file ownership","Killed Electron releases OS ownership without stale PID cleanup"],"directory":"D:\\Temp\\puzzle-c8-electron-YMQhDd"}

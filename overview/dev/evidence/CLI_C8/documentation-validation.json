@@ -1,0 +1,10 @@
+{
+  "success": true,
+  "documents": 10,
+  "localLinks": 183,
+  "anchors": 14,
+  "sourceHashes": 360,
+  "documentHashes": 10,
+  "evidenceHashes": 29,
+  "gitDiffCheck": 0
+}

@@ -443,10 +443,10 @@ export function normalizeForExport(project: ProjectData): ExportBundle['data'] {
                         pNode.condition = normalizeConditionExpression(pNode.condition, varIndex);
                     }
 
-                    // 规范化 Wait 类型的 duration
+                    // 0 秒是合法的即时等待，导出时须与非负时长校验保持一致。
                     if (pNode.type === 'Wait') {
                         const parsedDuration = parseFloat(String(pNode.duration));
-                        pNode.duration = (!isNaN(parsedDuration) && parsedDuration > 0)
+                        pNode.duration = (Number.isFinite(parsedDuration) && parsedDuration >= 0)
                             ? parsedDuration
                             : 1;
                     }

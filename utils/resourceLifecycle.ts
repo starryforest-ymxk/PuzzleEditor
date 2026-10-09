@@ -12,7 +12,7 @@ const ALLOWED_TRANSITIONS: Record<ResourceState, ResourceState[]> = {
   Draft: ['Draft', 'Implemented', 'MarkedForDelete'],
   Implemented: ['Implemented', 'MarkedForDelete'],
   // 允许从 MarkedForDelete 恢复到 Implemented，支持“Restore”操作
-  MarkedForDelete: ['MarkedForDelete', 'Implemented']
+  MarkedForDelete: ['MarkedForDelete', 'Implemented'],
 };
 
 export type DeleteResolution = {
@@ -45,7 +45,16 @@ export const resolveDeleteAction = (current: ResourceState): DeleteResolution =>
 /**
  * 合法化 state 变更：如果目标状态不被允许，则保持原状态
  */
-export const normalizeResourceStateUpdate = (current: ResourceState, next?: ResourceState): ResourceState => {
+export const normalizeResourceStateUpdate = (
+  current: ResourceState,
+  next?: ResourceState,
+): ResourceState => {
   if (!next) return current;
   return canTransitionResourceState(current, next) ? next : current;
 };
+
+/** 自动化不能自行声称运行时已实现；只允许保留、标删和恢复已实现身份。 */
+export const canTransitionResourceStateFromAutomation = (
+  from: ResourceState,
+  to: ResourceState,
+): boolean => (from !== 'Draft' || to === 'Draft') && canTransitionResourceState(from, to);

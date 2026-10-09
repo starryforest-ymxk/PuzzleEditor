@@ -18,6 +18,14 @@ import {
  * 暴露给渲染进程的 API 实现
  */
 const electronAPI: ElectronAPI = {
+    startOnlineSession: () => ipcRenderer.invoke(IPC_CHANNELS.SESSION_START),
+    stopOnlineSession: instanceId => ipcRenderer.invoke(IPC_CHANNELS.SESSION_STOP, instanceId),
+    onOnlineSessionRequest: callback => {
+        const listener = (_event: Electron.IpcRendererEvent, request: { instanceId: string; requestId: string; request: unknown }) => callback(request);
+        ipcRenderer.on(IPC_CHANNELS.SESSION_REQUEST, listener);
+        return () => { ipcRenderer.removeListener(IPC_CHANNELS.SESSION_REQUEST, listener); };
+    },
+    respondOnlineSession: (instanceId, requestId, response) => ipcRenderer.invoke(IPC_CHANNELS.SESSION_RESPONSE, instanceId, requestId, response),
     // 先安装监听再报告就绪，防止主进程请求落在订阅空隙。
     onWindowCloseRequested: (callback) => {
         const listener = (_: Electron.IpcRendererEvent, requestId: string) => callback(requestId);
@@ -65,11 +73,17 @@ const electronAPI: ElectronAPI = {
      * @param filePath 项目文件路径
      * @param data 项目数据 (JSON 字符串)
      */
-    writeProject: (filePath: string, data: string, options?: { exclusive?: boolean }): Promise<IPCResult> => {
+    writeProject: (filePath: string, data: string, options?: { exclusive?: boolean; expectedHash?: string }): Promise<IPCResult> => {
         return ipcRenderer.invoke(IPC_CHANNELS.PROJECT_WRITE, filePath, data, options);
     },
-    activateProject: (filePath: string | null, name: string): Promise<IPCResult> => {
-        return ipcRenderer.invoke(IPC_CHANNELS.PROJECT_ACTIVATE, filePath, name);
+    claimProject: (filePath: string | null, expectedContent?: string, create?: boolean): Promise<IPCResult<string>> => {
+        return ipcRenderer.invoke(IPC_CHANNELS.PROJECT_CLAIM, filePath, expectedContent, create);
+    },
+    releaseProjectClaim: (token: string): Promise<IPCResult> => {
+        return ipcRenderer.invoke(IPC_CHANNELS.PROJECT_RELEASE_CLAIM, token);
+    },
+    activateProject: (filePath: string | null, name: string, token?: string): Promise<IPCResult> => {
+        return ipcRenderer.invoke(IPC_CHANNELS.PROJECT_ACTIVATE, filePath, name, token);
     },
 
     /**

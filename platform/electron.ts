@@ -85,7 +85,7 @@ export async function readProject(filePath: string): Promise<IPCResult<string>> 
 export async function writeProject(
   filePath: string,
   data: string,
-  options?: { exclusive?: boolean },
+  options?: { exclusive?: boolean; expectedHash?: string },
 ): Promise<IPCResult> {
   const api = getAPI();
   if (!api) {
@@ -95,10 +95,29 @@ export async function writeProject(
 }
 
 /** 候选读取没有副作用，仅在会话提交后激活文件监听和最近项目。 */
-export async function activateProject(filePath: string | null, name: string): Promise<IPCResult> {
+export async function activateProject(
+  filePath: string | null,
+  name: string,
+  token?: string,
+): Promise<IPCResult> {
   const api = getAPI();
   if (!api) return { success: false, error: 'Not running in Electron environment' };
-  return api.activateProject(filePath, name);
+  return api.activateProject(filePath, name, token);
+}
+
+export async function claimProject(
+  filePath: string | null,
+  expectedContent?: string,
+  create?: boolean,
+): Promise<IPCResult<string>> {
+  const api = getAPI();
+  if (!api) return { success: false, error: 'Desktop project ownership is unavailable.' };
+  return api.claimProject(filePath, expectedContent, create);
+}
+export async function releaseProjectClaim(token: string): Promise<IPCResult> {
+  const api = getAPI();
+  if (!api) return { success: false, error: 'Desktop project ownership is unavailable.' };
+  return api.releaseProjectClaim(token);
 }
 
 /**

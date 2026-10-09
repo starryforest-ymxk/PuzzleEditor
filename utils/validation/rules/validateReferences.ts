@@ -782,6 +782,10 @@ export const validateReferences = (project: ProjectData): ValidationResult[] => 
       Object.values(graph.nodes || {}).forEach((pNode) => {
         const nodeContext = {
           ...graphContext,
+          objectType: 'PRESENTATION_NODE' as const,
+          objectId: pNode.id,
+          graphId: graph.id,
+          contextId: graph.id,
           location: `${graphContext.location} > Node: ${pNode.name || pNode.id}`,
         };
 

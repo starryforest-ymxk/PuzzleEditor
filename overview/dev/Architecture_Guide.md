@@ -1,7 +1,9 @@
 # 架构指南（Architecture Guide）
 
 > 本文档描述项目的整体架构设计、分层结构与开发规范，用于指导后续阶段的功能实现。  
-> **版本**: 1.2.13 | **更新时间**: 2026-10-08 | **本次同步**: CLI C2 候选命令、共用领域校验、回执与排他写入；310 项回归
+> **版本**: 1.2.23 | **更新时间**: 2026-10-09 | **本次同步**: CLI C10 共享历史、恢复权限与 Windows 配套发行；验证见 C10 报告
+
+**C6–C10 已完成**。在线应用服务复用领域候选、Store 和 ProjectSession，Windows 发现/传输受当前用户 ACL 与 HMAC 保护；CLI history 与 GUI 使用同一历史，配套 CLI/桌面在线协议为 2。见 [C10 报告](./CLI_C10_Implementation.md)。
 
 ---
 
@@ -10,7 +12,7 @@
 本项目是一款 **侦探解谜游戏 Web 可视化编辑器**，采用 React + TypeScript 技术栈，遵循以下核心原则：
 
 - **前端主导的资源管线**：编辑器是逻辑定义的唯一来源。
-- **软删除保护**：已实现资源只能标记删除，二次确认后才物理删除。
+- **资源生命周期保护**：普通删除对已实现资源标删；GUI 确认或 Agent 明确聊天授权的 purge 才永久删除受保护资源，且形成历史边界。
 - **多层级可视化**：树（Stage）→ 卡片（PuzzleNode）→ 画布（FSM/Presentation）。
 - **隐式持久化**：编辑器内定义的变量/状态默认需要存档。
 
@@ -172,21 +174,49 @@ flowchart TD
 
 ESLint 自动拦截领域/纯工具反向依赖、Store/服务/Hook 对组件的依赖、平台对应用层的依赖；`check:guards` 验证规则会失败。项目 IO 必须经过会话的调用链还由服务测试和代码审查保护。`services/translation` 承担网络请求，本地字典保持在 `utils/translation`。
 
-### 3.3 离线 CLI 与共用维护入口
+### 3.3 CLI、在线应用服务与共用维护入口
 
-C1 已交付 `describe/inspect/validate/json read`，C2 已交付 `create/preview/apply/export`。CLI 读取磁盘快照，候选命令只操作隔离状态，不持有或修改 GUI Store、历史、dirty、最近项目和偏好。完整原文读取绕开迁移，结构化视图复用 `utils/projectImport` 与 `utils/validation`。实体由类型、ID、所属上下文定位；跨页一致性使用源字节 SHA-256，领域诊断路径明确标注规范化基准。
+C9/C10 的 `contracts/automation/sessionSchemas.ts` 是 session/history 参数、token、在线请求与回执的唯一契约，能力表同源生成帮助；`cli/session.ts` 共用一个认证客户端。`services/onlineSession.ts` 是依赖 Store/ProjectSession 的在线应用装配层，不能放入受无界面依赖约束的 automation core。`domainCandidate.ts`、`projectDiff.ts`、查询/权限/校验仍由浏览器和 Node 共用；`transactionData.ts` 仅保留 Node hash/文件契约解析适配。
 
-`contracts/automation/schemas.ts`、`planSchemas.ts` 派生 TypeScript 和 JSON Schema，`primitives.ts` 管理唯一命名基础片段，`capabilities.ts` 是命令、权限和帮助的唯一目录；CLI 参数命名由输入字段转换。assetName 新增身份片段复用共用格式规则并要求非空、无空白，所有创建入口必须外部输入，不能自行生成名字。稳定诊断 code 在原规则产生处维护，不解析英文消息重建规则。
+`editorStore.ts` 在唯一同步 dispatch 入口推进 contentEpoch 并提供 compareAndDispatch；它不随 Undo 的 document.revision 回退。`COMMIT_AUTOMATION` 只接收已校验内容，通过 reducer 一次提交，复用 manifest、选择协调、历史/no-op/永久删除规则，不以 INIT_SUCCESS 伪装编辑。限制修订 ID 随历史内容恢复，ProjectSession 只认可实际保存快照中的限制；自动保存检查捕获内容和执行时状态。
 
-`store/commands/automation/execute.ts` 是应用层可导入的唯一候选执行入口，内部复用领域 Slice、工厂和生命周期；不能直接开放 reducer Action。`context.ts` 集中预留源/同批实体 ID、解析 alias 和检查源快照 scope，创建先于编辑，引用转换只处理白名单字段。后续 C3/C4 在此扩展命令及契约，不另建 CLI 专属资源模型或独立写入器。
+C10 的 `store/documentHistory.ts` 是记录/恢复规则的唯一维护入口。HistoryEntry 将内容快照与稳定 operation 元数据分开；GUI/Agent 共用 entryId、source、summary、requiredCapabilities 和 50 条 past/future。Undo/Redo 移动时保持同一 operation，元数据不进入 serializer。`services/onlineHistory.ts` 只做历史摘要及共同权限分析的适配；`onlineSession.ts` 检查 token/顶部 entryId/requestId，最终通过内部 `RESTORE_AUTOMATION_HISTORY` 同步提交，reducer 再核对顶部。未获本次 overwrite 许可的 Agent 恢复新增独立限制标记，不能重用已被保存认可的旧标记，也不清除目标原有未授权限制。实际永久移除受保护资源仍清空历史。
 
-`services/automation/writeService.ts` 将领域执行、结构/业务校验、错误基线和固定回执组合；`transactionData.ts` 维护差异与计划解析，`fileCommit.ts` 维护路径/输入保护与排他发布。回执绑定源、计划、时间、分配和候选 hash，提交重新执行校验，既有同字节输出只能核验为 `already-applied`。普通计划只准修改声明字段，不能加入通用 Patch、JSON Pointer 或替换对象；备用 JSON 写入必须继续等待 C5 的逐次人工审批通道。
+`hooks/editBarrierDom.ts` 是原生关闭/在线字段提交的共同维护入口，`services/editBarrier.ts` 提供无 DOM 的状态契约；名称有效性、异步翻译和图交互登记在同一屏障，业务组件不维护另一套 blur 或授权弹窗。`hooks/useOnlineSession.ts` 只装配 Provider 生命周期。
 
-领域校验必须覆盖 UI 选择器约束：局部变量命名按所属容器判重，脚本按类别/生命周期目标匹配，参数运算及来源类型由 `utils/parameterCompatibility.ts` 同时供组件与校验器使用。外部 ID 字典查找使用 `ownEntry`，不能将原型成员当成资源。共用规则变化需更新合法测试夹具并验证旧工程诊断，不能通过跳过测试维持“全绿”。
+`platform/node/sessionSecurity.ts` 设置并读回 Windows 当前 SID 的发现目录和管道 ACL，额外用第二个连接只读核验后续管道实例，并拒绝 Network SID。`sessionTransport.ts` 仅负责带 HMAC 的有界本地传输；`electron/sessionBridge.ts` 限制登记窗口/主框架/来源/代际，preload 只提供受限订阅和响应。32 MiB 消息、30 秒连接、10 分钟/256 条应用幂等结果，窗口重载失效，不开放任意 Action 或文件写入。访问核验失败关闭桥；不放宽 ACL 或回退 TCP。
+
+在线专项运行 `npm run test:electron:online`，使用两个完整生产页面、真实字段和 GUI Undo/CLI Redo、独立 CLI 子进程、断线重试及真实一分钟自动保存定时器。C10 为 45 项检查；实际发行配对由 `run-packaged-smoke.mjs --cli-zip` 检查 ASAR/EXE 与独立 ZIP。协议 2 拒绝旧 C9 协议 1，登记目录/管道的 v1 端点命名保持以便发现并报告不兼容。当前结果见 C10 报告，下文 C8 发行检查仅为历史基线。
+
+C1 已交付 `describe/inspect/validate/json read`，C2 已交付 `create/preview/apply/export`，C3 补齐完整 FSM，C4 补齐演出图与跨资源影响，累计 42 种领域操作；C5 交付 `json preview/apply` 和独立 Windows CLI 包，离线首版完成；C6 增加 Stage/Puzzle 删除和三类资源 purge，累计 47 种领域操作；C7 增加 import preview/apply，累计 12 个命令入口。离线 CLI 读取磁盘快照，候选命令只操作隔离状态，不持有或修改 GUI Store、历史、dirty、最近项目和偏好；C9 session 命令按上文显式处理内存会话。完整原文读取绕开迁移，结构化视图复用 `utils/projectImport` 与 `utils/validation`。实体由类型、ID、所属上下文定位；跨页一致性使用源字节 SHA-256，领域诊断路径明确标注规范化基准。
+
+`contracts/automation/schemas.ts`、`planSchemas.ts`、`rawSchemas.ts` 派生 TypeScript 和 JSON Schema，`primitives.ts` 管理唯一命名基础片段，`capabilities.ts` 是命令、权限和帮助的唯一目录；CLI 参数命名由输入字段转换。assetName 新增身份片段复用共用格式规则并要求非空、无空白，所有创建入口必须外部输入，不能自行生成名字。稳定诊断 code 在原规则产生处维护，不解析英文消息重建规则。
+
+`store/commands/automation/execute.ts` 是应用层可导入的唯一候选执行入口，内部复用领域 Slice、工厂和生命周期；不能直接开放 reducer Action。`context.ts` 集中预留源/同批实体 ID、解析 alias 和检查源快照 scope，创建先于编辑，引用转换只处理白名单字段。FSM 命令在 `automation/fsm.ts` 内验证唯一 Puzzle owner 和其 scope、同 FSM 端点及 alias 归属，再调用 fsmSlice。删除初始项/关联边必须显式处理，最后状态受保护；部分更新与 redirect 保留无关字段。C4 的 automation/presentation.ts 在同一执行入口检查图 scope、节点归属、显式入口和关联边策略；不开放通用 nodes/nextIds/Action 替换。
+
+`utils/fsmFactories.ts` 是画布、Puzzle 初始状态和 CLI 的 State/Transition 默认构造入口；ID 与资产名由调用方提供。`initialState.alias` 是计划辅助字段，只参与分配和引用，不进入工程。`automation/bindings.ts` 统一转换触发器/递归条件/监听器/参数/演出引用，常量 JSON 不做通用字符串替换。新字段应进入共用 schema、转换器和工厂，不在 GUI/CLI 各写一套格式。C4 的 utils/presentation.ts 为演出图/节点工厂，presentationEditing.ts 为 Branch 槽位、Parallel 顺序与边样式的唯一修改规则；Slice 与画布/CLI 命令共同使用。
+
+`services/automation/writeService.ts` 将领域执行、结构校验和固定回执组合；`candidateValidation.ts` 是领域/备用 JSON 共用的业务错误基线入口，`transactionData.ts` 维护差异与计划解析，`fileCommit.ts` 维护路径/输入保护与排他发布。领域回执绑定源、计划、时间、分配和候选 hash，提交重新执行校验，既有同字节输出只能核验为 `already-applied`。普通计划只准修改声明字段，不能加入通用 Patch、JSON Pointer 或替换对象。
+
+C6 的删除唯一入口是 `utils/hierarchyDeletion.ts`，由 GUI projectSlice 与 CLI 共用子树、FSM 所有者检查、顺序和初始项规范化。`utils/projectResources.ts` 统一资源枚举、owner 身份比较与唯一变量搬移识别；raw 生命周期、权限分析和 Store 历史边界都复用它。`utils/deletionReferences.ts` 使用既有引用索引拒绝残留引用及同 ID 祖先隐式改绑，共享图按仍存调用上下文判断。GUI Hook 负责共享 Dialog/消息预检，Slice 重算删除集合并清理失效 UI。
+
+`contracts/automation/permissions.ts` 是能力名称、声明、等级和策略版本的唯一来源，`services/automation/permissions.ts` 从实际差异计算 requiredCapabilities/permanentDeletions。三项能力均可执行。当前回执绑定 C10 策略及能力集合；缺声明拒绝，旧回执重新预览，不能凭回执取得许可。`store/documentHistory.ts` 对所有内容变动检查受保护资源实际移除，清空 past/future；普通删除沿用 Undo/Redo。
+
+C7 的 `importSchemas.ts` 唯一维护转换请求、精确实体名称映射及 import-preview 回执。`importService.ts` 复用原文审计、共同 importer/serializer、旧错误基线、输入指纹与排他发布；`importNames.ts` 使用实体索引与共同 isNamedAsset，只能改明确资产的 assetName。全局变量映射不依赖导入生成的项目 ID，局部变量/状态要求具体 owner。既有 Implemented 声明原样保留，转换不合并到已有工程，也不产生新命名业务资产。
+
+`ImportContext` 接收可选 now/runtimeProjectId，预览固定并在 apply 重用；GUI 默认仍生成当前 UUID/时间。已有 meta.id/createdAt 不被替换，缺失时间在同一 context 补齐。`utils/projectEditorState.ts` 是无 editorState 时的共用默认入口，GUI 可传现有面板尺寸，CLI 使用默认尺寸并报告 UI 信息缺失。合法 Wait=0 的运行时导出与非负时长校验一致，不再改成 1 秒。
+
+C5 引入的 `rawWriteService.ts` 负责完整候选的预览、回执和原文字节发布；`rawPolicy.ts` 用所属实体身份检查新增/改名和资源前后状态，生命周期限制复用 `utils/resourceLifecycle.ts` 的自动化策略。raw 候选必须已是共用导入器的规范形态；需修正时返回差异并拒绝提交，不静默补值。raw 回执独立于领域回执，绑定源/候选路径及 hash，输出为 create-new 或 overwrite-source 模式。提交前重读核对，只有显式授权的 in-place 模式可覆盖源工程。直接编辑权限由用户在 Agent 聊天中明确授予；Agent 核对范围，CLI 要求 `--allow-raw-json-write`，缺少时在 IO 前返回 6。声明和回执均不认证聊天，不新增桌面审批宿主。详细约定见 [CLI 方案 §1.2](./CLI_Implementation_Plan.md#12-用户已明确的要求完整-json-可读直接编辑须先获聊天授权)。
+
+领域校验必须覆盖 UI 选择器约束：局部变量命名按所属容器判重，脚本按类别/生命周期目标匹配，参数运算及来源类型由 `utils/parameterCompatibility.ts` 同时供组件、画布局部校验与工程校验器使用；值匹配方法同时用于 CLI 变量和 Temporary 常量。Temporary 变量来源须在当前调用上下文内可见且类型相同。外部 ID 字典查找使用 `ownEntry`，不能将原型成员当成资源。共用规则变化需更新合法测试夹具并验证旧工程诊断，不能通过跳过测试维持“全绿”。
 
 `platform/node/files.ts` 提供严格 UTF-8/快照和共用临时写入/排他发布，独立编译到 `dist-node`；Electron 引用生成 JS 与类型声明，保持 `electron/` rootDir 和 `dist-electron/main.js` 入口。`electron:compile/cli:build/typecheck` 先构建 Node 模块，Electron 打包必须收录 `dist-node`。新增编译产物忽略，不能把构建输出作为第二份可编辑实现。
 
-`projectExportPreparation.ts` 只接受工程和时间，返回诊断、规范化内容、建议文件名；`projectExport.ts` 保留 GUI 外壳。Node CLI 构建关闭 public 静态资源复制，并阻断 UI/Electron 进入依赖图。只复制 `dist-cli` 即可由兼容 Node 运行；附带运行时的 Windows CLI 发行物仍在 C5。查询/编辑限制与实例见 [使用说明](./CLI_Agent_Usage.md)，验证证据见 [C1 报告](./CLI_C1_Implementation.md)、[C2 报告](./CLI_C2_Implementation.md)。
+C8 的 `overwriteSchemas.ts` 是模式互斥与文件身份回执的唯一契约。`overwriteService.ts` 只冻结源前提；领域/raw 服务均调用 `platform/node/projectOverwrite.ts` 完成备份、持久阶段记录、临时文件 fsync、发布前核验、替换与已知结果重试，不能各自实现一套覆盖。未获能力声明不能创建事务目录。新文件排他发布继续由原 fileCommit 维护；import/export 不接收覆盖声明。持久事务不是 Undo 历史，也不提供无条件回滚。
+
+`platform/node/projectOwnership.ts` 统一规范路径、dev/ino 身份和 Windows OS named pipe lease。路径锁与文件身份锁共同持有，禁止硬链接工程；协议元数据只读，无外部写接口，不通过删除 PID 锁恢复。桌面 `projectOwnershipService.ts` 按 webContents 串行管理 active/pending，ProjectSession 在 Store commit 前 claim；新建/另存成功才激活，失败释放候选并保留旧会话，实际销毁才释放全部所有权。主进程保存、导出和兼容创建入口同样经过该服务。窗口来源在 IPC 主框架检查；偏好/监听失败不撤回已经成功的所有权转移。非 Windows 暂不支持 CLI in-place；C9 在线桥使用本节前述独立维护入口。
+
+`projectExportPreparation.ts` 只接受工程和时间，返回诊断、规范化内容、建议文件名；`projectExport.ts` 保留 GUI 外壳。Node CLI 构建关闭 public 静态资源复制，并阻断 UI/Electron 进入依赖图。只复制 `dist-cli` 即可由兼容 Node 运行。`scripts/package-cli.mjs` 从实际 CLI 能力读取 phase，按 `cli/runtime-lock.json` 校验官方运行时并生成 Windows x64 ZIP，随包附启动器、许可证和指纹；`cli-package-io.mjs` 唯一维护包脚本的目录边界与临时目录清理。`CLI_Distribution_Guide.md` 是包内 AGENTS.md 的唯一源，不能在产物内手改。`verify-cli-package.mjs` 在仓库外中文空格目录、无全局 Node 的 PATH 验证实际 ZIP。查询/编辑限制与实例见 [使用说明](./CLI_Agent_Usage.md)，最新验证见 [C10 报告](./CLI_C10_Implementation.md)。
 
 ---
 
@@ -206,7 +236,7 @@ C1 已交付 `describe/inspect/validate/json read`，C2 已交付 `create/previe
 - **外部数据边界**：`utils/projectImport` 将 JSON 解析为 unknown，由 readers/domain/legacy/index 分别负责收窄、领域结构、历史迁移及封装识别。只认当前工程/运行时格式、有结构证据的原始数据和旧 Manifest；未知重要字段、结构损坏、层级环与超深链拒绝，错误保留字段位置。
 - **候选校验与提交**：`projectFiles.prepareProject` 在候选上运行既有业务校验，结构有效但未完成的工程仍可编辑。INIT_SUCCESS 一次提交内容和问题列表，取消/失败不影响原诊断；运行时/历史数据作为副本另存。外部资源同步也经过相同结构校验，仅合并资源状态。
 - **规范化与修复导航**：`projectNormalizer` 只补齐已校验数据的坐标/参数辅助信息，演出节点与 Reducer 共用规范形态。`store/navigation/validationNavigation.ts` 把诊断解析为导航 Action；引用导航位于同目录。项目诊断条目定义于 `types/validation.ts`，FSM/演出图校验只接收 `ProjectData`。Validate Project、Recheck 与导出复用同一业务校验器。
-- **黑板引用统计**：`buildBlackboardReferenceCounts(ProjectData)` 按实体汇总资源计数，保持原详细查询的作用域和共享图语义。`useBlackboardData` 以 project 身份作本 Hook 缓存；过滤/选择不重扫，内容和历史变化重算。Inspector 位置明细仍用 `find*References`；任何引用语义扩展须同步两者并通过差分测试。
+- **引用与调用上下文**：`resourceReferences.ts` 是白名单引用字段遍历的唯一 owner；黑板计数、兼容 find*References、CLI 和 impacts 共用。新增引用字段只在此处扩展，禁止计数/列表各自维护。`presentationUsage.ts` 统一根调用、子图传播与最近祖先变量解析。批量查询显式复用 createResourceReferenceIndex，不能为每个资源重建或全局缓存可变项目。`useBlackboardData` 保持 Hook 内 project 身份缓存，过滤/选择不重扫，编辑/历史变化重算；语义预期见 C4 领域测试，性能夹具验证批量结果和枚举次数。
 - **原生关闭保护**：`electron/windowCloseGuard.ts` 拦截窗口 close / 应用 before-quit，经受限 preload / platform 接口交给 `useWindowClose` 与 `ProjectSession.requestClose`。先提交当前字段草稿（包含后台窗口不产生 focusout 的情况），复用保存队列、版本确认与 committing 冻结；只接受当前窗口主框架和请求 ID 的答复。取消退出恢复编辑；主进程不维护另一份 dirty。正常关闭不使用 destroy/exit 强制绕过保护。
 - 详细设计与边界见 [第一批](./Architecture_Repair_Batch1.md)、[第二批](./Architecture_Repair_Batch2.md)、[第三批](./Architecture_Repair_Batch3.md)、[第四批](./Architecture_Repair_Batch4.md)、[第五批](./Architecture_Repair_Batch5.md)、[第六批](./Architecture_Repair_Batch6.md) 和 [关闭保护](./Window_Close_Protection.md)。独立缩放仍待完成。
 
@@ -367,7 +397,7 @@ collectVisibleVariables(project, stageId, nodeId): VisibleVariables
 
 提交前运行 `npm run check`：严格 UTF-8、前端/Electron/CLI 类型、ESLint、渐进格式、UI 所属规则、故意错误拦截和行为回归。另运行 `npm run build`；文件会话相关改动还应运行 `npm run test:electron`。类型/lint 不排除业务源码；领域类型不能反向导入 Store/UI/服务/实现工具，Store 不能导入组件。Hook 不得条件调用，依赖数组按实际闭包列出。
 
-`format:check` / `format` 的清单位于 `scripts/source-files.mjs`，C2 后覆盖 215 个配置/工具/服务、组件及测试文件，不代表全仓库格式统一。反向拦截覆盖 7 项类型、15 项 lint/依赖、3 项编码与 1 项格式错误，另含 10 项错误/2 项合法 UI 探针；累计 310 个回归用例。`test:cli` 和 `test:run` 先构建 CLI，再执行含真实子进程的测试；直接 `npm test` watch 前先构建 CLI。`test:electron` 包含 11 项文件会话检查与完整生产页面上的 7 个关闭场景；每个退出场景使用独立进程、项目和偏好目录。详见 [关闭保护验收](./Window_Close_Protection.md)、[C1 验收](./CLI_C1_Implementation.md)和 [C2 验收](./CLI_C2_Implementation.md)。
+`format:check` / `format` 的清单位于 `scripts/source-files.mjs`，C10 后覆盖 291 个配置/工具/服务、组件及测试文件，不代表全仓库格式统一。反向拦截覆盖 7 项类型、15 项 lint/依赖、3 项编码与 1 项格式错误，另含 10 项错误/2 项合法 UI 探针；累计 38 文件 / 669 个回归用例，UTF-8 检查覆盖 382 份源码/配置。`test:cli` 和 `test:run` 先构建 CLI，再执行含真实子进程的测试；C2–C10 驱动共用 `tests/cli/processHarness.ts`；直接 `npm test` watch 前先构建 CLI。`test:electron` 顺序构建后包含 11 项文件会话检查、完整生产页面上的 7 个关闭场景及 C8 双桌面实例/独立 CLI 的 21 项所有权检查；每个退出场景使用独立进程、项目和偏好目录。C10 的 `test:electron:online` 顺序构建 CLI、前端和 Electron 后执行 45 项完整双实例联动。发行配对另用 `node tests/electron/run-packaged-smoke.mjs <桌面 EXE> --ownership --cli-zip <ZIP>` 验证实际成品；执行时不重建共用 dist 目录。发行相关修改还须构建 ZIP 并运行 `test:cli:package`；C8 独立包增加领域/raw 覆盖、备份与权限组合检查。详见 [关闭保护验收](./Window_Close_Protection.md)和 [C10 验收](./CLI_C10_Implementation.md)。
 
 ### 7.7 性能基准
 

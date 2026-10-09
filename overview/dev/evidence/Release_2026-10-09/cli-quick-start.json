@@ -1,0 +1,18 @@
+{
+  "originalProjectPreserved": true,
+  "directory": "D:\\Temp\\puzzle-release-quick-06123c1115ba4fc19a8e598081270f52",
+  "checks": [
+    "Actual packaged CLI create",
+    "Tree ID and source hash read",
+    "UTF-8 semantic plan",
+    "Preview receipt",
+    "Apply to new file",
+    "Validate",
+    "Full raw read",
+    "Root display name updated",
+    "External assetName retained",
+    "Runtime export"
+  ],
+  "businessProjectsTouched": false,
+  "success": true
+}

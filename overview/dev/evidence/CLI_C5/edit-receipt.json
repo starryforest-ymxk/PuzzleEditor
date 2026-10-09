@@ -1,0 +1,17 @@
+{
+  "apiVersion": "1.0.0",
+  "kind": "domain-preview",
+  "source": {
+    "path": "E:\\Projects\\Web Projects\\puzzle-editor\\overview\\dev\\evidence\\CLI_C5\\C5 Reviewed.puzzle.json",
+    "sha256": "c3567dfc7705ad8988289f84958ffea346a68d7ecc9dffd0dac538c4f75fc859"
+  },
+  "planHash": "0fa44388d548c4a5f8c7d3c7029065c71107a0edcd4afce5d8a9c64c734d8241",
+  "savedAt": "2026-10-09T04:58:46.484Z",
+  "candidateHash": "11a9139fa494986e511fb6f44f201f98bff57e4f71fec78f2e0c5d2aea42a43c",
+  "allocations": {
+    "root": {
+      "type": "stage",
+      "id": "STAGE_1"
+    }
+  }
+}

@@ -1,0 +1,425 @@
+
+> puzzle-editor@1.0.0-beta check
+> npm run check:encoding && npm run typecheck && npm run lint && npm run format:check && npm run check:ui && npm run check:guards && npm run test:run
+
+
+> puzzle-editor@1.0.0-beta check:encoding
+> node scripts/check-encoding.mjs
+
+UTF-8 check passed (360 source/configuration files).
+
+> puzzle-editor@1.0.0-beta typecheck
+> npm run node:build && tsc --noEmit && tsc -p electron/tsconfig.json --noEmit && tsc -p cli/tsconfig.json
+
+
+> puzzle-editor@1.0.0-beta node:build
+> tsc -p platform/node/tsconfig.json
+
+
+> puzzle-editor@1.0.0-beta lint
+> eslint . --max-warnings 0
+
+
+> puzzle-editor@1.0.0-beta format:check
+> node scripts/check-format.mjs
+
+Format check passed (269 files in the documented scope).
+
+> puzzle-editor@1.0.0-beta check:ui
+> node scripts/check-ui-style.mjs
+
+UI ownership check passed (110 files, no copied decorative profiles).
+
+> puzzle-editor@1.0.0-beta check:guards
+> node scripts/check-guards.mjs
+
+Guard checks passed: 15 lint probes, 7 type contracts, 3 encoding failures, 1 formatting failure.
+UI guard checks passed: 10 negative probes, 2 allowed layout/token probes.
+
+> puzzle-editor@1.0.0-beta test:run
+> npm run cli:build && vitest run
+
+
+> puzzle-editor@1.0.0-beta cli:build
+> npm run node:build && vite build --config vite.cli.config.ts
+
+
+> puzzle-editor@1.0.0-beta node:build
+> tsc -p platform/node/tsconfig.json
+
+vite v6.4.1 building SSR bundle for production...
+transforming...
+node_modules/zod/v4/core/util.js (400:0): A comment
+
+"// Wrapped in a `@__PURE__` IIFE: esbuild never tree-shakes a top-level initializer that contains a member access on `Number`, so the bare object literal survived into every bundle."
+
+in "node_modules/zod/v4/core/util.js" contains an annotation that Rollup cannot interpret due to the position of the comment. The comment will be removed to avoid issues.
+node_modules/zod/v4/core/regexes.js (74:0): A comment
+
+"/** Anchors a pattern source. The interpolation lives here rather than at the call site because
+ * esbuild will not drop a `@__PURE__` call whose own argument interpolates a variable, but it
+ * will drop `anchor(dateSource)`. Keeping it inline pinned `date` into every bundle. */"
+
+in "node_modules/zod/v4/core/regexes.js" contains an annotation that Rollup cannot interpret due to the position of the comment. The comment will be removed to avoid issues.
+✓ 183 modules transformed.
+rendering chunks...
+dist-cli/package.json    0.03 kB
+dist-cli/cli.js        547.11 kB
+✓ built in 735ms
+
+ RUN  v3.2.7 E:/Projects/Web Projects/puzzle-editor
+
+ ✓ tests/electron/fileService.test.ts (3 tests) 36ms
+ ✓ tests/cli/c8FileTransactions.test.ts (10 tests) 396ms
+ ✓ tests/cli/c4Domain.test.ts (11 tests) 32ms
+ ✓ tests/services/projectImport.test.ts (41 tests) 84ms
+ ✓ tests/batch5/export.test.ts (4 tests) 23ms
+ ✓ tests/cli/c7Domain.test.ts (11 tests) 57ms
+ ✓ tests/store/reducer.test.ts (15 tests) 15ms
+ ✓ tests/batch5/domain.test.ts (10 tests) 16ms
+ ✓ tests/cli/c6Domain.test.ts (22 tests) 51ms
+ ✓ tests/hooks/useProjectActions.test.ts (6 tests) 148ms
+ ✓ tests/store/resourceHistory.test.ts (17 tests) 17ms
+ ✓ tests/store/documentHistory.test.ts (21 tests) 18ms
+ ✓ tests/cli/exportPreparation.test.ts (3 tests) 21ms
+ ✓ tests/services/variableScope.test.ts (8 tests) 7ms
+ ✓ tests/services/validationNavigation.test.ts (6 tests) 10ms
+ ✓ tests/cli/contracts.test.ts (17 tests) 20ms
+ ✓ tests/store/provider.test.tsx (1 test) 10ms
+ ✓ tests/performance/references.test.ts (6 tests) 1326ms
+   ✓ 引用计数与批量引用查询一致 > large 夹具校验无 error、可往返，全部计数一致  681ms
+   ✓ 引用计数与批量引用查询一致 > 编辑、标记删除、恢复、Undo/Redo 与切换项目均重新计算正确  303ms
+ ✓ tests/services/projectSession.test.ts (49 tests) 2649ms
+ ✓ tests/components/uiConsistency.test.tsx (8 tests) 246ms
+ ✓ tests/performance/blackboardData.test.tsx (1 test) 483ms
+   ✓ 黑板引用计算的更新边界 > 筛选/选择复用统计，业务修改/撤销/切换更新，卸载不保留项目缓存  481ms
+ ✓ tests/components/dialogs.test.tsx (12 tests) 824ms
+stdout | tests/batch5/components.test.tsx > 演出画布真实组件手势 > Ctrl 拖动剪线删除交叉边，撤销恢复连接
+[Cutting] Started at { x: 220, y: 0 }
+
+ ✓ tests/components/editorInteractions.test.tsx (6 tests) 355ms
+ ✓ tests/batch5/components.test.tsx (12 tests) 749ms
+ ❯ tests/components/windowClose.test.tsx (5 tests | 1 failed) 1642ms
+   ✓ 关闭弹窗与应用接线 > 原生关闭先提交实际 Inspector 名称草稿（后台无 blur=false），取消保留修改  317ms
+   ✓ 关闭弹窗与应用接线 > 原生关闭先提交实际 Inspector 名称草稿（后台无 blur=true），取消保留修改 96ms
+   × 关闭弹窗与应用接线 > Save & Close 使用真实会话，确认之前不答复主进程 1082ms
+     → expected "spy" to be called with arguments: [ 'close-2', true ]
+
+Number of calls: 0
+
+   ✓ 关闭弹窗与应用接线 > Discard & Close 使用真实会话，确认之前不答复主进程 107ms
+   ✓ 关闭弹窗与应用接线 > StrictMode 只留一份有效订阅，卸载取消正在确认的关闭 39ms
+ ✓ tests/cli/process.test.ts (23 tests) 6976ms
+   ✓ 编译产物的真实命令行行为 > 帮助、能力和权限如实区分领域写与 C6 聊天授权能力  453ms
+   ✓ 编译产物的真实命令行行为 > 完整读取保留未知字段、文件封装和 editorState，源文件/偏好零修改  472ms
+   ✓ 编译产物的真实命令行行为 > 原文模式逐字输出，损坏 JSON 仍可读取且不追加换行  408ms
+   ✓ 编译产物的真实命令行行为 > 结构歧义原文完整保留，结构化工程操作拒绝静默接受  376ms
+   ✓ 编译产物的真实命令行行为 > 大文件经过 stdout 管道仍完整返回  479ms
+   ✓ 编译产物的真实命令行行为 > 非法 UTF-8 和不存在路径有稳定错误及原文错误通道  489ms
+   ✓ 领域查询、上下文和机器诊断 > 树深度/列表分页有明确边界，指纹变化后拒绝后续页  587ms
+   ✓ 领域查询、上下文和机器诊断 > FSM/演出图详情保留完整字段，引用查询复用编辑器扫描  394ms
+   ✓ 领域查询、上下文和机器诊断 > 父链/子链环不会让校验、变量或引用查询无限运行  505ms
+ ✓ tests/cli/c8Process.test.ts (18 tests) 11558ms
+   ✓ C8 覆盖的权限、原文与可重试交付 > 领域覆盖保留其他数据与编辑状态、备份原字节，并发同回执不重复执行  1653ms
+   ✓ C8 覆盖的权限、原文与可重试交付 > raw 覆盖保留候选 BOM/缩进/换行及时间，重试也需两项许可  1239ms
+   ✓ C8 覆盖的权限、原文与可重试交付 > raw+覆盖+永久删除三能力按实际效果组合，缺任一项不创建备份或改源  1611ms
+   ✓ C8 覆盖的权限、原文与可重试交付 > 领域 purge+覆盖缺声明不读取源；提供两项许可后提交  636ms
+   ✓ C8 覆盖的权限、原文与可重试交付 > 模式互斥，旧另存回执与覆盖回执不能互换，import/export 无覆盖参数  1042ms
+   ✓ C8 覆盖的权限、原文与可重试交付 > source 改动使覆盖拒绝且无事务目录  322ms
+   ✓ C8 覆盖的权限、原文与可重试交付 > plan 改动使覆盖拒绝且无事务目录  308ms
+   ✓ C8 覆盖的权限、原文与可重试交付 > policy 改动使覆盖拒绝且无事务目录  303ms
+   ✓ C8 覆盖的权限、原文与可重试交付 > candidateHash 改动使覆盖拒绝且无事务目录  332ms
+   ✓ C8 覆盖的权限、原文与可重试交付 > 相同字节但 inode 替换也不冒充原版本；硬链接源拒绝覆盖  450ms
+   ✓ C8 覆盖的权限、原文与可重试交付 > 已写入后的第三方改动拒绝重试，不自动还原备份  499ms
+   ✓ C8 覆盖的权限、原文与可重试交付 > raw 候选或回执改变后不能重试；丢失备份不能假报完成  665ms
+   ✓ C8 覆盖的权限、原文与可重试交付 > 存活桌面所有者与未知/无响应所有者均拒绝，释放后可继续  666ms
+   ✓ C8 覆盖的权限、原文与可重试交付 > 进程在 after-backup 被终止，OS 释放锁且同回执能核验恢复  521ms
+   ✓ C8 覆盖的权限、原文与可重试交付 > 进程在 after-replace 被终止，OS 释放锁且同回执能核验恢复  487ms
+ ✓ tests/cli/c4Process.test.ts (42 tests) 11618ms
+   ✓ C4 真实 CLI 演出图事务与查询 > 从新工程创建完整图、前向 alias、共享子图、零值/布尔参数并导出往返  1012ms
+   ✓ C4 真实 CLI 演出图事务与查询 > 断开 True 不移动 False、清理对应样式，源字节/时间/编辑状态保留并可重试  758ms
+   ✓ C4 真实 CLI 演出图事务与查询 > 改接原槽保留另一端样式；样式 null 只清除指定项  422ms
+   ✓ C4 真实 CLI 演出图事务与查询 > Parallel 插入、删除、改接保留显式顺序  433ms
+   ✓ C4 真实 CLI 演出图事务与查询 > 断开后的 False 单独存在可被导出、再导入，不压缩空 True  593ms
+   ✓ C4 真实 CLI 演出图事务与查询 > 图内重复局部 ID 只修改指定图，入口和元数据显式编辑  494ms
+   ✓ C4 真实 CLI 演出图事务与查询 > 删除节点显式清理入出边和入口；最后节点删除后为空图  413ms
+   ✓ C4 真实 CLI 演出图事务与查询 > 删除 True 目标保留 False；创建图使用显式 alias scope  746ms
+   ✓ C4 真实 CLI 演出图事务与查询 > 显式清空类型相关字段可转换类型，不修改其坐标  341ms
+   ✓ C4 真实 CLI 演出图事务与查询 > 共享子图预览列出所有直接/间接调用者和资源影响  311ms
+   ✓ C4 真实 CLI 演出图事务与查询 > 引用查询包括嵌套条件脚本及事件派发，并报告局部变量的真正所有者  538ms
+   ✓ C4 拒绝非法编辑并保留源文件 > 递归条件中的局部变量逐个调用者验证；第二个错误不能被旧错误基线掩盖  474ms
+   ✓ C4 拒绝非法编辑并保留源文件 > 解除绑定后删除图、跨范围调用者修改仍需其自身权限  473ms
+   ✓ C4 拒绝非法编辑并保留源文件 > 后续失败时不生成项目/回执；回执修改和源文件过期均拒绝 apply  606ms
+ ❯ tests/cli/c3Process.test.ts (54 tests | 1 failed) 12080ms
+   ✓ C3 完整 FSM 的真实 CLI 往返 > 新工程前向 alias、完整效果、画布校验、保存导出及重导入一致  960ms
+   ✓ C3 完整 FSM 的真实 CLI 往返 > 局部 ID 只在指定 FSM 更新，编辑状态与源文件保留，apply 重试无重复  787ms
+   ✓ C3 完整 FSM 的真实 CLI 往返 > 清空字段、事件和演出绑定可往返；Graph 绑定复用现有资源  863ms
+   ✓ C3 完整 FSM 的真实 CLI 往返 > 并行边和自环保持独立身份，redirect 保留原效果  400ms
+   ✓ C3 完整 FSM 的真实 CLI 往返 > 显式替换初始状态并删除关联边，preview 披露所有删除  430ms
+   ✓ C3 完整 FSM 的真实 CLI 往返 > 先切换初始、删边再删状态按顺序执行，同批资源修复只校验最终候选  432ms
+   ✓ C3 完整 FSM 的真实 CLI 往返 > 新建再删除编号不复用，已删除 alias 不能再次成为目标  584ms
+   ✓ C3 契约和归属边界 > 拒绝非法契约：missing assetName 179ms
+   ✓ C3 契约和归属边界 > 拒绝非法契约：invalid assetName 166ms
+   ✓ C3 契约和归属边界 > 拒绝非法契约：missing position 158ms
+   ✓ C3 契约和归属边界 > 拒绝非法契约：infinite position 151ms
+   ✓ C3 契约和归属边界 > 拒绝非法契约：state id injection 138ms
+   ✓ C3 契约和归属边界 > 拒绝非法契约：state presentation injection 140ms
+   ✓ C3 契约和归属边界 > 拒绝非法契约：whole FSM injection 136ms
+   ✓ C3 契约和归属边界 > 拒绝非法契约：FSM initial bypass 146ms
+   ✓ C3 契约和归属边界 > 拒绝非法契约：endpoint bypass 152ms
+   ✓ C3 契约和归属边界 > 拒绝非法契约：transition assetName 142ms
+   ✓ C3 契约和归属边界 > 拒绝非法契约：missing priority 146ms
+   ✓ C3 契约和归属边界 > 拒绝非法契约：negative priority 150ms
+   ✓ C3 契约和归属边界 > 拒绝非法契约：fractional priority 143ms
+   ✓ C3 契约和归属边界 > 拒绝非法契约：partial redirect 145ms
+   ✓ C3 契约和归属边界 > 拒绝非法契约：missing trigger event 146ms
+   ✓ C3 契约和归属边界 > 拒绝非法契约：malformed condition 135ms
+   ✓ C3 契约和归属边界 > 失败事务不留输出：{"op":"state.update","fsm":{"puzzle":{"id":"door"}},"target":{"id":"missing"},"changes":{"name":"No"}} 145ms
+   ✓ C3 契约和归属边界 > 失败事务不留输出：{"op":"transition.delete","fsm":{"puzzle":{"id":"door"}},"target":{"id":"missing"}} 131ms
+   ✓ C3 契约和归属边界 > 失败事务不留输出：{"op":"fsm.setInitial","fsm":{"puzzle":{"id":"door"}},"state":{"id":"missing"}} 132ms
+   ✓ C3 契约和归属边界 > 失败事务不留输出：{"op":"transition.create","alias":"edge","fsm":{"puzzle":{"id":"door"}},"from":{"id":"done"},"to":{"id":"missing"},"data":{"name":"Back","priority":0,"triggers":[{"type":"Always"}]}} 149ms
+   ✓ C3 契约和归属边界 > 失败事务不留输出：{"op":"state.update","fsm":{"id":"missing"},"target":{"id":"idle"},"changes":{}} 148ms
+   ✓ C3 契约和归属边界 > 失败事务不留输出：{"op":"state.update","fsm":{"puzzle":{"id":"door"}},"target":{"alias":"root"},"changes":{}} 147ms
+   ✓ C3 契约和归属边界 > 失败事务不留输出：{"op":"state.update","fsm":{"puzzle":{"id":"door"}},"target":{"alias":"unknown"},"changes":{}} 157ms
+   ✓ C3 契约和归属边界 > 失败事务不留输出：{"op":"state.delete","fsm":{"puzzle":{"id":"door"}},"target":{"id":"idle"},"deleteTransitions":true} 150ms
+   ✓ C3 契约和归属边界 > 失败事务不留输出：{"op":"state.delete","fsm":{"puzzle":{"id":"door"}},"target":{"id":"idle"},"replacementInitialState":{"id":"idle"},"deleteTransitions":true} 157ms
+   ✓ C3 契约和归属边界 > 失败事务不留输出：{"op":"state.delete","fsm":{"puzzle":{"id":"door"}},"target":{"id":"done"}} 141ms
+   ✓ C3 契约和归属边界 > 失败事务不留输出：{"op":"state.delete","fsm":{"puzzle":{"id":"door"}},"target":{"id":"idle"},"replacementInitialState":{"id":"done"}} 148ms
+   ✓ C3 契约和归属边界 > 失败事务不留输出：{"op":"state.delete","fsm":{"puzzle":{"id":"door"}},"target":{"id":"done"},"replacementInitialState":{"id":"idle"},"deleteTransitions":true} 157ms
+   ✓ C3 契约和归属边界 > 最后状态、独立 Puzzle 范围、跨 FSM alias、重复嵌套 alias 都被保护  528ms
+   ✓ C3 契约和归属边界 > 拒绝 orphan FSM 的不明确 owner 137ms
+   ✓ C3 契约和归属边界 > 拒绝 shared FSM 的不明确 owner 136ms
+   ✓ C3 契约和归属边界 > 新 FSM 继承 Stage 范围，后创建的其他 FSM alias 不能作为连线端点  464ms
+   ✓ C3 复用工程校验，定位错误的所属 FSM > 新绑定拒绝已标删的事件和变量，Temporary 在同脚本各位置声明类型必须一致  324ms
+   ✓ C3 复用工程校验，定位错误的所属 FSM > 拒绝非法迁移绑定 {"triggers":[]} 150ms
+   ✓ C3 复用工程校验，定位错误的所属 FSM > 拒绝非法迁移绑定 {"triggers":[{"type":"OnEvent","eventId":{"id":"missing"}}]} 156ms
+   ✓ C3 复用工程校验，定位错误的所属 FSM > 拒绝非法迁移绑定 {"triggers":[{"type":"CustomScript","scriptId":{"id":"effect"}}]} 160ms
+   ✓ C3 复用工程校验，定位错误的所属 FSM > 拒绝非法迁移绑定 {"invokeEventIds":[{"id":"missing"}]} 153ms
+   ✓ C3 复用工程校验，定位错误的所属 FSM > 拒绝非法迁移绑定 {"condition":{"type":"And","children":[{"type":"Not","operand":{"type":"ScriptRef","scriptId":{"id":"effect"}}}]}} 139ms
+   ✓ C3 复用工程校验，定位错误的所属 FSM > 拒绝非法迁移绑定 {"presentation":{"type":"Script","scriptId":{"id":"deleted"},"parameters":[]}} 147ms
+   ✓ C3 复用工程校验，定位错误的所属 FSM > 拒绝非法迁移绑定 {"presentation":{"type":"Graph","graphId":{"id":"missing"}}} 161ms
+   ✓ C3 复用工程校验，定位错误的所属 FSM > 拒绝非法迁移绑定 {"parameterModifiers":[{"targetVariableId":{"id":"flag"},"targetScope":"NodeLocal","operation":"Set","source":{"type":"Constant","value":false}}]} 152ms
+   ✓ C3 复用工程校验，定位错误的所属 FSM > 拒绝非法迁移绑定 {"parameterModifiers":[{"targetVariableId":{"id":"flag"},"targetScope":"Global","operation":"Multiply","source":{"type":"Constant","value":2}}]} 159ms
+   ✓ C3 复用工程校验，定位错误的所属 FSM > 拒绝非法迁移绑定 {"parameterModifiers":[{"targetVariableId":{"id":"flag"},"targetScope":"Global","operation":"Set","source":{"type":"Constant","value":0}}]} 153ms
+   ✓ C3 复用工程校验，定位错误的所属 FSM > 拒绝非法迁移绑定 {"presentation":{"type":"Script","scriptId":{"id":"effect"},"parameters":[{"paramName":"Enabled","kind":"Temporary","tempVariable":{"name":"Enabled","type":"boolean"},"source":{"type":"Constant","value":0}}]}} 147ms
+   ✓ C3 复用工程校验，定位错误的所属 FSM > 拒绝非法迁移绑定 {"presentation":{"type":"Script","scriptId":{"id":"effect"},"parameters":[{"paramName":"Count","kind":"Temporary","tempVariable":{"name":"Count","type":"integer"},"source":{"type":"VariableRef","scope":"Global","variableId":{"id":"flag"}}}]}} 138ms
+   × C3 复用工程校验，定位错误的所属 FSM > 拒绝状态的重复资产名、错误生命周期目标、无脚本 InvokeScript；允许合法同名跨 FSM 75ms
+     → expected 'node:internal/modules/cjs/loader:1479…' to be '' // Object.is equality
+   ✓ C3 复用工程校验，定位错误的所属 FSM > 临时变量和画布参数运算规则与全局校验一致，祖先同 ID 不产生错误删除标记 5ms
+ ✓ tests/cli/c2Process.test.ts (41 tests) 13095ms
+   ✓ C2 编译产物完整写入链路 > 无 plan 创建只含外部命名根 Stage 的合法空项目  423ms
+   ✓ C2 编译产物完整写入链路 > 前向 alias、多层 Stage、不同层 Puzzle、资源创建与导出完整闭环  841ms
+   ✓ C2 编译产物完整写入链路 > 默认预览零写入，回执重建同一候选且重试确认已有输出  747ms
+   ✓ C2 编译产物完整写入链路 > 局部更新保留资产名、完整 FSM/演出和 editorState  429ms
+   ✓ C2 编译产物完整写入链路 > stdin 计划在预览和提交中使用相同原始指纹  430ms
+   ✓ C2 编译产物完整写入链路 > Stage 重排和移动更新两边初始项，清除的解锁配置出现在预览中  376ms
+   ✓ C2 编译产物完整写入链路 > 同批删除不复用编号，局部变量移动与更新保留身份  456ms
+   ✓ C2 拒绝非法操作且保留源工程 > 根资产名必填且格式非法时不创建输出目录  353ms
+   ✓ C2 拒绝非法操作且保留源工程 > 前向 alias 类型错误、未知和父级环明确失败  367ms
+   ✓ C2 拒绝非法操作且保留源工程 > 错误基线允许保留旧缺名并修复；不允许新增错误  592ms
+   ✓ C2 拒绝非法操作且保留源工程 > 移动 Puzzle 离开局部变量可见范围拒绝；显式清理后允许且 ID 保持  446ms
+   ✓ C2 拒绝非法操作且保留源工程 > Draft 删除、Implemented 标删、Marked 恢复；禁止状态参数绕过  328ms
+   ✓ C2 拒绝非法操作且保留源工程 > 脚本类别和生命周期目标必须匹配，更新脚本也不能破坏已有绑定  414ms
+   ✓ C2 拒绝非法操作且保留源工程 > 参数修改器与 GUI 共用类型规则，false/0 不丢失且 Toggle 不消费来源  590ms
+   ✓ C2 文件一致性与失败策略 > 原型成员不能冒充实体 ID 或有效引用  425ms
+   ✓ C2 文件一致性与失败策略 > 拒绝预览后的 source 变化  326ms
+   ✓ C2 文件一致性与失败策略 > 拒绝预览后的 plan 变化  301ms
+   ✓ C2 文件一致性与失败策略 > 拒绝预览后的 receipt 变化  303ms
+   ✓ C2 文件一致性与失败策略 > 拒绝源/计划/回执别名、硬链接以及已有不同内容输出  762ms
+   ✓ C2 文件一致性与失败策略 > 已有目标、导出后缀与 IO 失败不覆盖任何输入  612ms
+   ✓ C2 文件一致性与失败策略 > 计划严格 Schema 可导出且拒绝通用字段，未知文件字段仍只能完整读取  360ms
+ ❯ tests/cli/c6Process.test.ts (28 tests | 1 failed) 13420ms
+   ✓ C6 领域删除与交付 > 新版目录保留 C6 的 47 种操作和同级独立能力，覆盖能力可调用但不能用于另存模式  758ms
+   ✓ C6 领域删除与交付 > 预览包含整棵子树和局部 FSM 实体，普通删除另存可重试且源原文保持  1206ms
+   ✓ C6 领域删除与交付 > Implemented 级联预览可读，缺声明零写入，授权声明后成功  645ms
+   ✓ C6 领域删除与交付 > MarkedForDelete 级联预览可读，缺声明零写入，授权声明后成功  617ms
+   ✓ C6 领域删除与交付 > Puzzle 删除的局部受保护变量同样要求永久删除能力  671ms
+   ✓ C6 领域删除与交付 > 拒绝 {"op":"stage.delete","target":{"alias":"root"},"cascade":true} 且不创建回执/输出 181ms
+   ✓ C6 领域删除与交付 > 拒绝 {"op":"stage.delete","target":{"id":"room"}} 且不创建回执/输出 174ms
+   ✓ C6 领域删除与交付 > 拒绝 {"op":"puzzle.delete","target":{"id":"missing"}} 且不创建回执/输出 168ms
+   ✓ C6 领域删除与交付 > 删除后失败不发布，scope 不足不扩大父级范围  317ms
+   ✓ C6 领域删除与交付 > 共享 FSM 拒绝并返回范围外所有者，不删除其他 Puzzle 153ms
+   ✓ C6 显式 purge > Implemented 'global' purge 需授权并只删除目标  572ms
+   ✓ C6 显式 purge > Implemented 'stage' purge 需授权并只删除目标  572ms
+   ✓ C6 显式 purge > Implemented 'node' purge 需授权并只删除目标  572ms
+   ✓ C6 显式 purge > Implemented 'event' purge 需授权并只删除目标  532ms
+   ✓ C6 显式 purge > Implemented 'script' purge 需授权并只删除目标  556ms
+   ✓ C6 显式 purge > MarkedForDelete 'global' purge 需授权并只删除目标  564ms
+   ✓ C6 显式 purge > MarkedForDelete 'stage' purge 需授权并只删除目标  565ms
+   ✓ C6 显式 purge > MarkedForDelete 'node' purge 需授权并只删除目标  572ms
+   ✓ C6 显式 purge > MarkedForDelete 'event' purge 需授权并只删除目标  591ms
+   ✓ C6 显式 purge > MarkedForDelete 'script' purge 需授权并只删除目标  610ms
+   ✓ C6 显式 purge > 普通 delete 仍标删，重复 delete 不会变成 purge，Draft 不用 purge  580ms
+   ✓ C6 显式 purge > 显式 purge 缺声明在工程/回执读取前拒绝，scope/回执不能代替授权  404ms
+   × C6 显式 purge > 受引用资源需同批显式修复，授权不会关闭引用校验 373ms
+     → expected 'node:internal/modules/cjs/loader:1479…' to be '' // Object.is equality
+   ✓ C6 显式 purge > 原本无业务错误的同 ID 祖先回退也被拒绝 215ms
+   ✓ C6 备用 JSON 权限组合与回执 > raw 删除父对象不能绕过永久删除声明，两项均声明后原文交付  480ms
+   ✓ C6 备用 JSON 权限组合与回执 > old-policy 拒绝旧/篡改回执且无输出 255ms
+   ✓ C6 备用 JSON 权限组合与回执 > removed-capabilities 拒绝旧/篡改回执且无输出 280ms
+   ✓ C6 备用 JSON 权限组合与回执 > changed-source 拒绝旧/篡改回执且无输出 237ms
+ ❯ tests/cli/c5Process.test.ts (50 tests | 1 failed) 13959ms
+   ✓ C5 真实整文件往返与授权声明 > 完整字节、BOM/换行/时间/编辑状态保持，图引用影响可读并可导出重开  1135ms
+   ✓ C5 真实整文件往返与授权声明 > 默认预览不写任何文件，回执明确不是聊天授权 256ms
+   ✓ C5 真实整文件往返与授权声明 > 无显式启用先退出 6，不读取不存在的输入，也不建立输出目录 224ms
+   ✓ C5 真实整文件往返与授权声明 > 拒绝伪装授权参数 --yes 192ms
+   ✓ C5 真实整文件往返与授权声明 > 拒绝伪装授权参数 --force 164ms
+   ✓ C5 真实整文件往返与授权声明 > 拒绝伪装授权参数 --approved 171ms
+   ✓ C5 真实整文件往返与授权声明 > 普通入口不接受 raw 权限，重复启用参数也报错  331ms
+   ✓ C5 真实整文件往返与授权声明 > 同一回执重试与并发提交只交付同一候选，不重复写入或改变时间  608ms
+   ✓ C5 候选完整性与共同校验 > 不清空或自动修正 stage 的资产名 158ms
+   ✓ C5 候选完整性与共同校验 > 不清空或自动修正 puzzle 的资产名 192ms
+   ✓ C5 候选完整性与共同校验 > 不清空或自动修正 state 的资产名 237ms
+   ✓ C5 候选完整性与共同校验 > 不清空或自动修正 variable 的资产名 190ms
+   ✓ C5 候选完整性与共同校验 > 不清空或自动修正 event 的资产名 173ms
+   ✓ C5 候选完整性与共同校验 > 不清空或自动修正 script 的资产名 179ms
+   ✓ C5 候选完整性与共同校验 > 新增资产缺名拒绝；补齐外部资产名后可创建  549ms
+   ✓ C5 候选完整性与共同校验 > 不静默补缺失字段或调整面板尺寸，返回完整规范化建议 148ms
+   ✓ C5 候选完整性与共同校验 > 来源版本提示不更改数据时可保留；未知字段不能偷偷删除 296ms
+   ✓ C5 候选完整性与共同校验 > 拒绝 duplicate key 候选且不输出回执 126ms
+   ✓ C5 候选完整性与共同校验 > 拒绝 unsafe number 候选且不输出回执 127ms
+   ✓ C5 候选完整性与共同校验 > 拒绝 syntax 候选且不输出回执 138ms
+   ✓ C5 候选完整性与共同校验 > 拒绝 raw project 候选且不输出回执 136ms
+   ✓ C5 候选完整性与共同校验 > 非法 UTF-8 被拒绝 141ms
+   ✓ C5 候选完整性与共同校验 > 共享图中新失效引用使用共同校验并定位图 134ms
+   ✓ C5 候选完整性与共同校验 > 已有业务错误可以保留，不能以另一错误替换基线 269ms
+   ✓ C5 候选完整性与共同校验 > 未改的旧缺名保持可编辑，不漏过新资产缺名 290ms
+   ✓ C5 整文件替换仍遵守生命周期 > 未获永久删除许可不能移除 Implemented 资源或借改 ID 伪装  862ms
+   ✓ C5 整文件替换仍遵守生命周期 > 未获永久删除许可不能移除 MarkedForDelete 资源或借改 ID 伪装  865ms
+   ✓ C5 整文件替换仍遵守生命周期 > Draft → Draft 允许=true 149ms
+   ✓ C5 整文件替换仍遵守生命周期 > Draft → Implemented 允许=false 146ms
+   ✓ C5 整文件替换仍遵守生命周期 > Draft → MarkedForDelete 允许=false 134ms
+   ✓ C5 整文件替换仍遵守生命周期 > Implemented → Implemented 允许=true 148ms
+   ✓ C5 整文件替换仍遵守生命周期 > Implemented → MarkedForDelete 允许=true 157ms
+   ✓ C5 整文件替换仍遵守生命周期 > Implemented → Draft 允许=false 142ms
+   ✓ C5 整文件替换仍遵守生命周期 > MarkedForDelete → Implemented 允许=true 153ms
+   ✓ C5 整文件替换仍遵守生命周期 > MarkedForDelete → MarkedForDelete 允许=true 156ms
+   ✓ C5 整文件替换仍遵守生命周期 > MarkedForDelete → Draft 允许=false 141ms
+   ✓ C5 整文件替换仍遵守生命周期 > 新增资源不能直接宣称已实现 142ms
+   ✓ C5 整文件替换仍遵守生命周期 > 局部变量可明确移动并保持状态，但不能顺带删除受保护声明  620ms
+   ✓ C5 指纹、路径与故障保护 > 预览后 source 改变拒绝旧回执  334ms
+   ✓ C5 指纹、路径与故障保护 > 预览后 candidate 改变拒绝旧回执  304ms
+   ✓ C5 指纹、路径与故障保护 > 预览后 receipt 改变拒绝旧回执  326ms
+   ✓ C5 指纹、路径与故障保护 > 预览后 target 改变拒绝旧回执  312ms
+   ✓ C5 指纹、路径与故障保护 > expected-hash 前提错误拒绝；修改后重新预览允许继续  415ms
+   × C5 指纹、路径与故障保护 > 输出与 source 碰撞不能覆盖输入 82ms
+     → expected 'node:internal/modules/cjs/loader:1479…' to be '' // Object.is equality
+   ✓ C5 指纹、路径与故障保护 > 输出与 candidate 碰撞不能覆盖输入 234ms
+   ✓ C5 指纹、路径与故障保护 > 输出与 hardlink 碰撞不能覆盖输入 132ms
+   ✓ C5 指纹、路径与故障保护 > 回执不能占用源、候选或输出路径  356ms
+   ✓ C5 指纹、路径与故障保护 > 已有目标在 preview/apply 都受保护  404ms
+   ✓ C5 指纹、路径与故障保护 > 回执类型、额外批准字段和重复键不能混用  424ms
+   ✓ C5 指纹、路径与故障保护 > 预览后目标父目录变为文件，IO 失败不改输入 254ms
+ ❯ tests/cli/c7Process.test.ts (48 tests | 1 failed) 14393ms
+   ✓ C7 支持格式、命名与往返 > 能力发现提供两入口、映射/回执 Schema，拒绝其他权限与通用编辑参数  1475ms
+   ✓ C7 支持格式、命名与往返 > project 预览提交并导出，与 GUI 导入相同，原 ID/状态/0/false 保留  1071ms
+   ✓ C7 支持格式、命名与往返 > export 预览提交并导出，与 GUI 导入相同，原 ID/状态/0/false 保留  936ms
+   ✓ C7 支持格式、命名与往返 > raw 预览提交并导出，与 GUI 导入相同，原 ID/状态/0/false 保留  969ms
+   ✓ C7 支持格式、命名与往返 > legacy-manifest 预览提交并导出，与 GUI 导入相同，原 ID/状态/0/false 保留  825ms
+   ✓ C7 支持格式、命名与往返 > 不带 receipt-out 的预览无文件副作用，返回完整候选和默认 UI 说明 137ms
+   ✓ C7 支持格式、命名与往返 > 源未保存的元数据时间、参数辅助 ID 和布局重建后与预览字节一致 296ms
+   ✓ C7 支持格式、命名与往返 > 已知 legacy 条件迁移保持布尔/数值，移除空 triggers 明示 notice  303ms
+   ✓ C7 支持格式、命名与往返 > 完整覆盖命名域，局部同 ID 精确匹配；全局 owner 不依赖随机项目 UUID 298ms
+   ✓ C7 支持格式、命名与往返 > 旧缺名和业务错误可原样转换；外部名称补齐后导出恢复  859ms
+   ✓ C7 拒绝有损输入与不受支持的命名 > unknown-field 在建立基线前拒绝，不生成回执或项目 124ms
+   ✓ C7 拒绝有损输入与不受支持的命名 > future-version 在建立基线前拒绝，不生成回执或项目 121ms
+   ✓ C7 拒绝有损输入与不受支持的命名 > unknown-format 在建立基线前拒绝，不生成回执或项目 125ms
+   ✓ C7 拒绝有损输入与不受支持的命名 > lossy-triggers 在建立基线前拒绝，不生成回执或项目 123ms
+   ✓ C7 拒绝有损输入与不受支持的命名 > lossy-operand 在建立基线前拒绝，不生成回执或项目 121ms
+   ✓ C7 拒绝有损输入与不受支持的命名 > broken-root 在建立基线前拒绝，不生成回执或项目 141ms
+   ✓ C7 拒绝有损输入与不受支持的命名 > unrelated 在建立基线前拒绝，不生成回执或项目 137ms
+   ✓ C7 拒绝有损输入与不受支持的命名 > 拒绝 duplicate 原始文件问题 133ms
+   ✓ C7 拒绝有损输入与不受支持的命名 > 拒绝 precision 原始文件问题 128ms
+   ✓ C7 拒绝有损输入与不受支持的命名 > 拒绝 encoding 原始文件问题 128ms
+   ✓ C7 拒绝有损输入与不受支持的命名 > 拒绝 syntax 原始文件问题 129ms
+   ✓ C7 拒绝有损输入与不受支持的命名 > 拒绝缺字段/非法/通用补丁映射 {"entity":{"type":"puzzle","id":"door"},"assetName":" Door"} 133ms
+   ✓ C7 拒绝有损输入与不受支持的命名 > 拒绝缺字段/非法/通用补丁映射 {"entity":{"type":"puzzle","id":"door"}} 138ms
+   ✓ C7 拒绝有损输入与不受支持的命名 > 拒绝缺字段/非法/通用补丁映射 {"entity":{"type":"state","id":"idle"},"assetName":"Idle"} 142ms
+   ✓ C7 拒绝有损输入与不受支持的命名 > 拒绝缺字段/非法/通用补丁映射 {"entity":{"type":"variable","id":"shared","ownerType":"stage"},"assetName":"Name"} 138ms
+   ✓ C7 拒绝有损输入与不受支持的命名 > 拒绝缺字段/非法/通用补丁映射 {"entity":{"type":"presentation","id":"intro"},"assetName":"Name"} 133ms
+   ✓ C7 拒绝有损输入与不受支持的命名 > 拒绝缺字段/非法/通用补丁映射 {"entity":{"type":"script","id":"effect"},"assetName":"Name","state":"Draft"} 130ms
+   ✓ C7 拒绝有损输入与不受支持的命名 > 拒绝缺字段/非法/通用补丁映射 {"path":"/project/nodes/door","value":{}} 135ms
+   ✓ C7 拒绝有损输入与不受支持的命名 > 拒绝 duplicate 映射而不更改源 138ms
+   ✓ C7 拒绝有损输入与不受支持的命名 > 拒绝 unknown 映射而不更改源 148ms
+   ✓ C7 拒绝有损输入与不受支持的命名 > 拒绝 wrong-owner 映射而不更改源 158ms
+   ✓ C7 拒绝有损输入与不受支持的命名 > 拒绝 new-error 映射而不更改源 160ms
+   ✓ C7 拒绝有损输入与不受支持的命名 > 拒绝 old-hash 映射而不更改源 146ms
+   ✓ C7 拒绝有损输入与不受支持的命名 > 拒绝 duplicate-json 映射而不更改源 146ms
+   ✓ C7 回执、文件所有权与重试 > source 变化拒绝提交，原工程保持  310ms
+   ✓ C7 回执、文件所有权与重试 > mapping 变化拒绝提交，原工程保持  319ms
+   ✓ C7 回执、文件所有权与重试 > omit-mapping 变化拒绝提交，原工程保持  319ms
+   ✓ C7 回执、文件所有权与重试 > target 变化拒绝提交，原工程保持  307ms
+   ✓ C7 回执、文件所有权与重试 > converter 变化拒绝提交，原工程保持 291ms
+   × C7 回执、文件所有权与重试 > candidate 变化拒绝提交，原工程保持 225ms
+     → expected 'node:internal/modules/cjs/loader:1479…' to be '' // Object.is equality
+   ✓ C7 回执、文件所有权与重试 > context 变化拒绝提交，原工程保持  316ms
+   ✓ C7 回执、文件所有权与重试 > permissions 变化拒绝提交，原工程保持 248ms
+   ✓ C7 回执、文件所有权与重试 > format 变化拒绝提交，原工程保持 263ms
+   ✓ C7 回执、文件所有权与重试 > expected-hash、已有输出、回执和目标重合均阻断预览  354ms
+   ✓ C7 回执、文件所有权与重试 > 保护 source 的路径及硬链接，不能作为项目输出 240ms
+   ✓ C7 回执、文件所有权与重试 > 保护 names 的路径及硬链接，不能作为项目输出 225ms
+   ✓ C7 回执、文件所有权与重试 > 保护 receipt 的路径及硬链接，不能作为项目输出 222ms
+   ✓ C7 回执、文件所有权与重试 > 同一回执并发发布只产生一个文件，已有不同目标不覆盖  329ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/cli/c3Process.test.ts > C3 复用工程校验，定位错误的所属 FSM > 拒绝状态的重复资产名、错误生命周期目标、无脚本 InvokeScript；允许合法同名跨 FSM
+ FAIL  tests/cli/c5Process.test.ts > C5 指纹、路径与故障保护 > 输出与 source 碰撞不能覆盖输入
+ FAIL  tests/cli/c6Process.test.ts > C6 显式 purge > 受引用资源需同批显式修复，授权不会关闭引用校验
+ FAIL  tests/cli/c7Process.test.ts > C7 回执、文件所有权与重试 > candidate 变化拒绝提交，原工程保持
+
+AssertionError: expected 'node:internal/modules/cjs/loader:1479…' to be '' // Object.is equality
+ Test Files  5 failed | 28 passed (33)
+      Tests  5 failed | 604 passed (609)
+   Start at  15:10:14
+   Duration  15.43s (transform 5.27s, setup 0ms, collect 19.25s, tests 106.34s, environment 9.09s, prepare 6.39s)
+
+
+- Expected
++ Received
+
++ node:internal/modules/cjs/loader:1479
++   throw err;
++   ^
++ 
++ Error: Cannot find module 'E:\Projects\Web Projects\puzzle-editor\dist-cli\cli.js'
++     at Module._resolveFilename (node:internal/modules/cjs/loader:1476:15)
++     at wrapResolveFilename (node:internal/modules/cjs/loader:1049:27)
++     at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1073:10)
++     at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1094:12)
++     at Module._load (node:internal/modules/cjs/loader:1262:25)
++     at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
++     at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)
++     at node:internal/main/run_main_module:33:47 {
++   code: 'MODULE_NOT_FOUND',
++   requireStack: []
++ }
++ 
++ Node.js v24.15.0
++
+
+ ❯ ChildProcess.<anonymous> tests/cli/processHarness.ts:35:49
+     33|         clearTimeout(timer);
+     34|         try {
+     35|           expect(Buffer.concat(err).toString()).toBe('');
+       |                                                 ^
+     36|           resolveRun({ code, result: JSON.parse(Buffer.concat(out).toS…
+     37|         } catch (error) {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+
+ FAIL  tests/components/windowClose.test.tsx > 关闭弹窗与应用接线 > Save & Close 使用真实会话，确认之前不答复主进程
+AssertionError: expected "spy" to be called with arguments: [ 'close-2', true ]
+
+Number of calls: 0
+
+ ❯ tests/components/windowClose.test.tsx:143:55
+    141|       await act(async () => {
+    142|         buttons.find((button) => button.textContent === buttonText)!.c…
+    143|         await vi.waitFor(() => expect(bridge.resolve).toHaveBeenCalled…
+       |                                                       ^
+    144|       });
+    145|       expect(bridge.resolve).toHaveBeenCalledExactlyOnceWith('close-2'…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯
+

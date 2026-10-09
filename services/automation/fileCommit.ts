@@ -8,6 +8,15 @@ import { hashText } from './transactionData';
 const missing = (error: unknown) =>
   error instanceof Error && 'code' in error && error.code === 'ENOENT';
 const pathKey = (value: string) => (process.platform === 'win32' ? value.toLowerCase() : value);
+/** 新目标预览不能默许已有内容；实际提交仍由排他发布处理竞争与同字节重试。 */
+export async function requireAbsentOutput(target: string) {
+  const exists = await lstat(target).catch((error) => {
+    if (!missing(error)) throw error;
+    return null;
+  });
+  if (exists)
+    throw new AutomationFailure('OUTPUT_EXISTS', 'Preview requires a new output path.', 4);
+}
 async function canonicalTarget(input: string): Promise<string> {
   const absolute = path.resolve(input);
   try {

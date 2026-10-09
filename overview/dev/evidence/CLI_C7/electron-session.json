@@ -1,0 +1,18 @@
+{
+  "success": true,
+  "path": "D:/Temp/puzzle-batch2-electron-00iy5O/projects/IPC Verification.puzzle.json",
+  "graphName": "Keep Local Edit",
+  "checks": [
+    "create",
+    "edit/save",
+    "reopen",
+    "complete settings save",
+    "exclusive-create failure preserves current session and disk",
+    "internal write echo filtered",
+    "cancelled candidate does not change watched path",
+    "external resource sync preserves local edits",
+    "invalid import preserves document/history/path",
+    "runtime import requires a separate project save",
+    "runtime copy round trip preserves data and source file"
+  ]
+}

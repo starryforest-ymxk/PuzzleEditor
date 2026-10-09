@@ -1,0 +1,73 @@
+
+> puzzle-editor@1.0.0-beta test:electron
+> npm run electron:compile && node tests/electron/run-session-smoke.mjs && node tests/electron/run-close-smoke.mjs
+
+
+> puzzle-editor@1.0.0-beta electron:compile
+> npm run node:build && tsc -p electron/tsconfig.json
+
+
+> puzzle-editor@1.0.0-beta node:build
+> tsc -p platform/node/tsconfig.json
+
+Isolated Electron evidence directory: D:\Temp\puzzle-batch2-electron-YtWTN7
+
+IPC handlers registered successfully
+[FileWatcher] Start watching: D:/Temp/puzzle-batch2-electron-YtWTN7/projects/IPC Verification.puzzle.json
+Preferences file not found, creating default preferences
+Preferences saved to: D:\Temp\puzzle-batch2-electron-YtWTN7\appdata\StarryTree\PuzzleEditor\preferences.json
+Preferences saved to: D:\Temp\puzzle-batch2-electron-YtWTN7\appdata\StarryTree\PuzzleEditor\preferences.json
+Preferences saved to: D:\Temp\puzzle-batch2-electron-YtWTN7\appdata\StarryTree\PuzzleEditor\preferences.json
+Preferences saved to: D:\Temp\puzzle-batch2-electron-YtWTN7\appdata\StarryTree\PuzzleEditor\preferences.json
+Failed to write project: EEXIST: file already exists, link 'D:\Temp\puzzle-batch2-electron-YtWTN7\projects\.IPC Verification.puzzle.json.417aca3f-eeb2-4825-8e64-67f4c19cdc83.tmp' -> 'D:\Temp\puzzle-batch2-electron-YtWTN7\projects\IPC Verification.puzzle.json'
+Preferences saved to: D:\Temp\puzzle-batch2-electron-YtWTN7\appdata\StarryTree\PuzzleEditor\preferences.json
+[FileWatcher] Stop watching: D:/Temp/puzzle-batch2-electron-YtWTN7/projects/IPC Verification.puzzle.json
+Preferences saved to: D:\Temp\puzzle-batch2-electron-YtWTN7\appdata\StarryTree\PuzzleEditor\preferences.json
+[FileWatcher] Start watching: D:/Temp/puzzle-batch2-electron-YtWTN7/projects/Imported Copy.puzzle.json
+Preferences saved to: D:\Temp\puzzle-batch2-electron-YtWTN7\appdata\StarryTree\PuzzleEditor\preferences.json
+Preferences saved to: D:\Temp\puzzle-batch2-electron-YtWTN7\appdata\StarryTree\PuzzleEditor\preferences.json
+ELECTRON_SMOKE_RESULT {"success":true,"path":"D:/Temp/puzzle-batch2-electron-YtWTN7/projects/IPC Verification.puzzle.json","graphName":"Keep Local Edit","checks":["create","edit/save","reopen","complete settings save","exclusive-create failure preserves current session and disk","internal write echo filtered","cancelled candidate does not change watched path","external resource sync preserves local edits","invalid import preserves document/history/path","runtime import requires a separate project save","runtime copy round trip preserves data and source file"]}
+[FileWatcher] Stop watching: D:/Temp/puzzle-batch2-electron-YtWTN7/projects/Imported Copy.puzzle.json
+Close verification evidence: D:\Temp\puzzle-close-electron-KYvHLM
+
+IPC handlers registered successfully
+CLOSE_SMOKE empty: passed (1 checks)
+
+IPC handlers registered successfully
+[FileWatcher] Start watching: D:\Temp\puzzle-close-electron-KYvHLM\clean\project.puzzle.json
+Preferences saved to: D:\Temp\puzzle-close-electron-KYvHLM\clean\appdata\StarryTree\PuzzleEditor\preferences.json
+[FileWatcher] Stop watching: D:\Temp\puzzle-close-electron-KYvHLM\clean\project.puzzle.json
+CLOSE_SMOKE clean: passed (1 checks)
+
+IPC handlers registered successfully
+[FileWatcher] Start watching: D:\Temp\puzzle-close-electron-KYvHLM\save\project.puzzle.json
+Preferences saved to: D:\Temp\puzzle-close-electron-KYvHLM\save\appdata\StarryTree\PuzzleEditor\preferences.json
+[FileWatcher] Stop watching: D:\Temp\puzzle-close-electron-KYvHLM\save\project.puzzle.json
+CLOSE_SMOKE save: passed (10 checks)
+
+IPC handlers registered successfully
+[FileWatcher] Start watching: D:\Temp\puzzle-close-electron-KYvHLM\discard\project.puzzle.json
+Preferences saved to: D:\Temp\puzzle-close-electron-KYvHLM\discard\appdata\StarryTree\PuzzleEditor\preferences.json
+[FileWatcher] Stop watching: D:\Temp\puzzle-close-electron-KYvHLM\discard\project.puzzle.json
+CLOSE_SMOKE discard: passed (4 checks)
+
+IPC handlers registered successfully
+[FileWatcher] Start watching: D:\Temp\puzzle-close-electron-KYvHLM\failed-save\project.puzzle.json
+Preferences saved to: D:\Temp\puzzle-close-electron-KYvHLM\failed-save\appdata\StarryTree\PuzzleEditor\preferences.json
+[FileWatcher] Stop watching: D:\Temp\puzzle-close-electron-KYvHLM\failed-save\project.puzzle.json
+Failed to write project: EPERM: operation not permitted, rename 'D:\Temp\puzzle-close-electron-KYvHLM\failed-save\.project.puzzle.json.0de4612d-115d-4306-8205-9eb9077c3e78.tmp' -> 'D:\Temp\puzzle-close-electron-KYvHLM\failed-save\project.puzzle.json'
+CLOSE_SMOKE failed-save: passed (6 checks)
+
+IPC handlers registered successfully
+Preferences saved to: D:\Temp\puzzle-close-electron-KYvHLM\save-as\appdata\StarryTree\PuzzleEditor\preferences.json
+[FileWatcher] Start watching: D:\Temp\puzzle-close-electron-KYvHLM\save-as\saved-copy.puzzle.json
+Preferences saved to: D:\Temp\puzzle-close-electron-KYvHLM\save-as\appdata\StarryTree\PuzzleEditor\preferences.json
+[FileWatcher] Stop watching: D:\Temp\puzzle-close-electron-KYvHLM\save-as\saved-copy.puzzle.json
+CLOSE_SMOKE save-as: passed (6 checks)
+
+IPC handlers registered successfully
+[FileWatcher] Start watching: D:\Temp\puzzle-close-electron-KYvHLM\quit\project.puzzle.json
+Preferences saved to: D:\Temp\puzzle-close-electron-KYvHLM\quit\appdata\StarryTree\PuzzleEditor\preferences.json
+[FileWatcher] Stop watching: D:\Temp\puzzle-close-electron-KYvHLM\quit\project.puzzle.json
+CLOSE_SMOKE quit: passed (4 checks)
+Electron close verification passed (7 scenarios).

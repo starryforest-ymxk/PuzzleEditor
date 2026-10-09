@@ -1,0 +1,9 @@
+  • electron-builder  version=25.1.8 os=10.0.26300
+  ⨯ ENOENT: no such file or directory, open 'E:\Projects\Web Projects\puzzle-editor\.win.signAndEditExecutable=false'  failedTask=build stackTrace=Error: ENOENT: no such file or directory, open 'E:\Projects\Web Projects\puzzle-editor\.win.signAndEditExecutable=false'
+    at open (node:internal/fs/promises:640:25)
+    at Object.readFile (node:internal/fs/promises:1287:14)
+    at readConfig (E:\Projects\Web Projects\puzzle-editor\node_modules\app-builder-lib\src\util\config\load.ts:17:16)
+    at getConfig (E:\Projects\Web Projects\puzzle-editor\node_modules\app-builder-lib\src\util\config\config.ts:42:34)
+    at Packager.validateConfig (E:\Projects\Web Projects\puzzle-editor\node_modules\app-builder-lib\src\packager.ts:331:27)
+    at Packager.build (E:\Projects\Web Projects\puzzle-editor\node_modules\app-builder-lib\src\packager.ts:362:5)
+    at executeFinally (E:\Projects\Web Projects\puzzle-editor\node_modules\builder-util\src\promise.ts:12:14)

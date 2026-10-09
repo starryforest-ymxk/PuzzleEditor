@@ -1,0 +1,23 @@
+{
+  "apiVersion": "1.0.0",
+  "kind": "import-preview",
+  "converterVersion": "C7.1",
+  "policyVersion": "C6",
+  "requiredCapabilities": [],
+  "source": {
+    "path": "E:\\Projects\\Web Projects\\puzzle-editor\\overview\\dev\\evidence\\CLI_C7\\Zero-source.json",
+    "sha256": "eba3c498b3acd320ce80922ae74c805d15e53d0e89f2c3f9bb547ba7707d0abf"
+  },
+  "names": null,
+  "output": {
+    "path": "E:\\Projects\\Web Projects\\puzzle-editor\\overview\\dev\\evidence\\CLI_C7\\Zero-converted.puzzle.json",
+    "mode": "create-new",
+    "expected": "absent"
+  },
+  "context": {
+    "now": "2026-10-09T06:24:11.913Z",
+    "runtimeProjectId": "proj-imported-84f8f633-2f33-47a3-b244-4e3b43b18b39"
+  },
+  "detectedFormat": "export",
+  "candidateHash": "8ee7f6f9e9a6719111a47ce44f165167a71a7e5c143a5810305aee5552b5b0a7"
+}

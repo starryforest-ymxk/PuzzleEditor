@@ -10,6 +10,7 @@ import { Transition } from '../../types/stateMachine';
 import * as Geom from '../../utils/geometry';
 import { CANVAS, INTERACTION } from '../../utils/constants';
 import { generateStateId, generateTransitionId } from '../../utils/resourceIdGenerator';
+import { createState, createTransition } from '../../utils/fsmFactories';
 import { useCanvasNavigation } from '../../hooks/useCanvasNavigation';
 import { useGraphInteraction } from '../../hooks/useGraphInteraction';
 import { useCuttingLine } from '../../hooks/useCuttingLine';
@@ -151,17 +152,14 @@ export const StateMachineCanvas = ({ node, readOnly = false }: Props) => {
         type: 'ADD_TRANSITION',
         payload: {
           fsmId: fsm.id,
-          transition: {
+          transition: createTransition({
             id: transitionId,
             name: 'Transition',
             fromStateId: sourceId,
             toStateId: targetId,
             fromSide,
             toSide,
-            priority: 0,
-            triggers: [{ type: 'Always' }],
-            parameterModifiers: [],
-          },
+          }),
         },
       });
     },
@@ -485,7 +483,7 @@ export const StateMachineCanvas = ({ node, readOnly = false }: Props) => {
                 type: 'ADD_STATE',
                 payload: {
                   fsmId: fsm.id,
-                  state: { id: stateId, name: 'New State', position: { x, y }, eventListeners: [] },
+                  state: createState({ id: stateId, name: 'New State', position: { x, y } }),
                 },
               });
             }}

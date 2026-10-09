@@ -1,0 +1,32 @@
+{
+  "success": true,
+  "browser": "Codex IAB",
+  "url": "http://127.0.0.1:4180/",
+  "source": "overview/dev/verification/batch6-browser-saved.puzzle.json",
+  "sourceSha256": "f76a4c0bc09c1fec024a01974b0fcdcd8f5fc2b072397ead8d4a6bfbc43b0096",
+  "actions": [
+    "Open rich FSM/blackboard fixture",
+    "Edit Puzzle Name and retain external Asset Name",
+    "Undo restores clean state",
+    "Redo restores content and dirty",
+    "Validate 0 Errors / 0 Warnings",
+    "Download full project and runtime export",
+    "Undo to clean baseline then reopen saved project",
+    "Confirm name and FSM restored; no persisted Undo stack",
+    "Close temporary tab and stop verified preview process"
+  ],
+  "checks": {
+    "guiCliRuntimeDataEqual": true,
+    "unrelatedProjectDataPreserved": true,
+    "externalAssetNamePreserved": true,
+    "historyMetadataNotSerialized": true,
+    "validationErrors": 0,
+    "validationWarnings": 0,
+    "consoleWarnings": 0,
+    "consoleErrors": 0
+  },
+  "screenshot": "overview/dev/evidence/CLI_C10/browser-fsm-validation.jpg",
+  "previewServerStopped": true,
+  "temporaryTabClosed": true,
+  "businessProjectTouched": false
+}

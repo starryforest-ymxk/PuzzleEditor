@@ -2,6 +2,7 @@
 import type { ProjectData } from '../../types/project';
 import type { EntityRef, InspectRequest } from '../../contracts/automation/schemas';
 import { AutomationFailure } from './errors';
+import { projectResources, projectPointer } from '../../utils/projectResources';
 
 export interface EntityRecord {
   ref: EntityRef;
@@ -13,8 +14,10 @@ export interface EntityRecord {
   nodeId?: string;
   value: object;
 }
-export const pointer = (...parts: string[]) =>
-  '/' + parts.map((part) => part.replaceAll('~', '~0').replaceAll('/', '~1')).join('/');
+export const pointer = projectPointer;
+/** 真正带 assetName 的业务实体目录，备用写入与兼容命名映射共用。 */
+export const isNamedAsset = (entry: EntityRecord) =>
+  ['stage', 'puzzle', 'state', 'variable', 'event', 'script'].includes(entry.ref.type);
 
 export function indexEntities(project: ProjectData): EntityRecord[] {
   const entries: EntityRecord[] = [];
@@ -39,24 +42,10 @@ export function indexEntities(project: ProjectData): EntityRecord[] {
     add({ type: 'stage', id: stage.id }, pointer('stageTree', 'stages', stage.id), stage, {
       stageId: stage.id,
     });
-    for (const variable of Object.values(stage.localVariables))
-      add(
-        { type: 'variable', id: variable.id, ownerType: 'stage', ownerId: stage.id },
-        pointer('stageTree', 'stages', stage.id, 'localVariables', variable.id),
-        variable,
-        { stageId: stage.id },
-      );
   }
   for (const node of Object.values(project.nodes)) {
     const context = { stageId: node.stageId, nodeId: node.id };
     add({ type: 'puzzle', id: node.id }, pointer('nodes', node.id), node, context);
-    for (const variable of Object.values(node.localVariables))
-      add(
-        { type: 'variable', id: variable.id, ownerType: 'puzzle', ownerId: node.id },
-        pointer('nodes', node.id, 'localVariables', variable.id),
-        variable,
-        context,
-      );
   }
   for (const fsm of Object.values(project.stateMachines)) {
     add({ type: 'fsm', id: fsm.id }, pointer('stateMachines', fsm.id), fsm);
@@ -82,16 +71,8 @@ export function indexEntities(project: ProjectData): EntityRecord[] {
         node,
       );
   }
-  for (const variable of Object.values(project.blackboard.globalVariables))
-    add(
-      { type: 'variable', id: variable.id, ownerType: 'project', ownerId: project.meta.id },
-      pointer('blackboard', 'globalVariables', variable.id),
-      variable,
-    );
-  for (const event of Object.values(project.blackboard.events))
-    add({ type: 'event', id: event.id }, pointer('blackboard', 'events', event.id), event);
-  for (const script of Object.values(project.scripts.scripts))
-    add({ type: 'script', id: script.id }, pointer('scripts', 'scripts', script.id), script);
+  for (const entry of projectResources(project))
+    add(entry.ref, entry.path, entry.value, { stageId: entry.stageId, nodeId: entry.nodeId });
   return entries;
 }
 

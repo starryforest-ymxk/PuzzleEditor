@@ -1,0 +1,19 @@
+{
+  "apiVersion": "1.0.0",
+  "kind": "domain-preview",
+  "policyVersion": "C6",
+  "requiredCapabilities": [],
+  "source": {
+    "path": "E:\\Projects\\Web Projects\\puzzle-editor\\overview\\dev\\evidence\\CLI_C6\\C6 Draft.puzzle.json",
+    "sha256": "936118d917f61c2717ac6287627a052ec31dd9350989b3bbdfb72ff8d15f0ccf"
+  },
+  "planHash": "61fb65185ac74cc3ffac8792d35b9cd13c2950d212a8f693318028e5f5848e01",
+  "savedAt": "2026-10-09T05:48:18.459Z",
+  "candidateHash": "8d5f6802f6acf14abf6e6e8c2acab766249dded60b1a0dcd4e5a73eed0073c18",
+  "allocations": {
+    "root": {
+      "type": "stage",
+      "id": "STAGE_1"
+    }
+  }
+}

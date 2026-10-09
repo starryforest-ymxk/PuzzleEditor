@@ -1,0 +1,604 @@
+{
+  "apiVersion": "1.0.0",
+  "scope": {
+    "project": true
+  },
+  "commands": [
+    {
+      "op": "transition.create",
+      "alias": "unlock",
+      "fsm": {
+        "puzzle": {
+          "alias": "door"
+        }
+      },
+      "from": {
+        "alias": "locked"
+      },
+      "to": {
+        "alias": "unlocked"
+      },
+      "data": {
+        "name": "Unlock",
+        "description": "Success path",
+        "priority": 10,
+        "fromSide": "right",
+        "toSide": "left",
+        "triggers": [
+          {
+            "type": "OnEvent",
+            "eventId": {
+              "alias": "open"
+            }
+          },
+          {
+            "type": "CustomScript",
+            "scriptId": {
+              "alias": "trigger"
+            }
+          },
+          {
+            "type": "HandledByScript"
+          },
+          {
+            "type": "Always"
+          }
+        ],
+        "condition": {
+          "type": "And",
+          "children": [
+            {
+              "type": "Comparison",
+              "operator": "==",
+              "left": {
+                "type": "VariableRef",
+                "variableId": {
+                  "alias": "flag"
+                },
+                "scope": "Global"
+              },
+              "right": {
+                "type": "Constant",
+                "value": false
+              }
+            },
+            {
+              "type": "Or",
+              "children": [
+                {
+                  "type": "ScriptRef",
+                  "scriptId": {
+                    "alias": "condition"
+                  }
+                },
+                {
+                  "type": "Not",
+                  "operand": {
+                    "type": "Literal",
+                    "value": false
+                  }
+                }
+              ]
+            },
+            {
+              "type": "Comparison",
+              "operator": ">=",
+              "left": {
+                "type": "VariableRef",
+                "variableId": {
+                  "alias": "key"
+                },
+                "scope": "StageLocal"
+              },
+              "right": {
+                "type": "Constant",
+                "value": 0
+              }
+            },
+            {
+              "type": "Comparison",
+              "operator": "==",
+              "left": {
+                "type": "VariableRef",
+                "variableId": {
+                  "alias": "found"
+                },
+                "scope": "NodeLocal"
+              },
+              "right": {
+                "type": "Constant",
+                "value": true
+              }
+            }
+          ]
+        },
+        "presentation": {
+          "type": "Script",
+          "scriptId": {
+            "alias": "effect"
+          },
+          "parameters": [
+            {
+              "paramName": "KeyCount",
+              "source": {
+                "type": "VariableRef",
+                "variableId": {
+                  "alias": "key"
+                },
+                "scope": "StageLocal"
+              }
+            },
+            {
+              "paramName": "Duration",
+              "kind": "Temporary",
+              "tempVariable": {
+                "name": "Duration",
+                "type": "float"
+              },
+              "source": {
+                "type": "Constant",
+                "value": 0
+              }
+            },
+            {
+              "paramName": "Enabled",
+              "kind": "Temporary",
+              "tempVariable": {
+                "name": "Enabled",
+                "type": "boolean"
+              },
+              "source": {
+                "type": "Constant",
+                "value": false
+              }
+            },
+            {
+              "paramName": "HasKey",
+              "kind": "Temporary",
+              "tempVariable": {
+                "name": "Has Key",
+                "type": "boolean"
+              },
+              "source": {
+                "type": "VariableRef",
+                "variableId": {
+                  "alias": "found"
+                },
+                "scope": "NodeLocal"
+              }
+            }
+          ]
+        },
+        "invokeEventIds": [
+          {
+            "alias": "open"
+          }
+        ],
+        "parameterModifiers": [
+          {
+            "targetVariableId": {
+              "alias": "found"
+            },
+            "targetScope": "NodeLocal",
+            "operation": "Set",
+            "source": {
+              "type": "Constant",
+              "value": false
+            }
+          },
+          {
+            "targetVariableId": {
+              "alias": "key"
+            },
+            "targetScope": "StageLocal",
+            "operation": "Multiply",
+            "source": {
+              "type": "Constant",
+              "value": 2
+            }
+          },
+          {
+            "targetVariableId": {
+              "alias": "flag"
+            },
+            "targetScope": "Global",
+            "operation": "Toggle",
+            "source": {
+              "type": "Constant",
+              "value": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "op": "state.create",
+      "alias": "unlocked",
+      "fsm": {
+        "puzzle": {
+          "alias": "door"
+        }
+      },
+      "data": {
+        "name": "Unlocked",
+        "assetName": "Unlocked",
+        "position": {
+          "x": 620,
+          "y": 100
+        },
+        "lifecycleScriptId": {
+          "alias": "stateLife"
+        },
+        "eventListeners": [
+          {
+            "eventId": {
+              "alias": "open"
+            },
+            "action": {
+              "type": "InvokeScript"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "op": "state.create",
+      "alias": "failed",
+      "fsm": {
+        "puzzle": {
+          "alias": "door"
+        }
+      },
+      "data": {
+        "name": "Failed",
+        "assetName": "Failed",
+        "position": {
+          "x": 620,
+          "y": 440
+        }
+      }
+    },
+    {
+      "op": "transition.create",
+      "alias": "failure",
+      "fsm": {
+        "puzzle": {
+          "alias": "door"
+        }
+      },
+      "from": {
+        "alias": "locked"
+      },
+      "to": {
+        "alias": "failed"
+      },
+      "data": {
+        "name": "Failure",
+        "priority": 0,
+        "triggers": [
+          {
+            "type": "Always"
+          }
+        ],
+        "condition": {
+          "type": "Not",
+          "operand": {
+            "type": "ScriptRef",
+            "scriptId": {
+              "alias": "condition"
+            }
+          }
+        }
+      }
+    },
+    {
+      "op": "transition.create",
+      "alias": "retry",
+      "fsm": {
+        "puzzle": {
+          "alias": "door"
+        }
+      },
+      "from": {
+        "alias": "failed"
+      },
+      "to": {
+        "alias": "locked"
+      },
+      "data": {
+        "name": "Retry",
+        "priority": 2,
+        "triggers": [
+          {
+            "type": "HandledByScript"
+          }
+        ],
+        "parameterModifiers": [
+          {
+            "targetVariableId": {
+              "alias": "key"
+            },
+            "targetScope": "StageLocal",
+            "operation": "Add",
+            "source": {
+              "type": "Constant",
+              "value": 1
+            }
+          }
+        ]
+      }
+    },
+    {
+      "op": "variable.create",
+      "alias": "found",
+      "owner": {
+        "type": "puzzle",
+        "ref": {
+          "alias": "door"
+        }
+      },
+      "data": {
+        "name": "Found",
+        "assetName": "Found",
+        "type": "boolean",
+        "value": false
+      }
+    },
+    {
+      "op": "puzzle.create",
+      "alias": "door",
+      "stage": {
+        "alias": "inner"
+      },
+      "data": {
+        "name": "Door",
+        "assetName": "Door"
+      },
+      "initialState": {
+        "name": "Locked",
+        "assetName": "Locked",
+        "alias": "locked"
+      }
+    },
+    {
+      "op": "stage.create",
+      "alias": "inner",
+      "parent": {
+        "alias": "room"
+      },
+      "data": {
+        "name": "Inner",
+        "assetName": "Inner"
+      }
+    },
+    {
+      "op": "stage.create",
+      "alias": "room",
+      "parent": {
+        "alias": "root"
+      },
+      "data": {
+        "name": "Room",
+        "assetName": "Room"
+      }
+    },
+    {
+      "op": "stage.create",
+      "alias": "side",
+      "parent": {
+        "alias": "root"
+      },
+      "data": {
+        "name": "Side",
+        "assetName": "Side",
+        "unlockTriggers": [
+          {
+            "type": "OnEvent",
+            "eventId": {
+              "alias": "open"
+            }
+          }
+        ],
+        "unlockCondition": {
+          "type": "Literal",
+          "value": false
+        }
+      }
+    },
+    {
+      "op": "puzzle.create",
+      "alias": "panel",
+      "stage": {
+        "alias": "root"
+      },
+      "data": {
+        "name": "Panel",
+        "assetName": "Panel"
+      },
+      "initialState": {
+        "name": "Idle",
+        "assetName": "Idle"
+      }
+    },
+    {
+      "op": "variable.create",
+      "alias": "key",
+      "owner": {
+        "type": "stage",
+        "ref": {
+          "alias": "room"
+        }
+      },
+      "data": {
+        "name": "Keys",
+        "assetName": "Keys",
+        "type": "integer",
+        "value": 0
+      }
+    },
+    {
+      "op": "variable.create",
+      "alias": "flag",
+      "owner": {
+        "type": "global"
+      },
+      "data": {
+        "name": "Power",
+        "assetName": "Power",
+        "type": "boolean",
+        "value": false
+      }
+    },
+    {
+      "op": "event.create",
+      "alias": "open",
+      "data": {
+        "name": "Open",
+        "assetName": "Open"
+      }
+    },
+    {
+      "op": "script.create",
+      "alias": "life",
+      "data": {
+        "name": "Door lifecycle",
+        "assetName": "DoorLifecycle",
+        "category": "Lifecycle",
+        "lifecycleType": "Node"
+      }
+    },
+    {
+      "op": "script.create",
+      "alias": "effect",
+      "data": {
+        "name": "Open effect",
+        "assetName": "OpenEffect",
+        "category": "Performance"
+      }
+    },
+    {
+      "op": "script.create",
+      "alias": "condition",
+      "data": {
+        "name": "Condition",
+        "assetName": "Condition",
+        "category": "Condition"
+      }
+    },
+    {
+      "op": "script.create",
+      "alias": "trigger",
+      "data": {
+        "name": "Trigger",
+        "assetName": "Trigger",
+        "category": "Trigger"
+      }
+    },
+    {
+      "op": "puzzle.update",
+      "target": {
+        "alias": "door"
+      },
+      "changes": {
+        "lifecycleScriptId": {
+          "alias": "life"
+        },
+        "eventListeners": [
+          {
+            "eventId": {
+              "alias": "open"
+            },
+            "action": {
+              "type": "ModifyParameter",
+              "modifiers": [
+                {
+                  "targetVariableId": {
+                    "alias": "key"
+                  },
+                  "targetScope": "StageLocal",
+                  "operation": "Set",
+                  "source": {
+                    "type": "Constant",
+                    "value": 0
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "op": "script.create",
+      "alias": "stateLife",
+      "data": {
+        "name": "State lifecycle",
+        "assetName": "StateLifecycle",
+        "category": "Lifecycle",
+        "lifecycleType": "State"
+      }
+    },
+    {
+      "op": "state.update",
+      "fsm": {
+        "puzzle": {
+          "alias": "door"
+        }
+      },
+      "target": {
+        "alias": "locked"
+      },
+      "changes": {
+        "position": {
+          "x": 160,
+          "y": 180
+        },
+        "eventListeners": [
+          {
+            "eventId": {
+              "alias": "open"
+            },
+            "action": {
+              "type": "ModifyParameter",
+              "modifiers": [
+                {
+                  "targetVariableId": {
+                    "alias": "found"
+                  },
+                  "targetScope": "NodeLocal",
+                  "operation": "Set",
+                  "source": {
+                    "type": "Constant",
+                    "value": true
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "op": "fsm.setInitial",
+      "fsm": {
+        "puzzle": {
+          "alias": "door"
+        }
+      },
+      "state": {
+        "alias": "locked"
+      }
+    },
+    {
+      "op": "fsm.update",
+      "fsm": {
+        "puzzle": {
+          "alias": "door"
+        }
+      },
+      "changes": {
+        "displayOrder": 2
+      }
+    }
+  ]
+}

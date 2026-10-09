@@ -5,9 +5,10 @@
 
 import { isActionForDomain, type ActionForDomain } from '../actionPolicy';
 import { EditorState, Action } from '../types';
-import { StageNode } from '../../types/stage';
 import { StageId, VariableId, PuzzleNodeId } from '../../types/common';
-import { getDescendantStageIds, getStageNodeIds, canMoveStage } from '../../utils/stageTreeUtils';
+import { canMoveStage, updateInitialStatusByParent } from '../../utils/stageTreeUtils';
+import { planHierarchyDeletion } from '../../utils/hierarchyDeletion';
+import { reconcileHistoryUi } from '../historyUi';
 
 // ========== Project 相关 Actions 类型定义 ==========
 export type ProjectAction = ActionForDomain<'project'>;
@@ -16,52 +17,6 @@ export type ProjectAction = ActionForDomain<'project'>;
 export const isProjectAction = (action: Action): action is ProjectAction => isActionForDomain(action, 'project');
 
 // ========== Helper Functions ==========
-
-/**
- * 助手函数：更新父节点下的一组子节点的初始状态
- * 约束：父节点的第一个子节点必须是 Initial Stage，且没有解锁条件；其他子节点非 Initial。
- * 返回更新后的 stages 对象（如果不需更新则返回原对象）
- */
-const updateInitialStatusByParent = (
-    stages: Record<string, StageNode>,
-    parentId: StageId
-): Record<string, StageNode> => {
-    const parent = stages[parentId];
-    if (!parent || parent.childrenIds.length === 0) return stages;
-
-    let hasChanges = false;
-    const newStages = { ...stages };
-
-    // 遍历所有子节点
-    parent.childrenIds.forEach((childId, index) => {
-        const child = newStages[childId];
-        if (!child) return;
-
-        if (index === 0) {
-            // 第一个子节点：必须是 isInitial=true，且无解锁条件
-            if (!child.isInitial || (child.unlockTriggers && child.unlockTriggers.length > 0) || child.unlockCondition) {
-                newStages[childId] = {
-                    ...child,
-                    isInitial: true,
-                    unlockTriggers: [],
-                    unlockCondition: undefined
-                };
-                hasChanges = true;
-            }
-        } else {
-            // 其他子节点：必须是 isInitial=false
-            if (child.isInitial) {
-                newStages[childId] = {
-                    ...child,
-                    isInitial: false
-                };
-                hasChanges = true;
-            }
-        }
-    });
-
-    return hasChanges ? newStages : stages;
-};
 
 // ========== Project Reducer ==========
 export const projectReducer = (state: EditorState, action: ProjectAction): EditorState => {
@@ -133,93 +88,25 @@ export const projectReducer = (state: EditorState, action: ProjectAction): Edito
             };
         }
 
-        // 删除 Stage（递归删除子 Stage 和相关 PuzzleNode）
-        case 'DELETE_STAGE': {
-            const { stageId } = action.payload;
-            const stage = state.project.stageTree.stages[stageId];
-            if (!stage || !stage.parentId) return state; // 不允许删除根节点
-
-            // 获取所有需要删除的 Stage（包括后代）
-            const descendantIds = getDescendantStageIds(state.project.stageTree, stageId);
-            const allStageIdsToDelete = [stageId, ...descendantIds];
-
-            // 获取所有需要删除的 PuzzleNode
-            const nodeIdsToDelete: string[] = [];
-            allStageIdsToDelete.forEach(sid => {
-                const nodeIds = getStageNodeIds(state.project.nodes, sid);
-                nodeIdsToDelete.push(...nodeIds);
-            });
-
-            // 获取所有需要删除的 StateMachine
-            const fsmIdsToDelete: string[] = [];
-            nodeIdsToDelete.forEach(nodeId => {
-                const node = state.project.nodes[nodeId];
-                if (node?.stateMachineId) {
-                    fsmIdsToDelete.push(node.stateMachineId);
-                }
-            });
-
-            // 创建新的 stages 对象，移除所有待删除的 Stage
-            const newStages = { ...state.project.stageTree.stages };
-            allStageIdsToDelete.forEach(id => {
-                delete newStages[id];
-            });
-
-            // 更新父节点的 childrenIds
-            const parentStage = newStages[stage.parentId];
-            let finalStages = newStages;
-
-            if (parentStage) {
-                newStages[stage.parentId] = {
-                    ...parentStage,
-                    childrenIds: parentStage.childrenIds.filter(id => id !== stageId)
-                };
-                // 更新父节点的子节点初始状态
-                finalStages = updateInitialStatusByParent(newStages, stage.parentId);
-            }
-
-            // 创建新的 nodes 对象，移除所有待删除的 PuzzleNode
-            const newNodes = { ...state.project.nodes };
-            nodeIdsToDelete.forEach(id => {
-                delete newNodes[id];
-            });
-
-            // 创建新的 stateMachines 对象，移除所有待删除的 FSM
-            const newStateMachines = { ...state.project.stateMachines };
-            fsmIdsToDelete.forEach(id => {
-                delete newStateMachines[id];
-            });
-
-            // 计算新的 UI 状态：如果当前选中的是被删除的 Stage 或其后代，需要切换到父节点
-            const currentStageId = state.ui.currentStageId;
-            const currentNodeId = state.ui.currentNodeId;
-            const needsNavUpdate = currentStageId && allStageIdsToDelete.includes(currentStageId as StageId);
-            const needsNodeClear = currentNodeId && nodeIdsToDelete.includes(currentNodeId);
-            const needsSelectionClear =
-                (state.ui.selection.type === 'STAGE' && state.ui.selection.id && allStageIdsToDelete.includes(state.ui.selection.id as StageId)) ||
-                (state.ui.selection.type === 'NODE' && state.ui.selection.id && nodeIdsToDelete.includes(state.ui.selection.id));
-
+        // 层级删除只消费共用计划；确认后重新计算，拒绝失效结构与外部 FSM 所有者。
+        case 'DELETE_STAGE':
+        case 'DELETE_PUZZLE_NODE': {
+            const target = action.type === 'DELETE_STAGE'
+                ? { type: 'stage' as const, id: action.payload.stageId, cascade: true }
+                : { type: 'puzzle' as const, id: action.payload.nodeId };
+            const deletion = planHierarchyDeletion(state.project, target);
+            if (!deletion.ok) return state;
+            const { stageIds, puzzleIds, parentId, project } = deletion;
+            const selectionRemoved = (state.ui.selection.type === 'STAGE' && stageIds.includes(state.ui.selection.id ?? ''))
+                || (state.ui.selection.type === 'NODE' && puzzleIds.includes(state.ui.selection.id ?? ''));
             return {
-                ...state,
-                project: {
-                    ...state.project,
-                    stageTree: {
-                        ...state.project.stageTree,
-                        stages: finalStages
-                    },
-                    nodes: newNodes,
-                    stateMachines: newStateMachines
-                },
-                ui: {
+                ...state, project,
+                ui: reconcileHistoryUi({
                     ...state.ui,
-                    // 如果当前导航到的 Stage 被删除了，回退到父节点
-                    currentStageId: needsNavUpdate ? stage.parentId : state.ui.currentStageId,
-                    currentNodeId: needsNodeClear ? null : state.ui.currentNodeId,
-                    // 如果当前选中的对象被删除了，切换选中到父节点
-                    selection: needsSelectionClear
-                        ? { type: 'STAGE' as const, id: stage.parentId, contextId: null }
-                        : state.ui.selection
-                }
+                    currentStageId: stageIds.includes(state.ui.currentStageId ?? '') ? parentId : state.ui.currentStageId,
+                    currentNodeId: puzzleIds.includes(state.ui.currentNodeId ?? '') ? null : state.ui.currentNodeId,
+                    selection: selectionRemoved ? { type: 'STAGE', id: parentId, contextId: null } : state.ui.selection
+                }, project)
             };
         }
 
@@ -436,48 +323,6 @@ export const projectReducer = (state: EditorState, action: ProjectAction): Edito
                         ...state.project.stateMachines,
                         [stateMachine.id]: stateMachine
                     }
-                }
-            };
-        }
-
-        // 删除 PuzzleNode（同时删除关联的 StateMachine）
-        case 'DELETE_PUZZLE_NODE': {
-            const { nodeId } = action.payload;
-            const node = state.project.nodes[nodeId];
-            if (!node) return state;
-
-            // 获取关联的 StateMachine ID
-            const fsmId = node.stateMachineId;
-
-            // 创建新的 nodes 对象，移除目标节点
-            const { [nodeId]: _removedNode, ...remainingNodes } = state.project.nodes;
-
-            // 创建新的 stateMachines 对象，移除关联的 FSM
-            const newStateMachines = { ...state.project.stateMachines };
-            if (fsmId && newStateMachines[fsmId]) {
-                delete newStateMachines[fsmId];
-            }
-
-            // 计算新的 UI 状态
-            const needsNodeClear = state.ui.currentNodeId === nodeId;
-            const needsSelectionClear =
-                state.ui.selection.type === 'NODE' && state.ui.selection.id === nodeId;
-
-            return {
-                ...state,
-                project: {
-                    ...state.project,
-                    nodes: remainingNodes,
-                    stateMachines: newStateMachines
-                },
-                ui: {
-                    ...state.ui,
-                    // 如果当前导航到该节点，回退到其所属 Stage
-                    currentNodeId: needsNodeClear ? null : state.ui.currentNodeId,
-                    // 如果当前选中该节点，切换到其所属 Stage
-                    selection: needsSelectionClear
-                        ? { type: 'STAGE' as const, id: node.stageId, contextId: null }
-                        : state.ui.selection
                 }
             };
         }

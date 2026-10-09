@@ -10,6 +10,7 @@ import { findEventReferences } from '../../utils/validation/eventReferences';
 import { findPresentationGraphReferences } from '../../utils/validation/presentationGraphReferences';
 import { type EntityRecord, findEntities, paginate, requireEntity } from './entities';
 import { AutomationFailure } from './errors';
+import { buildPresentationUsage } from '../../utils/presentationUsage';
 
 function stageTree(project: ProjectData, request: InspectRequest) {
   const rootId = request.id ?? project.stageTree.rootId;
@@ -110,6 +111,14 @@ export function queryProject(
     const entity = requireEntity(entries, { ...request, type });
     return {
       entity,
+      ...(view === 'presentation'
+        ? {
+            directReferences: findPresentationGraphReferences(project, entity.ref.id),
+            callingContexts: buildPresentationUsage(project).contexts.get(entity.ref.id) ?? [],
+            contextPolicy:
+              'one representative graph path per root binding; direct references are complete',
+          }
+        : {}),
       owners:
         view === 'fsm'
           ? Object.values(project.nodes)
@@ -160,7 +169,7 @@ export function queryProject(
     return {
       target: target.ref,
       coverage:
-        'editor-reference-scanners; graph-local-variable matches may include defensive candidates',
+        'domain-reference-index; exact local owners and all graph calling contexts; constants are not scanned',
       ...paginate(references(project, target), request),
     };
   }

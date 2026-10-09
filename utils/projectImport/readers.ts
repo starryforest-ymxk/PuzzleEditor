@@ -7,7 +7,15 @@ export class ProjectImportError extends Error {
 }
 
 export interface ImportNotice { path: string; message: string }
+/** 离线预览注入固定上下文；GUI 省略时保留当前时间与随机项目身份。 */
+export interface ProjectImportOptions { now?: string; runtimeProjectId?: string }
 export class ImportContext {
+    readonly now: string;
+    readonly runtimeProjectId?: string;
+    constructor(options: ProjectImportOptions = {}) {
+        this.now = options.now ?? new Date().toISOString();
+        this.runtimeProjectId = options.runtimeProjectId;
+    }
     notices: ImportNotice[] = [];
     migrated = false;
     legacyBooleanVariables = new Set<string>();

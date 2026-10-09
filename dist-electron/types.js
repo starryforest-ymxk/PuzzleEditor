@@ -10,6 +10,10 @@
  * 用于主进程和渲染进程之间的通信
  */
 export const IPC_CHANNELS = {
+    SESSION_START: 'session:start',
+    SESSION_STOP: 'session:stop',
+    SESSION_REQUEST: 'session:request',
+    SESSION_RESPONSE: 'session:response',
     // 偏好设置相关
     PREFERENCES_LOAD: 'preferences:load',
     PREFERENCES_SAVE: 'preferences:save',
@@ -17,6 +21,8 @@ export const IPC_CHANNELS = {
     PROJECT_READ: 'project:read',
     PROJECT_WRITE: 'project:write',
     PROJECT_ACTIVATE: 'project:activate',
+    PROJECT_CLAIM: 'project:claim',
+    PROJECT_RELEASE_CLAIM: 'project:release-claim',
     PROJECT_EXPORT: 'project:export',
     PROJECT_CREATE: 'project:create',
     // 最近项目管理

@@ -35,6 +35,64 @@ function setup(desktop = true, empty = false) {
 }
 afterEach(() => vi.useRealTimers());
 
+describe('C8 候选所有权与会话提交顺序', () => {
+    it('目标被占用时保留原文档、历史、路径与 dirty', async () => {
+        const { store, session, platform, edit, waitPhase } = setup(); edit();
+        const before = store.getState();
+        const claim = vi.fn(async () => ({ success: false, error: 'Project is held by another editor' }));
+        Object.assign(platform, { claim });
+        const result = session.openProject();
+        await waitPhase('confirming'); session.choose('discard');
+        expect((await result).status).toBe('failed');
+        expect(store.getState().project).toBe(before.project);
+        expect(store.getState().history).toBe(before.history);
+        expect(store.getState().runtime.currentProjectPath).toBe(before.runtime.currentProjectPath);
+        expect(store.getState().ui.isDirty).toBe(true);
+        expect(platform.activate).not.toHaveBeenCalled();
+    });
+    it('取得候选后才提交，activate 使用同一 token', async () => {
+        const { store, session, platform, json } = setup();
+        const claim = vi.fn(async () => {
+            expect(store.getState().runtime.currentProjectPath).toBe('C:/test/current.puzzle.json');
+            return { success: true, data: 'candidate-token' };
+        });
+        const releaseClaim = vi.fn(async () => ({ success: true }));
+        Object.assign(platform, { claim, releaseClaim });
+        expect((await session.openProject()).status).toBe('loaded');
+        expect(claim).toHaveBeenCalledWith('C:/test/next.puzzle.json', json, undefined);
+        expect(platform.activate).toHaveBeenCalledWith('C:/test/next.puzzle.json', 'Candidate', 'candidate-token');
+        expect(releaseClaim).toHaveBeenCalledWith('candidate-token');
+    });
+    it('新建目标占用在磁盘写入前拒绝', async () => {
+        const { store, session, platform } = setup();
+        const before = store.getState().project;
+        Object.assign(platform, { claim: vi.fn(async () => ({ success: false, error: 'Project held' })) });
+        expect((await session.createAndSaveProject('Created', '', 'C:/test')).status).toBe('failed');
+        expect(platform.write).not.toHaveBeenCalled(); expect(store.getState().project).toBe(before);
+    });
+    it('另存写盘失败释放候选，不改变路径或确认 dirty', async () => {
+        const { store, session, platform, edit } = setup(); edit();
+        store.dispatch({ type: 'SET_PROJECT_PATH', payload: null });
+        const releaseClaim = vi.fn(async () => ({ success: true }));
+        Object.assign(platform, { claim: vi.fn(async () => ({ success: true, data: 'save-token' })), releaseClaim });
+        platform.write.mockResolvedValueOnce({ success: false, error: 'Disk full' });
+        expect((await session.saveProject()).status).toBe('failed');
+        expect(store.getState().runtime.currentProjectPath).toBeNull(); expect(store.getState().ui.isDirty).toBe(true);
+        expect(platform.activate).not.toHaveBeenCalled(); expect(releaseClaim).toHaveBeenCalledWith('save-token');
+    });
+    it('启动恢复等待 claim 时的新意图取消恢复并释放候选', async () => {
+        const { store, session, platform } = setup(true, true);
+        const pending = deferred<{ success: boolean; data: string }>();
+        const claim = vi.fn(() => pending.promise), releaseClaim = vi.fn(async () => ({ success: true }));
+        Object.assign(platform, { claim, releaseClaim });
+        const restoring = session.restoreProject('C:/test/restore.puzzle.json', session.captureStartup());
+        await vi.waitFor(() => expect(claim).toHaveBeenCalled());
+        session.markUserIntent(); pending.resolve({ success: true, data: 'restore-token' });
+        expect((await restoring).status).toBe('cancelled'); expect(store.getState().project.isLoaded).toBe(false);
+        expect(platform.activate).not.toHaveBeenCalled(); expect(releaseClaim).toHaveBeenCalledWith('restore-token');
+    });
+});
+
 describe('原生关闭的会话保护', () => {
     it.each([true, false])('空会话或干净项目直接放行（empty=%s）并冻结内容', async empty => {
         const { session, store, edit, platform } = setup(true, empty);

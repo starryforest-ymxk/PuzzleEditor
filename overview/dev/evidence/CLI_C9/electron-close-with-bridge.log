@@ -1,0 +1,44 @@
+Close verification evidence: D:\Temp\puzzle-close-electron-3cI1LR
+
+IPC handlers registered successfully
+CLOSE_SMOKE empty: passed (1 checks)
+
+IPC handlers registered successfully
+[FileWatcher] Start watching: D:\Temp\puzzle-close-electron-3cI1LR\clean\project.puzzle.json
+Preferences saved to: D:\Temp\puzzle-close-electron-3cI1LR\clean\appdata\StarryTree\PuzzleEditor\preferences.json
+[FileWatcher] Stop watching: D:\Temp\puzzle-close-electron-3cI1LR\clean\project.puzzle.json
+CLOSE_SMOKE clean: passed (1 checks)
+[39676:1009/160542.437:ERROR:command_buffer_proxy_impl.cc(331)] GPU state invalid after WaitForGetOffsetInRange.
+
+IPC handlers registered successfully
+[FileWatcher] Start watching: D:\Temp\puzzle-close-electron-3cI1LR\save\project.puzzle.json
+Preferences saved to: D:\Temp\puzzle-close-electron-3cI1LR\save\appdata\StarryTree\PuzzleEditor\preferences.json
+[FileWatcher] Stop watching: D:\Temp\puzzle-close-electron-3cI1LR\save\project.puzzle.json
+CLOSE_SMOKE save: passed (10 checks)
+
+IPC handlers registered successfully
+[FileWatcher] Start watching: D:\Temp\puzzle-close-electron-3cI1LR\discard\project.puzzle.json
+Preferences saved to: D:\Temp\puzzle-close-electron-3cI1LR\discard\appdata\StarryTree\PuzzleEditor\preferences.json
+[FileWatcher] Stop watching: D:\Temp\puzzle-close-electron-3cI1LR\discard\project.puzzle.json
+CLOSE_SMOKE discard: passed (4 checks)
+
+IPC handlers registered successfully
+[FileWatcher] Start watching: D:\Temp\puzzle-close-electron-3cI1LR\failed-save\project.puzzle.json
+Preferences saved to: D:\Temp\puzzle-close-electron-3cI1LR\failed-save\appdata\StarryTree\PuzzleEditor\preferences.json
+[FileWatcher] Stop watching: D:\Temp\puzzle-close-electron-3cI1LR\failed-save\project.puzzle.json
+Failed to write project: Project ownership requires a regular file with exactly one hard link.
+CLOSE_SMOKE failed-save: passed (6 checks)
+
+IPC handlers registered successfully
+Preferences saved to: D:\Temp\puzzle-close-electron-3cI1LR\save-as\appdata\StarryTree\PuzzleEditor\preferences.json
+[FileWatcher] Start watching: D:\Temp\puzzle-close-electron-3cI1LR\save-as\saved-copy.puzzle.json
+Preferences saved to: D:\Temp\puzzle-close-electron-3cI1LR\save-as\appdata\StarryTree\PuzzleEditor\preferences.json
+[FileWatcher] Stop watching: D:\Temp\puzzle-close-electron-3cI1LR\save-as\saved-copy.puzzle.json
+CLOSE_SMOKE save-as: passed (6 checks)
+
+IPC handlers registered successfully
+[FileWatcher] Start watching: D:\Temp\puzzle-close-electron-3cI1LR\quit\project.puzzle.json
+Preferences saved to: D:\Temp\puzzle-close-electron-3cI1LR\quit\appdata\StarryTree\PuzzleEditor\preferences.json
+[FileWatcher] Stop watching: D:\Temp\puzzle-close-electron-3cI1LR\quit\project.puzzle.json
+CLOSE_SMOKE quit: passed (4 checks)
+Electron close verification passed (7 scenarios).

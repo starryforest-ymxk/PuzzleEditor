@@ -9,8 +9,9 @@
 
 import { PuzzleNodeId, StateMachineId, StageId, StateId } from '../types/common';
 import { PuzzleNode } from '../types/puzzleNode';
-import { StateMachine, State, Transition } from '../types/stateMachine';
+import { StateMachine, State } from '../types/stateMachine';
 import { generateResourceId } from './resourceIdGenerator';
+import { createState, createTransition } from './fsmFactories';
 
 // ========== 已有 ID 集合类型（用于工厂函数参数） ==========
 export interface ExistingIds {
@@ -92,13 +93,12 @@ export function extractFsmIdNumber(fsmId: StateMachineId): number {
  */
 export function createDefaultInitialState(existingStateIds: string[]): State {
     const id = generateStateId(existingStateIds);
-    return {
+    return createState({
         id,
         name: 'Initial State',
         description: 'The initial state of this puzzle node',
-        position: { x: 200, y: 150 },
-        eventListeners: []
-    };
+        position: { x: 200, y: 150 }
+    });
 }
 
 /**
@@ -221,37 +221,32 @@ export function createTriggerNodeWithStateMachine(
 
     // 2. 创建状态 - 需要累加 existingStateIds
     const state1Id = generateStateId(existingIds.stateIds);
-    const state1: State = {
+    const state1 = createState({
         id: state1Id,
         name: 'Not triggered',
         assetName: 'NotTriggered',  // 默认资产名
         description: 'Initial state: Waiting for trigger',
-        position: { x: 200, y: 150 },
-        eventListeners: []
-    };
+        position: { x: 200, y: 150 }
+    });
 
     // 第二个状态需要包含第一个状态的 ID
     const state2Id = generateStateId([...existingIds.stateIds, state1Id]);
-    const state2: State = {
+    const state2 = createState({
         id: state2Id,
         name: 'Triggered',
         assetName: 'Triggered',  // 默认资产名
         description: 'State after being triggered',
-        position: { x: 600, y: 150 },
-        eventListeners: []
-    };
+        position: { x: 600, y: 150 }
+    });
 
     // 3. 创建连线
     const transitionId = generateTransitionId(existingIds.transitionIds);
-    const transition: Transition = {
+    const transition = createTransition({
         id: transitionId,
         fromStateId: state1Id,
         toStateId: state2Id,
-        priority: 0,
-        name: 'Trigger',
-        triggers: [{ type: 'Always' }],
-        parameterModifiers: []
-    };
+        name: 'Trigger'
+    });
 
     const stateMachine: StateMachine = {
         id: fsmId,

@@ -1,0 +1,33 @@
+{
+  "apiVersion": "1.0.0",
+  "kind": "domain-preview",
+  "policyVersion": "C8",
+  "requiredCapabilities": [
+    "overwrite_project"
+  ],
+  "source": {
+    "path": "E:\\Projects\\Web Projects\\puzzle-editor\\overview\\dev\\evidence\\CLI_C8\\Browser-overwritten.puzzle.json",
+    "sha256": "04b56bc38aec7d2e1b7332520875f7abba9cb3a608ac66eb52b9b419cd6a7c7b"
+  },
+  "overwrite": {
+    "mode": "overwrite-source",
+    "path": "E:\\Projects\\Web Projects\\puzzle-editor\\overview\\dev\\evidence\\CLI_C8\\Browser-overwritten.puzzle.json",
+    "sha256": "04b56bc38aec7d2e1b7332520875f7abba9cb3a608ac66eb52b9b419cd6a7c7b",
+    "identity": {
+      "dev": "2624599816",
+      "ino": "2814749767167432",
+      "size": "10348",
+      "mtimeNs": "1791530097860684500",
+      "ctimeNs": "1791530097860684500"
+    }
+  },
+  "planHash": "8bbcb0c0a93b3e00af79d1023f99dbd659833a480d1ff6ba8feb79a86fe16ed5",
+  "savedAt": "2026-10-09T07:14:57.941Z",
+  "candidateHash": "c64453e753e15eab718f8562459f7cda402723d372af96c348604bcaa0e9f5ba",
+  "allocations": {
+    "root": {
+      "type": "stage",
+      "id": "STAGE_1"
+    }
+  }
+}

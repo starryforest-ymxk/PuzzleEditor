@@ -1,0 +1,490 @@
+{
+  "apiVersion": "1.0.0",
+  "ok": true,
+  "command": "preview",
+  "data": {
+    "source": {
+      "path": "E:\\Projects\\Web Projects\\puzzle-editor\\overview\\dev\\evidence\\CLI_C6\\C6 Draft.puzzle.json",
+      "sha256": "936118d917f61c2717ac6287627a052ec31dd9350989b3bbdfb72ff8d15f0ccf",
+      "size": 8069,
+      "modifiedAt": "2026-10-09T05:48:18.367Z"
+    },
+    "requiredCapabilities": [],
+    "permanentDeletions": [],
+    "importNotices": [
+      {
+        "path": "$.editorState.panelSizes",
+        "message": "Restored missing panel sizes or constrained sizes to the supported range."
+      }
+    ],
+    "changes": [
+      {
+        "path": "/savedAt",
+        "kind": "replace",
+        "before": "2026-10-08T00:00:00.000Z",
+        "after": "2026-10-09T05:48:18.459Z"
+      },
+      {
+        "path": "/project/meta/updatedAt",
+        "kind": "replace",
+        "before": "2026-10-08T00:00:00.000Z",
+        "after": "2026-10-09T05:48:18.459Z"
+      },
+      {
+        "path": "/project/stageTree/stages/STAGE_1/childrenIds",
+        "kind": "replace",
+        "before": [
+          "room",
+          "sibling"
+        ],
+        "after": [
+          "sibling"
+        ]
+      },
+      {
+        "path": "/project/stageTree/stages/room",
+        "kind": "remove",
+        "before": {
+          "id": "room",
+          "name": "Room",
+          "assetName": "Room",
+          "parentId": "STAGE_1",
+          "childrenIds": [
+            "deep"
+          ],
+          "isInitial": true,
+          "eventListeners": [],
+          "localVariables": {
+            "shared": {
+              "id": "shared",
+              "name": "Room Key",
+              "assetName": "RoomKey",
+              "scope": "StageLocal",
+              "type": "integer",
+              "value": 1,
+              "state": "Draft"
+            }
+          }
+        }
+      },
+      {
+        "path": "/project/stageTree/stages/deep",
+        "kind": "remove",
+        "before": {
+          "id": "deep",
+          "name": "Deep",
+          "assetName": "Deep",
+          "parentId": "room",
+          "childrenIds": [],
+          "isInitial": true,
+          "eventListeners": [],
+          "localVariables": {
+            "shared": {
+              "id": "shared",
+              "name": "Room Key",
+              "assetName": "DeepShared",
+              "scope": "StageLocal",
+              "type": "integer",
+              "value": 1,
+              "state": "Draft"
+            }
+          }
+        }
+      },
+      {
+        "path": "/project/stageTree/stages/sibling/isInitial",
+        "kind": "replace",
+        "before": false,
+        "after": true
+      },
+      {
+        "path": "/project/stageTree/stages/sibling/unlockTriggers",
+        "kind": "replace",
+        "before": [
+          {
+            "type": "Always"
+          }
+        ],
+        "after": []
+      },
+      {
+        "path": "/project/stageTree/stages/sibling/unlockCondition",
+        "kind": "remove",
+        "before": {
+          "type": "Literal",
+          "value": false
+        }
+      },
+      {
+        "path": "/project/nodes/door",
+        "kind": "remove",
+        "before": {
+          "id": "door",
+          "name": "Shared Display Name",
+          "assetName": "Door",
+          "stageId": "room",
+          "stateMachineId": "door-fsm",
+          "localVariables": {
+            "shared": {
+              "id": "shared",
+              "name": "Room Key",
+              "assetName": "DoorShared",
+              "scope": "NodeLocal",
+              "type": "integer",
+              "value": 1,
+              "state": "Draft"
+            }
+          },
+          "eventListeners": []
+        }
+      },
+      {
+        "path": "/project/nodes/lock",
+        "kind": "remove",
+        "before": {
+          "id": "lock",
+          "name": "Shared Display Name",
+          "assetName": "Lock",
+          "stageId": "deep",
+          "stateMachineId": "lock-fsm",
+          "localVariables": {},
+          "eventListeners": []
+        }
+      },
+      {
+        "path": "/project/stateMachines/door-fsm",
+        "kind": "remove",
+        "before": {
+          "id": "door-fsm",
+          "initialStateId": "idle",
+          "states": {
+            "idle": {
+              "id": "idle",
+              "name": "Idle",
+              "assetName": "Idle",
+              "position": {
+                "x": 0,
+                "y": 0
+              },
+              "eventListeners": []
+            },
+            "done": {
+              "id": "done",
+              "name": "Done",
+              "assetName": "Done",
+              "position": {
+                "x": 200,
+                "y": 0
+              },
+              "eventListeners": []
+            }
+          },
+          "transitions": {
+            "go": {
+              "id": "go",
+              "name": "Go",
+              "fromStateId": "idle",
+              "toStateId": "done",
+              "priority": 0,
+              "triggers": [
+                {
+                  "type": "OnEvent",
+                  "eventId": "open"
+                }
+              ],
+              "condition": {
+                "type": "Comparison",
+                "left": {
+                  "type": "VariableRef",
+                  "variableId": "flag",
+                  "scope": "Global"
+                },
+                "operator": "==",
+                "right": {
+                  "type": "Constant",
+                  "value": false
+                }
+              },
+              "parameterModifiers": []
+            }
+          }
+        }
+      },
+      {
+        "path": "/project/stateMachines/lock-fsm",
+        "kind": "remove",
+        "before": {
+          "id": "lock-fsm",
+          "initialStateId": "idle",
+          "states": {
+            "idle": {
+              "id": "idle",
+              "name": "Idle",
+              "assetName": "Idle",
+              "position": {
+                "x": 0,
+                "y": 0
+              },
+              "eventListeners": []
+            },
+            "done": {
+              "id": "done",
+              "name": "Done",
+              "assetName": "Done",
+              "position": {
+                "x": 200,
+                "y": 0
+              },
+              "eventListeners": []
+            }
+          },
+          "transitions": {
+            "go": {
+              "id": "go",
+              "name": "Go",
+              "fromStateId": "idle",
+              "toStateId": "done",
+              "priority": 0,
+              "triggers": [
+                {
+                  "type": "OnEvent",
+                  "eventId": "open"
+                }
+              ],
+              "condition": {
+                "type": "Comparison",
+                "left": {
+                  "type": "VariableRef",
+                  "variableId": "flag",
+                  "scope": "Global"
+                },
+                "operator": "==",
+                "right": {
+                  "type": "Constant",
+                  "value": false
+                }
+              },
+              "parameterModifiers": []
+            }
+          }
+        }
+      }
+    ],
+    "aliases": {
+      "root": {
+        "type": "stage",
+        "id": "STAGE_1"
+      }
+    },
+    "receipt": {
+      "apiVersion": "1.0.0",
+      "kind": "domain-preview",
+      "policyVersion": "C6",
+      "requiredCapabilities": [],
+      "source": {
+        "path": "E:\\Projects\\Web Projects\\puzzle-editor\\overview\\dev\\evidence\\CLI_C6\\C6 Draft.puzzle.json",
+        "sha256": "936118d917f61c2717ac6287627a052ec31dd9350989b3bbdfb72ff8d15f0ccf"
+      },
+      "planHash": "61fb65185ac74cc3ffac8792d35b9cd13c2950d212a8f693318028e5f5848e01",
+      "savedAt": "2026-10-09T05:48:18.459Z",
+      "candidateHash": "8d5f6802f6acf14abf6e6e8c2acab766249dded60b1a0dcd4e5a73eed0073c18",
+      "allocations": {
+        "root": {
+          "type": "stage",
+          "id": "STAGE_1"
+        }
+      }
+    },
+    "receiptFile": {
+      "status": "written",
+      "output": {
+        "path": "E:\\Projects\\Web Projects\\puzzle-editor\\overview\\dev\\evidence\\CLI_C6\\Draft-stage-receipt.json",
+        "sha256": "75d3a0f34f8f6ba102139b7083999e945308fa1eab63b1ec8147c2ab765660f6",
+        "size": 622,
+        "modifiedAt": "2026-10-09T05:48:18.471Z"
+      }
+    },
+    "impacts": {
+      "deletions": [
+        {
+          "entity": {
+            "type": "stage",
+            "id": "room"
+          },
+          "path": "/project/stageTree/stages/room",
+          "name": "Room"
+        },
+        {
+          "entity": {
+            "type": "stage",
+            "id": "deep"
+          },
+          "path": "/project/stageTree/stages/deep",
+          "name": "Deep"
+        },
+        {
+          "entity": {
+            "type": "puzzle",
+            "id": "door"
+          },
+          "path": "/project/nodes/door",
+          "name": "Shared Display Name"
+        },
+        {
+          "entity": {
+            "type": "puzzle",
+            "id": "lock"
+          },
+          "path": "/project/nodes/lock",
+          "name": "Shared Display Name"
+        },
+        {
+          "entity": {
+            "type": "fsm",
+            "id": "door-fsm"
+          },
+          "path": "/project/stateMachines/door-fsm"
+        },
+        {
+          "entity": {
+            "type": "state",
+            "id": "idle",
+            "ownerType": "fsm",
+            "ownerId": "door-fsm"
+          },
+          "path": "/project/stateMachines/door-fsm/states/idle",
+          "name": "Idle"
+        },
+        {
+          "entity": {
+            "type": "state",
+            "id": "done",
+            "ownerType": "fsm",
+            "ownerId": "door-fsm"
+          },
+          "path": "/project/stateMachines/door-fsm/states/done",
+          "name": "Done"
+        },
+        {
+          "entity": {
+            "type": "transition",
+            "id": "go",
+            "ownerType": "fsm",
+            "ownerId": "door-fsm"
+          },
+          "path": "/project/stateMachines/door-fsm/transitions/go",
+          "name": "Go"
+        },
+        {
+          "entity": {
+            "type": "fsm",
+            "id": "lock-fsm"
+          },
+          "path": "/project/stateMachines/lock-fsm"
+        },
+        {
+          "entity": {
+            "type": "state",
+            "id": "idle",
+            "ownerType": "fsm",
+            "ownerId": "lock-fsm"
+          },
+          "path": "/project/stateMachines/lock-fsm/states/idle",
+          "name": "Idle"
+        },
+        {
+          "entity": {
+            "type": "state",
+            "id": "done",
+            "ownerType": "fsm",
+            "ownerId": "lock-fsm"
+          },
+          "path": "/project/stateMachines/lock-fsm/states/done",
+          "name": "Done"
+        },
+        {
+          "entity": {
+            "type": "transition",
+            "id": "go",
+            "ownerType": "fsm",
+            "ownerId": "lock-fsm"
+          },
+          "path": "/project/stateMachines/lock-fsm/transitions/go",
+          "name": "Go"
+        },
+        {
+          "entity": {
+            "type": "variable",
+            "id": "shared",
+            "ownerType": "stage",
+            "ownerId": "room"
+          },
+          "path": "/project/stageTree/stages/room/localVariables/shared",
+          "name": "Room Key",
+          "state": "Draft"
+        },
+        {
+          "entity": {
+            "type": "variable",
+            "id": "shared",
+            "ownerType": "stage",
+            "ownerId": "deep"
+          },
+          "path": "/project/stageTree/stages/deep/localVariables/shared",
+          "name": "Room Key",
+          "state": "Draft"
+        },
+        {
+          "entity": {
+            "type": "variable",
+            "id": "shared",
+            "ownerType": "puzzle",
+            "ownerId": "door"
+          },
+          "path": "/project/nodes/door/localVariables/shared",
+          "name": "Room Key",
+          "state": "Draft"
+        }
+      ],
+      "resources": [
+        {
+          "target": {
+            "type": "variable",
+            "id": "shared",
+            "ownerType": "stage",
+            "ownerId": "room"
+          },
+          "change": "deleted",
+          "referencesBefore": [],
+          "referencesAfter": []
+        },
+        {
+          "target": {
+            "type": "variable",
+            "id": "shared",
+            "ownerType": "stage",
+            "ownerId": "deep"
+          },
+          "change": "deleted",
+          "referencesBefore": [],
+          "referencesAfter": []
+        },
+        {
+          "target": {
+            "type": "variable",
+            "id": "shared",
+            "ownerType": "puzzle",
+            "ownerId": "door"
+          },
+          "change": "deleted",
+          "referencesBefore": [],
+          "referencesAfter": []
+        }
+      ],
+      "graphs": [],
+      "contextPolicy": "all-root-bindings; one representative graph path per root and graph; direct bindings are complete"
+    },
+    "remainingErrors": 0
+  },
+  "diagnostics": []
+}

@@ -8,6 +8,7 @@
 import { useCallback } from 'react';
 import { useEditorState, useEditorDispatch } from '../store/context';
 import { translateToAssetName } from '../services/translation/translationService';
+import { registerEditGuard } from '../services/editBarrier';
 
 interface UseAutoTranslateAssetNameOptions {
     /** 当前的 AssetName 值（用于判断是否已有值） */
@@ -35,6 +36,8 @@ export const useAutoTranslateAssetName = (options: UseAutoTranslateAssetNameOpti
         // 如果已经有 AssetName，不覆盖
         if (currentAssetName && currentAssetName.trim()) return;
 
+        // 迟到的人工翻译结果会修改内容；等待完成后才允许在线候选提交。
+        const release = registerEditGuard({ pendingEdits: true, busy: true, invalid: false });
         try {
             const result = await translateToAssetName(sourceName, settings.translation);
 
@@ -55,7 +58,7 @@ export const useAutoTranslateAssetName = (options: UseAutoTranslateAssetNameOpti
         } catch (error) {
             // 静默失败
             console.warn('Auto-translate failed:', error);
-        }
+        } finally { release(); }
     }, [settings.translation, currentAssetName, onAssetNameFill, dispatch]);
 
     return triggerAutoTranslate;

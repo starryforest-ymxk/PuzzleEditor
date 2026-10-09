@@ -1,0 +1,117 @@
+{
+  "success": true,
+  "archive": "release/desktop/C10/win-unpacked/resources/app.asar",
+  "matchedFiles": 22,
+  "files": [
+    {
+      "path": "dist-electron/ipc/fileService.js",
+      "size": 4295,
+      "sha256": "fa32de6a2073143665b75fe735c3dfd24a3a521bb83eb20a68bbba52221bfa06"
+    },
+    {
+      "path": "dist-electron/ipc/handlers.js",
+      "size": 12037,
+      "sha256": "52ba550c519270c098eaa5e31093555128f73b88a7cdb8ae51d4efa822a06395"
+    },
+    {
+      "path": "dist-electron/ipc/preferencesService.js",
+      "size": 7104,
+      "sha256": "68136abe3fc1e06611d93dd6a84fc2af836f4b6b70f37815f086fec4830146a4"
+    },
+    {
+      "path": "dist-electron/ipc/projectOwnershipService.js",
+      "size": 6422,
+      "sha256": "cea227ed2d5e42a6eedeb463af975d56af819dbd7a34888c253761c44530745d"
+    },
+    {
+      "path": "dist-electron/ipc/watcherService.js",
+      "size": 4151,
+      "sha256": "3cc4c23292fa3fc2a516277f08cde4f4a1885776feec4987a6f73883258d0561"
+    },
+    {
+      "path": "dist-electron/main.js",
+      "size": 4163,
+      "sha256": "6ecc20b9989bd86854b6d3bc97894c075ad797652e45231e47fa20c2d588b024"
+    },
+    {
+      "path": "dist-electron/preload.js",
+      "size": 4953,
+      "sha256": "22ca8e1d3148eb2b45edf9237539f6ec76e610d223df1642aa77e7d4d5665a68"
+    },
+    {
+      "path": "dist-electron/preload.mjs",
+      "size": 6514,
+      "sha256": "d5e79a363c13791ed860f54817fd6492ddeae8d2b2f4ec741f0e6dd0bf5239a4"
+    },
+    {
+      "path": "dist-electron/sessionBridge.js",
+      "size": 4767,
+      "sha256": "af5b814605b95beabf672ce469c414dbb59598febfe4b6c7b9135c35cde71537"
+    },
+    {
+      "path": "dist-electron/types.js",
+      "size": 1612,
+      "sha256": "e7aff4d893772bc31662d57ad44ddf98ca3c0ef2e36a2676e40e075ecf15cc1a"
+    },
+    {
+      "path": "dist-electron/windowCloseGuard.js",
+      "size": 3796,
+      "sha256": "7beaf5371bddfb1e6d41e055b22c694b4fb6b3b3cfe5ae9ab37ba9d716559702"
+    },
+    {
+      "path": "dist-node/files.js",
+      "size": 3386,
+      "sha256": "dc07f41882605e82562fdab4c2ddfff490bfd197604e16329b9a84534ad9455f"
+    },
+    {
+      "path": "dist-node/projectOverwrite.js",
+      "size": 9282,
+      "sha256": "cd1f3cc9dfba592978c56718874832186eee0c3078216f77d652580ef94a0bbb"
+    },
+    {
+      "path": "dist-node/projectOwnership.js",
+      "size": 6812,
+      "sha256": "bf6fb50b7c6ab88bbff94a49bbcb250e2031ba00b247488d6b164d02e2dfa99b"
+    },
+    {
+      "path": "dist-node/sessionSecurity.js",
+      "size": 6138,
+      "sha256": "d2e881c4c5d1740552a1db3a3d63cae2cddc7c31ec7514d6c654cb673c11f424"
+    },
+    {
+      "path": "dist-node/sessionTransport.js",
+      "size": 10850,
+      "sha256": "63948e6bd4c0c462bae794225b6e06756e8f0eb30b0f0e9154e1f4be3aef6889"
+    },
+    {
+      "path": "dist/assets/index-CysczxQ4.js",
+      "size": 770731,
+      "sha256": "74647f5034da01e9b21c41834034a0a9ad4ea8a50fad9239634bdcd06e98a4a3"
+    },
+    {
+      "path": "dist/assets/index-CysczxQ4.js.map",
+      "size": 3360803,
+      "sha256": "114f0a2342ce718097184dd35a968d97068464ae305aac7c5c8c7518c6bbce2d"
+    },
+    {
+      "path": "dist/assets/index-pQ43cpZA.css",
+      "size": 41412,
+      "sha256": "62f0052a3f7782ec205f353fdd24780df0ec0c6e419cab33ee91cfd83d4b01cd"
+    },
+    {
+      "path": "dist/icon.ico",
+      "size": 180595,
+      "sha256": "966ab98b5f83ee143e8fe98f367b2e7233c41e36c5ad23da5ff409c9a23527c5"
+    },
+    {
+      "path": "dist/icon.png",
+      "size": 196204,
+      "sha256": "1f77855ad37e2ce4b1359ffc4ede4b18c399a299e0aed89eb2a4d2a747126a62"
+    },
+    {
+      "path": "dist/index.html",
+      "size": 1265,
+      "sha256": "531b708f4f5c29cce4e6101b6a62119c9dba7d313dfb1c6efcc09c0a7ca1d49c"
+    }
+  ]
+}

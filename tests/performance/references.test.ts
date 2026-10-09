@@ -12,7 +12,7 @@ import type { ConditionExpression } from '../../types/stateMachine';
 import type { ValueSource } from '../../types/common';
 import example from '../../overview/example_project/BubbleHorror.puzzle.json';
 
-describe('引用计数索引保持原查询语义', () => {
+describe('引用计数与批量引用查询一致', () => {
   it('真实示例的所有资源计数与引用位置列表长度一致', () => {
     const project = importProject(JSON.stringify(example)).project;
     expect(buildBlackboardReferenceCounts(project)).toEqual(referenceOracle(project));
@@ -62,7 +62,7 @@ describe('引用计数索引保持原查询语义', () => {
       { type: 'CustomScript', scriptId: 'trigger_0' },
       { type: 'OnEvent', eventId: 'event_0' },
     ];
-    fsm.transitions.transition_1.invokeEventIds = ['event_0']; // 当前查询不统计该字段；本批保持边界。
+    fsm.transitions.transition_1.invokeEventIds = ['event_0']; // C4 同时统计事件触发和派发位置。
     fsm.transitions.transition_1.parameterModifiers = [
       {
         targetScope: 'NodeLocal',
@@ -140,7 +140,7 @@ describe('引用计数索引保持原查询语义', () => {
     const legacy = referenceOracle(counted);
     expect(indexed).toEqual(legacy);
     expect(indexedScans).toBeLessThanOrEqual(3);
-    expect(enumerations).toBeGreaterThan(200);
+    expect(enumerations).toBeLessThanOrEqual(3); // 批量位置查询同样只构建一次快照索引。
     expect(project).toEqual(original);
   });
 });

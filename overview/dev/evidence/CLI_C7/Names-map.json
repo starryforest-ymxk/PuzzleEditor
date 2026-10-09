@@ -1,0 +1,13 @@
+{
+  "apiVersion": "1.0.0",
+  "sourceHash": "1f591aac558edc3e70296846966c2f16e159078d54b98ffdcbe5340e8ce0a13b",
+  "entries": [
+    {
+      "entity": {
+        "type": "puzzle",
+        "id": "door"
+      },
+      "assetName": "ExternalDoor"
+    }
+  ]
+}

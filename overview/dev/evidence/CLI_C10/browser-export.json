@@ -1,0 +1,226 @@
+{
+  "fileType": "puzzle-export",
+  "manifestVersion": "1.0.0",
+  "exportedAt": "2026-10-09T09:03:00.583Z",
+  "projectName": "Batch 6 Regression",
+  "projectVersion": "custom-release",
+  "data": {
+    "blackboard": {
+      "globalVariables": {
+        "flag": {
+          "id": "flag",
+          "name": "Flag",
+          "assetName": "Flag",
+          "type": "boolean",
+          "value": false,
+          "state": "Draft",
+          "scope": "Global"
+        },
+        "counter2": {
+          "id": "counter2",
+          "name": "Global Counter",
+          "description": "Isolated browser regression",
+          "assetName": "GlobalCounter",
+          "type": "integer",
+          "value": 5,
+          "state": "Implemented",
+          "scope": "Global"
+        },
+        "VAR_1": {
+          "id": "VAR_1",
+          "name": "Batch 6 Flag",
+          "description": "",
+          "assetName": "Batch6Flag",
+          "type": "boolean",
+          "value": false,
+          "state": "Draft",
+          "scope": "Global"
+        }
+      },
+      "events": {
+        "secondEvent": {
+          "id": "secondEvent",
+          "name": "Second Event",
+          "description": "",
+          "assetName": "SecondEvent",
+          "state": "Draft"
+        }
+      }
+    },
+    "scripts": {
+      "version": "1.0.0",
+      "scripts": {
+        "play": {
+          "id": "play",
+          "name": "Play",
+          "assetName": "Play",
+          "category": "Performance",
+          "state": "Draft"
+        }
+      }
+    },
+    "stageTree": {
+      "rootId": "root",
+      "stages": {
+        "root": {
+          "id": "root",
+          "name": "Root",
+          "assetName": "Root",
+          "eventListeners": [],
+          "parentId": null,
+          "childrenIds": [
+            "child"
+          ],
+          "localVariables": {
+            "counter": {
+              "id": "counter",
+              "name": "Counter",
+              "assetName": "Counter",
+              "displayOrder": 0,
+              "type": "integer",
+              "value": 0,
+              "state": "Draft",
+              "scope": "StageLocal"
+            },
+            "counterB": {
+              "id": "counterB",
+              "name": "Counter B",
+              "assetName": "CounterB",
+              "displayOrder": 1,
+              "type": "integer",
+              "value": 2,
+              "state": "Draft",
+              "scope": "StageLocal"
+            }
+          },
+          "isInitial": true,
+          "onEnterPresentation": {
+            "type": "Graph",
+            "graphId": "graph"
+          }
+        },
+        "child": {
+          "id": "child",
+          "name": "Child Stage",
+          "assetName": "ChildStage",
+          "eventListeners": [],
+          "parentId": "root",
+          "childrenIds": [],
+          "localVariables": {},
+          "isInitial": true
+        }
+      }
+    },
+    "nodes": {
+      "puzzle": {
+        "id": "puzzle",
+        "name": "C10 Browser Puzzle",
+        "assetName": "Puzzle",
+        "eventListeners": [],
+        "stageId": "root",
+        "stateMachineId": "fsm",
+        "localVariables": {
+          "note": {
+            "id": "note",
+            "name": "Note",
+            "assetName": "Note",
+            "type": "string",
+            "value": "",
+            "state": "Draft",
+            "scope": "NodeLocal"
+          }
+        }
+      }
+    },
+    "stateMachines": {
+      "fsm": {
+        "id": "fsm",
+        "initialStateId": "start",
+        "states": {
+          "start": {
+            "id": "start",
+            "name": "Start",
+            "assetName": "Start",
+            "eventListeners": []
+          },
+          "end": {
+            "id": "end",
+            "name": "End",
+            "assetName": "End",
+            "eventListeners": []
+          }
+        },
+        "transitions": {
+          "go": {
+            "id": "go",
+            "name": "Go",
+            "fromStateId": "start",
+            "toStateId": "end",
+            "priority": 0,
+            "triggers": [
+              {
+                "type": "Always"
+              }
+            ],
+            "condition": {
+              "type": "Comparison",
+              "operator": "==",
+              "left": {
+                "type": "VariableRef",
+                "variableId": "VAR_1",
+                "scope": "Global"
+              },
+              "right": {
+                "type": "Constant",
+                "value": false
+              }
+            },
+            "parameterModifiers": []
+          }
+        }
+      }
+    },
+    "presentationGraphs": {
+      "graph": {
+        "id": "graph",
+        "name": "Imported Graph",
+        "startNodeId": "call",
+        "nodes": {
+          "call": {
+            "id": "call",
+            "name": "Call",
+            "nextIds": [
+              "wait"
+            ],
+            "type": "PresentationNode",
+            "presentation": {
+              "type": "Script",
+              "scriptId": "play",
+              "parameters": [
+                {
+                  "paramName": "Flag",
+                  "source": {
+                    "type": "Constant",
+                    "value": false
+                  },
+                  "tempVariable": {
+                    "id": "temporary",
+                    "name": "Flag",
+                    "type": "boolean"
+                  }
+                }
+              ]
+            }
+          },
+          "wait": {
+            "id": "wait",
+            "name": "Wait",
+            "nextIds": [],
+            "type": "Wait",
+            "duration": 2
+          }
+        }
+      }
+    }
+  }
+}

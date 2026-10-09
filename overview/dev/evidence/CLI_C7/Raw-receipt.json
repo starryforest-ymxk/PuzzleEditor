@@ -1,0 +1,23 @@
+{
+  "apiVersion": "1.0.0",
+  "kind": "import-preview",
+  "converterVersion": "C7.1",
+  "policyVersion": "C6",
+  "requiredCapabilities": [],
+  "source": {
+    "path": "E:\\Projects\\Web Projects\\puzzle-editor\\overview\\dev\\evidence\\CLI_C7\\Raw-source.json",
+    "sha256": "1a5ae357436b7c6a5fdbdd0a49cad758e33edabd4d8e3e7a51314e1690a86768"
+  },
+  "names": null,
+  "output": {
+    "path": "E:\\Projects\\Web Projects\\puzzle-editor\\overview\\dev\\evidence\\CLI_C7\\Raw-converted.puzzle.json",
+    "mode": "create-new",
+    "expected": "absent"
+  },
+  "context": {
+    "now": "2026-10-09T06:15:53.280Z",
+    "runtimeProjectId": "proj-imported-2727dfc1-5311-4b21-9c23-b1c365f506d1"
+  },
+  "detectedFormat": "raw",
+  "candidateHash": "3374eb1859a37a8b43f07bd833ddd2cfefb15644a25c26817a86b928e1880c19"
+}

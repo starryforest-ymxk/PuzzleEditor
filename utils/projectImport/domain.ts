@@ -130,7 +130,7 @@ const graph: Reader<PresentationGraph> = object({
 });
 
 export const projectMeta: Reader<ProjectMeta> = (input, path, context) => {
-    const now = new Date().toISOString();
+    const now = context.now;
     return object({
         ...entity, version: defaulted(string, '0.0.1'), createdAt: defaulted(string, now), updatedAt: defaulted(string, now),
         exportPath: optional(string), exportFileName: optional(string)

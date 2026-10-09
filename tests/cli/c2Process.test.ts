@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { spawn } from 'node:child_process';
+import { runCli } from './processHarness';
 import { createHash } from 'node:crypto';
 import { mkdtemp, writeFile, readFile, readdir, rm, mkdir, link, stat } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -9,7 +9,6 @@ import { cliFile, cliProject, FIXED_TIME } from './fixtures';
 import { creationPlan } from './c2Fixtures';
 import { serializeProject } from '../../services/projectFiles';
 
-const binary = resolve('dist-cli/cli.js');
 let directory: string, source: string;
 const hash = (text: string) => createHash('sha256').update(text).digest('hex');
 beforeEach(async () => {
@@ -24,44 +23,7 @@ afterEach(async () => {
     throw new Error('Unsafe cleanup path');
   await rm(target, { recursive: true, force: true });
 });
-async function run(args: string[], stdin?: string) {
-  return new Promise<{ code: number | null; result: ReturnType<typeof JSON.parse> }>(
-    (resolveRun, reject) => {
-      const child = spawn(process.execPath, [binary, ...args], {
-        cwd: directory,
-        windowsHide: true,
-        env: {
-          ...process.env,
-          APPDATA: join(directory, 'prefs'),
-          LOCALAPPDATA: join(directory, 'prefs'),
-        },
-        stdio: ['pipe', 'pipe', 'pipe'],
-      });
-      const out: Buffer[] = [],
-        err: Buffer[] = [];
-      const timer = setTimeout(() => {
-        child.kill();
-        reject(new Error('CLI command timed out'));
-      }, 15000);
-      child.stdout.on('data', (b: Buffer) => out.push(b));
-      child.stderr.on('data', (b: Buffer) => err.push(b));
-      child.once('error', (error) => {
-        clearTimeout(timer);
-        reject(error);
-      });
-      child.once('close', (code) => {
-        clearTimeout(timer);
-        try {
-          expect(Buffer.concat(err).toString()).toBe('');
-          resolveRun({ code, result: JSON.parse(Buffer.concat(out).toString()) });
-        } catch (error) {
-          reject(error);
-        }
-      });
-      child.stdin.end(stdin ?? '');
-    },
-  );
-}
+const run = (args: string[], stdin?: string) => runCli(directory, args, stdin);
 async function planFile(commands: Plan['commands'], scope: Plan['scope'] = { project: true }) {
   const path = join(directory, '计划.json');
   const text = JSON.stringify({

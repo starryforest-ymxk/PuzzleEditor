@@ -79,13 +79,20 @@ export async function readFileSnapshot(filePath: string): Promise<FileSnapshot> 
 export async function writeUtf8File(
   filePath: string,
   content: string,
-  options?: { exclusive?: boolean },
+  options?: { exclusive?: boolean; beforePublish?: (temporary: string) => Promise<void> },
 ): Promise<void> {
   const directory = path.dirname(filePath);
   await fs.promises.mkdir(directory, { recursive: true });
   const temporary = path.join(directory, `.${path.basename(filePath)}.${randomUUID()}.tmp`);
   try {
-    await fs.promises.writeFile(temporary, content, { encoding: 'utf8', flag: 'wx' });
+    const handle = await fs.promises.open(temporary, 'wx');
+    try {
+      await handle.writeFile(content, 'utf8');
+      await handle.sync();
+    } finally {
+      await handle.close();
+    }
+    await options?.beforePublish?.(temporary);
     if (options?.exclusive) await fs.promises.link(temporary, filePath);
     else await fs.promises.rename(temporary, filePath);
   } finally {

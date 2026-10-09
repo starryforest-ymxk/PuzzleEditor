@@ -3,12 +3,14 @@ import type { ProjectData } from '../../../types/project';
 import type { VariableDefinition } from '../../../types/blackboard';
 import type { VariableScope } from '../../../types/common';
 import { ownEntry } from '../../../utils/recordLookup';
-import type { Plan, Ref, Owner } from '../../../contracts/automation/planSchemas';
+import type { Plan, Ref, Owner, FsmRef } from '../../../contracts/automation/planSchemas';
 import { INITIAL_STATE, type Action, type EditorState } from '../../types';
 import { projectReducer, isProjectAction } from '../../slices/projectSlice';
 import { blackboardReducer, isBlackboardAction } from '../../slices/blackboardSlice';
 import { nodeParamsReducer, isNodeParamsAction } from '../../slices/nodeParamsSlice';
 import { projectMetaReducer, isProjectMetaAction } from '../../slices/projectMetaSlice';
+import { fsmReducer, isFsmAction } from '../../slices/fsmSlice';
+import { presentationReducer, isPresentationAction } from '../../slices/presentationSlice';
 import {
   generateResourceId,
   generateTypedScriptId,
@@ -20,6 +22,7 @@ export class CommandFailure extends Error {
   constructor(
     public readonly code: string,
     message: string,
+    public readonly details?: object,
   ) {
     super(message);
     this.name = 'CommandFailure';
@@ -28,8 +31,23 @@ export class CommandFailure extends Error {
 export const fail = (code: string, message: string): never => {
   throw new CommandFailure(code, message);
 };
-export type Kind = 'stage' | 'puzzle' | 'variable' | 'event' | 'script' | 'presentation';
-export type Allocation = { type: Kind; id: string; fsmId?: string; initialStateId?: string };
+export type Kind =
+  | 'stage'
+  | 'puzzle'
+  | 'variable'
+  | 'event'
+  | 'script'
+  | 'presentation'
+  | 'presentationNode'
+  | 'state'
+  | 'transition';
+export type Allocation = {
+  type: Kind;
+  id: string;
+  fsmId?: string;
+  graphId?: string;
+  initialStateId?: string;
+};
 export type ResolvedOwner = { type: 'global' | 'stage' | 'puzzle'; id?: string };
 
 export class CommandContext {
@@ -41,6 +59,7 @@ export class CommandContext {
   private readonly reserved = new Set<string>();
   private readonly stages = new Set<string>();
   private readonly puzzles = new Set<string>();
+  private readonly presentations = new Set<string>();
   constructor(
     source: ProjectData,
     readonly plan: Plan,
@@ -87,6 +106,10 @@ export class CommandContext {
             stage: 'STAGE',
             puzzle: 'NODE',
             event: 'EVENT',
+            state: 'STATE',
+            transition: 'TRANSITION',
+            presentation: 'GRAPH',
+            presentationNode: 'PNODE',
           };
           const prefix =
             op.op === 'variable.create'
@@ -105,6 +128,36 @@ export class CommandContext {
             ? { fsmId: this.allocate('FSM'), initialStateId: this.allocate('STATE') }
             : {}),
         };
+        if (op.op === 'puzzle.create' && op.initialState.alias) {
+          const initialAlias = op.initialState.alias;
+          if (Object.hasOwn(this.allocations, initialAlias))
+            fail('DUPLICATE_ALIAS', `Alias ${initialAlias} is already declared.`);
+          const puzzle = this.allocations[op.alias];
+          this.allocations[initialAlias] = {
+            type: 'state',
+            id: puzzle.initialStateId!,
+            fsmId: puzzle.fsmId!,
+          };
+        }
+      } catch (error) {
+        if (error instanceof CommandFailure) error.operationIndex = i;
+        throw error;
+      }
+    });
+    // 所有 alias 预留完成后再绑定所属 FSM，允许声明顺序与创建依赖顺序不同。
+    plan.commands.forEach((op, i) => {
+      if (op.op === 'presentationNode.create') {
+        try {
+          this.allocations[op.alias].graphId = this.resolve(op.graph, 'presentation');
+        } catch (error) {
+          if (error instanceof CommandFailure) error.operationIndex = i;
+          throw error;
+        }
+        return;
+      }
+      if (op.op !== 'state.create' && op.op !== 'transition.create') return;
+      try {
+        this.allocations[op.alias].fsmId = this.fsmId(op.fsm);
       } catch (error) {
         if (error instanceof CommandFailure) error.operationIndex = i;
         throw error;
@@ -127,6 +180,11 @@ export class CommandContext {
     }
     for (const node of Object.values(source.nodes))
       if (this.stages.has(node.stageId)) this.puzzles.add(node.id);
+    for (const ref of plan.scope.presentations ?? []) {
+      const id = this.resolve(ref, 'presentation');
+      if ('id' in ref) this.graph(id);
+      this.presentations.add(id);
+    }
   }
   get project(): ProjectData {
     const { isLoaded: _isLoaded, ...project } = this.state.project;
@@ -162,9 +220,53 @@ export class CommandContext {
       ownEntry(this.project.nodes, id) ?? fail('ENTITY_NOT_FOUND', `Puzzle ${id} does not exist.`)
     );
   }
+  fsmId(ref: FsmRef): string {
+    if ('id' in ref) return ref.id;
+    const puzzleId = this.resolve(ref.puzzle, 'puzzle');
+    if ('alias' in ref.puzzle) return this.allocations[ref.puzzle.alias].fsmId!;
+    return this.puzzle(puzzleId).stateMachineId;
+  }
+  fsm(id: string) {
+    return (
+      ownEntry(this.project.stateMachines, id) ??
+      fail('ENTITY_NOT_FOUND', `FSM ${id} does not exist.`)
+    );
+  }
+  allowFsm(id: string) {
+    this.fsm(id);
+    const owners = Object.values(this.project.nodes).filter((node) => node.stateMachineId === id);
+    if (owners.length !== 1)
+      fail(
+        'FSM_OWNER_INVALID',
+        `FSM ${id} must belong to exactly one puzzle; found ${owners.length}.`,
+      );
+    this.allowPuzzle(owners[0].id);
+  }
+  resolveInFsm(ref: Ref, type: 'state' | 'transition', fsmId: string): string {
+    const id = this.resolve(ref, type);
+    if ('alias' in ref && this.allocations[ref.alias].fsmId !== fsmId)
+      fail('FSM_REFERENCE_MISMATCH', `Alias ${ref.alias} does not belong to FSM ${fsmId}.`);
+    return id;
+  }
   allowStage(id: string) {
     if (!this.plan.scope.project && !this.stages.has(id))
       fail('SCOPE_VIOLATION', `Stage ${id} is outside the edit scope.`);
+  }
+  graph(id: string) {
+    return (
+      ownEntry(this.project.presentationGraphs, id) ??
+      fail('ENTITY_NOT_FOUND', `Graph ${id} does not exist.`)
+    );
+  }
+  allowGraph(id: string) {
+    if (!this.plan.scope.project && !this.presentations.has(id))
+      fail('SCOPE_VIOLATION', `Graph ${id} is outside the explicit graph edit scope.`);
+  }
+  resolveInGraph(ref: Ref, graphId: string) {
+    const id = this.resolve(ref, 'presentationNode');
+    if ('alias' in ref && this.allocations[ref.alias].graphId !== graphId)
+      fail('GRAPH_REFERENCE_MISMATCH', `Alias ${ref.alias} does not belong to graph ${graphId}.`);
+    return id;
   }
   allowPuzzle(id: string) {
     if (!this.plan.scope.project && !this.puzzles.has(id))
@@ -222,7 +324,7 @@ export class CommandContext {
   }
   removeVariable(owner: ResolvedOwner, id: string) {
     this.allowOwner(owner);
-    // 已由命令层验证 Draft 或显式搬移；不把永久删除 Action 暴露到公开接口。
+    // 隔离候选中的 Draft 删除、搬移或显式 purge；文件发布统一核对实际永久删除能力。
     if (owner.type === 'global')
       this.dispatch({ type: 'APPLY_DELETE_GLOBAL_VARIABLE', payload: { id } });
     else if (owner.type === 'stage')
@@ -241,10 +343,9 @@ export class CommandContext {
     else if (isBlackboardAction(action)) this.state = blackboardReducer(this.state, action);
     else if (isNodeParamsAction(action)) this.state = nodeParamsReducer(this.state, action);
     else if (isProjectMetaAction(action)) this.state = projectMetaReducer(this.state, action);
+    else if (isFsmAction(action)) this.state = fsmReducer(this.state, action);
+    else if (isPresentationAction(action)) this.state = presentationReducer(this.state, action);
     else
-      fail(
-        'UNSUPPORTED_DOMAIN_ACTION',
-        'This action is not part of the C2 domain command executor.',
-      );
+      fail('UNSUPPORTED_DOMAIN_ACTION', 'This action is not part of the domain command executor.');
   }
 }

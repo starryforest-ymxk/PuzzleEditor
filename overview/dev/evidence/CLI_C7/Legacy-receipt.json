@@ -1,0 +1,23 @@
+{
+  "apiVersion": "1.0.0",
+  "kind": "import-preview",
+  "converterVersion": "C7.1",
+  "policyVersion": "C6",
+  "requiredCapabilities": [],
+  "source": {
+    "path": "E:\\Projects\\Web Projects\\puzzle-editor\\overview\\dev\\evidence\\CLI_C7\\Legacy-source.json",
+    "sha256": "f8525077e7c4e740cbee9d42f0b98e2f2221eb9a136dc42f04ab7b977da96e16"
+  },
+  "names": null,
+  "output": {
+    "path": "E:\\Projects\\Web Projects\\puzzle-editor\\overview\\dev\\evidence\\CLI_C7\\Legacy-converted.puzzle.json",
+    "mode": "create-new",
+    "expected": "absent"
+  },
+  "context": {
+    "now": "2026-10-09T06:15:53.476Z",
+    "runtimeProjectId": "proj-imported-f200ad9b-235a-4749-b063-d9953c3f32d5"
+  },
+  "detectedFormat": "legacy-manifest",
+  "candidateHash": "6d050d8d0ea35a94115e58feb3141df38463816a216f1f05479ecd3192eaffb9"
+}

@@ -5,7 +5,8 @@ import { projectData, readRuntimeData } from './domain';
 import { asObject, boolean, checkJsonDepth, defaulted, dictionary, fail, id, ImportContext, knownFields, nullable, number, object, oneOf, optional, ProjectImportError, string, type ImportNotice, type Reader } from './readers';
 
 export { ProjectImportError } from './readers';
-export type { ImportNotice } from './readers';
+export type { ImportNotice, ProjectImportOptions } from './readers';
+import type { ProjectImportOptions } from './readers';
 export type ProjectSourceFormat = 'project' | 'export' | 'raw' | 'legacy-manifest';
 export interface ImportedProject {
     project: ProjectData;
@@ -35,13 +36,13 @@ function runtimeVersion(value: unknown, path: string, context: ImportContext): v
 }
 
 /** 文件类型只依据明确封装或 meta + stageTree 识别；未知标识绝不进入原始数据兜底。 */
-export function importProject(content: string): ImportedProject {
+export function importProject(content: string, options: ProjectImportOptions = {}): ImportedProject {
     let parsed: unknown;
     try { parsed = JSON.parse(content.replace(/^\uFEFF/, '')); }
     catch (error) { throw new ProjectImportError('$', `Invalid JSON: ${error instanceof Error ? error.message : String(error)}`); }
     checkJsonDepth(parsed);
     const envelope = asObject(parsed, '$');
-    const context = new ImportContext();
+    const context = new ImportContext(options);
     let project: ProjectData;
     let editorState: EditorUIState | undefined;
     let format: ProjectSourceFormat;
@@ -62,9 +63,9 @@ export function importProject(content: string): ImportedProject {
             runtimeVersion(envelope.manifestVersion, '$.manifestVersion', context);
             const exportedAt = string(envelope.exportedAt, '$.exportedAt', context);
             project = readRuntimeData(envelope.data, '$.data', {
-                id: `proj-imported-${crypto.randomUUID()}`, name: string(envelope.projectName, '$.projectName', context),
+                id: context.runtimeProjectId ?? `proj-imported-${crypto.randomUUID()}`, name: string(envelope.projectName, '$.projectName', context),
                 version: string(envelope.projectVersion, '$.projectVersion', context),
-                createdAt: new Date().toISOString(), updatedAt: exportedAt
+                createdAt: context.now, updatedAt: exportedAt
             }, context);
             format = 'export';
         } else {

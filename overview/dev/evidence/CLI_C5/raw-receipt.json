@@ -1,0 +1,17 @@
+{
+  "apiVersion": "1.0.0",
+  "kind": "raw-json-preview",
+  "source": {
+    "path": "E:\\Projects\\Web Projects\\puzzle-editor\\overview\\dev\\evidence\\CLI_C5\\source.puzzle.json",
+    "sha256": "032e3c0219bc7e047fb389111160c597c30b2b96aae597c6cccf8c6261c694e5"
+  },
+  "candidate": {
+    "path": "E:\\Projects\\Web Projects\\puzzle-editor\\overview\\dev\\evidence\\CLI_C5\\candidate.puzzle.json",
+    "sha256": "c3567dfc7705ad8988289f84958ffea346a68d7ecc9dffd0dac538c4f75fc859"
+  },
+  "output": {
+    "path": "E:\\Projects\\Web Projects\\puzzle-editor\\overview\\dev\\evidence\\CLI_C5\\C5 Reviewed.puzzle.json",
+    "mode": "create-new",
+    "expected": "absent"
+  }
+}

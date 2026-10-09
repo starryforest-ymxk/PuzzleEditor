@@ -1,0 +1,27 @@
+{
+  "success": true,
+  "browser": "Codex IAB",
+  "url": "http://127.0.0.1:4179",
+  "fixture": {
+    "path": "D:/Temp/puzzle C9 desktop 中文 p7VbjB/New copy.puzzle.json",
+    "sha256": "3986f64787f06c704ede0b631caa48e5407262ff4b962f52bd2e88f741b6ee7a"
+  },
+  "actions": [
+    "Open real desktop online-save output using file chooser",
+    "Select Saved copy root and verify external assetName Root",
+    "Edit Name to Browser regression; blur commits and dirty indicator appears",
+    "Ctrl+Z restores Saved copy root and clean status",
+    "Ctrl+Shift+Z restores Browser regression and dirty status",
+    "Project > Validate: 0 Errors / 0 Warnings",
+    "Read browser console: no warning or error",
+    "Undo to clean state, close temporary browser tab and stop verified preview process"
+  ],
+  "validationErrors": 0,
+  "validationWarnings": 0,
+  "consoleWarnings": 0,
+  "consoleErrors": 0,
+  "screenshot": "overview/dev/evidence/CLI_C9/browser-validation.jpg",
+  "businessProjectTouched": false,
+  "temporaryTabClosed": true,
+  "previewServerStopped": true
+}

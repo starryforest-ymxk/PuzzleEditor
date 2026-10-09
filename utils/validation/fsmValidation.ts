@@ -12,6 +12,8 @@ import type { ParameterModifier, EventListener, PresentationBinding, ValueSource
 import type { VariableDefinition } from '../../types/blackboard';
 import type { ProjectData } from '../../types/project';
 import { checkConditionScriptReferences } from './conditionChecker';
+import { constantVariableType, modifierOperations, modifierSourceTypes } from '../parameterCompatibility';
+import { ownEntry } from '../recordLookup';
 
 // ========== 校验结果类型 ==========
 
@@ -82,33 +84,8 @@ function isVariableMarkedForDelete(
   nodeId?: string
 ): boolean {
   if (!variableId) return false;
-
-  // 全局变量
-  if (scope === 'Global') {
-    const globalVars = state.blackboard?.globalVariables || {};
-    const variable = globalVars[variableId];
-    return variable?.state === 'MarkedForDelete';
-  }
-
-  // 节点局部变量
-  if (scope === 'NodeLocal' && nodeId) {
-    const node = state.nodes[nodeId];
-    const variable = node?.localVariables?.[variableId];
-    return variable?.state === 'MarkedForDelete';
-  }
-
-  // Stage 局部变量
-  if (scope === 'StageLocal') {
-    const stages = state.stageTree?.stages || {};
-    for (const stage of Object.values(stages)) {
-      const variable = stage.localVariables?.[variableId];
-      if (variable) {
-        return variable.state === 'MarkedForDelete';
-      }
-    }
-  }
-
-  return false;
+  // 与值来源使用同一祖先链，不能因其他 Stage 的同 ID 变量被删除而误报。
+  return resolveVariableByScope(state, scope ?? '', variableId, nodeId ?? '')?.state === 'MarkedForDelete';
 }
 
 /**
@@ -206,28 +183,28 @@ function checkConditionExpression(
 /**
  * 检查参数修改器中的变量引用
  */
-const ALLOWED_MODIFIER_OPS = new Set(['Set', 'Add', 'Subtract']);
-
 function resolveVariableByScope(state: ProjectData, scope: string, variableId: string, nodeId: string): VariableDefinition | undefined {
   if (!variableId) return undefined;
 
   if (scope === 'Global') {
-    return state.blackboard?.globalVariables?.[variableId];
+    return ownEntry(state.blackboard?.globalVariables, variableId);
   }
 
   if (scope === 'NodeLocal') {
-    const node = state.nodes[nodeId];
-    return node?.localVariables?.[variableId];
+    const node = ownEntry(state.nodes, nodeId);
+    return ownEntry(node?.localVariables, variableId);
   }
 
   if (scope === 'StageLocal') {
-    const node = state.nodes[nodeId];
+    const node = ownEntry(state.nodes, nodeId);
     let currentStageId: string | null = node?.stageId ?? null;
 
     // 向上遍历父级 Stage 链，查找变量（与 variableScope.ts 保持一致）
-    while (currentStageId) {
-      const currentStage: import('../../types/stage').StageNode | undefined = state.stageTree?.stages?.[currentStageId];
-      const variable = currentStage?.localVariables?.[variableId];
+    const visited = new Set<string>();
+    while (currentStageId && !visited.has(currentStageId)) {
+      visited.add(currentStageId);
+      const currentStage: import('../../types/stage').StageNode | undefined = ownEntry(state.stageTree?.stages, currentStageId);
+      const variable = ownEntry(currentStage?.localVariables, variableId);
       if (variable) {
         return variable;
       }
@@ -247,16 +224,6 @@ function checkParameterModifiers(
   if (!modifiers) return;
 
   modifiers.forEach(modifier => {
-    // 操作合法性校验
-    if (!ALLOWED_MODIFIER_OPS.has(modifier.operation as string)) {
-      issues.push({
-        type: 'error',
-        message: `Unsupported modifier operation: ${modifier.operation}`,
-        resourceType: 'variable',
-        resourceId: modifier.targetVariableId
-      });
-    }
-
     const targetVar = resolveVariableByScope(state, modifier.targetScope, modifier.targetVariableId, nodeId);
     if (!targetVar) {
       issues.push({
@@ -265,17 +232,17 @@ function checkParameterModifiers(
         resourceType: 'variable',
         resourceId: modifier.targetVariableId
       });
-    } else if ((modifier.operation === 'Add' || modifier.operation === 'Subtract') && !(targetVar.type === 'integer' || targetVar.type === 'float')) {
+    } else if (!modifierOperations(targetVar.type).includes(modifier.operation)) {
       issues.push({
         type: 'error',
-        message: `Modifier operation ${modifier.operation} requires numeric target`,
+        message: `Modifier operation ${modifier.operation} is incompatible with ${targetVar.type}`,
         resourceType: 'variable',
         resourceId: modifier.targetVariableId
       });
     }
 
-    // 检查来源变量（如果来源是变量引用）
-    if (modifier.source?.type === 'VariableRef') {
+    // 和 Inspector / 工程校验共用操作、来源类型规则；Toggle 不消费保存的占位来源。
+    if (modifier.operation !== 'Toggle' && modifier.source?.type === 'VariableRef') {
       const source = modifier.source as { type: 'VariableRef'; variableId: string; scope: string };
       const sourceVar = resolveVariableByScope(state, source.scope, source.variableId, nodeId);
       if (!sourceVar) {
@@ -285,10 +252,10 @@ function checkParameterModifiers(
           resourceType: 'variable',
           resourceId: source.variableId
         });
-      } else if ((modifier.operation === 'Add' || modifier.operation === 'Subtract') && !(sourceVar.type === 'integer' || sourceVar.type === 'float')) {
+      } else if (targetVar && !modifierSourceTypes(targetVar.type).includes(sourceVar.type)) {
         issues.push({
           type: 'error',
-          message: `Modifier operation ${modifier.operation} requires numeric source`,
+          message: `Modifier source type ${sourceVar.type} is incompatible with ${targetVar.type}`,
           resourceType: 'variable',
           resourceId: source.variableId
         });
@@ -302,11 +269,12 @@ function checkParameterModifiers(
           resourceId: source.variableId
         });
       }
-    } else if (modifier.source?.type === 'Constant') {
-      if ((modifier.operation === 'Add' || modifier.operation === 'Subtract') && typeof modifier.source.value !== 'number') {
+    } else if (modifier.operation !== 'Toggle' && modifier.source?.type === 'Constant' && targetVar) {
+      const sourceType = constantVariableType(modifier.source.value);
+      if (!sourceType || !modifierSourceTypes(targetVar.type).includes(sourceType)) {
         issues.push({
           type: 'error',
-          message: `Modifier operation ${modifier.operation} requires numeric constant`,
+          message: `Modifier constant is incompatible with ${targetVar.type}`,
           resourceType: 'variable',
           resourceId: modifier.targetVariableId
         });

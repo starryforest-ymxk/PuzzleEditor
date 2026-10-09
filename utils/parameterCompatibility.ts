@@ -1,5 +1,12 @@
 import type { ParameterModifier, VariableType } from '../types/common';
 
+/** 声明值与 Temporary 常量严格按类型存储，不在校验时隐式转换 false、0 或字符串。 */
+export function variableValueMatches(type: VariableType, value: unknown): boolean {
+  if (type === 'integer') return typeof value === 'number' && Number.isSafeInteger(value);
+  if (type === 'float') return typeof value === 'number' && Number.isFinite(value);
+  return typeof value === type;
+}
+
 /** UI 选项与离线校验共用转换规则，防止两种入口允许不同的参数运算。 */
 export function modifierOperations(type?: VariableType): ParameterModifier['operation'][] {
   if (type === 'boolean') return ['Set', 'Toggle'];

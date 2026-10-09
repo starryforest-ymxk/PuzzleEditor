@@ -1,6 +1,6 @@
 /** 只转换契约规定的引用字段；常量 JSON 不做字符串替换，避免误改业务内容。 */
 import type * as z from 'zod';
-import type { ConditionExpression } from '../../../types/stateMachine';
+import type { ConditionExpression, TriggerConfig } from '../../../types/stateMachine';
 import type {
   ValueSource,
   EventListener,
@@ -15,6 +15,7 @@ import {
   valueSourceSchema,
   stagePatchSchema,
   puzzlePatchSchema,
+  triggerSchema,
 } from '../../../contracts/automation/planSchemas';
 import { CommandContext } from './context';
 
@@ -23,7 +24,7 @@ export function source(ctx: CommandContext, input: z.infer<typeof valueSourceSch
     ? input
     : { ...input, variableId: ctx.resolve(input.variableId, 'variable') };
 }
-function condition(
+export function condition(
   ctx: CommandContext,
   input: z.infer<typeof conditionSchema>,
 ): ConditionExpression {
@@ -36,14 +37,20 @@ function condition(
     scriptId: input.scriptId ? ctx.resolve(input.scriptId, 'script') : undefined,
   };
 }
-function modifier(ctx: CommandContext, input: z.infer<typeof modifierSchema>): ParameterModifier {
+export function modifier(
+  ctx: CommandContext,
+  input: z.infer<typeof modifierSchema>,
+): ParameterModifier {
   return {
     ...input,
     targetVariableId: ctx.resolve(input.targetVariableId, 'variable'),
     source: source(ctx, input.source),
   };
 }
-function listener(ctx: CommandContext, input: z.infer<typeof listenerSchema>): EventListener {
+export function listener(
+  ctx: CommandContext,
+  input: z.infer<typeof listenerSchema>,
+): EventListener {
   return {
     eventId: ctx.resolve(input.eventId, 'event'),
     action:
@@ -52,7 +59,7 @@ function listener(ctx: CommandContext, input: z.infer<typeof listenerSchema>): E
         : { ...input.action, modifiers: input.action.modifiers.map((m) => modifier(ctx, m)) },
   };
 }
-function presentation(
+export function presentation(
   ctx: CommandContext,
   input: z.infer<typeof presentationBindingSchema>,
 ): PresentationBinding {
@@ -72,6 +79,12 @@ function presentation(
     ),
   };
 }
+export function trigger(ctx: CommandContext, input: z.infer<typeof triggerSchema>): TriggerConfig {
+  if (input.type === 'OnEvent') return { ...input, eventId: ctx.resolve(input.eventId, 'event') };
+  if (input.type === 'CustomScript')
+    return { ...input, scriptId: ctx.resolve(input.scriptId, 'script') };
+  return input;
+}
 export function stageFields(ctx: CommandContext, input: z.infer<typeof stagePatchSchema>) {
   const result: {
     [
@@ -89,13 +102,7 @@ export function stageFields(ctx: CommandContext, input: z.infer<typeof stagePatc
     result.unlockCondition =
       input.unlockCondition === null ? undefined : condition(ctx, input.unlockCondition);
   if (input.unlockTriggers !== undefined)
-    result.unlockTriggers = input.unlockTriggers.map((t) =>
-      t.type === 'OnEvent'
-        ? { ...t, eventId: ctx.resolve(t.eventId, 'event') }
-        : t.type === 'CustomScript'
-          ? { ...t, scriptId: ctx.resolve(t.scriptId, 'script') }
-          : t,
-    );
+    result.unlockTriggers = input.unlockTriggers.map((t) => trigger(ctx, t));
   for (const key of ['onEnterPresentation', 'onExitPresentation'] as const)
     if (input[key] !== undefined)
       result[key] = input[key] === null ? undefined : presentation(ctx, input[key]);
