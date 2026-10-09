@@ -98,7 +98,7 @@ if ($LASTEXITCODE -ne 0) { throw 'Apply failed.' }
 & $cli history list --instance '<instanceId>' --session 1 --json
 ```
 
-在线修改使用 session preview/apply；历史 undo/redo 还要求最新 token、顶部 entryId 和 requestId。普通 apply/undo/redo 先修改内存，未获得覆盖许可时阻止相关自动保存。具体 token、回执、保存及重试例子见 [完整使用说明](https://github.com/starryforest-ymxk/PuzzleEditor/blob/v1.0.0-beta-c16/overview/dev/CLI_Agent_Usage.md)。
+在线修改使用 session preview/apply；历史 undo/redo 还要求最新 token、顶部 entryId 和 requestId。普通 apply/undo/redo 先修改内存，未获得覆盖许可时阻止相关自动保存。具体 token、回执、保存及重试例子见 [完整使用说明](https://github.com/starryforest-ymxk/PuzzleEditor/blob/v1.0.0-beta-c16.1/overview/dev/CLI_Agent_Usage.md)。
 
 C9 协议 1 和 C10 协议 2 不能混用。工程被桌面占用时，离线覆盖会拒绝；需要修改当前未保存内容时使用 session。
 
