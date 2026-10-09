@@ -1,0 +1,21 @@
+{
+  "ok": true,
+  "checks": [
+    "Acceptance namespace is unused before installation",
+    "Real NSIS user installation created its own EXE",
+    "Real NSIS created desktop/start-menu shortcuts and own registration",
+    "Installed EXE and both real shortcuts use original Puzzle Editor icon",
+    "C10 default-icon EXE is rejected before the upgrade",
+    "Real NSIS upgrade/reinstall replaced the old-icon fixture",
+    "Real NSIS created desktop/start-menu shortcuts and own registration",
+    "Installed EXE and both real shortcuts use original Puzzle Editor icon",
+    "Acceptance uninstaller exited successfully",
+    "Acceptance shortcuts and uninstall registration were removed",
+    "Acceptance application EXE removed",
+    "Existing user Puzzle Editor installation is unchanged"
+  ],
+  "verifiedAt": "2026-10-09T11:22:52.558Z",
+  "separateProductNamespace": true,
+  "c10BinaryUpgradeFixture": true,
+  "actualUserInstallationUpgraded": false
+}

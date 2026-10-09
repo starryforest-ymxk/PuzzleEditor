@@ -1,9 +1,9 @@
 # 架构指南（Architecture Guide）
 
 > 本文档描述项目的整体架构设计、分层结构与开发规范，用于指导后续阶段的功能实现。  
-> **版本**: 1.2.23 | **更新时间**: 2026-10-09 | **本次同步**: CLI C10 共享历史、恢复权限与 Windows 配套发行；验证见 C10 报告
+> **版本**: 1.2.24 | **更新时间**: 2026-10-09 | **本次同步**: CLI C11–C16 图标、全局安装、配置、Skill、doctor 与成品回归；验证见 C16 报告
 
-**C6–C10 已完成**。在线应用服务复用领域候选、Store 和 ProjectSession，Windows 发现/传输受当前用户 ACL 与 HMAC 保护；CLI history 与 GUI 使用同一历史，配套 CLI/桌面在线协议为 2。见 [C10 报告](./CLI_C10_Implementation.md)。
+**C1–C16 开发及隔离成品验收已完成**。在线应用服务复用领域候选、Store 和 ProjectSession，Windows ACL/HMAC 和协议 2 不变。CLI/管理契约同源；services/cliTooling 维护配置、安装事务、Skill 和 doctor，platform/node 仅负责 OS 环境、文件与只读连接。PowerShell 入口不复制安装业务。指南唯一来源生成 AGENTS 与 Skill reference，权限不进入配置。桌面发行必须经 package-desktop 的固定资源工具及原图标检查；electron:build 已使用该入口。最终包与实测范围见 [C16 报告](./CLI_C16_Implementation.md)。
 
 ---
 
@@ -59,6 +59,7 @@ puzzle-editor/
 │  ├─ projectExport.ts  # GUI 导出协调：面板、消息、选择器与 IO
 │  ├─ projectExportPreparation.ts # 纯导出校验、命名与序列化，时间可注入
 │  ├─ automation/      # CLI 查询、快照、候选预览/提交与文件交付协调
+│  ├─ cliTooling/      # 安装/恢复、配置读取、Skill 所有权及只读 doctor
 │  ├─ projectPlatform.ts # 注入式桌面/浏览器项目 IO 适配
 │  ├─ autoSaveScheduler.ts # 自动保存调度
 │  └─ translation/     # 网络翻译服务与提供方

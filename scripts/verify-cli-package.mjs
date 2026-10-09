@@ -4,6 +4,7 @@ import path from 'node:path';
 import { tmpdir } from 'node:os';
 import { hash, removeOwnedDirectory } from './cli-package-io.mjs';
 import { spawnSync } from 'node:child_process';
+import { randomUUID } from 'node:crypto';
 
 const zip = path.resolve(process.argv[2] ?? '');
 if (process.platform !== 'win32' || !process.argv[2] || !zip.endsWith('.zip'))
@@ -13,6 +14,7 @@ const powershell = path.join(system, 'System32/WindowsPowerShell/v1.0/powershell
 const isolated = await fs.mkdtemp(path.join(tmpdir(), 'puzzle-cli-release-'));
 const testRoot = path.join(isolated, '中文 独立发行');
 const checks = [];
+const testRegistry = 'Software\\PuzzleEditorCLI\\Tests\\' + randomUUID() + '\\Environment';
 const expect = (ok, message) => {
   if (!ok) throw new Error(message);
   checks.push(message);
@@ -60,6 +62,8 @@ try {
     PATH: path.join(system, 'System32'),
     APPDATA: path.join(isolated, 'prefs'),
     LOCALAPPDATA: path.join(isolated, 'prefs'),
+    USERPROFILE: path.join(isolated, 'home'),
+    PUZZLE_EDITOR_TEST_REGISTRY_KEY: testRegistry,
   };
   delete env.NODE_OPTIONS;
   delete env.NODE_PATH;
@@ -69,7 +73,7 @@ try {
     windowsHide: true,
   });
   expect(missingNode.status !== 0, 'Global Node unavailable on isolated PATH');
-  const launcher = path.join(app, 'puzzle.cmd');
+  let launcher = path.join(app, 'puzzle.cmd');
   const run = (args, expectedCode = 0) => {
     // 验证参数全由本脚本生成；避免让 cmd 元字符或变量展开混入命令。
     if ([launcher, ...args].some((value) => /["%!\r\n]/.test(value)))
@@ -286,6 +290,131 @@ try {
     run(['validate', '覆盖.puzzle.json']);
   }
   expect(!(await fs.readdir(isolated)).includes('prefs'), 'No editor preferences created');
+  // 配套能力通过真实 ZIP/启动器验收；PATH 仅写独立 HKCU 测试键。
+  if (Number(manifest.phase.slice(1)) >= 16) {
+    const installRoot = path.join(isolated, '全局 安装');
+    run(['version']);
+    expect(run(['config', 'show']).data.raw === null, 'Absent config remains absent');
+    const guide = run(['skills', 'read', 'puzzle-editor']).data.files['references/cli-guide.md'];
+    expect(
+      guide === (await fs.readFile(path.join(app, 'AGENTS.md'), 'utf8')),
+      'Skill and AGENTS share one guide',
+    );
+    run(['doctor', '--offline', '--project', source]);
+    const entry = spawnSync(
+      powershell,
+      [
+        '-NoProfile',
+        '-ExecutionPolicy',
+        'Bypass',
+        '-File',
+        path.join(app, 'install-cli.ps1'),
+        '--install-root',
+        installRoot,
+        '--dry-run',
+      ],
+      { env, cwd: work, encoding: 'utf8', windowsHide: true, timeout: 30000 },
+    );
+    expect(
+      entry.status === 0 && JSON.parse(entry.stdout).ok,
+      'Packaged install PowerShell entry dry-run',
+    );
+    expect(
+      !(await fs.stat(installRoot).then(
+        () => true,
+        () => false,
+      )),
+      'Install dry-run creates no root',
+    );
+    run(['setup', 'install', '--source', app, '--install-root', installRoot]);
+    launcher = path.join(installRoot, 'bin/puzzle.cmd');
+    const info = run(['version']).data;
+    expect(
+      info.cliEntry.startsWith(installRoot),
+      'Stable command runs the installed bundled runtime',
+    );
+    expect(
+      run(['config', 'show']).data.installation.mode === 'installed',
+      'Installed config mode detected',
+    );
+    const fresh = spawnSync(
+      powershell,
+      [
+        '-NoProfile',
+        '-Command',
+        '[Console]::OutputEncoding=[Text.UTF8Encoding]::new($false); $k=[Microsoft.Win32.Registry]::CurrentUser.OpenSubKey($env:PUZZLE_EDITOR_TEST_REGISTRY_KEY); $raw=$k.GetValue("Path"); $k.Dispose(); $env:PATH=$env:SystemRoot+"\\System32;"+$raw; & puzzle version; exit $LASTEXITCODE',
+      ],
+      { env, cwd: work, encoding: 'utf8', windowsHide: true, timeout: 30000 },
+    );
+    expect(
+      fresh.status === 0 && JSON.parse(fresh.stdout).data.cliEntry === info.cliEntry,
+      'New process resolves puzzle from persistent isolated registry PATH',
+    );
+    const skillArgs = ['--agent', 'codex', '--scope', 'project', '--project-root', work];
+    run(['skills', 'install', ...skillArgs, '--dry-run']);
+    run(['skills', 'install', ...skillArgs]);
+    expect(
+      run(['skills', 'status', ...skillArgs]).data.managed,
+      'Packaged project Skill ownership',
+    );
+    run(['skills', 'uninstall', ...skillArgs]);
+    run(['doctor', '--offline', '--project', source]);
+    const activeAgentGuide = path.join(path.dirname(path.dirname(info.cliEntry)), 'AGENTS.md');
+    const activeGuideBytes = await fs.readFile(activeAgentGuide);
+    await fs.appendFile(activeAgentGuide, 'Corruption fixture');
+    const brokenDoctor = run(['doctor', '--offline'], 3);
+    expect(
+      brokenDoctor.data.checks.some((check) => check.code === 'PACKAGE' && check.status === 'fail'),
+      'Doctor reports actual package corruption while aggregating checks',
+    );
+    await fs.writeFile(activeAgentGuide, activeGuideBytes);
+    const upgraded = path.join(isolated, 'upgrade-source');
+    await fs.cp(app, upgraded, { recursive: true });
+    const upgradeManifest = { ...manifest, createdAt: new Date().toISOString() };
+    await fs.writeFile(
+      path.join(upgraded, 'manifest.json'),
+      JSON.stringify(upgradeManifest, null, 2) + '\n',
+    );
+    run(['setup', 'install', '--source', upgraded]);
+    expect(
+      run(['setup', 'status']).data.versions.length === 2,
+      'Verified upgrade retains previous version',
+    );
+    run(['setup', 'uninstall', '--dry-run']);
+    const required = run(['setup', 'uninstall'], 4);
+    expect(
+      required.error.code === 'EXTERNAL_UNINSTALLER_REQUIRED',
+      'Installed launcher refuses self deletion with an explicit external entry',
+    );
+    const removal = spawnSync(required.data.executable, required.data.args, {
+      env,
+      cwd: work,
+      encoding: 'utf8',
+      windowsHide: true,
+      timeout: 30000,
+    });
+    expect(
+      removal.status === 0 && !removal.stderr && JSON.parse(removal.stdout).ok,
+      'External PowerShell uninstaller removes managed files without CMD self-deletion errors',
+    );
+    launcher = path.join(app, 'puzzle.cmd');
+    const status = run(['setup', 'status', '--install-root', installRoot]).data;
+    expect(
+      !status.installed && status.path.value === null,
+      'Launcher uninstall removes owned versions and isolated PATH',
+    );
+    expect(
+      !(await fs.stat(path.join(work, '.agents/skills/puzzle-editor')).then(
+        () => true,
+        () => false,
+      )),
+      'Skill target removed without touching project',
+    );
+    expect(
+      (await fs.readFile(source)).equals(original),
+      'Management leaves source project bytes unchanged',
+    );
+  }
   const evidence = {
     verifiedAt: new Date().toISOString(),
     zip,
@@ -304,5 +433,14 @@ try {
     JSON.stringify({ success: true, checks: checks.length, zipSha256: evidence.zipSha256 }),
   );
 } finally {
+  spawnSync(
+    powershell,
+    [
+      '-NoProfile',
+      '-Command',
+      'Remove-Item -LiteralPath ("HKCU:\\"+$env:PUZZLE_EDITOR_TEST_REGISTRY_KEY) -Recurse -Force -ErrorAction SilentlyContinue',
+    ],
+    { env: { ...process.env, PUZZLE_EDITOR_TEST_REGISTRY_KEY: testRegistry }, windowsHide: true },
+  );
   await removeOwnedDirectory(tmpdir(), isolated, 'puzzle-cli-release-');
 }

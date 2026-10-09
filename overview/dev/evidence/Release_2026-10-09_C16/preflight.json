@@ -1,0 +1,13 @@
+{
+  "ok": true,
+  "verifiedAt": "2026-10-09T12:01:43.137Z",
+  "prePublicationHead": "d4930609aa1a86c074fb8a57308ac2d072895c5b",
+  "sourceFilesMatched": 404,
+  "asarRuntimeFilesMatched": 23,
+  "cliMatchesBuild": true,
+  "guideMatchesSource": true,
+  "skillReferenceMatchesSource": true,
+  "inputsCopiedWithoutChanges": true,
+  "testEvidenceReused": true,
+  "reusedTests": 715
+}

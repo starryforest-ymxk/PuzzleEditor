@@ -1,0 +1,59 @@
+{
+  "success": true,
+  "executable": "E:\\Projects\\Web Projects\\puzzle-editor\\release\\desktop\\C16-final\\win-unpacked\\Puzzle Editor.exe",
+  "cliZip": "E:\\Projects\\Web Projects\\puzzle-editor\\release\\cli\\C16-final3\\PuzzleEditor-CLI-1.0.0-beta-win-x64.zip",
+  "directory": "D:\\Temp\\puzzle-packaged-release-1S4GTr",
+  "metadata": [
+    {
+      "packaged": true,
+      "version": "1.0.0-beta",
+      "appPath": "E:\\Projects\\Web Projects\\puzzle-editor\\release\\desktop\\C16-final\\win-unpacked\\resources\\app.asar",
+      "userData": "D:\\Temp\\puzzle-packaged-release-1S4GTr\\appdata\\app"
+    },
+    {
+      "packaged": true,
+      "version": "1.0.0-beta",
+      "appPath": "E:\\Projects\\Web Projects\\puzzle-editor\\release\\desktop\\C16-final\\win-unpacked\\resources\\app.asar",
+      "userData": "D:\\Temp\\puzzle-packaged-release-1S4GTr\\appdata\\app"
+    }
+  ],
+  "checks": [
+    "Paired CLI ZIP extracted outside repository into a Chinese space path",
+    "Paired CLI environment has no global Node",
+    "Actual packaged ASAR application launched",
+    "User data was isolated before startup",
+    "Packaged preload and close API available",
+    "Packaged preferences IPC restored the isolated fixture",
+    "Packaged C8 desktop blocks external project owner",
+    "Actual ZIP exposes C10 history capabilities",
+    "Actual desktop ASAR authenticates with the paired protocol 2 CLI",
+    "Actual UI has unsaved human content before Agent editing",
+    "Doctor authenticates the exact packaged desktop session without editing",
+    "Doctor preserves unsaved content and history epoch",
+    "Packaged CLI edit updates the actual Inspector",
+    "Packaged GUI and CLI share mixed human and Agent history",
+    "Paired CLI history retry is idempotent",
+    "Paired history restores content with automatic overwrite blocked",
+    "Paired save without chat declaration is denied",
+    "Paired authorized save acknowledges current content",
+    "Paired save retains both human and Agent changes",
+    "Focused Inspector input",
+    "Unified close dialog displayed all three choices",
+    "Cancel kept the actual packaged process alive",
+    "Packaged C8 desktop blocks external project owner",
+    "Cancel left the saved project unchanged",
+    "Save & Close exited successfully",
+    "Packaged C8 desktop releases ownership after exit",
+    "Latest Inspector draft persisted before process exit",
+    "Actual packaged ASAR application launched",
+    "User data was isolated before startup",
+    "Packaged preload and close API available",
+    "Packaged preferences IPC restored the isolated fixture",
+    "Packaged C8 desktop blocks external project owner",
+    "Restart restored the saved edit",
+    "Clean packaged project closed without confirmation",
+    "Packaged C8 desktop releases ownership after exit",
+    "No renderer warnings or errors observed during the exercised interactions"
+  ],
+  "consoleErrors": []
+}

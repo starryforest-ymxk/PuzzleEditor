@@ -13,13 +13,26 @@ const booleans = new Set([
   'allowPermanentDelete',
   'inPlace',
   'allowOverwrite',
+  'dryRun',
+  'offline',
+  'online',
 ]);
+
+/** 从能力登记识别命令树，新增组不再维护第二份前缀名单。 */
+export function operationName(argv: string[]) {
+  if (argv[0] === '--version' || argv[0] === '-v') return 'version';
+  return (
+    capabilities.find((item) =>
+      item.operation.split(' ').every((word, index) => word === argv[index]),
+    )?.operation ??
+    argv[0] ??
+    'help'
+  );
+}
 
 export function parseCommand(argv: string[]) {
   if (!argv.length || argv[0] === '--help' || argv[0] === '-h') return { kind: 'help' as const };
-  const operation = ['json', 'import', 'session', 'history'].includes(argv[0])
-    ? `${argv[0]} ${argv[1] ?? ''}`.trim()
-    : argv[0];
+  const operation = operationName(argv);
   const definition = capabilities.find((item) => item.operation === operation);
   if (!definition)
     throw new AutomationFailure('UNKNOWN_COMMAND', `Unknown command: ${operation}. Use --help.`, 2);
@@ -31,7 +44,9 @@ export function parseCommand(argv: string[]) {
     );
   const name = operation as keyof typeof inputSchemas;
   const schema = inputSchemas[name];
-  const fields = Object.keys(schema.shape).filter((key) => key !== 'path');
+  const positional =
+    name === 'skills read' ? 'name' : Object.hasOwn(schema.shape, 'path') ? 'path' : null;
+  const fields = Object.keys(schema.shape).filter((key) => key !== positional);
   const options: NonNullable<ParseArgsConfig['options']> = {
     json: { type: 'boolean' },
     help: { type: 'boolean', short: 'h' },
@@ -68,18 +83,14 @@ export function parseCommand(argv: string[]) {
   if (parsed.values.help) return { kind: 'help' as const, operation: name };
   if (parsed.values.raw && parsed.values.json)
     throw new AutomationFailure('INVALID_ARGUMENT', '--raw and --json are mutually exclusive.', 2);
-  const noPath =
-    name === 'describe' ||
-    name === 'create' ||
-    name.startsWith('session ') ||
-    name.startsWith('history ');
+  const noPath = positional === null;
   if (parsed.positionals.length !== (noPath ? 0 : 1))
     throw new AutomationFailure(
       'INVALID_ARGUMENT',
       noPath ? `${name} takes no input file path.` : 'Exactly one input file path is required.',
       2,
     );
-  const input: Record<string, unknown> = noPath ? {} : { path: parsed.positionals[0] };
+  const input: Record<string, unknown> = positional ? { [positional]: parsed.positionals[0] } : {};
   for (const field of fields) {
     const value = parsed.values[flagName(field)];
     if (value === undefined) continue;
@@ -189,7 +200,7 @@ export function helpText(operation?: keyof typeof inputSchemas): string {
             .join(', '),
       );
     }
-    if (item.example) lines.push('  ' + item.example);
+    if ('example' in item && item.example) lines.push('  ' + item.example);
   }
   lines.push(
     '',

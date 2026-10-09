@@ -17,7 +17,12 @@ export {
   puzzleIdentitySchema,
 } from './primitives';
 
-export const permissionSchema = z.enum(['read', 'semantic_write', 'raw_json_write']);
+export const permissionSchema = z.enum([
+  'read',
+  'semantic_write',
+  'raw_json_write',
+  'environment_write',
+]);
 export const entityTypeSchema = z.enum([
   'stage',
   'puzzle',

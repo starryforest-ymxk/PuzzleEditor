@@ -1,8 +1,46 @@
 # PuzzleEditor CLI：发行包 Agent 指南
 
-本文件是发行包 `AGENTS.md` 的唯一维护来源，打包时原样复制。当前 API 1.0.0 / C10，权限策略 C10，转换器 C7.1；22 个命令入口、47 种领域操作和完整 JSON 只读/备用编辑均通过 `describe` 的契约发现。旧版包保留其原始指南和能力，升级后须重新检查 describe；C6–C9 回执需要重新预览。
+本文件是发行包 `AGENTS.md` 和 Skill 执行参考的唯一维护来源，打包时原样复制。当前 API 1.0.0 / C16，权限策略 C10，转换器 C7.1；36 个命令入口、47 种领域操作和完整 JSON 只读/备用编辑均通过 `describe` 的契约发现。旧版包保留其原始指南和能力，升级后须重新检查 describe；C6–C9 回执需要重新预览。
 
-## 启动与基本流程
+## 工具安装、配置、Skill 与诊断（C16）
+
+独立包无需 npm，全局安装是显式环境写入。PowerShell：`powershell -NoProfile -ExecutionPolicy Bypass -File .\install-cli.ps1 --dry-run` 预览，去掉 --dry-run 安装；默认根为 `%LOCALAPPDATA%/StarryTree/PuzzleEditorCLI`，可用 --install-root 指定。重新打开终端后调用 `puzzle`。升级对新完整包执行同样安装，核验后切换，保留旧版本；不单独移动 bin/puzzle.cmd。需要时使用完整包绝对路径进行修复，不依赖已损坏启动器。
+
+```text
+puzzle version
+puzzle setup status
+puzzle setup uninstall --dry-run
+puzzle setup recover --install-root <root>
+puzzle config path
+puzzle config show
+puzzle skills list
+puzzle skills read puzzle-editor
+puzzle skills install --agent codex --scope user --dry-run
+puzzle skills install --agent codex --scope user
+puzzle skills status --agent codex --scope user
+puzzle skills uninstall --agent codex --scope user --dry-run
+puzzle skills recover --agent codex --scope user
+puzzle doctor --offline
+puzzle doctor --project Demo.puzzle.json
+puzzle doctor --online --instance <instanceId> --session <sessionId>
+```
+
+Windows 全局启动器和其 Node 不能删除自身。实际卸载从外部 PowerShell 入口执行：
+
+```powershell
+$entry = (puzzle setup status | ConvertFrom-Json).data.uninstallEntry
+powershell -NoProfile -ExecutionPolicy Bypass -File $entry
+```
+
+也可以直接使用原解压包的 uninstall-cli.ps1，指定 --install-root 处理自定义位置。已安装运行时调用 setup uninstall 会在零变更前返回 EXTERNAL_UNINSTALLER_REQUIRED 和结构化入口/参数，Agent 在既有卸载授权内改用该入口；不通过 CMD 自删除或遗留后台清理进程伪报完成。从受管根以外的 CLI 运行时调用 setup uninstall 仍可直接执行。
+
+项目 Skill 使用 --scope project --project-root <已存在目录>；每次写入显式 Agent/范围。安装只复制受管 Skill，不修改 Codex 全局配置；外部同名、用户修改、未知文件返回冲突，无 force。发现可能需刷新/重启宿主；文件安装与 Agent 自动触发是不同验收。备用 raw/覆盖/永久删除的三项聊天授权不能从安装、Skill 或配置获得。
+
+可选 `<安装根>/config.json` 只支持 `{ "schemaVersion": 1, "desktopExecutable": "..." }`，只用于诊断，不执行 EXE。--config > PUZZLE_EDITOR_CLI_CONFIG > 默认位置；PUZZLE_EDITOR_DESKTOP_EXECUTABLE > 文件值，文件内相对路径按配置目录解析。未配置不创建文件，未知字段/授权键拒绝；无 config set/unset，工程命令不加载可选配置。会话位置沿用 PUZZLE_EDITOR_SESSION_DIR。不得保存会话 secret 或长期权限。
+
+doctor 默认离线、不访问网络、不启动桌面、不修复、不提交草稿；明确在线必须 instance/session。结果 data.checks 为 pass/warn/fail/skip，出现 fail 退出 3，否则 0。可选未装 Skill、无发现目录不阻断便携 CLI。只读查询不建目录。PATH 修改只追加稳定 bin，保留原注册表值/类型，不用 setx；卸载只移除所管理的一项，配置/Skill记录保留供单独管理。安装事务中断用 setup recover，技能事务用 skills recover；遇到第三方变动保留现场并说明，不能盲目清目录。
+
+## 便携调用与工程流程
 
 Windows x64 解压后使用包内 `puzzle.cmd` 的绝对路径；启动器使用包内 `runtime/node.exe`，不要求安装 Node、npm 或源码，也不会修改 PATH。离线命令无需启动编辑器；session/history 必须连接兼容的桌面实例。相对工程路径以调用者当前工作目录解析。`app/cli.js` 是独立 Node 入口，其他系统需自备符合软件要求的 Node；此 ZIP 仅验证 Windows x64。
 
@@ -29,7 +67,7 @@ stdout 为一个 JSON 结果，检查退出码和 ok，不只检查进程启动�
 
 ## 在线编辑当前桌面工程（C9/C10）
 
-使用同批 C10 CLI 与桌面构建，在线协议为 2。C8 没有在线能力；C9 协议 1 会明确返回不兼容，不能混用。执行 session list，按用户目标选明确 instanceId/sessionId；不能猜第一项或最近窗口。
+使用 C10 或更新的兼容 CLI 与桌面构建，在线协议为 2。C8 没有在线能力；C9 协议 1 会明确返回不兼容，不能混用。执行 session list，按用户目标选明确 instanceId/sessionId；不能猜第一项或最近窗口。
 
 使用 session status 获取 token；session inspect 的查询视图沿用离线 inspect，新增 view=project 读取完整内存工程 JSON。pendingEdits 表示字段草稿尚未提交。把 token 对象存成 UTF-8 文件；计划 sourceHash 使用 token.contentHash。session preview 传 --token/--plan，可 --receipt-out；session apply 传 --plan/--receipt/--request-id。普通计划一次原子提交和一个 GUI Undo 条目，无变化不消耗历史。
 

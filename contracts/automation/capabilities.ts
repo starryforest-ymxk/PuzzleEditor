@@ -12,10 +12,12 @@ import { rawReceiptSchema } from './rawSchemas';
 import { POLICY_VERSION, capabilityDefinitions } from './permissions';
 import { IMPORT_CONVERTER_VERSION, importNamesSchema, importReceiptSchema } from './importSchemas';
 import { sessionTokenSchema, sessionReceiptSchema } from './sessionSchemas';
+import { toolingCapabilities } from './toolingSchemas';
 
-export const CLI_PHASE = 'C10';
+export const CLI_PHASE = 'C16';
 
 export const capabilities = [
+  ...toolingCapabilities,
   {
     operation: 'history list',
     implemented: true,
@@ -308,6 +310,8 @@ export function describeCapabilities(operation?: string) {
       ],
     },
     permissions: {
+      environment_write:
+        'Explicit tooling installation, recovery or removal. Does not authorize project edits or any highest-level capability.',
       read: 'Read and preview only.',
       semantic_write: 'Scoped domain operations; does not grant raw JSON write.',
       raw_json_write:

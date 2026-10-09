@@ -1,0 +1,19 @@
+  • electron-builder  version=25.1.8 os=10.0.26300
+  • loaded configuration  file=package.json ("build" field)
+  • description is missed in the package.json  appPackageFile=E:\Projects\Web Projects\puzzle-editor\package.json
+  • author is missed in the package.json  appPackageFile=E:\Projects\Web Projects\puzzle-editor\package.json
+  • executing @electron/rebuild  electronVersion=34.5.8 arch=x64 buildFromSource=false appDir=./
+  • installing native dependencies  arch=x64
+  • completed installing native dependencies
+  • packaging       platform=win32 arch=x64 electron=34.5.8 appOutDir=release\desktop\C16-final\win-unpacked
+  • updating asar integrity executable resource  executablePath=release\desktop\C16-final\win-unpacked\Puzzle Editor.exe
+  • signing with signtool.exe  path=release\desktop\C16-final\win-unpacked\Puzzle Editor.exe
+  • no signing info identified, signing is skipped  signHook=false cscInfo=null
+  • building        target=nsis file=release\desktop\C16-final\Puzzle Editor Setup 1.0.0-beta.exe archs=x64 oneClick=false perMachine=false
+  • signing with signtool.exe  path=release\desktop\C16-final\win-unpacked\resources\elevate.exe
+  • no signing info identified, signing is skipped  signHook=false cscInfo=null
+  • signing with signtool.exe  path=release\desktop\C16-final\__uninstaller-nsis-puzzle-editor.exe
+  • no signing info identified, signing is skipped  signHook=false cscInfo=null
+  • signing with signtool.exe  path=release\desktop\C16-final\Puzzle Editor Setup 1.0.0-beta.exe
+  • no signing info identified, signing is skipped  signHook=false cscInfo=null
+  • building block map  blockMapFile=release\desktop\C16-final\Puzzle Editor Setup 1.0.0-beta.exe.blockmap

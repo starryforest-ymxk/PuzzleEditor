@@ -46,11 +46,11 @@ describe('C7 支持格式、命名与往返', () => {
   it('能力发现提供两入口、映射/回执 Schema，拒绝其他权限与通用编辑参数', async () => {
     const { result } = await run(['describe']);
     expect(result.data).toMatchObject({
-      phase: 'C10',
+      phase: CLI_PHASE,
       importConverterVersion: 'C7.1',
       policyVersion: 'C10',
     });
-    expect(result.data.capabilities).toHaveLength(22);
+    expect(result.data.capabilities).toHaveLength(36);
     expect(result.data.importNamesSchema.additionalProperties).toBe(false);
     expect(result.data.importReceiptSchema.properties.kind.const).toBe('import-preview');
     for (const flag of [
@@ -412,3 +412,4 @@ describe('C7 回执、文件所有权与重试', () => {
     expect(await readFile(out, 'utf8')).toBe('third party');
   });
 });
+import { CLI_PHASE } from '../../contracts/automation/capabilities';

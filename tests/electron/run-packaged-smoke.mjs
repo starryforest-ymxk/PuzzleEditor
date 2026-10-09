@@ -299,7 +299,7 @@ async function verifyOnline(desktop) {
   if (!cliZip) return 'Release Test Root';
   const capability = (await cli(['describe'])).data;
   assert(
-    capability.phase === 'C10' &&
+    Number(capability.phase.slice(1)) >= 10 &&
       capability.capabilities.some((x) => x.operation === 'history redo'),
     'Actual ZIP exposes C10 history capabilities',
   );
@@ -329,6 +329,19 @@ async function verifyOnline(desktop) {
   await desktop.evaluate(`document.activeElement.blur()`);
   const status = (await cli(['session', 'status', ...target])).data;
   assert(status.dirty, 'Actual UI has unsaved human content before Agent editing');
+  if (Number(capability.phase.slice(1)) >= 16) {
+    const diagnostic = await cli(['doctor', '--online', ...target]);
+    assert(
+      diagnostic.data.checks.find((check) => check.code === 'ONLINE_SESSION')?.status === 'pass',
+      'Doctor authenticates the exact packaged desktop session without editing',
+    );
+    const afterDiagnostic = (await cli(['session', 'status', ...target])).data;
+    assert(
+      afterDiagnostic.token.contentEpoch === status.token.contentEpoch &&
+        afterDiagnostic.token.contentHash === status.token.contentHash,
+      'Doctor preserves unsaved content and history epoch',
+    );
+  }
   await writeFile(tokenPath, JSON.stringify(status.token));
   await writeFile(
     planPath,

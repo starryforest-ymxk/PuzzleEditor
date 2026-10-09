@@ -151,6 +151,7 @@ export default tseslint.config(
       'cli/**/*.ts',
       'contracts/automation/**/*.ts',
       'services/automation/**/*.ts',
+      'services/cliTooling/**/*.ts',
       'services/projectExportPreparation.ts',
       'platform/node/**/*.ts',
     ],

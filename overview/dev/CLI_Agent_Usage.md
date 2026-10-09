@@ -2,9 +2,9 @@
 
 首次使用可以先看 [CLI 入门指南](./CLI_Quick_Start.md)，包含独立包启动、创建、领域计划另存、桌面会话与 Agent 提示示例。
 
-更新：2026-10-09。当前已实现 **C1–C10**：原有离线领域/备用 JSON/导入/覆盖能力，加 Windows 在线会话发现、未保存内容读取、预览、原子编辑与受控保存。API 1.0.0，phase/policy C10，转换器 C7.1。见 [C10 完成报告](./CLI_C10_Implementation.md)。
+更新：2026-10-09。当前 C1–C16 开发及隔离成品验收已完成，见 [C16 报告](./CLI_C16_Implementation.md)；全局安装、只读配置、Skill 与 doctor 用法以 [发行指南](./CLI_Distribution_Guide.md)为单一维护来源。API 1.0.0，phase C16，policy C10，转换器 C7.1，在线协议 2。当前用户的实际安装、PATH 和 Skill 未改变。
 
-当前 **22 个命令入口、47 种领域操作**；在线 session 命令首轮支持 Windows 桌面，C10 增加与 GUI 共用的 history list/undo/redo。完整差异见 [覆盖核对](./CLI_Coverage_Audit.md)。
+当前 **36 个命令入口、47 种领域操作**；在线 session/history 首轮支持 Windows 桌面。完整差异见 [覆盖核对](./CLI_Coverage_Audit.md)。
 
 在 [C6–C10 下一阶段计划](./CLI_Next_Development_Plan.md)中，C6–C10 已完成，正式配套发行和本批验证见 C10 报告。面板、导航、用户偏好不增加对应命令；请勿把后续计划的命令或参数当作可用接口。
 

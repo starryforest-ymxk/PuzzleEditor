@@ -1,10 +1,24 @@
 # 项目实现状态（Implementation Status）
 
-> **版本**: 1.0.0-beta | **更新时间**: 2026-10-09 | **最近完成范围**: CLI C10 共享历史和配套发行；669 项回归、45 项真实在线联动、80 项独立 CLI 包检查、34 项实际桌面配套检查及浏览器保存/导出/重开通过；C3–C10 本次纳入 Git/Release 交付，见 2026-10-09 发行记录
+> **版本**: 1.0.0-beta | **更新时间**: 2026-10-09 | **最近完成范围**: CLI C11–C16 图标及配套工具、Git 交付与 C16 Release；715 项回归、45 项在线、136 项独立 CLI ZIP、36 项桌面配套、12 项独立 NSIS 安装及真实 Codex Skill 发现通过；发行标签 v1.0.0-beta-c16，当前用户安装未变
 
 ---
 
 ## 1. 总体进度
+
+### C11–C16 Git 交付与 C16 Release（2026-10-09）
+
+- 按用户要求提交推送 C11–C16 源码、测试、证据及开发文档到 origin/main，标签 v1.0.0-beta-c16，产品版本仍为 1.0.0-beta，Release 为 prerelease。
+- 发布前 404 份源码和四项最终产物与 C16 验收快照一致，复用实际成品回归的安装器与 ZIP；对外包新增 C16 文件名，旧 C10 标签及附件保留。
+- 发布包含桌面安装器、CLI ZIP、入门指南、发行清单和 SHA-256；用法及发布步骤见 [入门](./CLI_Quick_Start.md)、[发行记录](./Release_C16_2026-10-09.md)。当前用户实际安装、PATH 和 Skill 未改，未清理中间包或临时目录。
+
+### CLI 配套功能与图标修复完成（C11–C16，2026-10-09）
+
+- 新一轮目标为不依赖 npm 的全局命令、可安装的 Skill、配置查看及 doctor；保留现有独立 ZIP/内置 Node 和 C10 的工程权限规则。首轮验证 Windows x64 与 Codex。
+- C11 优先修复此前跳过 EXE 资源编辑导致的默认 Electron 图标，原 ICO/PNG 保持；随后 C12 全局安装、C13 配置查看、C14 Skill、C15 doctor、C16 回归与配套发行。
+- **C11–C16 开发及隔离成品验收完成**；phase C16、36 个入口/47 种领域操作，policy C10/converter C7.1/online 2 不变。全量 39 文件/715 用例（配套工具 46）、UTF-8 404、格式 306、UI 110 及类型/lint/守卫通过；Electron 11 项会话、7 场景/32 断言关闭、21 项所有权、45 项在线重新通过。
+- 最终 CLI ZIP 136 项、配套桌面 36 项、独立真实 NSIS 安装/升级/卸载 12 项通过；Codex 在隔离项目发现并启用 Skill。浏览器修改/Undo/Redo/保存/导出/重开校验 0/0、Console 无 warn/error，GUI/CLI 导出相等；原图标保持，最终 EXE/安装器及真实测试快捷方式使用原图标。
+- 最终产物为 release/cli/C16-final3 与 release/desktop/C16-final。受管 Windows CMD 不自删除，实际卸载使用返回的外部 PowerShell 入口。当前用户 PATH、Skill、已有安装及已发布 C10 包保持；本节为开发验收记录，后续 Git/Release 交付见上节。真实用户安装和模型自动触发未测试，具体证据与边界见 [C16 报告](./CLI_C16_Implementation.md)、[验收快照](./evidence/CLI_C16/manifest.json)、[入门](./CLI_Quick_Start.md)。
 
 ### C3–C10 Git 交付与 C10 Release（2026-10-09）
 

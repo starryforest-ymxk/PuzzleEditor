@@ -10,6 +10,7 @@ import { writeInputSchemas } from './planSchemas';
 import { rawInputSchemas } from './rawSchemas';
 import { importInputSchemas } from './importSchemas';
 import { sessionInputSchemas } from './sessionSchemas';
+import { toolingInputSchemas } from './toolingSchemas';
 export * from './readSchemas';
 export const inputSchemas = {
   describe: describeRequestSchema,
@@ -20,6 +21,7 @@ export const inputSchemas = {
   ...rawInputSchemas,
   ...importInputSchemas,
   ...sessionInputSchemas,
+  ...toolingInputSchemas,
 };
 export function jsonSchema(schema: z.ZodType) {
   return z.toJSONSchema(schema, { io: 'input', target: 'draft-2020-12' });

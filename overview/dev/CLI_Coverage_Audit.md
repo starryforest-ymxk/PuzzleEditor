@@ -1,10 +1,10 @@
 # CLI 与软件编辑功能覆盖核对
 
-更新：2026-10-09。当前基线：C10 工作区、实际命令契约和本批回归。各批历史完成记录保留在其报告与 manifest，不以旧快照代替本批验证。
+更新：2026-10-09。当前基线：C16 最终源码及配套包；各批历史证据保留，最新整体结果见 [C16 报告](./CLI_C16_Implementation.md)。
 
 ## 结论
 
-**C1–C10 已完成。** 当前 describe 和权限策略为 C10，22 个命令入口、47 种领域操作。在线会话、未保存快照、原子领域事务、共享 GUI 历史及保存权限保护已交付；配套发行和验证边界见 [C10 完成报告](./CLI_C10_Implementation.md)。
+当前 describe phase C16、权限策略 C10，36 个入口/47 种领域操作。原 22 个工程入口保持，新增 version、setup install/status/uninstall/recover、config path/show、skills list/read/install/status/uninstall/recover、doctor，共 14 个配套入口。无需 npm，不包含 MCP/内置 AI/面板偏好指令；功能用法见 [统一发行指南](./CLI_Distribution_Guide.md)。C16 已验证实际 ZIP 安装、独立持久 HKCU PATH、新进程调用、Codex 只读 Skill 发现及独立产品的真实 NSIS 安装/升级/卸载；当前用户永久安装和自动模型触发不属于已测试结果。
 
 ## 当前覆盖
 

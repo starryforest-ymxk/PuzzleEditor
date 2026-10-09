@@ -23,6 +23,8 @@ const sourceExtensions = new Set([
   '.json',
   '.yaml',
   '.yml',
+  '.ps1',
+  '.md',
 ]);
 
 export function listFiles(directory = '.', ignored = ignoredDirectories) {
@@ -50,6 +52,7 @@ export function formatFiles() {
       ...listFiles('cli'),
       ...listFiles('contracts/automation'),
       ...listFiles('services/automation'),
+      ...listFiles('services/cliTooling'),
       ...listFiles('store/commands/automation'),
       ...listFiles('tests/cli'),
       ...listFiles('utils/validation/rules'),
@@ -140,5 +143,5 @@ export function formatFiles() {
       'styles.css',
       'tests/components/uiConsistency.test.tsx',
     ]),
-  ];
+  ].filter((file) => !file.endsWith('.ps1'));
 }

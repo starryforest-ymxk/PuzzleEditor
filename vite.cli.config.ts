@@ -1,5 +1,8 @@
 /** CLI 使用纯 Node 构建；不加载 GUI 插件、环境变量或入口页面。 */
 import { defineConfig } from 'vite';
+import { readFileSync } from 'node:fs';
+
+const product = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8'));
 
 export default defineConfig({
   publicDir: false,
@@ -20,7 +23,14 @@ export default defineConfig({
         this.emitFile({
           type: 'asset',
           fileName: 'package.json',
-          source: '{"type":"module","private":true}\n',
+          source:
+            JSON.stringify({
+              type: 'module',
+              private: true,
+              name: 'puzzle-editor-cli',
+              version: product.version,
+              engines: product.engines,
+            }) + '\n',
         });
       },
     },

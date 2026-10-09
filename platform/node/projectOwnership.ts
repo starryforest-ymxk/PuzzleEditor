@@ -86,6 +86,37 @@ const identityKey = (identity: FileIdentity) => `file:${identity.dev}:${identity
 export const ownershipEndpoint = (key: string) =>
   `\\\\.\\pipe\\puzzle-editor-ownership-v1-${digest(key)}`;
 
+/** 诊断只探测既有端点，不创建/删除锁；结果是瞬时观察，不能作为后续写入许可。 */
+export async function inspectProjectOwnership(input: string) {
+  if (!ownershipSupported) return { status: 'unsupported' };
+  const canonical = await projectPath(input),
+    identity = await fileIdentity(canonical);
+  const probe = (key: string) =>
+    new Promise<'held' | 'unobserved' | 'unknown'>((resolve) => {
+      const socket = net.createConnection(ownershipEndpoint(key));
+      const finish = (state: 'held' | 'unobserved' | 'unknown') => {
+        socket.destroy();
+        resolve(state);
+      };
+      socket.setTimeout(1000, () => finish('unknown'));
+      socket.once('connect', () => finish('held'));
+      socket.once('error', (error: NodeJS.ErrnoException) =>
+        finish(['ENOENT', 'ECONNREFUSED'].includes(error.code ?? '') ? 'unobserved' : 'unknown'),
+      );
+    });
+  const states = await Promise.all([
+    probe('path:' + pathKey(canonical)),
+    probe(identityKey(identity)),
+  ]);
+  return {
+    status: states.includes('held')
+      ? 'held'
+      : states.includes('unknown')
+        ? 'unknown'
+        : 'unobserved',
+  };
+}
+
 export class ProjectLease {
   readonly instanceId = randomUUID();
   private servers = new Map<string, net.Server>();

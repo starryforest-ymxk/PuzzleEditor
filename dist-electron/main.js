@@ -4,6 +4,7 @@
  */
 import { app, BrowserWindow, ipcMain, Menu, nativeTheme } from 'electron';
 import * as path from 'path';
+import { existsSync } from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { registerIpcHandlers } from './ipc/handlers.js';
 import { fileWatcherService } from './ipc/watcherService.js';
@@ -23,13 +24,17 @@ let mainWindow = null;
  * 创建主窗口
  */
 function createWindow() {
+    // 开发资源位于 public，生产资源由 Vite 复制进 dist；不引用 ASAR 中不存在的 public。
+    const iconPath = path.join(app.getAppPath(), isDev ? 'public/icon.png' : 'dist/icon.png');
+    if (!existsSync(iconPath))
+        throw new Error('Application icon resource is missing.');
     mainWindow = new BrowserWindow({
         width: 1400,
         height: 900,
         minWidth: 1024,
         minHeight: 768,
         // 窗口图标（左上角）
-        icon: path.join(__dirname, '../public/icon.png'),
+        icon: iconPath,
         webPreferences: {
             // 预加载脚本路径
             preload: path.join(__dirname, 'preload.mjs'),

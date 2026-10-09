@@ -1,0 +1,3 @@
+interface:
+  display_name: "PuzzleEditor"
+  short_description: "Create and edit puzzle projects through the CLI"

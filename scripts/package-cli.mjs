@@ -113,6 +113,17 @@ async function main() {
       path.join(root, 'cli/runtime-lock.json'),
       path.join(target, 'runtime-lock.json'),
     );
+    for (const file of ['install-cli.ps1', 'uninstall-cli.ps1'])
+      await fs.copyFile(path.join(root, 'scripts', file), path.join(target, file));
+    await fs.cp(path.join(root, 'agent-skills'), path.join(target, 'agent-skills'), {
+      recursive: true,
+    });
+    const references = path.join(target, 'agent-skills/puzzle-editor/references');
+    await fs.mkdir(references, { recursive: true });
+    await fs.copyFile(
+      path.join(root, 'overview/dev/CLI_Distribution_Guide.md'),
+      path.join(references, 'cli-guide.md'),
+    );
     await fs.writeFile(
       path.join(target, 'puzzle.cmd'),
       '@echo off\r\nsetlocal DisableDelayedExpansion\r\n"%~dp0runtime\\node.exe" "%~dp0app\\cli.js" %*\r\nexit /b %errorlevel%\r\n',
@@ -120,7 +131,7 @@ async function main() {
     );
     await fs.writeFile(
       path.join(target, 'README.md'),
-      '# PuzzleEditor CLI\n\nWindows x64 独立包。启动：`puzzle.cmd --help`。完整调用和聊天授权约定见 [AGENTS.md](./AGENTS.md)。\n\n本包包含固定版本 Node 运行时及 Zod；许可证位于 licenses。无需安装依赖，不会启动编辑器或修改 PATH。应用代码的使用权限沿用原项目，本包不另行授予第三方许可。\n',
+      '# PuzzleEditor CLI\n\nWindows x64 独立包。启动：`puzzle.cmd --help`。完整调用和聊天授权约定见 [AGENTS.md](./AGENTS.md)。\n\n全局安装：`powershell -NoProfile -ExecutionPolicy Bypass -File .\\install-cli.ps1 --dry-run` 预览，去掉 --dry-run 安装。重新打开终端，使用 puzzle version、puzzle setup status。卸载从外部执行 `powershell -NoProfile -ExecutionPolicy Bypass -File .\\uninstall-cli.ps1`；受管入口位置可从 setup status 的 uninstallEntry 读取，具体见 AGENTS.md。只修改受管文件及当前用户 PATH，不需要管理员。中断使用 setup recover。\n\n本包包含固定 Node 及 Zod，许可证位于 licenses。不安装时不修改 PATH。应用代码使用权限沿用原项目，本包不另行授予第三方许可。\n',
       'utf8',
     );
     const describe = spawnSync(node, [path.join(target, 'app/cli.js'), 'describe', '--json'], {
@@ -132,15 +143,16 @@ async function main() {
       throw new Error('Packaged CLI capabilities differ from the build.');
     await fs.writeFile(path.join(target, 'capabilities.json'), describe.stdout, 'utf8');
     const collect = async (directory) =>
-      (await fs.readdir(directory, { withFileTypes: true })).flatMap((entry) =>
-        entry.isDirectory() ? [] : [path.join(directory, entry.name)],
-      );
-    const files = [
-      ...(await collect(target)),
-      ...(await collect(path.join(target, 'app'))),
-      ...(await collect(path.join(target, 'runtime'))),
-      ...(await collect(path.join(target, 'licenses'))),
-    ].sort();
+      (
+        await Promise.all(
+          (await fs.readdir(directory, { withFileTypes: true })).map((entry) =>
+            entry.isDirectory()
+              ? collect(path.join(directory, entry.name))
+              : [path.join(directory, entry.name)],
+          ),
+        )
+      ).flat();
+    const files = (await collect(target)).sort();
     const manifest = {
       name,
       version: pkg.version,

@@ -69,7 +69,7 @@ const apply = (prepared: { plan: string; receipt: string }, flags: string[] = []
 describe('C6 领域删除与交付', () => {
   it('新版目录保留 C6 的 47 种操作和同级独立能力，覆盖能力可调用但不能用于另存模式', async () => {
     const described = await run(['describe']);
-    expect(described.result.data.phase).toBe('C10');
+    expect(described.result.data.phase).toBe(CLI_PHASE);
     expect(described.result.data.planSchema.properties.commands.items.oneOf).toHaveLength(47);
     expect(described.result.data.authorizationCapabilities.overwrite_project).toMatchObject({
       level: 'highest',
@@ -409,3 +409,4 @@ describe('C6 备用 JSON 权限组合与回执', () => {
     },
   );
 });
+import { CLI_PHASE } from '../../contracts/automation/capabilities';

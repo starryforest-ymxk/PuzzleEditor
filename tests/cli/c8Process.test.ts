@@ -84,9 +84,9 @@ afterEach(async () => {
 describe.skipIf(process.platform !== 'win32')('C8 覆盖的权限、原文与可重试交付', () => {
   it('能力扩展为 19 个入口和 47 个领域操作，C8 覆盖可发现', async () => {
     const d = (await run(['describe'])).result.data;
-    expect(d.phase).toBe('C10');
+    expect(d.phase).toBe(CLI_PHASE);
     expect(d.policyVersion).toBe('C10');
-    expect(d.capabilities).toHaveLength(22);
+    expect(d.capabilities).toHaveLength(36);
     expect(d.planSchema.properties.commands.items.oneOf).toHaveLength(47);
     expect(d.authorizationCapabilities.overwrite_project.implemented).toBe(true);
   });
@@ -336,3 +336,4 @@ describe.skipIf(process.platform !== 'win32')('C8 覆盖的权限、原文与可
     },
   );
 });
+import { CLI_PHASE } from '../../contracts/automation/capabilities';

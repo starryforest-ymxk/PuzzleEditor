@@ -48,10 +48,10 @@ async function mutation(direction = 'undo') {
 }
 
 describe.skipIf(process.platform !== 'win32')('C10 真实 CLI 历史契约', () => {
-  it('describe 暴露 22 个入口和严格历史字段、聊天声明及协议', async () => {
+  it('describe 暴露 36 个入口和严格历史字段、聊天声明及协议', async () => {
     const { result } = await run(['describe']);
-    expect(result.data.phase).toBe('C10');
-    expect(result.data.capabilities).toHaveLength(22);
+    expect(result.data.phase).toBe(CLI_PHASE);
+    expect(result.data.capabilities).toHaveLength(36);
     expect(result.data.sessionRules[0]).toContain('protocol 2');
     const undo = result.data.capabilities.find(
       (x: { operation: string }) => x.operation === 'history undo',
@@ -145,3 +145,4 @@ describe.skipIf(process.platform !== 'win32')('C10 真实 CLI 历史契约', () 
     expect(s.store.getState().history).toEqual({ past: [], future: [] });
   }, 15000);
 });
+import { CLI_PHASE } from '../../contracts/automation/capabilities';

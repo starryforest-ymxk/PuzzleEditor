@@ -19,7 +19,7 @@
     "test:electron:online": "npm run cli:build && npm run build && npm run electron:compile && node tests/electron/run-online-smoke.mjs",
     "electron:compile": "npm run node:build && tsc -p electron/tsconfig.json",
     "electron:dev": "npm run electron:compile && concurrently -k \"npm run dev\" \"wait-on http://localhost:3000 && electron .\"",
-    "electron:build": "npm run build && npm run electron:compile && electron-builder",
+    "electron:build": "npm run build && npm run electron:compile && node scripts/package-desktop.mjs",
     "electron:start": "npm run electron:compile && electron .",
     "typecheck": "npm run node:build && tsc --noEmit && tsc -p electron/tsconfig.json --noEmit && tsc -p cli/tsconfig.json",
     "lint": "eslint . --max-warnings 0",
@@ -71,6 +71,7 @@
       "dist-node/**/*"
     ],
     "win": {
+      "signAndEditExecutable": true,
       "target": [
         "nsis"
       ],

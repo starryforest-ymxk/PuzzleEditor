@@ -1,0 +1,27 @@
+{
+  "ok": true,
+  "utf8Documents": 20,
+  "localLinks": 188,
+  "files": [
+    "overview/dev/Architecture_Guide.md",
+    "overview/dev/CLI_Agent_Usage.md",
+    "overview/dev/CLI_Coverage_Audit.md",
+    "overview/dev/CLI_Distribution_Guide.md",
+    "overview/dev/CLI_Next_Development_Plan.md",
+    "overview/dev/CLI_Quick_Start.md",
+    "overview/dev/Implementation_Status.md",
+    "overview/dev/CLI_C11_Design.md",
+    "overview/dev/CLI_C11_Implementation.md",
+    "overview/dev/CLI_C12_Design.md",
+    "overview/dev/CLI_C12_Implementation.md",
+    "overview/dev/CLI_C13_Design.md",
+    "overview/dev/CLI_C13_Implementation.md",
+    "overview/dev/CLI_C14_Design.md",
+    "overview/dev/CLI_C14_Implementation.md",
+    "overview/dev/CLI_C15_Design.md",
+    "overview/dev/CLI_C15_Implementation.md",
+    "overview/dev/CLI_C16_Design.md",
+    "overview/dev/CLI_C16_Implementation.md",
+    "overview/dev/CLI_Tooling_Development_Plan.md"
+  ]
+}

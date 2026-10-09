@@ -70,7 +70,7 @@ async function json(args: string[], entry = binary) {
 
 describe('编译产物的真实命令行行为', () => {
   it('帮助、能力和权限如实区分领域写与 C6 聊天授权能力', async () => {
-    expect((await run(['--help'])).stdout).toContain('C10 offline');
+    expect((await run(['--help'])).stdout).toContain(CLI_PHASE + ' offline');
     const { code, data } = await json(['describe']);
     expect(code).toBe(0);
     expect(data.capabilities).toEqual(
@@ -431,3 +431,4 @@ describe('领域查询、上下文和机器诊断', () => {
     expect((await run(['json', 'read', sourcePath, '--raw'])).stdout).toBe(cliFile(project));
   });
 });
+import { CLI_PHASE } from '../../contracts/automation/capabilities';

@@ -1,5 +1,9 @@
 /** CLI 执行入口；输出使用单一结果对象，异常不混入 stdout 堆栈。 */
-import { capabilities, describeCapabilities } from '../contracts/automation/capabilities';
+import {
+  capabilities,
+  describeCapabilities,
+  CLI_PHASE,
+} from '../contracts/automation/capabilities';
 import {
   API_VERSION,
   describeRequestSchema,
@@ -19,7 +23,8 @@ import {
   readProjectContext,
   readSource,
 } from '../services/automation/readService';
-import { helpText, parseCommand } from './arguments';
+import { helpText, parseCommand, operationName } from './arguments';
+import { runToolingCommand } from '../services/cliTooling/commands';
 import { runSessionCommand } from './session';
 import { decodeUtf8 } from '../dist-node/files.js';
 import { writeInputSchemas } from '../contracts/automation/planSchemas';
@@ -54,9 +59,7 @@ async function main() {
   const argv = process.argv.slice(2);
   const rawOutput =
     argv[0] === 'json' && argv[1] === 'read' && argv.includes('--raw') && !argv.includes('--json');
-  let command = ['json', 'import', 'session', 'history'].includes(argv[0])
-    ? `${argv[0]} ${argv[1] ?? ''}`.trim()
-    : (argv[0] ?? 'help');
+  let command = operationName(argv);
   let diagnostics: Diagnostic[] = [];
   let data: unknown = null;
   let error: AutomationError | undefined;
@@ -69,6 +72,30 @@ async function main() {
     }
     command = parsed.operation;
     switch (parsed.operation) {
+      case 'version':
+      case 'doctor':
+      case 'config show':
+      case 'config path':
+      case 'skills list':
+      case 'skills read':
+      case 'skills status':
+      case 'skills install':
+      case 'skills uninstall':
+      case 'skills recover':
+      case 'setup install':
+      case 'setup status':
+      case 'setup uninstall':
+      case 'setup recover':
+        data = await runToolingCommand(parsed.operation, parsed.input, CLI_PHASE);
+        if (parsed.operation === 'doctor' && !(data as { healthy: boolean }).healthy) {
+          exitCode = 3;
+          error = {
+            code: 'DOCTOR_FAILED',
+            message: 'One or more diagnostic checks failed.',
+            retryable: false,
+          };
+        }
+        break;
       case 'history list':
       case 'history undo':
       case 'history redo':
