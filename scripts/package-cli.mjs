@@ -105,9 +105,29 @@ async function main() {
     );
     for (const file of ['cli.js', 'package.json'])
       await fs.copyFile(path.join(root, 'dist-cli', file), path.join(target, 'app', file));
-    await fs.copyFile(
-      path.join(root, 'overview/dev/CLI_Distribution_Guide.md'),
+    const skillRead = spawnSync(
+      process.execPath,
+      [path.join(root, 'dist-cli/cli.js'), 'skills', 'read', 'puzzle-editor'],
+      { encoding: 'utf8', windowsHide: true },
+    );
+    if (skillRead.status !== 0)
+      throw new Error('Cannot read complete public Skill: ' + skillRead.stdout);
+    const skillFiles = JSON.parse(skillRead.stdout).data.files;
+    // 由实际安装服务解析同一白名单；包只写入明确登记的 UTF-8 文件。
+    for (const [file, content] of Object.entries(skillFiles)) {
+      const destination = path.join(target, 'agent-skills/puzzle-editor', file);
+      await fs.mkdir(path.dirname(destination), { recursive: true });
+      await fs.writeFile(destination, content, 'utf8');
+    }
+    const packageLinks = (text) =>
+      text.replace(
+        /\]\((?!https?:|#)([^)]+)\)/gu,
+        '](' + 'agent-skills/puzzle-editor/references/$1)',
+      );
+    await fs.writeFile(
       path.join(target, 'AGENTS.md'),
+      packageLinks(skillFiles['references/cli-guide.md']),
+      'utf8',
     );
     await fs.copyFile(
       path.join(root, 'cli/runtime-lock.json'),
@@ -115,31 +135,24 @@ async function main() {
     );
     for (const file of ['install-cli.ps1', 'uninstall-cli.ps1'])
       await fs.copyFile(path.join(root, 'scripts', file), path.join(target, file));
-    // 仅复制对外 Skill 所需入口与元数据，避免源码目录里的临时文件或开发记录进入包。
-    for (const file of ['SKILL.md', 'agents/openai.yaml']) {
-      const destination = path.join(target, 'agent-skills/puzzle-editor', file);
-      await fs.mkdir(path.dirname(destination), { recursive: true });
-      await fs.copyFile(path.join(root, 'agent-skills/puzzle-editor', file), destination);
-    }
-    const references = path.join(target, 'agent-skills/puzzle-editor/references');
-    await fs.mkdir(references, { recursive: true });
-    await fs.copyFile(
-      path.join(root, 'overview/dev/CLI_Distribution_Guide.md'),
-      path.join(references, 'cli-guide.md'),
-    );
     await fs.writeFile(
       path.join(target, 'puzzle.cmd'),
       '@echo off\r\nsetlocal DisableDelayedExpansion\r\n"%~dp0runtime\\node.exe" "%~dp0app\\cli.js" %*\r\nexit /b %errorlevel%\r\n',
       { encoding: 'utf8', flag: 'wx' },
     );
-    // 入门说明只有一个维护来源；包内将完整指南链接解析到随包提供的 AGENTS.md。
-    const quickStart = await fs.readFile(
-      path.join(root, 'overview/dev/CLI_Quick_Start.md'),
-      'utf8',
-    );
+    // README 与 Skill 入门来自同一正文，仅按根目录重定位链接和示例调用路径。
+    const quickStart = packageLinks(skillFiles['references/quick-start.md']);
     await fs.writeFile(
       path.join(target, 'README.md'),
-      quickStart.replaceAll('(./CLI_Distribution_Guide.md)', '(./AGENTS.md)'),
+      quickStart
+        .replace(
+          '先在 PowerShell 中进入本页所在的 references 目录，然后运行：',
+          '先在 PowerShell 中进入完整解压包的根目录，然后运行：',
+        )
+        .replaceAll(
+          '.\\examples\\quick-start.ps1',
+          '.\\agent-skills\\puzzle-editor\\references\\examples\\quick-start.ps1',
+        ),
       'utf8',
     );
     const describe = spawnSync(node, [path.join(target, 'app/cli.js'), 'describe', '--json'], {

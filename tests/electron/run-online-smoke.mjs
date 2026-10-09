@@ -617,6 +617,80 @@ try {
     (await cli(['session', 'list'])).data.sessions.length === 0,
     'Closed desktop registrations are removed',
   );
+  // 执行随包教程本身，而非只写一套外观相似的在线测试步骤。
+  const tutorialSource = join(directory, 'Tutorial.puzzle.json');
+  const tutorialBytes = await readFile(
+    resolve('overview/dev/cli-reference/examples/sample.puzzle.json'),
+  );
+  await writeFile(tutorialSource, tutorialBytes);
+  const tutorialDesktop = await desktop('tutorial', tutorialSource);
+  let tutorialSession;
+  await until(async () => {
+    const discovered = await cli(['session', 'list']);
+    tutorialSession = discovered.data.sessions.find(
+      (entry) => entry.status === 'available' && entry.data?.path === tutorialSource,
+    )?.data;
+    return tutorialSession?.loaded;
+  }, 'Tutorial desktop not ready');
+  const tutorialLauncher = join(directory, 'tutorial-puzzle.cmd');
+  await writeFile(
+    tutorialLauncher,
+    '@echo off\r\n"%PUZZLE_DOC_NODE%" "%PUZZLE_DOC_ENTRY%" %*\r\nexit /b %errorlevel%\r\n',
+  );
+  const tutorialProcess = spawn(
+    'powershell.exe',
+    [
+      '-NoProfile',
+      '-ExecutionPolicy',
+      'Bypass',
+      '-File',
+      resolve('overview/dev/cli-reference/examples/online.ps1'),
+      '-Puzzle',
+      tutorialLauncher,
+      '-Instance',
+      tutorialSession.token.instanceId,
+      '-Session',
+      String(tutorialSession.token.sessionId),
+      '-WorkDirectory',
+      join(directory, 'online-tutorial'),
+    ],
+    {
+      windowsHide: true,
+      stdio: ['ignore', 'pipe', 'pipe'],
+      env: {
+        ...process.env,
+        PUZZLE_EDITOR_SESSION_DIR: discovery,
+        PUZZLE_DOC_NODE: process.execPath,
+        PUZZLE_DOC_ENTRY: resolve('dist-cli/cli.js'),
+      },
+    },
+  );
+  children.push(tutorialProcess);
+  let tutorialOut = '',
+    tutorialError = '';
+  tutorialProcess.stdout.on('data', (bytes) => {
+    tutorialOut += bytes;
+  });
+  tutorialProcess.stderr.on('data', (bytes) => {
+    tutorialError += bytes;
+  });
+  const tutorialCode = await new Promise((ok, bad) => {
+    tutorialProcess.once('error', bad);
+    tutorialProcess.once('exit', ok);
+  });
+  assert(tutorialCode === 0, 'Published online PowerShell tutorial succeeds: ' + tutorialError);
+  const tutorialReport = JSON.parse(tutorialOut);
+  const tutorialFile = JSON.parse(await readFile(tutorialReport.output, 'utf8'));
+  assert(
+    tutorialReport.validated && tutorialFile.project.meta.description.startsWith('Online example '),
+    'Tutorial applies, undoes, redoes, validates and saves the expected in-memory change',
+  );
+  assert(
+    (await readFile(tutorialSource)).equals(tutorialBytes),
+    'Tutorial save-as preserves the source disk bytes',
+  );
+  await tutorialDesktop.request('screenshot', join(directory, '03-reference-tutorial.png'));
+  await tutorialDesktop.request('destroy');
   await writeFile(
     join(directory, 'result.json'),
     JSON.stringify({ success: true, checks }, null, 2),

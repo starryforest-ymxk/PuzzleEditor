@@ -297,9 +297,62 @@ try {
     expect(run(['config', 'show']).data.raw === null, 'Absent config remains absent');
     const guide = run(['skills', 'read', 'puzzle-editor']).data.files['references/cli-guide.md'];
     expect(
-      guide === (await fs.readFile(path.join(app, 'AGENTS.md'), 'utf8')),
-      'Skill and AGENTS share one guide',
+      guide.replace(
+        /\]\((?!https?:|#)([^)]+)\)/gu,
+        '](agent-skills/puzzle-editor/references/$1)',
+      ) === (await fs.readFile(path.join(app, 'AGENTS.md'), 'utf8')),
+      'Skill and AGENTS share one guide with correctly rebased links',
     );
+    // 根目录说明重定位后的链接和教程也必须在独立包中可直接使用。
+    for (const name of ['README.md', 'AGENTS.md']) {
+      const text = await fs.readFile(path.join(app, name), 'utf8');
+      for (const match of text.matchAll(/\]\((?!https?:|#)([^)]+)\)/gu)) {
+        const target = path.resolve(app, match[1].split('#')[0]);
+        expect(
+          !path.relative(app, target).startsWith('..') && (await fs.stat(target)).isFile(),
+          `Root document link: ${name} -> ${match[1]}`,
+        );
+      }
+    }
+    for (const name of ['quick-start', 'advanced']) {
+      const tutorial = spawnSync(
+        powershell,
+        [
+          '-NoProfile',
+          '-ExecutionPolicy',
+          'Bypass',
+          '-File',
+          path.join(app, 'agent-skills/puzzle-editor/references/examples', name + '.ps1'),
+          '-Puzzle',
+          launcher,
+          '-WorkDirectory',
+          path.join(isolated, '教程 ' + name),
+        ],
+        { env, cwd: work, encoding: 'utf8', windowsHide: true, timeout: 60000 },
+      );
+      expect(tutorial.status === 0, `Standalone ${name} tutorial: ${tutorial.stderr}`);
+      const result = JSON.parse(tutorial.stdout);
+      expect(result.validated === true, `Standalone ${name} validation`);
+      const project = JSON.parse(await fs.readFile(result.output, 'utf8')).project;
+      if (name === 'quick-start')
+        expect(
+          project.stageTree.stages[project.stageTree.rootId].description ===
+            'Edited through the CLI',
+          'Standalone quick-start changes the actual root stage',
+        );
+      else {
+        const graph = project.presentationGraphs[result.aliases.intro.id];
+        expect(
+          graph.nodes[result.aliases.parallel.id].nextIds.length === 2,
+          'Standalone tutorial graph connections',
+        );
+        const imported = JSON.parse(await fs.readFile(result.converted, 'utf8')).project;
+        expect(
+          imported.stageTree.stages[imported.stageTree.rootId].assetName === 'ImportedRoot',
+          'Standalone tutorial import names',
+        );
+      }
+    }
     run(['doctor', '--offline', '--project', source]);
     const entry = spawnSync(
       powershell,
@@ -353,9 +406,21 @@ try {
     const skillArgs = ['--agent', 'codex', '--scope', 'project', '--project-root', work];
     run(['skills', 'install', ...skillArgs, '--dry-run']);
     run(['skills', 'install', ...skillArgs]);
+    const skillStatus = run(['skills', 'status', ...skillArgs]).data;
     expect(
-      run(['skills', 'status', ...skillArgs]).data.managed,
-      'Packaged project Skill ownership',
+      skillStatus.managed && !skillStatus.updateAvailable,
+      'Packaged project Skill ownership and current contents',
+    );
+    const skillFiles = run(['skills', 'read', 'puzzle-editor']).data.files;
+    for (const [name, content] of Object.entries(skillFiles))
+      expect(
+        (await fs.readFile(path.join(work, '.agents/skills/puzzle-editor', name), 'utf8')) ===
+          content,
+        `Installed Skill exact content: ${name}`,
+      );
+    expect(
+      !run(['skills', 'install', ...skillArgs]).data.changed,
+      'Packaged Skill reinstall is idempotent',
     );
     run(['skills', 'uninstall', ...skillArgs]);
     run(['doctor', '--offline', '--project', source]);

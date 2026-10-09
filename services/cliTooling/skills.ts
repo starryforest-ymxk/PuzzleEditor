@@ -12,7 +12,6 @@ import {
 import { API_VERSION } from '../../contracts/automation/readSchemas';
 import { POLICY_VERSION } from '../../contracts/automation/permissions';
 import {
-  optionalBytes,
   plainPath,
   readContract,
   digest,
@@ -24,6 +23,7 @@ import {
 } from './files';
 import { verifyFiles } from './installation';
 import { AutomationFailure } from '../automation/errors';
+import { publicSkillFiles } from './referenceFiles';
 export interface SkillOptions {
   installRoot?: string;
   agent: 'codex';
@@ -33,18 +33,7 @@ export interface SkillOptions {
 }
 export async function skillContents(phase: string) {
   const packageRoot = path.dirname(path.dirname(path.resolve(process.argv[1])));
-  const source = path.join(packageRoot, 'agent-skills/puzzle-editor');
-  const files: Record<string, string> = {};
-  for (const file of ['SKILL.md', 'agents/openai.yaml']) {
-    const bytes = await optionalBytes(path.join(source, file));
-    if (!bytes) conflict('Packaged Skill is missing: ' + file);
-    files[file] = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
-  }
-  const reference =
-    (await optionalBytes(path.join(source, 'references/cli-guide.md'))) ??
-    (await optionalBytes(path.join(packageRoot, 'overview/dev/CLI_Distribution_Guide.md')));
-  if (!reference) conflict('Skill execution reference is missing.');
-  files['references/cli-guide.md'] = new TextDecoder('utf-8', { fatal: true }).decode(reference);
+  const files = await publicSkillFiles(packageRoot);
   files['compatibility.json'] =
     JSON.stringify({ apiVersion: API_VERSION, policyVersion: POLICY_VERSION, phase }, null, 2) +
     '\n';
@@ -54,8 +43,6 @@ export async function skillContents(phase: string) {
     !files['agents/openai.yaml'].includes('display_name: "PuzzleEditor"')
   )
     conflict('Skill metadata is invalid.');
-  for (const match of files['SKILL.md'].matchAll(/\]\(([^)]+)\)/gu))
-    if (!Object.hasOwn(files, match[1])) conflict('Skill reference does not resolve: ' + match[1]);
   return files;
 }
 async function location(input: SkillOptions) {
@@ -91,12 +78,24 @@ export async function skillStatus(input: SkillOptions, phase: string) {
   const present = await exists(state.target);
   const recoveryRequired = await exists(state.journalFile);
   if (state.record && !recoveryRequired) await verifyFiles(state.target, state.record);
+  // 旧记录已有逐文件指纹，不需要迁移记录格式即可识别同批次的文档更新。
+  const expected = state.record
+    ? Object.entries(await skillContents(phase)).map(([file, text]) => ({
+        path: file,
+        size: Buffer.byteLength(text),
+        sha256: digest(text),
+      }))
+    : [];
+  const ordered = (files: SkillRecord['files']) =>
+    [...files].sort((a, b) => a.path.localeCompare(b.path));
   return {
     target: state.target,
     installed: present,
     managed: !!state.record,
     phase: state.record?.phase ?? null,
-    updateAvailable: !!state.record && state.record.phase !== phase,
+    updateAvailable:
+      !!state.record &&
+      (state.record.phase !== phase || !same(ordered(state.record.files), ordered(expected))),
     recoveryRequired,
     hostDiscovery: 'not-verified',
     record: state.recordFile,

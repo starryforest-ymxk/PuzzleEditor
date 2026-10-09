@@ -5,7 +5,16 @@ description: Create, inspect and edit PuzzleEditor puzzle projects through its C
 
 # PuzzleEditor
 
-Use the external PuzzleEditor CLI for project work. Consult the relevant sections of [the CLI guide](references/cli-guide.md): installation and configuration for setup, project reading and domain editing for files, desktop sessions and undo/redo for unsaved work, and import/export or authorized operations when needed.
+Use the external PuzzleEditor CLI for project work. Start from [the guide](references/cli-guide.md) and load only the references needed for the task:
+
+- First use: [quick start](references/quick-start.md). Setup/configuration/Skill/doctor: [tooling commands](references/commands-tooling.md).
+- Existing files, import/export or raw candidates: [file commands](references/commands-files.md).
+- Unsaved desktop content and shared undo/redo: [session commands](references/commands-session.md).
+- Domain plans: [hierarchy](references/operations-hierarchy.md), [resources](references/operations-resources.md), [FSM](references/operations-fsm.md), or [presentation graphs](references/operations-presentation.md).
+- Identity/scope/bindings: [data structures](references/data-structures.md). Complete examples: [workflows](references/workflows.md).
+- Authorized operations and recovery: [permissions and errors](references/permissions-errors.md).
+
+The bundled sample IDs and asset names belong to fictional tutorial projects. For real projects inspect actual identities and use the user's supplied names; do not copy sample identifiers or execute tutorials against an unrelated open session.
 
 Find `puzzle` on PATH or use the user's explicit portable `puzzle.cmd` path. If unavailable, report the missing executable; do not install tooling implicitly. Read `version` and `describe --json` for the actual schemas and supported operations. Do not invent commands from this skill's version.
 

@@ -1,22 +1,21 @@
 /** 终端参数只适配共用契约；严格拒绝重复参数和无效组合，避免静默忽略意图。 */
 import { parseArgs, type ParseArgsConfig } from 'node:util';
-import { capabilities, CLI_PHASE } from '../contracts/automation/capabilities';
+import { capabilities } from '../contracts/automation/capabilities';
 import { inputSchemas, type InspectRequest } from '../contracts/automation/schemas';
 import { AutomationFailure } from '../services/automation/errors';
 
-const flagName = (name: string) => name.replace(/[A-Z]/g, (letter) => '-' + letter.toLowerCase());
-const numbers = new Set(['offset', 'limit', 'depth', 'session']);
-const booleans = new Set([
-  'raw',
-  'warningsAsErrors',
-  'allowRawJsonWrite',
-  'allowPermanentDelete',
-  'inPlace',
-  'allowOverwrite',
-  'dryRun',
-  'offline',
-  'online',
-]);
+import {
+  flagName,
+  numericArguments as numbers,
+  booleanArguments as booleans,
+  positionalArgument,
+  inspectViewArguments,
+  commandArguments,
+  commandUsage,
+  schemaLabel,
+  schemaConstraints,
+} from './argumentContract';
+import { argumentDescriptions, commandRules } from './referenceMetadata';
 
 /** 从能力登记识别命令树，新增组不再维护第二份前缀名单。 */
 export function operationName(argv: string[]) {
@@ -44,8 +43,7 @@ export function parseCommand(argv: string[]) {
     );
   const name = operation as keyof typeof inputSchemas;
   const schema = inputSchemas[name];
-  const positional =
-    name === 'skills read' ? 'name' : Object.hasOwn(schema.shape, 'path') ? 'path' : null;
+  const positional = positionalArgument(name);
   const fields = Object.keys(schema.shape).filter((key) => key !== positional);
   const options: NonNullable<ParseArgsConfig['options']> = {
     json: { type: 'boolean' },
@@ -125,17 +123,7 @@ export function parseCommand(argv: string[]) {
 
 function checkInspectOptions(input: Record<string, unknown>) {
   const view = (input.view ?? 'summary') as InspectRequest['view'] | 'project';
-  const allowed: Record<InspectRequest['view'] | 'project', string[]> = {
-    project: [],
-    summary: [],
-    tree: ['id', 'depth', 'offset', 'limit'],
-    entities: ['type', 'id', 'ownerType', 'ownerId', 'search', 'offset', 'limit'],
-    fsm: ['id', 'search', 'offset', 'limit'],
-    presentation: ['id', 'search', 'offset', 'limit'],
-    references: ['type', 'id', 'ownerType', 'ownerId', 'offset', 'limit'],
-    variables: ['stageId', 'nodeId', 'offset', 'limit'],
-    bindings: ['type', 'search', 'offset', 'limit'],
-  };
+  const allowed: Record<InspectRequest['view'] | 'project', string[]> = inspectViewArguments;
   if (!Object.hasOwn(allowed, view)) return; // 枚举错误交给共用 Schema 产生定位。
   for (const key of Object.keys(input))
     if (!['view', 'path', 'expectedHash', 'instance', 'session', ...allowed[view]].includes(key)) {
@@ -179,7 +167,7 @@ function checkInspectOptions(input: Record<string, unknown>) {
 
 export function helpText(operation?: keyof typeof inputSchemas): string {
   const lines = [
-    `Puzzle Editor CLI — ${CLI_PHASE} offline tools and explicit desktop sessions`,
+    'Puzzle Editor CLI — offline tools and explicit desktop sessions',
     '',
     'Usage: puzzle <command> [file] [options]',
     'Output defaults to JSON. --json is explicit machine mode. --raw writes only original text.',
@@ -190,21 +178,51 @@ export function helpText(operation?: keyof typeof inputSchemas): string {
   )) {
     lines.push(`${item.operation}: ${item.summary}${item.implemented ? '' : ' [unavailable]'}`);
     if (Object.hasOwn(inputSchemas, item.operation)) {
-      const shape = inputSchemas[item.operation as keyof typeof inputSchemas].shape;
-      lines.push(
-        '  Options: ' +
-          Object.keys(shape)
-            .filter((key) => key !== 'path')
-            .concat(['json', 'help'])
-            .map((key) => '--' + flagName(key))
-            .join(', '),
-      );
+      const name = item.operation as keyof typeof inputSchemas;
+      lines.push('  Usage: ' + commandUsage(name));
+      if (operation) {
+        for (const arg of commandArguments(name)) {
+          const defaultValue =
+            arg.definition.default === undefined
+              ? ''
+              : '; default=' + JSON.stringify(arg.definition.default);
+          lines.push(
+            '  ' +
+              arg.flag +
+              ': ' +
+              schemaLabel(arg.definition) +
+              ' (' +
+              (arg.required ? 'required' : 'optional') +
+              defaultValue +
+              ')',
+          );
+          lines.push('    ' + argumentDescriptions[arg.field][1]);
+          const limits = schemaConstraints(arg.definition);
+          if (limits) lines.push('    ' + limits);
+        }
+        lines.push(
+          '  --json: Explicit JSON envelope output (default).',
+          '  --help, -h: Show this help without executing the command.',
+        );
+        for (const [, rule] of commandRules(name)) lines.push('  Note: ' + rule);
+        if (name === 'inspect' || name === 'session inspect') {
+          for (const [view, fields] of Object.entries(inspectViewArguments)) {
+            if (view === 'project' && name === 'inspect') continue;
+            lines.push(
+              '  View ' +
+                view +
+                ': ' +
+                (fields.map((field) => '--' + flagName(field)).join(', ') || 'no filters'),
+            );
+          }
+        }
+      }
     }
     if ('example' in item && item.example) lines.push('  ' + item.example);
   }
   lines.push(
     '',
-    'inspect views: summary, tree, entities, fsm, presentation, references, variables, bindings',
+    'Root aliases: --version / -v; --help / -h. Use puzzle <command> --help for parameter details.',
     'Use describe --json for schemas, scope rules, permission levels, and exit codes.',
   );
   return lines.join('\n') + '\n';

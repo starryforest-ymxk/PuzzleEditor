@@ -1,0 +1,12 @@
+{
+  "ok": true,
+  "verifiedAt": "2026-10-09T15:39:08.589Z",
+  "codex": "Codex Desktop/0.162.0-alpha.2 (Windows 10.0.26300; x86_64) dumb (puzzle-skill-verification; 1.0.0)",
+  "name": "puzzle-editor",
+  "scope": "repo",
+  "enabled": true,
+  "actualHostDiscovery": true,
+  "domainWorkflow": true,
+  "automaticModelInvocationTested": false,
+  "currentUserConfigurationChanged": false
+}

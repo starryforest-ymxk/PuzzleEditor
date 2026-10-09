@@ -70,7 +70,12 @@ async function json(args: string[], entry = binary) {
 
 describe('编译产物的真实命令行行为', () => {
   it('帮助、能力和权限如实区分领域写与 C6 聊天授权能力', async () => {
-    expect((await run(['--help'])).stdout).toContain(CLI_PHASE + ' offline');
+    const help = await run(['--help']);
+    expect(help.code).toBe(0);
+    expect(help.stdout).toContain(
+      'Puzzle Editor CLI — offline tools and explicit desktop sessions',
+    );
+    expect(help.stdout).not.toContain(CLI_PHASE + ' offline');
     const { code, data } = await json(['describe']);
     expect(code).toBe(0);
     expect(data.capabilities).toEqual(

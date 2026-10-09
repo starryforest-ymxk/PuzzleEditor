@@ -28,7 +28,10 @@
     "check:encoding": "node scripts/check-encoding.mjs",
     "check:guards": "node scripts/check-guards.mjs",
     "check:ui": "node scripts/check-ui-style.mjs",
-    "check": "npm run check:encoding && npm run typecheck && npm run lint && npm run format:check && npm run check:ui && npm run check:guards && npm run test:run",
+    "docs:cli": "node scripts/run-cli-docs.mjs",
+    "check:cli-docs": "node scripts/run-cli-docs.mjs --check",
+    "test:cli:docs": "npm run cli:build && vitest run tests/cli/reference.test.ts",
+    "check": "npm run check:encoding && npm run typecheck && npm run lint && npm run format:check && npm run check:ui && npm run check:guards && npm run check:cli-docs && npm run test:run",
     "cli:package": "npm run cli:build && node scripts/package-cli.mjs",
     "test:cli:package": "node scripts/verify-cli-package.mjs"
   },

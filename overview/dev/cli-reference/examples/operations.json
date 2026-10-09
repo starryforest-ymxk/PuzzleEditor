@@ -1,0 +1,905 @@
+{
+  "project.update": {
+    "apiVersion": "1.0.0",
+    "sourceHash": "9ea51e2d010a1452fecae22e92ca9803c8c249725f6ace8e1b330a5fe71529b2",
+    "scope": {
+      "project": true
+    },
+    "commands": [
+      {
+        "op": "project.update",
+        "changes": {
+          "description": "Updated demo"
+        }
+      }
+    ]
+  },
+  "stage.create": {
+    "apiVersion": "1.0.0",
+    "sourceHash": "9ea51e2d010a1452fecae22e92ca9803c8c249725f6ace8e1b330a5fe71529b2",
+    "scope": {
+      "project": true
+    },
+    "commands": [
+      {
+        "op": "stage.create",
+        "alias": "newStage",
+        "parent": {
+          "id": "room"
+        },
+        "data": {
+          "name": "Office",
+          "assetName": "Office"
+        }
+      }
+    ]
+  },
+  "stage.update": {
+    "apiVersion": "1.0.0",
+    "sourceHash": "9ea51e2d010a1452fecae22e92ca9803c8c249725f6ace8e1b330a5fe71529b2",
+    "scope": {
+      "project": true
+    },
+    "commands": [
+      {
+        "op": "stage.update",
+        "target": {
+          "id": "room"
+        },
+        "changes": {
+          "description": "Updated room"
+        }
+      }
+    ]
+  },
+  "stage.move": {
+    "apiVersion": "1.0.0",
+    "sourceHash": "9ea51e2d010a1452fecae22e92ca9803c8c249725f6ace8e1b330a5fe71529b2",
+    "scope": {
+      "project": true
+    },
+    "commands": [
+      {
+        "op": "stage.move",
+        "target": {
+          "id": "child"
+        },
+        "parent": {
+          "id": "hall"
+        },
+        "index": 0
+      }
+    ]
+  },
+  "stage.reorder": {
+    "apiVersion": "1.0.0",
+    "sourceHash": "9ea51e2d010a1452fecae22e92ca9803c8c249725f6ace8e1b330a5fe71529b2",
+    "scope": {
+      "project": true
+    },
+    "commands": [
+      {
+        "op": "stage.reorder",
+        "target": {
+          "id": "hall"
+        },
+        "index": 0
+      }
+    ]
+  },
+  "stage.delete": {
+    "apiVersion": "1.0.0",
+    "sourceHash": "9ea51e2d010a1452fecae22e92ca9803c8c249725f6ace8e1b330a5fe71529b2",
+    "scope": {
+      "project": true
+    },
+    "commands": [
+      {
+        "op": "stage.delete",
+        "target": {
+          "id": "room"
+        },
+        "cascade": true
+      }
+    ]
+  },
+  "puzzle.create": {
+    "apiVersion": "1.0.0",
+    "sourceHash": "9ea51e2d010a1452fecae22e92ca9803c8c249725f6ace8e1b330a5fe71529b2",
+    "scope": {
+      "project": true
+    },
+    "commands": [
+      {
+        "op": "puzzle.create",
+        "alias": "newPuzzle",
+        "stage": {
+          "id": "room"
+        },
+        "data": {
+          "name": "Chest",
+          "assetName": "Chest"
+        },
+        "initialState": {
+          "name": "Closed",
+          "assetName": "Closed",
+          "alias": "closed"
+        }
+      }
+    ]
+  },
+  "puzzle.update": {
+    "apiVersion": "1.0.0",
+    "sourceHash": "9ea51e2d010a1452fecae22e92ca9803c8c249725f6ace8e1b330a5fe71529b2",
+    "scope": {
+      "project": true
+    },
+    "commands": [
+      {
+        "op": "puzzle.update",
+        "target": {
+          "id": "door"
+        },
+        "changes": {
+          "description": "Updated door"
+        }
+      }
+    ]
+  },
+  "puzzle.move": {
+    "apiVersion": "1.0.0",
+    "sourceHash": "9ea51e2d010a1452fecae22e92ca9803c8c249725f6ace8e1b330a5fe71529b2",
+    "scope": {
+      "project": true
+    },
+    "commands": [
+      {
+        "op": "puzzle.move",
+        "target": {
+          "id": "door"
+        },
+        "stage": {
+          "id": "hall"
+        },
+        "index": 0
+      }
+    ]
+  },
+  "puzzle.reorder": {
+    "apiVersion": "1.0.0",
+    "sourceHash": "9ea51e2d010a1452fecae22e92ca9803c8c249725f6ace8e1b330a5fe71529b2",
+    "scope": {
+      "project": true
+    },
+    "commands": [
+      {
+        "op": "puzzle.reorder",
+        "stage": {
+          "id": "room"
+        },
+        "order": [
+          {
+            "id": "lock"
+          },
+          {
+            "id": "door"
+          }
+        ]
+      }
+    ]
+  },
+  "puzzle.delete": {
+    "apiVersion": "1.0.0",
+    "sourceHash": "9ea51e2d010a1452fecae22e92ca9803c8c249725f6ace8e1b330a5fe71529b2",
+    "scope": {
+      "project": true
+    },
+    "commands": [
+      {
+        "op": "puzzle.delete",
+        "target": {
+          "id": "door"
+        }
+      }
+    ]
+  },
+  "variable.create": {
+    "apiVersion": "1.0.0",
+    "sourceHash": "9ea51e2d010a1452fecae22e92ca9803c8c249725f6ace8e1b330a5fe71529b2",
+    "scope": {
+      "project": true
+    },
+    "commands": [
+      {
+        "op": "variable.create",
+        "alias": "newVariable",
+        "owner": {
+          "type": "global"
+        },
+        "data": {
+          "name": "Score",
+          "assetName": "Score",
+          "type": "integer",
+          "value": 0
+        }
+      }
+    ]
+  },
+  "variable.update": {
+    "apiVersion": "1.0.0",
+    "sourceHash": "9ea51e2d010a1452fecae22e92ca9803c8c249725f6ace8e1b330a5fe71529b2",
+    "scope": {
+      "project": true
+    },
+    "commands": [
+      {
+        "op": "variable.update",
+        "target": {
+          "id": "draft"
+        },
+        "owner": {
+          "type": "global"
+        },
+        "changes": {
+          "value": 2
+        }
+      }
+    ]
+  },
+  "variable.move": {
+    "apiVersion": "1.0.0",
+    "sourceHash": "9ea51e2d010a1452fecae22e92ca9803c8c249725f6ace8e1b330a5fe71529b2",
+    "scope": {
+      "project": true
+    },
+    "commands": [
+      {
+        "op": "variable.move",
+        "target": {
+          "id": "draft"
+        },
+        "owner": {
+          "type": "global"
+        },
+        "destination": {
+          "type": "stage",
+          "ref": {
+            "id": "room"
+          }
+        }
+      }
+    ]
+  },
+  "variable.delete": {
+    "apiVersion": "1.0.0",
+    "sourceHash": "9ea51e2d010a1452fecae22e92ca9803c8c249725f6ace8e1b330a5fe71529b2",
+    "scope": {
+      "project": true
+    },
+    "commands": [
+      {
+        "op": "variable.delete",
+        "target": {
+          "id": "draft"
+        },
+        "owner": {
+          "type": "global"
+        }
+      }
+    ]
+  },
+  "variable.purge": {
+    "apiVersion": "1.0.0",
+    "sourceHash": "9ea51e2d010a1452fecae22e92ca9803c8c249725f6ace8e1b330a5fe71529b2",
+    "scope": {
+      "project": true
+    },
+    "commands": [
+      {
+        "op": "variable.purge",
+        "target": {
+          "id": "implemented"
+        },
+        "owner": {
+          "type": "global"
+        }
+      }
+    ]
+  },
+  "variable.restore": {
+    "apiVersion": "1.0.0",
+    "sourceHash": "9ea51e2d010a1452fecae22e92ca9803c8c249725f6ace8e1b330a5fe71529b2",
+    "scope": {
+      "project": true
+    },
+    "commands": [
+      {
+        "op": "variable.restore",
+        "target": {
+          "id": "marked"
+        },
+        "owner": {
+          "type": "global"
+        }
+      }
+    ]
+  },
+  "event.create": {
+    "apiVersion": "1.0.0",
+    "sourceHash": "9ea51e2d010a1452fecae22e92ca9803c8c249725f6ace8e1b330a5fe71529b2",
+    "scope": {
+      "project": true
+    },
+    "commands": [
+      {
+        "op": "event.create",
+        "alias": "newEvent",
+        "data": {
+          "name": "Door Opened",
+          "assetName": "DoorOpened"
+        }
+      }
+    ]
+  },
+  "event.update": {
+    "apiVersion": "1.0.0",
+    "sourceHash": "9ea51e2d010a1452fecae22e92ca9803c8c249725f6ace8e1b330a5fe71529b2",
+    "scope": {
+      "project": true
+    },
+    "commands": [
+      {
+        "op": "event.update",
+        "target": {
+          "id": "draft"
+        },
+        "changes": {
+          "description": "Updated event"
+        }
+      }
+    ]
+  },
+  "event.delete": {
+    "apiVersion": "1.0.0",
+    "sourceHash": "9ea51e2d010a1452fecae22e92ca9803c8c249725f6ace8e1b330a5fe71529b2",
+    "scope": {
+      "project": true
+    },
+    "commands": [
+      {
+        "op": "event.delete",
+        "target": {
+          "id": "draft"
+        }
+      }
+    ]
+  },
+  "event.purge": {
+    "apiVersion": "1.0.0",
+    "sourceHash": "9ea51e2d010a1452fecae22e92ca9803c8c249725f6ace8e1b330a5fe71529b2",
+    "scope": {
+      "project": true
+    },
+    "commands": [
+      {
+        "op": "event.purge",
+        "target": {
+          "id": "implemented"
+        }
+      }
+    ]
+  },
+  "event.restore": {
+    "apiVersion": "1.0.0",
+    "sourceHash": "9ea51e2d010a1452fecae22e92ca9803c8c249725f6ace8e1b330a5fe71529b2",
+    "scope": {
+      "project": true
+    },
+    "commands": [
+      {
+        "op": "event.restore",
+        "target": {
+          "id": "marked"
+        }
+      }
+    ]
+  },
+  "script.create": {
+    "apiVersion": "1.0.0",
+    "sourceHash": "9ea51e2d010a1452fecae22e92ca9803c8c249725f6ace8e1b330a5fe71529b2",
+    "scope": {
+      "project": true
+    },
+    "commands": [
+      {
+        "op": "script.create",
+        "alias": "newScript",
+        "data": {
+          "name": "Check Door",
+          "assetName": "CheckDoor",
+          "category": "Condition"
+        }
+      }
+    ]
+  },
+  "script.update": {
+    "apiVersion": "1.0.0",
+    "sourceHash": "9ea51e2d010a1452fecae22e92ca9803c8c249725f6ace8e1b330a5fe71529b2",
+    "scope": {
+      "project": true
+    },
+    "commands": [
+      {
+        "op": "script.update",
+        "target": {
+          "id": "draft"
+        },
+        "changes": {
+          "description": "Updated script"
+        }
+      }
+    ]
+  },
+  "script.delete": {
+    "apiVersion": "1.0.0",
+    "sourceHash": "9ea51e2d010a1452fecae22e92ca9803c8c249725f6ace8e1b330a5fe71529b2",
+    "scope": {
+      "project": true
+    },
+    "commands": [
+      {
+        "op": "script.delete",
+        "target": {
+          "id": "draft"
+        }
+      }
+    ]
+  },
+  "script.purge": {
+    "apiVersion": "1.0.0",
+    "sourceHash": "9ea51e2d010a1452fecae22e92ca9803c8c249725f6ace8e1b330a5fe71529b2",
+    "scope": {
+      "project": true
+    },
+    "commands": [
+      {
+        "op": "script.purge",
+        "target": {
+          "id": "implemented"
+        }
+      }
+    ]
+  },
+  "script.restore": {
+    "apiVersion": "1.0.0",
+    "sourceHash": "9ea51e2d010a1452fecae22e92ca9803c8c249725f6ace8e1b330a5fe71529b2",
+    "scope": {
+      "project": true
+    },
+    "commands": [
+      {
+        "op": "script.restore",
+        "target": {
+          "id": "marked"
+        }
+      }
+    ]
+  },
+  "state.create": {
+    "apiVersion": "1.0.0",
+    "sourceHash": "9ea51e2d010a1452fecae22e92ca9803c8c249725f6ace8e1b330a5fe71529b2",
+    "scope": {
+      "project": true
+    },
+    "commands": [
+      {
+        "op": "state.create",
+        "alias": "newState",
+        "fsm": {
+          "id": "door-fsm"
+        },
+        "data": {
+          "name": "Locked",
+          "assetName": "Locked",
+          "position": {
+            "x": 400,
+            "y": 0
+          }
+        }
+      }
+    ]
+  },
+  "state.update": {
+    "apiVersion": "1.0.0",
+    "sourceHash": "9ea51e2d010a1452fecae22e92ca9803c8c249725f6ace8e1b330a5fe71529b2",
+    "scope": {
+      "project": true
+    },
+    "commands": [
+      {
+        "op": "state.update",
+        "fsm": {
+          "id": "door-fsm"
+        },
+        "target": {
+          "id": "idle"
+        },
+        "changes": {
+          "position": {
+            "x": 20,
+            "y": 30
+          }
+        }
+      }
+    ]
+  },
+  "state.delete": {
+    "apiVersion": "1.0.0",
+    "sourceHash": "9ea51e2d010a1452fecae22e92ca9803c8c249725f6ace8e1b330a5fe71529b2",
+    "scope": {
+      "project": true
+    },
+    "commands": [
+      {
+        "op": "state.delete",
+        "fsm": {
+          "id": "door-fsm"
+        },
+        "target": {
+          "id": "spare"
+        }
+      }
+    ]
+  },
+  "fsm.setInitial": {
+    "apiVersion": "1.0.0",
+    "sourceHash": "9ea51e2d010a1452fecae22e92ca9803c8c249725f6ace8e1b330a5fe71529b2",
+    "scope": {
+      "project": true
+    },
+    "commands": [
+      {
+        "op": "fsm.setInitial",
+        "fsm": {
+          "id": "door-fsm"
+        },
+        "state": {
+          "id": "open"
+        }
+      }
+    ]
+  },
+  "fsm.update": {
+    "apiVersion": "1.0.0",
+    "sourceHash": "9ea51e2d010a1452fecae22e92ca9803c8c249725f6ace8e1b330a5fe71529b2",
+    "scope": {
+      "project": true
+    },
+    "commands": [
+      {
+        "op": "fsm.update",
+        "fsm": {
+          "id": "door-fsm"
+        },
+        "changes": {
+          "displayOrder": 2
+        }
+      }
+    ]
+  },
+  "transition.create": {
+    "apiVersion": "1.0.0",
+    "sourceHash": "9ea51e2d010a1452fecae22e92ca9803c8c249725f6ace8e1b330a5fe71529b2",
+    "scope": {
+      "project": true
+    },
+    "commands": [
+      {
+        "op": "transition.create",
+        "alias": "newTransition",
+        "fsm": {
+          "id": "door-fsm"
+        },
+        "from": {
+          "id": "open"
+        },
+        "to": {
+          "id": "idle"
+        },
+        "data": {
+          "name": "Close",
+          "priority": 1,
+          "triggers": [
+            {
+              "type": "Always"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "transition.update": {
+    "apiVersion": "1.0.0",
+    "sourceHash": "9ea51e2d010a1452fecae22e92ca9803c8c249725f6ace8e1b330a5fe71529b2",
+    "scope": {
+      "project": true
+    },
+    "commands": [
+      {
+        "op": "transition.update",
+        "fsm": {
+          "id": "door-fsm"
+        },
+        "target": {
+          "id": "go"
+        },
+        "changes": {
+          "condition": {
+            "type": "Literal",
+            "value": true
+          },
+          "priority": 2
+        }
+      }
+    ]
+  },
+  "transition.delete": {
+    "apiVersion": "1.0.0",
+    "sourceHash": "9ea51e2d010a1452fecae22e92ca9803c8c249725f6ace8e1b330a5fe71529b2",
+    "scope": {
+      "project": true
+    },
+    "commands": [
+      {
+        "op": "transition.delete",
+        "fsm": {
+          "id": "door-fsm"
+        },
+        "target": {
+          "id": "go"
+        }
+      }
+    ]
+  },
+  "transition.redirect": {
+    "apiVersion": "1.0.0",
+    "sourceHash": "9ea51e2d010a1452fecae22e92ca9803c8c249725f6ace8e1b330a5fe71529b2",
+    "scope": {
+      "project": true
+    },
+    "commands": [
+      {
+        "op": "transition.redirect",
+        "fsm": {
+          "id": "door-fsm"
+        },
+        "target": {
+          "id": "go"
+        },
+        "from": {
+          "id": "idle"
+        },
+        "to": {
+          "id": "spare"
+        }
+      }
+    ]
+  },
+  "presentation.create": {
+    "apiVersion": "1.0.0",
+    "sourceHash": "9ea51e2d010a1452fecae22e92ca9803c8c249725f6ace8e1b330a5fe71529b2",
+    "scope": {
+      "project": true
+    },
+    "commands": [
+      {
+        "op": "presentation.create",
+        "alias": "newGraph",
+        "data": {
+          "name": "Victory"
+        }
+      }
+    ]
+  },
+  "presentation.update": {
+    "apiVersion": "1.0.0",
+    "sourceHash": "9ea51e2d010a1452fecae22e92ca9803c8c249725f6ace8e1b330a5fe71529b2",
+    "scope": {
+      "project": true
+    },
+    "commands": [
+      {
+        "op": "presentation.update",
+        "graph": {
+          "id": "show"
+        },
+        "changes": {
+          "description": "Updated graph"
+        }
+      }
+    ]
+  },
+  "presentation.delete": {
+    "apiVersion": "1.0.0",
+    "sourceHash": "9ea51e2d010a1452fecae22e92ca9803c8c249725f6ace8e1b330a5fe71529b2",
+    "scope": {
+      "project": true
+    },
+    "commands": [
+      {
+        "op": "presentation.delete",
+        "graph": {
+          "id": "show"
+        }
+      }
+    ]
+  },
+  "presentation.setStart": {
+    "apiVersion": "1.0.0",
+    "sourceHash": "9ea51e2d010a1452fecae22e92ca9803c8c249725f6ace8e1b330a5fe71529b2",
+    "scope": {
+      "project": true
+    },
+    "commands": [
+      {
+        "op": "presentation.setStart",
+        "graph": {
+          "id": "show"
+        },
+        "node": {
+          "id": "last"
+        }
+      }
+    ]
+  },
+  "presentationNode.create": {
+    "apiVersion": "1.0.0",
+    "sourceHash": "9ea51e2d010a1452fecae22e92ca9803c8c249725f6ace8e1b330a5fe71529b2",
+    "scope": {
+      "project": true
+    },
+    "commands": [
+      {
+        "op": "presentationNode.create",
+        "graph": {
+          "id": "show"
+        },
+        "alias": "newGraphNode",
+        "data": {
+          "name": "Pause",
+          "type": "Wait",
+          "duration": 2,
+          "position": {
+            "x": 500,
+            "y": 0
+          }
+        }
+      }
+    ]
+  },
+  "presentationNode.update": {
+    "apiVersion": "1.0.0",
+    "sourceHash": "9ea51e2d010a1452fecae22e92ca9803c8c249725f6ace8e1b330a5fe71529b2",
+    "scope": {
+      "project": true
+    },
+    "commands": [
+      {
+        "op": "presentationNode.update",
+        "graph": {
+          "id": "show"
+        },
+        "target": {
+          "id": "last"
+        },
+        "changes": {
+          "duration": 3
+        }
+      }
+    ]
+  },
+  "presentationNode.delete": {
+    "apiVersion": "1.0.0",
+    "sourceHash": "9ea51e2d010a1452fecae22e92ca9803c8c249725f6ace8e1b330a5fe71529b2",
+    "scope": {
+      "project": true
+    },
+    "commands": [
+      {
+        "op": "presentationNode.delete",
+        "graph": {
+          "id": "show"
+        },
+        "target": {
+          "id": "spare"
+        }
+      }
+    ]
+  },
+  "presentationEdge.connect": {
+    "apiVersion": "1.0.0",
+    "sourceHash": "9ea51e2d010a1452fecae22e92ca9803c8c249725f6ace8e1b330a5fe71529b2",
+    "scope": {
+      "project": true
+    },
+    "commands": [
+      {
+        "op": "presentationEdge.connect",
+        "graph": {
+          "id": "show"
+        },
+        "from": {
+          "id": "last"
+        },
+        "slot": "next",
+        "to": {
+          "id": "spare"
+        }
+      }
+    ]
+  },
+  "presentationEdge.disconnect": {
+    "apiVersion": "1.0.0",
+    "sourceHash": "9ea51e2d010a1452fecae22e92ca9803c8c249725f6ace8e1b330a5fe71529b2",
+    "scope": {
+      "project": true
+    },
+    "commands": [
+      {
+        "op": "presentationEdge.disconnect",
+        "graph": {
+          "id": "show"
+        },
+        "from": {
+          "id": "first"
+        },
+        "slot": "next"
+      }
+    ]
+  },
+  "presentationEdge.redirect": {
+    "apiVersion": "1.0.0",
+    "sourceHash": "9ea51e2d010a1452fecae22e92ca9803c8c249725f6ace8e1b330a5fe71529b2",
+    "scope": {
+      "project": true
+    },
+    "commands": [
+      {
+        "op": "presentationEdge.redirect",
+        "graph": {
+          "id": "show"
+        },
+        "from": {
+          "id": "first"
+        },
+        "slot": "next",
+        "to": {
+          "id": "spare"
+        }
+      }
+    ]
+  },
+  "presentationEdge.update": {
+    "apiVersion": "1.0.0",
+    "sourceHash": "9ea51e2d010a1452fecae22e92ca9803c8c249725f6ace8e1b330a5fe71529b2",
+    "scope": {
+      "project": true
+    },
+    "commands": [
+      {
+        "op": "presentationEdge.update",
+        "graph": {
+          "id": "show"
+        },
+        "from": {
+          "id": "first"
+        },
+        "slot": "next",
+        "style": {
+          "fromSide": "right",
+          "toSide": "left"
+        }
+      }
+    ]
+  }
+}

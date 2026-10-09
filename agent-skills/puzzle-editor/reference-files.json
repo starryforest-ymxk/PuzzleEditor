@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "references": [
+    "cli-guide.md",
+    "quick-start.md",
+    "commands-tooling.md",
+    "commands-files.md",
+    "commands-session.md",
+    "operations-hierarchy.md",
+    "operations-resources.md",
+    "operations-fsm.md",
+    "operations-presentation.md",
+    "data-structures.md",
+    "workflows.md",
+    "permissions-errors.md",
+    "examples/sample.puzzle.json",
+    "examples/operations.json",
+    "examples/operation-schema.json",
+    "examples/common.ps1",
+    "examples/quick-start.ps1",
+    "examples/domain-operation.ps1",
+    "examples/online.ps1",
+    "examples/advanced.ps1",
+    "examples/authorized.ps1"
+  ]
+}

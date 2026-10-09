@@ -2,3 +2,5 @@
 # 原始日志的空白和 CRLF 也是证据，不按源码规则修改归档字节。
 overview/dev/evidence/CLI_*/** -text -whitespace
 overview/dev/evidence/Release_*/** -text -whitespace
+# 示例工程的字节 hash 写入计划；跨平台检出必须保留生成文件的 LF。
+overview/dev/cli-reference/** text eol=lf

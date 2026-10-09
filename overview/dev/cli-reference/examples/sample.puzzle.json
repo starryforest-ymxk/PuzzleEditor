@@ -1,0 +1,327 @@
+{
+  "fileType": "puzzle-project",
+  "editorVersion": "1.0.0",
+  "savedAt": "2026-01-01T00:00:00.000Z",
+  "project": {
+    "meta": {
+      "id": "PROJECT_1",
+      "name": "Reference Demo",
+      "description": "Fictional CLI learning project",
+      "version": "1.0.0",
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    },
+    "blackboard": {
+      "globalVariables": {
+        "draft": {
+          "id": "draft",
+          "name": "Draft Counter",
+          "assetName": "DraftCounter",
+          "type": "integer",
+          "value": 0,
+          "scope": "Global",
+          "state": "Draft"
+        },
+        "implemented": {
+          "id": "implemented",
+          "name": "Implemented Counter",
+          "assetName": "ImplementedCounter",
+          "type": "integer",
+          "value": 0,
+          "scope": "Global",
+          "state": "Implemented"
+        },
+        "marked": {
+          "id": "marked",
+          "name": "Marked Counter",
+          "assetName": "MarkedCounter",
+          "type": "integer",
+          "value": 0,
+          "scope": "Global",
+          "state": "MarkedForDelete"
+        }
+      },
+      "events": {
+        "draft": {
+          "id": "draft",
+          "name": "Draft Event",
+          "assetName": "DraftEvent",
+          "state": "Draft"
+        },
+        "implemented": {
+          "id": "implemented",
+          "name": "Implemented Event",
+          "assetName": "ImplementedEvent",
+          "state": "Implemented"
+        },
+        "marked": {
+          "id": "marked",
+          "name": "Marked Event",
+          "assetName": "MarkedEvent",
+          "state": "MarkedForDelete"
+        }
+      }
+    },
+    "scripts": {
+      "version": "1.0.0",
+      "scripts": {
+        "draft": {
+          "id": "draft",
+          "name": "Draft Script",
+          "assetName": "DraftScript",
+          "category": "Performance",
+          "state": "Draft"
+        },
+        "implemented": {
+          "id": "implemented",
+          "name": "Implemented Script",
+          "assetName": "ImplementedScript",
+          "category": "Performance",
+          "state": "Implemented"
+        },
+        "marked": {
+          "id": "marked",
+          "name": "Marked Script",
+          "assetName": "MarkedScript",
+          "category": "Performance",
+          "state": "MarkedForDelete"
+        }
+      }
+    },
+    "stageTree": {
+      "rootId": "STAGE_1",
+      "stages": {
+        "STAGE_1": {
+          "id": "STAGE_1",
+          "name": "Root Stage",
+          "description": "Project root stage",
+          "parentId": null,
+          "childrenIds": [
+            "room",
+            "hall"
+          ],
+          "localVariables": {},
+          "eventListeners": [],
+          "isExpanded": true,
+          "isInitial": true,
+          "assetName": "DemoRoot"
+        },
+        "room": {
+          "id": "room",
+          "name": "Room",
+          "assetName": "Room",
+          "parentId": "STAGE_1",
+          "childrenIds": [
+            "child"
+          ],
+          "localVariables": {},
+          "eventListeners": [],
+          "isInitial": true,
+          "unlockTriggers": [
+            {
+              "type": "Always"
+            }
+          ]
+        },
+        "hall": {
+          "id": "hall",
+          "name": "Hall",
+          "assetName": "Hall",
+          "parentId": "STAGE_1",
+          "childrenIds": [],
+          "localVariables": {},
+          "eventListeners": [],
+          "isInitial": false,
+          "unlockTriggers": [
+            {
+              "type": "Always"
+            }
+          ]
+        },
+        "child": {
+          "id": "child",
+          "name": "Child",
+          "assetName": "Child",
+          "parentId": "room",
+          "childrenIds": [],
+          "localVariables": {},
+          "eventListeners": [],
+          "isInitial": true,
+          "unlockTriggers": [
+            {
+              "type": "Always"
+            }
+          ]
+        }
+      }
+    },
+    "nodes": {
+      "door": {
+        "id": "door",
+        "name": "Door",
+        "assetName": "Door",
+        "stageId": "room",
+        "stateMachineId": "door-fsm",
+        "eventListeners": [],
+        "localVariables": {}
+      },
+      "lock": {
+        "id": "lock",
+        "name": "Lock",
+        "assetName": "Lock",
+        "stageId": "room",
+        "stateMachineId": "lock-fsm",
+        "eventListeners": [],
+        "localVariables": {}
+      }
+    },
+    "stateMachines": {
+      "door-fsm": {
+        "id": "door-fsm",
+        "initialStateId": "idle",
+        "states": {
+          "idle": {
+            "id": "idle",
+            "name": "Idle",
+            "assetName": "Idle",
+            "position": {
+              "x": 0,
+              "y": 0
+            },
+            "eventListeners": []
+          },
+          "open": {
+            "id": "open",
+            "name": "Open",
+            "assetName": "Open",
+            "position": {
+              "x": 250,
+              "y": 0
+            },
+            "eventListeners": []
+          },
+          "spare": {
+            "id": "spare",
+            "name": "Spare",
+            "assetName": "Spare",
+            "position": {
+              "x": 250,
+              "y": 200
+            },
+            "eventListeners": []
+          }
+        },
+        "transitions": {
+          "go": {
+            "id": "go",
+            "name": "Open Door",
+            "fromStateId": "idle",
+            "toStateId": "open",
+            "priority": 0,
+            "triggers": [
+              {
+                "type": "Always"
+              }
+            ],
+            "parameterModifiers": []
+          }
+        }
+      },
+      "lock-fsm": {
+        "id": "lock-fsm",
+        "initialStateId": "idle",
+        "states": {
+          "idle": {
+            "id": "idle",
+            "name": "Idle",
+            "assetName": "Idle",
+            "position": {
+              "x": 0,
+              "y": 0
+            },
+            "eventListeners": []
+          },
+          "open": {
+            "id": "open",
+            "name": "Open",
+            "assetName": "Open",
+            "position": {
+              "x": 250,
+              "y": 0
+            },
+            "eventListeners": []
+          },
+          "spare": {
+            "id": "spare",
+            "name": "Spare",
+            "assetName": "Spare",
+            "position": {
+              "x": 250,
+              "y": 200
+            },
+            "eventListeners": []
+          }
+        },
+        "transitions": {
+          "go": {
+            "id": "go",
+            "name": "Open Door",
+            "fromStateId": "idle",
+            "toStateId": "open",
+            "priority": 0,
+            "triggers": [
+              {
+                "type": "Always"
+              }
+            ],
+            "parameterModifiers": []
+          }
+        }
+      }
+    },
+    "presentationGraphs": {
+      "show": {
+        "id": "show",
+        "name": "Opening",
+        "startNodeId": "first",
+        "nodes": {
+          "first": {
+            "id": "first",
+            "name": "First",
+            "type": "Wait",
+            "duration": 1,
+            "position": {
+              "x": 0,
+              "y": 0
+            },
+            "nextIds": [
+              "last"
+            ]
+          },
+          "last": {
+            "id": "last",
+            "name": "Last",
+            "type": "Wait",
+            "duration": 1,
+            "position": {
+              "x": 240,
+              "y": 0
+            },
+            "nextIds": []
+          },
+          "spare": {
+            "id": "spare",
+            "name": "Spare",
+            "type": "Wait",
+            "duration": 1,
+            "position": {
+              "x": 240,
+              "y": 180
+            },
+            "nextIds": []
+          }
+        }
+      }
+    }
+  }
+}

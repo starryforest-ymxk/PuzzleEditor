@@ -8,6 +8,7 @@ import { spawnSync } from 'node:child_process';
 import { CLI_PHASE } from '../../contracts/automation/capabilities';
 import { ProjectLease } from '../../dist-node/projectOwnership.js';
 import { packagePathSchema } from '../../contracts/automation/toolingSchemas';
+import { publicSkillFiles } from '../../services/cliTooling/referenceFiles';
 
 let directory: string, source: string, root: string;
 let firstRecord: unknown;
@@ -77,13 +78,13 @@ beforeAll(async () => {
     await fs.copyFile(path.join('dist-cli', name), path.join(source, 'app', name));
   for (const name of ['install-cli.ps1', 'uninstall-cli.ps1'])
     await fs.copyFile(path.join('scripts', name), path.join(source, name));
-  await fs.copyFile('overview/dev/CLI_Distribution_Guide.md', path.join(source, 'AGENTS.md'));
-  await fs.cp('agent-skills', path.join(source, 'agent-skills'), { recursive: true });
-  await fs.mkdir(path.join(source, 'agent-skills/puzzle-editor/references'), { recursive: true });
-  await fs.copyFile(
-    'overview/dev/CLI_Distribution_Guide.md',
-    path.join(source, 'agent-skills/puzzle-editor/references/cli-guide.md'),
-  );
+  const skillFiles = await publicSkillFiles(path.resolve('.'));
+  await fs.writeFile(path.join(source, 'AGENTS.md'), skillFiles['references/cli-guide.md']);
+  for (const [name, text] of Object.entries(skillFiles)) {
+    const destination = path.join(source, 'agent-skills/puzzle-editor', name);
+    await fs.mkdir(path.dirname(destination), { recursive: true });
+    await fs.writeFile(destination, text);
+  }
   await fs.writeFile(path.join(source, 'capabilities.json'), JSON.stringify(run(['describe'])));
   await manifest();
 }, 30000);
@@ -122,9 +123,10 @@ describe.skipIf(process.platform !== 'win32')('C12 tool installation processes',
     expect(await fs.stat(root).catch(() => null)).toBe(null);
   });
   it('rejects damaged package before activation', async () => {
+    const original = await fs.readFile(path.join(source, 'AGENTS.md'));
     await fs.appendFile(path.join(source, 'AGENTS.md'), 'corrupt');
     expect(run(['setup', 'install', '--source', source, '--install-root', root]).code).toBe(4);
-    await fs.copyFile('overview/dev/CLI_Distribution_Guide.md', path.join(source, 'AGENTS.md'));
+    await fs.writeFile(path.join(source, 'AGENTS.md'), original);
   });
   it('rejects duplicated manifest paths and a junction source before writes', async () => {
     const file = path.join(source, 'manifest.json'),
@@ -363,7 +365,7 @@ describe('C14 Skill lifecycle', () => {
     const result = run(['skills', 'read', 'puzzle-editor']);
     expect(result.code).toBe(0);
     expect(result.data.files['references/cli-guide.md']).toBe(
-      await fs.readFile('overview/dev/CLI_Distribution_Guide.md', 'utf8'),
+      (await publicSkillFiles(path.resolve('.')))['references/cli-guide.md'],
     );
     expect(run(['skills', 'list']).data.skills[0].name).toBe('puzzle-editor');
   });
@@ -379,6 +381,38 @@ describe('C14 Skill lifecycle', () => {
       managed: true,
       hostDiscovery: 'not-verified',
     });
+    expect(run(['skills', 'install', ...targetArgs()]).data.changed).toBe(false);
+  });
+  it('upgrades a legacy four-file Skill in the same phase by content fingerprints', async () => {
+    const current = run(['skills', 'status', ...targetArgs()]).data;
+    const record = JSON.parse(await fs.readFile(current.record, 'utf8'));
+    const oldNames = new Set([
+      'SKILL.md',
+      'agents/openai.yaml',
+      'references/cli-guide.md',
+      'compatibility.json',
+    ]);
+    for (const file of record.files)
+      if (!oldNames.has(file.path)) await fs.unlink(path.join(current.target, file.path));
+    await fs.rmdir(path.join(current.target, 'references/examples'));
+    record.files = record.files.filter((file: { path: string }) => oldNames.has(file.path));
+    const legacy = '# Earlier public guide\n';
+    await fs.writeFile(path.join(current.target, 'references/cli-guide.md'), legacy);
+    const guide = record.files.find(
+      (file: { path: string }) => file.path === 'references/cli-guide.md',
+    );
+    Object.assign(guide, { size: Buffer.byteLength(legacy), sha256: hash(Buffer.from(legacy)) });
+    await fs.writeFile(current.record, JSON.stringify(record));
+    const legacyStatus = run(['skills', 'status', ...targetArgs()]);
+    expect(legacyStatus.code, JSON.stringify(legacyStatus)).toBe(0);
+    expect(legacyStatus.data.updateAvailable).toBe(true);
+    expect(run(['skills', 'install', ...targetArgs(), '--dry-run']).code).toBe(0);
+    expect(run(['skills', 'install', ...targetArgs()]).data.changed).toBe(true);
+    const after = run(['skills', 'status', ...targetArgs()]);
+    expect(after.data.updateAvailable).toBe(false);
+    expect(
+      await fs.readFile(path.join(after.data.target, 'references/commands-session.md'), 'utf8'),
+    ).toContain('session save');
     expect(run(['skills', 'install', ...targetArgs()]).data.changed).toBe(false);
   });
   it('recovers an interrupted Skill removal and resumes committed cleanup', async () => {

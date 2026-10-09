@@ -13,10 +13,11 @@ import { POLICY_VERSION, capabilityDefinitions } from './permissions';
 import { IMPORT_CONVERTER_VERSION, importNamesSchema, importReceiptSchema } from './importSchemas';
 import { sessionTokenSchema, sessionReceiptSchema } from './sessionSchemas';
 import { toolingCapabilities } from './toolingSchemas';
+import { commandExamples } from './commandExamples';
 
 export const CLI_PHASE = 'C16';
 
-export const capabilities = [
+const registeredCapabilities = [
   ...toolingCapabilities,
   {
     operation: 'history list',
@@ -92,8 +93,6 @@ export const capabilities = [
     permission: 'read',
     summary:
       'Preview conversion of a supported source to a new complete project with optional external asset names.',
-    example:
-      'puzzle import preview "Demo.export.json" --out "Demo.puzzle.json" --receipt-out "import-receipt.json"',
   },
   {
     operation: 'import apply',
@@ -107,28 +106,24 @@ export const capabilities = [
     implemented: true,
     permission: 'read',
     summary: 'Describe capabilities and JSON Schemas.',
-    example: 'puzzle describe --json',
   },
   {
     operation: 'inspect',
     implemented: true,
     permission: 'read',
     summary: 'Query normalized project context without saving.',
-    example: 'puzzle inspect "Demo.puzzle.json" --view tree --json',
   },
   {
     operation: 'validate',
     implemented: true,
     permission: 'read',
     summary: 'Validate structure and domain rules without saving.',
-    example: 'puzzle validate "Demo.puzzle.json" --json',
   },
   {
     operation: 'json read',
     implemented: true,
     permission: 'read',
     summary: 'Read the complete file or its original UTF-8 text.',
-    example: 'puzzle json read "Demo.puzzle.json" --raw',
   },
   {
     operation: 'create',
@@ -176,6 +171,11 @@ export const capabilities = [
   summary: string;
   example?: string;
 }>;
+
+export const capabilities = registeredCapabilities.map((item) => ({
+  ...item,
+  example: commandExamples[item.operation as keyof typeof commandExamples],
+}));
 
 export function describeCapabilities(operation?: string) {
   return {
