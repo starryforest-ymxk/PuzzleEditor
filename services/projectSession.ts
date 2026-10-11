@@ -275,8 +275,8 @@ export class ProjectSession {
             path: candidate.path, editorState: candidate.editorState, validationResults: candidate.validationResults });
         // 候选未提交时不发布诊断，取消打开也不会替换原项目的问题列表。
         const notices = candidate.importNotices ?? [];
-        notices.slice(0, 20).forEach(notice => this.pushMessage('warning', `[${notice.path}] ${notice.message}`));
-        if (notices.length > 20) this.pushMessage('warning', `${notices.length - 20} additional optional fields were restored or migrated.`);
+        notices.slice(0, 20).forEach(notice => this.pushMessage(notice.level, `[${notice.path}] ${notice.message}`));
+        if (notices.length > 20) this.pushMessage(notices.slice(20).some(notice => notice.level === 'warning') ? 'warning' : 'info', `${notices.length - 20} additional import notices. Inspect the source with the CLI for details.`);
         if (candidate.validationResults?.length) {
             const errors = candidate.validationResults.filter(result => result.level === 'error').length;
             this.pushMessage('warning', `Project opened with ${errors} errors and ${candidate.validationResults.length - errors} other validation issues. Use the validation panel to locate and fix them.`);

@@ -62,6 +62,8 @@ PresentationBinding 为 `{"type":"Graph","graphId":Ref}`，或 `{"type":"Script"
 
 普通参数包含 paramName、source、可选 description。Temporary 参数还包含 kind="Temporary" 与 tempVariable（name、type、可选 description）；source 仍然必需。这些临时声明是演出参数，不是可任意移动的黑板资源。
 
+参数的编辑器辅助 id 和普通参数 kind 由 CLI 内部统一补齐并保存，调用方不需要也不能在普通参数计划中传入它们。Temporary 的 tempVariable.id 同样由工具生成。预览回执、校验、落盘和重新打开使用一致的参数形态；运行时导出按既有规则移除编辑器辅助字段。
+
 ## 演出图和资源生命周期
 
 图节点 type 为 PresentationNode、Wait、Branch、Parallel。Wait 使用非负 duration；Branch 使用 condition；PresentationNode 使用演出绑定。连线由 graph、from、slot 定位：普通/Wait 为 next，Branch 为 true/false，Parallel 为非负顺序索引。style 包含 fromSide/toSide，可选 top/right/bottom/left 或 null。不直接替换 nextIds；不允许跨图连接。

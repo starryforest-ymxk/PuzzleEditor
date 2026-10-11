@@ -1,0 +1,121 @@
+{
+  "fileType": "puzzle-project",
+  "editorVersion": "1.0.0",
+  "savedAt": "2026-10-11T08:34:04.818Z",
+  "project": {
+    "meta": {
+      "id": "PROJECT_1",
+      "name": "Agent Discovery Demo",
+      "description": "Created and edited autonomously by Codex",
+      "version": "1.0.0",
+      "createdAt": "2026-10-11T08:33:27.070Z",
+      "updatedAt": "2026-10-11T08:34:04.818Z"
+    },
+    "blackboard": {
+      "globalVariables": {},
+      "events": {
+        "EVENT_1": {
+          "name": "Unlock",
+          "assetName": "AgentDemoUnlock",
+          "id": "EVENT_1",
+          "state": "Draft"
+        }
+      }
+    },
+    "scripts": {
+      "version": "1.0.0",
+      "scripts": {}
+    },
+    "stageTree": {
+      "rootId": "STAGE_1",
+      "stages": {
+        "STAGE_1": {
+          "id": "STAGE_1",
+          "name": "Root",
+          "description": "Project root stage",
+          "assetName": "AgentDemoRoot",
+          "eventListeners": [],
+          "parentId": null,
+          "childrenIds": [
+            "STAGE_2"
+          ],
+          "localVariables": {},
+          "isInitial": true,
+          "isExpanded": true
+        },
+        "STAGE_2": {
+          "id": "STAGE_2",
+          "name": "Room",
+          "description": "",
+          "assetName": "AgentDemoRoom",
+          "eventListeners": [],
+          "parentId": "STAGE_1",
+          "childrenIds": [],
+          "localVariables": {},
+          "isInitial": true,
+          "isExpanded": false,
+          "unlockTriggers": []
+        }
+      }
+    },
+    "nodes": {
+      "NODE_1": {
+        "id": "NODE_1",
+        "name": "Door",
+        "description": "",
+        "assetName": "AgentDemoDoor",
+        "displayOrder": 0,
+        "eventListeners": [],
+        "stageId": "STAGE_2",
+        "stateMachineId": "FSM_1",
+        "localVariables": {}
+      }
+    },
+    "stateMachines": {
+      "FSM_1": {
+        "id": "FSM_1",
+        "initialStateId": "STATE_1",
+        "states": {
+          "STATE_1": {
+            "id": "STATE_1",
+            "name": "Closed",
+            "description": "The initial state of this puzzle node",
+            "assetName": "AgentDemoClosed",
+            "eventListeners": [],
+            "position": {
+              "x": 200,
+              "y": 150
+            }
+          },
+          "STATE_2": {
+            "eventListeners": [],
+            "name": "Opened",
+            "assetName": "AgentDemoOpened",
+            "position": {
+              "x": 500,
+              "y": 150
+            },
+            "id": "STATE_2"
+          }
+        },
+        "transitions": {
+          "TRANS_1": {
+            "priority": 0,
+            "triggers": [
+              {
+                "type": "OnEvent",
+                "eventId": "EVENT_1"
+              }
+            ],
+            "parameterModifiers": [],
+            "name": "Unlock Door",
+            "id": "TRANS_1",
+            "fromStateId": "STATE_1",
+            "toStateId": "STATE_2"
+          }
+        }
+      }
+    },
+    "presentationGraphs": {}
+  }
+}

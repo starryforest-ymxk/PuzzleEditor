@@ -14,6 +14,7 @@ import { createEmptyProject } from '../../utils/projectFactory';
 import { importProject } from '../../utils/projectImport';
 import type { EditorUIState } from '../../types/project';
 import { buildCandidate } from './domainCandidate';
+import { importDiagnostics } from './diagnostics';
 import { prepareRuntimeExport } from '../projectExportPreparation';
 import { readSource, readProjectContext } from './readService';
 import { parseFileJson } from './jsonRead';
@@ -185,7 +186,7 @@ export async function previewProject(request: WriteRequests['preview'], stdin?: 
       impacts: candidate.impacts,
       remainingErrors: candidate.remainingErrors,
     },
-    diagnostics: candidate.diagnostics,
+    diagnostics: [...importDiagnostics(source.imported.notices), ...candidate.diagnostics],
   };
 }
 export async function applyProject(request: WriteRequests['apply'], stdin?: string) {
@@ -254,7 +255,7 @@ export async function applyProject(request: WriteRequests['apply'], stdin?: stri
           impacts: candidate.impacts,
           remainingErrors: candidate.remainingErrors,
         },
-        diagnostics: candidate.diagnostics,
+        diagnostics: [...importDiagnostics(source.imported.notices), ...candidate.diagnostics],
       },
     };
   };

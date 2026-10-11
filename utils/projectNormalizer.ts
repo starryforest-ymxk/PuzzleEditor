@@ -6,18 +6,13 @@ import type { ProjectData } from '../types/project';
 import type { PresentationBinding } from '../types/common';
 import type { ImportContext } from './projectImport/readers';
 import { normalizePresentationNode } from './presentation';
+import { completeParameterBindings } from './presentationParameters';
 
 export function normalizeProjectForStore(project: ProjectData, context: ImportContext): ProjectData {
     const normalizeBinding = (binding: PresentationBinding | undefined, path: string): PresentationBinding | undefined => {
         if (!binding || binding.type !== 'Script') return binding;
-        const used = new Set(binding.parameters.map(param => param.id).filter(Boolean));
-        const parameters = binding.parameters.map((param, index) => {
-            if (param.id && param.kind) return param;
-            let id = param.id || 'import-param-' + (index + 1);
-            while (!param.id && used.has(id)) id += '-copy';
-            used.add(id);
+        const parameters = completeParameterBindings(binding.parameters, index => {
             context.note(path + '.parameters[' + index + ']', 'Restored parameter editor identity/source kind without changing its value.');
-            return { ...param, id, kind: param.kind || (param.tempVariable ? 'Temporary' as const : 'Variable' as const) };
         });
         return { ...binding, parameters };
     };

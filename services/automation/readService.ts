@@ -5,7 +5,7 @@ import { validateProject } from '../../utils/validation/validator';
 import type { InspectRequest } from '../../contracts/automation/schemas';
 import { parseFileJson } from './jsonRead';
 import { indexEntities } from './entities';
-import { domainDiagnostics } from './diagnostics';
+import { domainDiagnostics, importDiagnostics } from './diagnostics';
 import { queryProject } from './queries';
 import { AutomationFailure } from './errors';
 
@@ -46,7 +46,10 @@ export async function readProjectContext(path: string, expectedHash?: string) {
     );
   const imported = importProject(content);
   const entries = indexEntities(imported.project);
-  const diagnostics = domainDiagnostics(validateProject(imported.project), entries);
+  const diagnostics = [
+    ...importDiagnostics(imported.notices),
+    ...domainDiagnostics(validateProject(imported.project), entries),
+  ];
   return { source, imported, entries, diagnostics };
 }
 

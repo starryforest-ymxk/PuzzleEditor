@@ -1,0 +1,105 @@
+{
+  "fileType": "puzzle-export",
+  "manifestVersion": "1.0.0",
+  "exportedAt": "2026-10-11T08:34:20.599Z",
+  "projectName": "Agent Discovery Demo",
+  "projectVersion": "1.0.0",
+  "data": {
+    "blackboard": {
+      "globalVariables": {},
+      "events": {
+        "EVENT_1": {
+          "id": "EVENT_1",
+          "name": "Unlock",
+          "assetName": "AgentDemoUnlock",
+          "state": "Draft"
+        }
+      }
+    },
+    "scripts": {
+      "version": "1.0.0",
+      "scripts": {}
+    },
+    "stageTree": {
+      "rootId": "STAGE_1",
+      "stages": {
+        "STAGE_1": {
+          "id": "STAGE_1",
+          "name": "Root",
+          "description": "Project root stage",
+          "assetName": "AgentDemoRoot",
+          "eventListeners": [],
+          "parentId": null,
+          "childrenIds": [
+            "STAGE_2"
+          ],
+          "localVariables": {},
+          "isInitial": true
+        },
+        "STAGE_2": {
+          "id": "STAGE_2",
+          "name": "Room",
+          "description": "",
+          "assetName": "AgentDemoRoom",
+          "eventListeners": [],
+          "parentId": "STAGE_1",
+          "childrenIds": [],
+          "localVariables": {},
+          "isInitial": true,
+          "unlockTriggers": []
+        }
+      }
+    },
+    "nodes": {
+      "NODE_1": {
+        "id": "NODE_1",
+        "name": "Door",
+        "description": "",
+        "assetName": "AgentDemoDoor",
+        "displayOrder": 0,
+        "eventListeners": [],
+        "stageId": "STAGE_2",
+        "stateMachineId": "FSM_1",
+        "localVariables": {}
+      }
+    },
+    "stateMachines": {
+      "FSM_1": {
+        "id": "FSM_1",
+        "initialStateId": "STATE_1",
+        "states": {
+          "STATE_1": {
+            "id": "STATE_1",
+            "name": "Closed",
+            "description": "The initial state of this puzzle node",
+            "assetName": "AgentDemoClosed",
+            "eventListeners": []
+          },
+          "STATE_2": {
+            "id": "STATE_2",
+            "name": "Opened",
+            "assetName": "AgentDemoOpened",
+            "eventListeners": []
+          }
+        },
+        "transitions": {
+          "TRANS_1": {
+            "id": "TRANS_1",
+            "name": "Unlock Door",
+            "fromStateId": "STATE_1",
+            "toStateId": "STATE_2",
+            "priority": 0,
+            "triggers": [
+              {
+                "eventId": "EVENT_1",
+                "type": "OnEvent"
+              }
+            ],
+            "parameterModifiers": []
+          }
+        }
+      }
+    },
+    "presentationGraphs": {}
+  }
+}

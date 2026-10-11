@@ -25,7 +25,9 @@ const ui: Reader<EditorUIState> = (input, path, context) => {
     })(input, path, context);
     const panelSizes = normalizePanelSizes(result.panelSizes);
     if (JSON.stringify(result.panelSizes) !== JSON.stringify(panelSizes)) {
-        context.note(`${path}.panelSizes`, 'Restored missing panel sizes or constrained sizes to the supported range.');
+        const constrained = (['explorerWidth', 'inspectorWidth', 'stagesHeight'] as const)
+            .some(key => result.panelSizes?.[key] !== undefined && result.panelSizes[key] !== panelSizes[key]);
+        context.note(`${path}.panelSizes`, 'Restored missing panel sizes or constrained sizes to the supported range.', false, constrained ? 'warning' : 'info');
     }
     return { ...result, panelSizes };
 };
@@ -54,7 +56,7 @@ export function importProject(content: string, options: ProjectImportOptions = {
             if (!editorVersion.trim()) fail('$.editorVersion', 'Expected a non-empty editor version.');
             string(envelope.savedAt, '$.savedAt', context);
             // editorVersion 描述生产软件，不是 Schema；真正的可读性由下面的结构校验保证。
-            if (editorVersion !== '1.0.0') context.note('$.editorVersion', `File was produced by editor ${editorVersion}; compatibility was checked by structure.`);
+            if (editorVersion !== '1.0.0') context.note('$.editorVersion', `File was produced by editor ${editorVersion}; compatibility was checked by structure.`, false, 'warning');
             project = projectData(envelope.project, '$.project', context);
             editorState = optional(ui)(envelope.editorState, '$.editorState', context);
             format = 'project';

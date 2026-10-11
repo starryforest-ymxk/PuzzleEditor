@@ -21,6 +21,7 @@ import { targetPath, publishNew, requireAbsentOutput } from './fileCommit';
 import { validateCandidate } from './candidateValidation';
 import { applyImportNames } from './importNames';
 import { AutomationFailure } from './errors';
+import { importDiagnostics } from './diagnostics';
 
 async function prepare(
   request: ImportRequests['import preview'],
@@ -56,6 +57,7 @@ async function prepare(
   const notices: ImportNotice[] = [...imported.notices];
   if (editorStateDefaulted)
     notices.push({
+      level: 'info',
       path: '$.editorState',
       message:
         'The source has no saved editor state. Shared defaults are used; lost UI state cannot be recovered.',
@@ -102,7 +104,7 @@ async function prepare(
       changes: fullDiff(parsed.value, JSON.parse(content)),
       output: receipt.output,
     },
-    diagnostics: validation.diagnostics,
+    diagnostics: [...importDiagnostics(notices), ...validation.diagnostics],
   };
 }
 

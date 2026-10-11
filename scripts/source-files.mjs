@@ -67,6 +67,7 @@ export function formatFiles() {
       'utils/hierarchyDeletion.ts',
       'utils/deletionReferences.ts',
       'utils/presentation.ts',
+      'utils/presentationParameters.ts',
       'utils/presentationEditing.ts',
       'utils/presentationUsage.ts',
       'utils/resourceReferences.ts',

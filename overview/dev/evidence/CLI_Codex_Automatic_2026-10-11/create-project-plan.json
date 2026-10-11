@@ -1,0 +1,44 @@
+{
+  "apiVersion": "1.0.0",
+  "scope": {
+    "project": true
+  },
+  "commands": [
+    {
+      "op": "stage.update",
+      "target": {
+        "alias": "root"
+      },
+      "changes": {
+        "name": "Root"
+      }
+    },
+    {
+      "parent": {
+        "alias": "root"
+      },
+      "alias": "room",
+      "op": "stage.create",
+      "data": {
+        "name": "Room",
+        "assetName": "AgentDemoRoom"
+      }
+    },
+    {
+      "alias": "door",
+      "op": "puzzle.create",
+      "initialState": {
+        "assetName": "AgentDemoClosed",
+        "name": "Closed",
+        "alias": "closed"
+      },
+      "data": {
+        "name": "Door",
+        "assetName": "AgentDemoDoor"
+      },
+      "stage": {
+        "alias": "room"
+      }
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+请使用本机已安装的 PuzzleEditor CLI，在当前空目录从零制作一个虚构的解谜项目，实际完成创建、编辑、校验和导出。
+
+明确的项目规格如下，所有资产名已经由我给定，不需要猜测名称：
+- 工程名 Agent Discovery Demo。根 Stage 显示名 Root，assetName=AgentDemoRoot。
+- Root 下的子 Stage 显示名 Room，assetName=AgentDemoRoom。
+- Room 内的 Puzzle 显示名 Door，assetName=AgentDemoDoor。
+- Door 的初始状态显示名 Closed，assetName=AgentDemoClosed。
+
+首先创建上述内容的 source.puzzle.json。然后读取这个工程，在另一次领域编辑中：
+- 把工程 description 设为 Created and edited autonomously by Codex。
+- 为 Door 增加状态 Opened，assetName=AgentDemoOpened。
+- 增加全局事件 Unlock，assetName=AgentDemoUnlock。
+- 为 Door 添加 Closed 到 Opened 的迁移，显示名 Unlock Door，触发方式为 Unlock 事件；保持 Closed 为初始状态。
+- 预览这次修改，应用到全新的 edited.puzzle.json，校验它，并导出到 runtime.export.json。
+
+全部工程和中间文件只能写在当前目录。源文件 source.puzzle.json 要保留。仅使用 CLI 的正常领域功能；没有授权直接编写/修改完整工程 JSON、覆盖已有工程或永久删除资源。可以写领域计划和辅助脚本。不要执行示例脚本来代替这个任务，不访问其他业务工程/项目源码，不安装或更改工具和配置。最后简要报告实际结果、文件路径、校验错误/警告和遇到的问题。

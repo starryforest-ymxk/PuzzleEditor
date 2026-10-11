@@ -1,0 +1,33 @@
+{
+  "apiVersion": "1.0.0",
+  "kind": "domain-preview",
+  "policyVersion": "C10",
+  "requiredCapabilities": [],
+  "source": {
+    "path": "D:\\Temp\\PuzzleEditor Codex 自动发现 2026-10-11 146a10bd-3b39-4d27-920d-3f80d1b38133\\source.puzzle.json",
+    "sha256": "76116fe4727bceecd1bffe15bf41bf335e44ae8e960bfa82c65a8066784ecde5"
+  },
+  "planHash": "a5a35bc6ff6f65a5aa4b024ee25dc219d16d6eeb3886e2f8cb1ae97ae6d8e3e4",
+  "savedAt": "2026-10-11T08:34:04.818Z",
+  "candidateHash": "9e82bf72cdbdc5c5c7d83f4fe01031f2706d44f37e2c1414ef42e0d679854b9c",
+  "allocations": {
+    "root": {
+      "type": "stage",
+      "id": "STAGE_1"
+    },
+    "opened": {
+      "type": "state",
+      "id": "STATE_2",
+      "fsmId": "FSM_1"
+    },
+    "unlock": {
+      "type": "event",
+      "id": "EVENT_1"
+    },
+    "unlockDoor": {
+      "type": "transition",
+      "id": "TRANS_1",
+      "fsmId": "FSM_1"
+    }
+  }
+}

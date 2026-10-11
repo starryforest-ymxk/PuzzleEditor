@@ -18,6 +18,7 @@ import {
   triggerSchema,
 } from '../../../contracts/automation/planSchemas';
 import { CommandContext } from './context';
+import { completeParameterBindings } from '../../../utils/presentationParameters';
 
 export function source(ctx: CommandContext, input: z.infer<typeof valueSourceSchema>): ValueSource {
   return input.type === 'Constant'
@@ -68,14 +69,16 @@ export function presentation(
   return {
     type: 'Script',
     scriptId: ctx.resolve(input.scriptId, 'script'),
-    parameters: input.parameters.map((p, i) =>
-      'tempVariable' in p
-        ? {
-            ...p,
-            source: source(ctx, p.source),
-            tempVariable: { ...p.tempVariable, id: `TEMP_${i + 1}` },
-          }
-        : { ...p, source: source(ctx, p.source) },
+    parameters: completeParameterBindings(
+      input.parameters.map((p, i) =>
+        'tempVariable' in p
+          ? {
+              ...p,
+              source: source(ctx, p.source),
+              tempVariable: { ...p.tempVariable, id: `TEMP_${i + 1}` },
+            }
+          : { ...p, source: source(ctx, p.source) },
+      ),
     ),
   };
 }

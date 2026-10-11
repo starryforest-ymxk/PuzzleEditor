@@ -53,6 +53,16 @@ function replaceJsonField(input: unknown, path: string, invalidValue: unknown): 
 }
 
 describe('识别与拒绝不安全的输入', () => {
+    it('缺少面板尺寸为 info，已有越界尺寸为 warning，字段等级来自同一导入边界', () => {
+        const input = file();
+        input.editorState = projectUI(createEditorFixture().ui);
+        const partial = JSON.parse(JSON.stringify(input)); delete partial.editorState.panelSizes;
+        expect(read(partial).notices.find(notice => notice.path.endsWith('.panelSizes'))).toMatchObject({ level: 'info' });
+        input.editorState.panelSizes.explorerWidth = 900;
+        const warning = read(input);
+        expect(warning.notices.find(notice => notice.path.endsWith('.panelSizes'))).toMatchObject({ level: 'warning' });
+        expect(warning.editorState?.panelSizes.explorerWidth).toBe(500);
+    });
     it.each([null, [], 7, 'hello', {}, { hello: 'world' }, { meta: {} }])('拒绝无关 JSON %j', input => {
         expect(() => read(input)).toThrow(ProjectImportError);
     });

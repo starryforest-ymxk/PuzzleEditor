@@ -1,0 +1,72 @@
+[
+  {
+    "command": "\"D:\\\\Program Files\\\\PowerShell\\\\7\\\\pwsh.exe\" -Command \"Get-Content -LiteralPath 'C:\\\\Users\\\\吴迪\\\\.agents\\\\skills\\\\puzzle-editor\\\\SKILL.md' -Raw; rg -n --ignore-case 'PuzzleEditor|puzzle-editor' 'C:\\\\Users\\\\吴迪\\\\.codex\\\\memories\\\\MEMORY.md'\"",
+    "status": "failed",
+    "exitCode": 1
+  },
+  {
+    "command": "\"D:\\\\Program Files\\\\PowerShell\\\\7\\\\pwsh.exe\" -Command \"Get-Content -LiteralPath 'C:\\\\Users\\\\吴迪\\\\.agents\\\\skills\\\\puzzle-editor\\\\references\\\\cli-guide.md' -Raw; Get-Content -LiteralPath 'C:\\\\Users\\\\吴迪\\\\.agents\\\\skills\\\\puzzle-editor\\\\references\\\\quick-start.md' -Raw; Get-Content -LiteralPath 'C:\\\\Users\\\\吴迪\\\\.agents\\\\skills\\\\puzzle-editor\\\\references\\\\commands-files.md' -Raw; Get-Command puzzle -ErrorAction SilentlyContinue | Select-Object CommandType,Name,Source; Get-ChildItem -LiteralPath . -Force | Select-Object Mode,Name\"",
+    "status": "completed",
+    "exitCode": 0
+  },
+  {
+    "command": "\"D:\\\\Program Files\\\\PowerShell\\\\7\\\\pwsh.exe\" -Command \"Get-Content -LiteralPath 'C:\\\\Users\\\\吴迪\\\\.agents\\\\skills\\\\puzzle-editor\\\\references\\\\operations-hierarchy.md' -Raw; Get-Content -LiteralPath 'C:\\\\Users\\\\吴迪\\\\.agents\\\\skills\\\\puzzle-editor\\\\references\\\\operations-fsm.md' -Raw; Get-Content -LiteralPath 'C:\\\\Users\\\\吴迪\\\\.agents\\\\skills\\\\puzzle-editor\\\\references\\\\operations-resources.md' -Raw; Get-Content -LiteralPath 'C:\\\\Users\\\\吴迪\\\\.agents\\\\skills\\\\puzzle-editor\\\\references\\\\data-structures.md' -Raw\"",
+    "status": "completed",
+    "exitCode": 0
+  },
+  {
+    "command": "\"D:\\\\Program Files\\\\PowerShell\\\\7\\\\pwsh.exe\" -Command 'puzzle version --json; $discovery = puzzle describe --json; if ($LASTEXITCODE -ne 0) { throw '\"'describe failed' }; \"'$discovery | Set-Content -LiteralPath .'\"\\\\cli-describe.json -Encoding utf8; \"'$contract = $discovery | ConvertFrom-Json; $contract.data | Select-Object * | ConvertTo-Json -Depth 3'",
+    "status": "completed",
+    "exitCode": 0
+  },
+  {
+    "command": "\"D:\\\\Program Files\\\\PowerShell\\\\7\\\\pwsh.exe\" -Command '$contract = Get-Content -LiteralPath .'\"\\\\cli-describe.json -Raw | ConvertFrom-Json; \"'$contract.data.PSObject.Properties.Name; $contract.data.planSchema | ConvertTo-Json -Depth 60'",
+    "status": "completed",
+    "exitCode": 0
+  },
+  {
+    "command": "\"D:\\\\Program Files\\\\PowerShell\\\\7\\\\pwsh.exe\" -Command '$contract = Get-Content -LiteralPath .'\"\\\\cli-describe.json -Raw | ConvertFrom-Json; \"'$wanted = @('\"'project.update','stage.create','stage.update','puzzle.create','state.create','fsm.setInitialState','state.setInitial','transition.create','event.create'); foreach (\"'$schema in $contract.data.planSchema.properties.commands.items.oneOf) { if ($schema.properties.op.const -in $wanted) { $brief = [ordered]@{ op=$schema.properties.op.const; required=$schema.required; fields=@($schema.properties.PSObject.Properties.Name) }; foreach ($part in @('\"'data','changes','initialState')) { if (\"'$null -ne $schema.properties.$part) { $brief[$part] = [ordered]@{required=$schema.properties.$part.required; fields=@($schema.properties.$part.properties.PSObject.Properties.Name)} } }; if ($schema.properties.data.properties.initialState) { $brief['\"'initialStateSchema']=\"'$schema.properties.data.properties.initialState }; if ($schema.properties.trigger) { $brief['\"'triggerSchema']=\"'$schema.properties.trigger }; $brief | ConvertTo-Json -Depth 30 -Compress } }; $contract.data.capabilities | Where-Object operation -in @('\"'create','preview','apply','export','validate','inspect') | Select-Object operation,implemented,requiredCapabilities,conditionalCapabilities | ConvertTo-Json -Depth 5 -Compress; \"'$contract.data.planSchema.properties.commands.items.oneOf | ForEach-Object { $_.properties.op.const } | Where-Object { $_ -like '\"'*initial*' -or \"'$_ -like '\"'*Initial*' }\"",
+    "status": "completed",
+    "exitCode": 0
+  },
+  {
+    "command": "\"D:\\\\Program Files\\\\PowerShell\\\\7\\\\pwsh.exe\" -Command '$createPlan = [ordered]@{ apiVersion='\"'1.0.0'; scope=@{stages=@(@{alias='root'},@{alias='room'}); puzzles=@(@{alias='door'})}; commands=@(@{op='stage.update'; target=@{alias='root'}; changes=@{name='Root'}}, @{op='stage.create'; alias='room'; parent=@{alias='root'}; data=@{name='Room'; assetName='AgentDemoRoom'}}, @{op='puzzle.create'; alias='door'; stage=@{alias='room'}; data=@{name='Door'; assetName='AgentDemoDoor'}; initialState=@{name='Closed'; assetName='AgentDemoClosed'; alias='closed'}}) }; \"'$planPath = Join-Path (Get-Location) '\"'create-plan.json'; if (Test-Path -LiteralPath \"'$planPath) { throw '\"'Plan already exists' }; [System.IO.File]::WriteAllText(\"'$planPath, ($createPlan | ConvertTo-Json -Depth 20), [System.Text.UTF8Encoding]::new($false)); $created = puzzle create --name '\"'Agent Discovery Demo' --root-asset-name AgentDemoRoot --plan .\\\\create-plan.json --out .\\\\source.puzzle.json --json; \"'$createExit = $LASTEXITCODE; $created; if ($createExit -ne 0) { throw \"create exit $createExit\" }; $createdResult = $created | ConvertFrom-Json; if (-not $createdResult.ok) { throw '\"'create not ok' }; [System.IO.File]::WriteAllText((Join-Path (Get-Location) 'create-result.json'), (\"'$created -join [Environment]::NewLine), [System.Text.UTF8Encoding]::new($false))'",
+    "status": "failed",
+    "exitCode": 1
+  },
+  {
+    "command": "\"D:\\\\Program Files\\\\PowerShell\\\\7\\\\pwsh.exe\" -Command \"if (Test-Path -LiteralPath .\\\\source.puzzle.json) { throw 'Unexpected existing source; refusing overwrite' }; \"'$createPlan = Get-Content -LiteralPath .'\"\\\\create-plan.json -Raw | ConvertFrom-Json; \"'$createPlan.scope = [pscustomobject]@{project=$true}; $planPath = Join-Path (Get-Location) '\"'create-project-plan.json'; if (Test-Path -LiteralPath \"'$planPath) { throw '\"'Plan already exists' }; [System.IO.File]::WriteAllText(\"'$planPath, ($createPlan | ConvertTo-Json -Depth 20), [System.Text.UTF8Encoding]::new($false)); $created = puzzle create --name '\"'Agent Discovery Demo' --root-asset-name AgentDemoRoot --plan .\\\\create-project-plan.json --out .\\\\source.puzzle.json --json; \"'$createExit = $LASTEXITCODE; $created; if ($createExit -ne 0) { throw \"create exit $createExit\" }; if (-not ($created | ConvertFrom-Json).ok) { throw '\"'create not ok' }; [System.IO.File]::WriteAllText((Join-Path (Get-Location) 'create-result.json'), (\"'$created -join [Environment]::NewLine), [System.Text.UTF8Encoding]::new($false)); $inspected = puzzle inspect .'\"\\\\source.puzzle.json --view tree --json; \"'$inspectExit=$LASTEXITCODE; $inspected; if ($inspectExit -ne 0 -or -not ($inspected | ConvertFrom-Json).ok) { throw '\"'inspect failed' }; [System.IO.File]::WriteAllText((Join-Path (Get-Location) 'source-inspect.json'), (\"'$inspected -join [Environment]::NewLine), [System.Text.UTF8Encoding]::new($false))'",
+    "status": "completed",
+    "exitCode": 0
+  },
+  {
+    "command": "\"D:\\\\Program Files\\\\PowerShell\\\\7\\\\pwsh.exe\" -Command '$contract = Get-Content -LiteralPath .'\"\\\\cli-describe.json -Raw | ConvertFrom-Json; \"'$schemas=$contract.data.planSchema.properties.commands.items.oneOf; ($schemas | Where-Object { $_.properties.op.const -eq '\"'state.create' }).properties.data.properties.position | ConvertTo-Json -Depth 10 -Compress; (\"'$schemas | Where-Object { $_.properties.op.const -eq '\"'transition.create' }).properties.data.properties.triggers | ConvertTo-Json -Depth 20 -Compress; (\"'$schemas | Where-Object { $_.properties.op.const -eq '\"'fsm.setInitial' }) | ConvertTo-Json -Depth 20 -Compress\"",
+    "status": "completed",
+    "exitCode": 0
+  },
+  {
+    "command": "\"D:\\\\Program Files\\\\PowerShell\\\\7\\\\pwsh.exe\" -Command '$inspected = puzzle inspect .'\"\\\\source.puzzle.json --view fsm --json; \"'$inspectExit=$LASTEXITCODE; $inspected; if ($inspectExit -ne 0 -or -not ($inspected | ConvertFrom-Json).ok) { throw '\"'FSM inspect failed' }; [System.IO.File]::WriteAllText((Join-Path (Get-Location) 'source-fsm.json'), (\"'$inspected -join [Environment]::NewLine), [System.Text.UTF8Encoding]::new($false)); puzzle validate .'\"\\\\source.puzzle.json --json; if (\"'$LASTEXITCODE -ne 0) { throw '\"'source validate failed' }\"",
+    "status": "completed",
+    "exitCode": 0
+  },
+  {
+    "command": "\"D:\\\\Program Files\\\\PowerShell\\\\7\\\\pwsh.exe\" -Command '$created = Get-Content -LiteralPath .'\"\\\\create-result.json -Raw | ConvertFrom-Json; \"'$doorId=$created.data.aliases.door.id; $fsmId=$created.data.aliases.door.fsmId; puzzle inspect .'\"\\\\source.puzzle.json --view entities --type puzzle --id \"'$doorId --json; if ($LASTEXITCODE -ne 0) { throw '\"'Door inspect failed' }; \"'$fsm = puzzle inspect .'\"\\\\source.puzzle.json --view fsm --id \"'$fsmId --json; $fsmExit=$LASTEXITCODE; $fsm; if ($fsmExit -ne 0 -or -not ($fsm | ConvertFrom-Json).ok) { throw '\"'FSM detail inspect failed' }; [System.IO.File]::WriteAllText((Join-Path (Get-Location) 'source-fsm-detail.json'), (\"'$fsm -join [Environment]::NewLine), [System.Text.UTF8Encoding]::new($false))'",
+    "status": "completed",
+    "exitCode": 0
+  },
+  {
+    "command": "\"D:\\\\Program Files\\\\PowerShell\\\\7\\\\pwsh.exe\" -Command '$sourceContext = Get-Content -LiteralPath .'\"\\\\source-inspect.json -Raw | ConvertFrom-Json; \"'$fsmContext=Get-Content -LiteralPath .'\"\\\\source-fsm-detail.json -Raw | ConvertFrom-Json; \"'$fsmId=$fsmContext.data.result.entity.ref.id; $closedId=$fsmContext.data.result.entity.value.initialStateId; $doorId=$fsmContext.data.result.owners[0].nodeId; $editPlan = [ordered]@{apiVersion='\"'1.0.0'; sourceHash=\"'$sourceContext.data.source.sha256; scope=@{project=$true}; commands=@(@{op='\"'project.update'; changes=@{description='Created and edited autonomously by Codex'}}, @{op='state.create'; alias='opened'; fsm=@{id=\"'$fsmId}; data=@{name='\"'Opened'; assetName='AgentDemoOpened'; position=@{x=500; y=150}}}, @{op='event.create'; alias='unlock'; data=@{name='Unlock'; assetName='AgentDemoUnlock'}}, @{op='transition.create'; alias='unlockDoor'; fsm=@{id=\"'$fsmId}; from=@{id=$closedId}; to=@{alias='\"'opened'}; data=@{name='Unlock Door'; priority=0; triggers=@(@{type='OnEvent'; eventId=@{alias='unlock'}})}}, @{op='fsm.setInitial'; fsm=@{puzzle=@{id=\"'$doorId}}; state=@{id=$closedId}})}; $planPath=Join-Path (Get-Location) '\"'edit-plan.json'; if (Test-Path -LiteralPath \"'$planPath) {throw '\"'Edit plan already exists'}; [System.IO.File]::WriteAllText(\"'$planPath, ($editPlan | ConvertTo-Json -Depth 20), [System.Text.UTF8Encoding]::new($false)); $preview=puzzle preview .'\"\\\\source.puzzle.json --plan .\\\\edit-plan.json --expected-hash \"'$sourceContext.data.source.sha256 --receipt-out .'\"\\\\edit-preview-receipt.json --json; \"'$previewExit=$LASTEXITCODE; $preview; if ($previewExit -ne 0 -or -not ($preview | ConvertFrom-Json).ok) {throw '\"'preview failed'}; [System.IO.File]::WriteAllText((Join-Path (Get-Location) 'edit-preview-result.json'), (\"'$preview -join [Environment]::NewLine), [System.Text.UTF8Encoding]::new($false))'",
+    "status": "completed",
+    "exitCode": 0
+  },
+  {
+    "command": "\"D:\\\\Program Files\\\\PowerShell\\\\7\\\\pwsh.exe\" -Command '$previewContext=Get-Content -LiteralPath .'\"\\\\edit-preview-result.json -Raw | ConvertFrom-Json; if (-not \"'$previewContext.ok -or $previewContext.data.remainingErrors -ne 0 -or @($previewContext.data.requiredCapabilities).Count -ne 0) {throw '\"'Preview did not satisfy constraints'}; \"'$sourceHash=$previewContext.data.source.sha256; $applied=puzzle apply .'\"\\\\source.puzzle.json --plan .\\\\edit-plan.json --receipt .\\\\edit-preview-receipt.json --out .\\\\edited.puzzle.json --expected-hash \"'$sourceHash --json; $applyExit=$LASTEXITCODE; $applied; if ($applyExit -ne 0 -or -not ($applied | ConvertFrom-Json).ok) {throw '\"'apply failed'}; [System.IO.File]::WriteAllText((Join-Path (Get-Location) 'edit-apply-result.json'), (\"'$applied -join [Environment]::NewLine), [System.Text.UTF8Encoding]::new($false)); $editedHash=($applied | ConvertFrom-Json).data.output.sha256; $validated=puzzle validate .'\"\\\\edited.puzzle.json --expected-hash \"'$editedHash --json; $validateExit=$LASTEXITCODE; $validated; if ($validateExit -ne 0 -or -not ($validated | ConvertFrom-Json).ok) {throw '\"'validate failed'}; [System.IO.File]::WriteAllText((Join-Path (Get-Location) 'edited-validation.json'), (\"'$validated -join [Environment]::NewLine), [System.Text.UTF8Encoding]::new($false)); $exported=puzzle export .'\"\\\\edited.puzzle.json --out .\\\\runtime.export.json --expected-hash \"'$editedHash --json; $exportExit=$LASTEXITCODE; $exported; if ($exportExit -ne 0 -or -not ($exported | ConvertFrom-Json).ok) {throw '\"'export failed'}; [System.IO.File]::WriteAllText((Join-Path (Get-Location) 'export-result.json'), (\"'$exported -join [Environment]::NewLine), [System.Text.UTF8Encoding]::new($false)); $sourceHashAfter=(Get-FileHash -LiteralPath .'\"\\\\source.puzzle.json -Algorithm SHA256).Hash.ToLowerInvariant(); if (\"'$sourceHashAfter -ne $sourceHash) {throw '\"'Source hash changed'}; [pscustomobject]@{sourcePreserved=\"'$true; sourceSha256=$sourceHashAfter; editedSha256=$editedHash} | ConvertTo-Json -Compress'",
+    "status": "completed",
+    "exitCode": 0
+  },
+  {
+    "command": "\"D:\\\\Program Files\\\\PowerShell\\\\7\\\\pwsh.exe\" -Command '$readback=puzzle json read .'\"\\\\edited.puzzle.json --json; \"'$readExit=$LASTEXITCODE; if ($readExit -ne 0) {throw '\"'Readback failed'}; \"'$result=$readback | ConvertFrom-Json; if (-not $result.ok) {throw '\"'Readback not ok'}; \"'$result.data.PSObject.Properties.Name; $result.data.file | ConvertTo-Json -Depth 20 -Compress; $exportResult=Get-Content -LiteralPath .'\"\\\\export-result.json -Raw | ConvertFrom-Json; if ((Get-FileHash -LiteralPath .\\\\runtime.export.json -Algorithm SHA256).Hash.ToLowerInvariant() -ne \"'$exportResult.data.output.sha256) {throw '\"'Export hash mismatch'}; Get-ChildItem -LiteralPath . -File | Select-Object Name,Length | ConvertTo-Json -Compress\"",
+    "status": "completed",
+    "exitCode": 0
+  }
+]

@@ -1,8 +1,68 @@
 import { describe, expect, it, vi } from 'vitest';
 import { randomUUID } from 'node:crypto';
 import { setup, id } from './onlineSessionHarness';
+import { serializeProject } from '../../services/projectFiles';
+import { importProject } from '../../utils/projectImport';
 
 describe('C9 在线原子编辑与幂等', () => {
+  it('在线计划直接补齐参数，Undo/Redo 与另存后重新打开无需恢复，值与 ID 稳定', async () => {
+    const s = setup();
+    const request = await s.prepare([
+      {
+        op: 'script.create',
+        alias: 'effect',
+        data: { name: 'Effect', assetName: 'Effect', category: 'Performance' },
+      },
+      {
+        op: 'stage.update',
+        target: { alias: 'root' },
+        changes: {
+          onEnterPresentation: {
+            type: 'Script',
+            scriptId: { alias: 'effect' },
+            parameters: [{ paramName: 'SourceKey', source: { type: 'Constant', value: 'sink' } }],
+          },
+        },
+      },
+    ]);
+    expect((await s.online.handle(request)).ok).toBe(true);
+    const root = s.store.getState().project.stageTree.rootId;
+    const binding = s.store.getState().project.stageTree.stages[root].onEnterPresentation;
+    expect(binding).toMatchObject({
+      parameters: [{ id: 'import-param-1', kind: 'Variable', source: { value: 'sink' } }],
+    });
+    s.store.dispatch({ type: 'UNDO' });
+    expect(s.store.getState().project.stageTree.stages[root].onEnterPresentation).toBeUndefined();
+    s.store.dispatch({ type: 'REDO' });
+    expect(s.store.getState().project.stageTree.stages[root].onEnterPresentation).toEqual(binding);
+    const token = await s.token();
+    const saved = await s.online.handle({
+      operation: 'save',
+      sessionId: token.sessionId,
+      token,
+      requestId: id(),
+      out: 'C:/test/parameters.puzzle.json',
+    });
+    expect(saved.ok).toBe(true);
+    const content = s.platform.write.mock.calls[0][1];
+    expect(
+      importProject(content).notices.filter((notice) =>
+        notice.message.includes('parameter editor'),
+      ),
+    ).toEqual([]);
+    expect(importProject(content).project.stageTree.stages[root].onEnterPresentation).toEqual(
+      binding,
+    );
+    expect(JSON.parse(content).project).toEqual(
+      JSON.parse(
+        serializeProject(
+          s.store.getState().project,
+          undefined,
+          s.store.getState().project.meta.updatedAt,
+        ),
+      ).project,
+    );
+  });
   it('读取未保存 Store、完整 JSON 和 pendingEdits，不读磁盘', async () => {
     const s = setup();
     s.store.dispatch({ type: 'UPDATE_PROJECT_META', payload: { name: 'Human unsaved' } });

@@ -36,6 +36,20 @@ function setup(desktop = true, empty = false) {
 afterEach(() => vi.useRealTimers());
 
 describe('C8 候选所有权与会话提交顺序', () => {
+    it('导入辅助信息为 info，兼容版本警告保持 warning，不混为领域错误', async () => {
+        const { store, session, platform } = setup(true, true);
+        const file = JSON.parse(serializeProject(createProjectFixture(), undefined, '2026-10-07T00:00:00Z'));
+        const root = file.project.stageTree.stages[file.project.stageTree.rootId];
+        file.project.scripts.scripts.effect = { id: 'effect', name: 'Effect', assetName: 'Effect', category: 'Performance', state: 'Draft' };
+        root.onEnterPresentation = { type: 'Script', scriptId: 'effect', parameters: [{ paramName: 'SourceKey', source: { type: 'Constant', value: 'sink' } }] };
+        file.editorVersion = 'future';
+        platform.chooseOpen.mockResolvedValueOnce({ content: JSON.stringify(file), path: 'C:/test/legacy.puzzle.json' });
+        expect((await session.openProject()).status).toBe('loaded');
+        const messages = store.getState().ui.messages;
+        expect(messages.find(message => message.text.includes('Restored parameter editor'))).toMatchObject({ level: 'info' });
+        expect(messages.find(message => message.text.includes('produced by editor future'))).toMatchObject({ level: 'warning' });
+        expect(store.getState().project.stageTree.stages[root.id].onEnterPresentation).toMatchObject({ parameters: [{ id: 'import-param-1', kind: 'Variable', source: { value: 'sink' } }] });
+    });
     it('目标被占用时保留原文档、历史、路径与 dirty', async () => {
         const { store, session, platform, edit, waitPhase } = setup(); edit();
         const before = store.getState();

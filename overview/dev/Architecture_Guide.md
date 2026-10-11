@@ -1,7 +1,9 @@
 # 架构指南（Architecture Guide）
 
 > 本文档描述项目的整体架构设计、分层结构与开发规范，用于指导后续阶段的功能实现。  
-> **版本**: 1.2.24 | **更新时间**: 2026-10-09 | **本次同步**: CLI C11–C16 图标、全局安装、配置、Skill、doctor 与成品回归；验证见 C16 报告
+> **版本**: 1.2.25 | **更新时间**: 2026-10-11 | **本次同步**: CLI 参数补齐、最终候选落盘与导入提示等级；此前 C11–C16 安装及成品验收记录保留
+
+2026-10-11 补充：参数辅助信息由 `utils/presentationParameters.ts` 统一生成，领域候选的最终校验项目与落盘内容一致；导入 info/warning 从边界传递到 GUI/CLI。实测范围见 [CLI 参数一致性修复](./CLI_Parameter_Consistency_Fix_2026-10-11.md)。
 
 **C1–C16 开发及隔离成品验收已完成**。在线应用服务复用领域候选、Store 和 ProjectSession，Windows ACL/HMAC 和协议 2 不变。CLI/管理契约同源；services/cliTooling 维护配置、安装事务、Skill 和 doctor，platform/node 仅负责 OS 环境、文件与只读连接。PowerShell 入口不复制安装业务。指南唯一来源生成 AGENTS 与 Skill reference，权限不进入配置。桌面发行必须经 package-desktop 的固定资源工具及原图标检查；electron:build 已使用该入口。最终包与实测范围见 [C16 报告](./CLI_C16_Implementation.md)。
 
@@ -237,6 +239,8 @@ C8 的 `overwriteSchemas.ts` 是模式互斥与文件身份回执的唯一契约
 - **外部数据边界**：`utils/projectImport` 将 JSON 解析为 unknown，由 readers/domain/legacy/index 分别负责收窄、领域结构、历史迁移及封装识别。只认当前工程/运行时格式、有结构证据的原始数据和旧 Manifest；未知重要字段、结构损坏、层级环与超深链拒绝，错误保留字段位置。
 - **候选校验与提交**：`projectFiles.prepareProject` 在候选上运行既有业务校验，结构有效但未完成的工程仍可编辑。INIT_SUCCESS 一次提交内容和问题列表，取消/失败不影响原诊断；运行时/历史数据作为副本另存。外部资源同步也经过相同结构校验，仅合并资源状态。
 - **规范化与修复导航**：`projectNormalizer` 只补齐已校验数据的坐标/参数辅助信息，演出节点与 Reducer 共用规范形态。`store/navigation/validationNavigation.ts` 把诊断解析为导航 Action；引用导航位于同目录。项目诊断条目定义于 `types/validation.ts`，FSM/演出图校验只接收 `ProjectData`。Validate Project、Recheck 与导出复用同一业务校验器。
+- **参数与落盘一致性**：`presentationParameters.completeParameterBindings` 是 Script 参数辅助 id/kind 的唯一补齐规则，由 CLI 领域绑定、导入规范化与 Inspector 共用；参数来源、值、顺序及 Temporary 数据保留。文件 `domainCandidate` 序列化最终规范候选，使回执、校验与磁盘字节一致；在线模式保留 Store 形态，空计划不制造历史。
+- **导入提示等级**：`ImportNotice.level` 由导入边界定义，保值补齐/迁移为 info，版本差异及约束调整显式 warning。ProjectSession 不重新推断等级；CLI `importDiagnostics` 只将 warning 转为 `IMPORT_WARNING`，参与警告计数和严格模式。导入结构失败仍报错。
 - **引用与调用上下文**：`resourceReferences.ts` 是白名单引用字段遍历的唯一 owner；黑板计数、兼容 find*References、CLI 和 impacts 共用。新增引用字段只在此处扩展，禁止计数/列表各自维护。`presentationUsage.ts` 统一根调用、子图传播与最近祖先变量解析。批量查询显式复用 createResourceReferenceIndex，不能为每个资源重建或全局缓存可变项目。`useBlackboardData` 保持 Hook 内 project 身份缓存，过滤/选择不重扫，编辑/历史变化重算；语义预期见 C4 领域测试，性能夹具验证批量结果和枚举次数。
 - **原生关闭保护**：`electron/windowCloseGuard.ts` 拦截窗口 close / 应用 before-quit，经受限 preload / platform 接口交给 `useWindowClose` 与 `ProjectSession.requestClose`。先提交当前字段草稿（包含后台窗口不产生 focusout 的情况），复用保存队列、版本确认与 committing 冻结；只接受当前窗口主框架和请求 ID 的答复。取消退出恢复编辑；主进程不维护另一份 dirty。正常关闭不使用 destroy/exit 强制绕过保护。
 - 详细设计与边界见 [第一批](./Architecture_Repair_Batch1.md)、[第二批](./Architecture_Repair_Batch2.md)、[第三批](./Architecture_Repair_Batch3.md)、[第四批](./Architecture_Repair_Batch4.md)、[第五批](./Architecture_Repair_Batch5.md)、[第六批](./Architecture_Repair_Batch6.md) 和 [关闭保护](./Window_Close_Protection.md)。独立缩放仍待完成。

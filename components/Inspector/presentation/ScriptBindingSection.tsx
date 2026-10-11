@@ -12,6 +12,7 @@ import { ResourceSelect, ResourceOption } from '../ResourceSelect';
 import { VariableSelector } from '../VariableSelector';
 import { ValueSourceEditor } from '../ValueSourceEditor';
 import { isValidAssetName } from '../../../utils/assetNameValidation';
+import { completeParameterBindings } from '../../../utils/presentationParameters';
 
 interface ScriptBindingSectionProps {
   binding: PresentationBinding & { type: 'Script' };
@@ -350,11 +351,7 @@ export const ScriptBindingSection: React.FC<ScriptBindingSectionProps> = ({
   readOnly = false,
 }) => {
   const normalizedParams: ParameterBinding[] = useMemo(() => {
-    return (binding.parameters || []).map((p, idx) => ({
-      ...p,
-      id: p.id || `param-${idx}-${p.paramName || 'param'}`,
-      kind: p.kind || (p.tempVariable ? 'Temporary' : 'Variable'),
-    }));
+    return completeParameterBindings(binding.parameters || []);
   }, [binding.parameters]);
 
   const selectedScriptDef = useMemo(() => {

@@ -40,11 +40,14 @@ export function buildCandidate(
       error.details,
     );
   }
-  const content = serializeProject(execution.project, editorState, savedAt);
+  const executionContent = serializeProject(execution.project, editorState, savedAt);
   // 序列化后再次走实际导入边界，保证可被 GUI 打开，不把类型断言当成结构验证。
-  const imported = importProject(content).project;
+  const imported = importProject(executionContent).project;
   // 在线提交保留 Store 的可选字段形态；文件导入默认值不能把无变化计划变成编辑。
   const finalProject = mode === 'memory' ? execution.project : imported;
+  // 文件内容与校验候选必须来自同一规范形态；在线模式仍保留未补默认值的 Store 内容。
+  const content =
+    mode === 'memory' ? executionContent : serializeProject(finalProject, editorState, savedAt);
   const validation = validateCandidate(source, finalProject, creating);
   return {
     ...execution,

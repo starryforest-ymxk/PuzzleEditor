@@ -393,7 +393,14 @@ describe('领域查询、上下文和机器诊断', () => {
     const strict = await json(['validate', sourcePath, '--warnings-as-errors']);
     expect(strict.code).toBe(3);
     expect(strict.result.error?.code).toBe('WARNINGS_AS_ERRORS');
-    expect(strict.data).toMatchObject({ valid: true, errors: 0, warnings: 1 });
+    // 夹具 stagesHeight=250 也需要约束修复，导入警告与孤立图警告使用同一严格策略。
+    expect(strict.data).toMatchObject({ valid: true, errors: 0, warnings: 2 });
+    expect(strict.result.diagnostics).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ code: 'IMPORT_WARNING', path: '$.editorState.panelSizes' }),
+        expect.objectContaining({ code: 'WARN_GRAPH_UNUSED' }),
+      ]),
+    );
   });
 
   it('父链/子链环不会让校验、变量或引用查询无限运行', async () => {

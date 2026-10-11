@@ -17,6 +17,8 @@
 
 每次检查进程退出码、ok、diagnostics 和 error。pathBasis=request 定位请求或计划，工程路径定位业务内容。结果未知时先核验返回的 expectedHash、输出路径和事务记录，不能随机换目标重试。
 
+importNotices 另包含 level：info 表示保留业务值的兼容转换或辅助字段恢复，warning 表示需要关注的兼容或约束调整。桌面消息栈使用相同等级；CLI 将导入 warning 纳入 diagnostics（code 为 IMPORT_WARNING）与 warning 计数，--warnings-as-errors 会拒绝这些 warning。info 不会导致严格校验失败，但仍应阅读其含义。
+
 ## 直接 JSON 编辑的聊天授权
 
 直接编写或修改工程 JSON 是备用能力。使用前必须有用户在 Agent 聊天中的明确许可，例如“本次修复允许直接修改 Demo 项目的 JSON，仅限演出图”。普通“修改项目”“使用 CLI”等任务授权不自动包含该权限。Agent 依据用户消息确认项目、任务、目的和范围；不能自动从失败的领域命令降级，也不能改用任意文件工具绕过授权。

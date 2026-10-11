@@ -314,12 +314,59 @@ const deadline = setTimeout(() => {
 try {
   const a = join(directory, 'A.puzzle.json'),
     b = join(directory, 'B.puzzle.json');
+  // 使用公开领域参数形态创建工程；桌面重新打开不能再恢复辅助字段或产生警告。
+  const parameterPlan = join(directory, 'parameters.plan.json');
+  await writeFile(
+    parameterPlan,
+    JSON.stringify({
+      apiVersion: '1.0.0',
+      scope: { project: true },
+      commands: [
+        {
+          op: 'script.create',
+          alias: 'effect',
+          data: { name: 'Play Effect', assetName: 'PlayEffect', category: 'Performance' },
+        },
+        {
+          op: 'stage.update',
+          target: { alias: 'root' },
+          changes: {
+            onEnterPresentation: {
+              type: 'Script',
+              scriptId: { alias: 'effect' },
+              parameters: [
+                { paramName: 'SourceKey', source: { type: 'Constant', value: 'sink' } },
+                {
+                  paramName: 'TemporaryFlag',
+                  kind: 'Temporary',
+                  source: { type: 'Constant', value: false },
+                  tempVariable: { name: 'Temporary Flag', type: 'boolean' },
+                },
+              ],
+            },
+          },
+        },
+      ],
+    }),
+  );
   for (const [path, name] of [
     [a, 'First'],
     [b, 'Second'],
   ])
     assert(
-      (await cli(['create', '--name', name, '--root-asset-name', 'Root', '--out', path])).ok,
+      (
+        await cli([
+          'create',
+          '--name',
+          name,
+          '--root-asset-name',
+          'Root',
+          '--plan',
+          parameterPlan,
+          '--out',
+          path,
+        ])
+      ).ok,
       'Create isolated ' + name,
     );
   const first = await desktop('one', a),
@@ -335,6 +382,28 @@ try {
   const s = sessions.find((s) => s.path === a),
     other = sessions.find((s) => s.path === b);
   assert(Boolean(s && other), 'Two production desktop sessions discovered without guessing');
+  const parameterValidation = await cli(['validate', a, '--warnings-as-errors']);
+  assert(
+    parameterValidation.ok && parameterValidation.data.importNotices.length === 0,
+    'CLI-created ordinary and Temporary parameters reopen without import notices',
+  );
+  await first.request('evaluate', `document.querySelector('[data-messages-button]').click()`);
+  const initialMessages = await first.request(
+    'evaluate',
+    `document.querySelector('.message-stack-dropdown').innerText`,
+  );
+  assert(
+    /Warning\s*\(0\)/.test(initialMessages) && /Error\s*\(0\)/.test(initialMessages),
+    'Real desktop Message Stack has zero warnings and errors after opening CLI-created parameters',
+  );
+  // 后台窗口的 DOM 更新可能早于合成帧；截图前等一帧，避免证据仍是关闭面板的旧画面。
+  await first.request(
+    'evaluate',
+    `new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve(true))))`,
+  );
+  await delay(150);
+  await first.request('screenshot', join(directory, '00-parameter-messages.png'));
+  await first.request('evaluate', `document.querySelector('[data-messages-button]').click()`);
   const initialHash = await hash(a);
   const p = await preview(s, 'Agent root');
   assert(p.result.ok, 'Preview against live token');
@@ -693,7 +762,7 @@ try {
   await tutorialDesktop.request('destroy');
   await writeFile(
     join(directory, 'result.json'),
-    JSON.stringify({ success: true, checks }, null, 2),
+    JSON.stringify({ success: true, checks, initialMessages }, null, 2),
   );
   console.log(`C10 real desktop online smoke passed (${checks.length} checks).`);
 } catch (error) {

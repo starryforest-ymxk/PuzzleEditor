@@ -1,0 +1,42 @@
+{
+  "success": true,
+  "output": "E:\\Projects\\Web Projects\\puzzle-editor\\release\\parameter-fix-2026-10-11\\BubbleHorror.fixed.puzzle.json",
+  "export": "E:\\Projects\\Web Projects\\puzzle-editor\\release\\parameter-fix-2026-10-11\\BubbleHorror.fixed.export.json",
+  "valid": true,
+  "errors": 0,
+  "warnings": 0,
+  "importNotices": [],
+  "parameters": [
+    {
+      "paramName": "SourceKey",
+      "source": {
+        "type": "Constant",
+        "value": "sink"
+      },
+      "id": "import-param-1",
+      "kind": "Variable",
+      "description": "场景来源映射键，匹配正式三来源。"
+    },
+    {
+      "paramName": "SourceKey",
+      "source": {
+        "type": "Constant",
+        "value": "washer"
+      },
+      "id": "import-param-1",
+      "kind": "Variable",
+      "description": "场景来源映射键，匹配正式三来源。"
+    },
+    {
+      "paramName": "SourceKey",
+      "source": {
+        "type": "Constant",
+        "value": "toilet"
+      },
+      "id": "import-param-1",
+      "kind": "Variable",
+      "description": "场景来源映射键，匹配正式三来源。"
+    }
+  ],
+  "businessSourceSha256": "CF11B7AC6075DE9BCB5D5A367C2CB7BFBC9AB756C8E00272CBFC0F20CD36AF11"
+}

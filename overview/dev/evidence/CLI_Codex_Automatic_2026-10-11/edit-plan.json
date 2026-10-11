@@ -1,0 +1,74 @@
+{
+  "apiVersion": "1.0.0",
+  "sourceHash": "76116fe4727bceecd1bffe15bf41bf335e44ae8e960bfa82c65a8066784ecde5",
+  "scope": {
+    "project": true
+  },
+  "commands": [
+    {
+      "changes": {
+        "description": "Created and edited autonomously by Codex"
+      },
+      "op": "project.update"
+    },
+    {
+      "fsm": {
+        "id": "FSM_1"
+      },
+      "op": "state.create",
+      "data": {
+        "name": "Opened",
+        "assetName": "AgentDemoOpened",
+        "position": {
+          "y": 150,
+          "x": 500
+        }
+      },
+      "alias": "opened"
+    },
+    {
+      "data": {
+        "assetName": "AgentDemoUnlock",
+        "name": "Unlock"
+      },
+      "op": "event.create",
+      "alias": "unlock"
+    },
+    {
+      "to": {
+        "alias": "opened"
+      },
+      "data": {
+        "name": "Unlock Door",
+        "priority": 0,
+        "triggers": [
+          {
+            "eventId": {
+              "alias": "unlock"
+            },
+            "type": "OnEvent"
+          }
+        ]
+      },
+      "op": "transition.create",
+      "alias": "unlockDoor",
+      "fsm": {
+        "id": "FSM_1"
+      },
+      "from": {
+        "id": "STATE_1"
+      }
+    },
+    {
+      "fsm": {
+        "puzzle": {
+          "id": "NODE_1"
+        }
+      },
+      "op": "fsm.setInitial",
+      "state": {
+        "id": "STATE_1"
+      }
+    }
+  ]
+}

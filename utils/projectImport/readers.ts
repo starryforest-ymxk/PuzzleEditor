@@ -6,7 +6,7 @@ export class ProjectImportError extends Error {
     }
 }
 
-export interface ImportNotice { path: string; message: string }
+export interface ImportNotice { path: string; message: string; level: 'info' | 'warning' }
 /** 离线预览注入固定上下文；GUI 省略时保留当前时间与随机项目身份。 */
 export interface ProjectImportOptions { now?: string; runtimeProjectId?: string }
 export class ImportContext {
@@ -19,8 +19,9 @@ export class ImportContext {
     notices: ImportNotice[] = [];
     migrated = false;
     legacyBooleanVariables = new Set<string>();
-    note(path: string, message: string, migration = false): void {
-        this.notices.push({ path, message });
+    /** 保留业务值的补齐/迁移为信息；需要用户关注的约束调整显式声明警告。 */
+    note(path: string, message: string, migration = false, level: ImportNotice['level'] = 'info'): void {
+        this.notices.push({ path, message, level });
         if (migration) this.migrated = true;
     }
 }

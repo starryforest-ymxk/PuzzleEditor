@@ -3,6 +3,21 @@ import type { CodedValidationResult } from '../../types/validation';
 import type { Diagnostic, EntityType } from '../../contracts/automation/schemas';
 import type { EntityRecord } from './entities';
 import { pointer } from './entities';
+import type { ImportNotice } from '../../utils/projectImport';
+
+/** 导入提示等级由导入边界决定；真正的 warning 同时参与 CLI 严格校验。 */
+export function importDiagnostics(notices: ImportNotice[]): Diagnostic[] {
+  return notices
+    .filter((notice) => notice.level === 'warning')
+    .map((notice) => ({
+      code: 'IMPORT_WARNING',
+      level: 'warning',
+      message: notice.message,
+      path: notice.path,
+      pathBasis: 'source',
+      retryable: false,
+    }));
+}
 
 const objectTypes: Record<CodedValidationResult['objectType'], EntityType> = {
   STAGE: 'stage',
