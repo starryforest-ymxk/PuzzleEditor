@@ -1,4 +1,11 @@
-import { MenuSurface, MenuItem, MenuSeparator } from '../shared/Menu';
+import {
+  MenuSurface,
+  MenuItem,
+  MenuSeparator,
+  MenuScrollArea,
+  MenuItemText,
+  MenuActionButton,
+} from '../shared/Menu';
 /**
  * components/Layout/ProjectMenu.tsx
  * Project 下拉菜单 - 新建、打开、最近项目、导出等操作
@@ -88,8 +95,7 @@ export const ProjectMenu: React.FC<ProjectMenuProps> = ({
   };
 
   // 从最近项目移除（手动点垃圾桶）
-  const handleRemoveRecent = async (e: React.MouseEvent, path: string) => {
-    e.stopPropagation();
+  const handleRemoveRecent = async (path: string) => {
     await removeRecentProject(path);
     setRecentProjects((prev) => prev.filter((p) => p.path !== path));
   };
@@ -193,7 +199,7 @@ export const ProjectMenu: React.FC<ProjectMenuProps> = ({
               />
             </MenuItem>
 
-            {/* Recent Projects Submenu */}
+            {/* 外层只负责定位与鼠标桥接；列表滚动和清空动作在共享菜单内分离。 */}
             {showRecentSubmenu && (
               <div
                 style={{
@@ -203,8 +209,6 @@ export const ProjectMenu: React.FC<ProjectMenuProps> = ({
                   marginRight: '-4px',
                   paddingRight: '8px',
                   width: '288px',
-                  maxHeight: '300px',
-                  overflowY: 'auto',
                   zIndex: 1001,
                 }}
               >
@@ -222,78 +226,31 @@ export const ProjectMenu: React.FC<ProjectMenuProps> = ({
                     </div>
                   ) : (
                     <>
-                      {recentProjects.map((project) => (
-                        <MenuItem
-                          as="div"
-                          key={project.path}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                          }}
-
-                          onClick={() => handleOpenRecentProject(project)}
-                        >
-                          <div style={{ flex: 1, overflow: 'hidden' }}>
-                            <div
-                              style={{
-                                fontSize: '13px',
-                                color: 'var(--text-primary)',
-                                whiteSpace: 'nowrap',
-                                textOverflow: 'ellipsis',
-                                overflow: 'hidden',
-                              }}
-                            >
-                              {project.name}
-                            </div>
-                            <div
-                              style={{
-                                fontSize: '11px',
-                                color: 'var(--text-secondary)',
-                                whiteSpace: 'nowrap',
-                                textOverflow: 'ellipsis',
-                                overflow: 'hidden',
-                              }}
-                            >
-                              {formatDate(project.lastOpened)}
-                            </div>
-                          </div>
-                          <button
-                            style={{
-                              padding: '4px',
-                              background: 'transparent',
-                              border: 'none',
-                              cursor: 'pointer',
-                              color: 'var(--text-secondary)',
-                              borderRadius: '4px',
-                            }}
-                            onMouseEnter={(e) =>
-                              (e.currentTarget.style.color = 'var(--accent-error)')
-                            }
-                            onMouseLeave={(e) =>
-                              (e.currentTarget.style.color = 'var(--text-secondary)')
-                            }
-                            onClick={(e) => handleRemoveRecent(e, project.path)}
-                            title="Remove from list"
+                      <MenuScrollArea style={{ maxHeight: '240px' }}>
+                        {recentProjects.map((project) => (
+                          <MenuItem
+                            as="div"
+                            key={project.path}
+                            onClick={() => handleOpenRecentProject(project)}
                           >
-                            <Trash2 size={14} />
-                          </button>
-                        </MenuItem>
-                      ))}
-
-                      {/* Clear All */}
-                      <div
-                        style={{
-                          borderTop: `1px solid ${'var(--resource-menu-border)'}`,
-                          marginTop: '6px',
-                          paddingTop: '6px',
-                        }}
-                      >
-                        <MenuItem onClick={handleClearRecent}>
-                          <Trash2 size={14} />
-                          Clear Recent Projects
-                        </MenuItem>
-                      </div>
+                            <MenuItemText description={formatDate(project.lastOpened)}>
+                              {project.name}
+                            </MenuItemText>
+                            <MenuActionButton
+                              danger
+                              label={`Remove ${project.name} from recent projects`}
+                              onClick={() => handleRemoveRecent(project.path)}
+                            >
+                              <Trash2 size={14} />
+                            </MenuActionButton>
+                          </MenuItem>
+                        ))}
+                      </MenuScrollArea>
+                      <MenuSeparator />
+                      <MenuItem onClick={handleClearRecent}>
+                        <Trash2 size={14} />
+                        Clear Recent Projects
+                      </MenuItem>
                     </>
                   )}
                 </MenuSurface>

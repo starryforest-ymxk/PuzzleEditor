@@ -2,7 +2,12 @@
 import React, { act, StrictMode, useRef, useState } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { beforeEach, afterEach, it, expect, vi } from 'vitest';
-import { MenuSurface, MenuItem, MenuSeparator } from '../../components/shared/Menu';
+import {
+  MenuSurface,
+  MenuItem,
+  MenuSeparator,
+  MenuActionButton,
+} from '../../components/shared/Menu';
 import { StateNode } from '../../components/Canvas/Elements/StateNode';
 import { ConnectionControls } from '../../components/Canvas/Elements/ConnectionLine';
 import { GraphEdgeControls } from '../../components/Canvas/shared/GraphEdge';
@@ -60,6 +65,36 @@ it('方向键跳过禁用项并循环；禁用菜单不会触发业务动作', a
   expect(document.activeElement).toBe(items[2]);
   await click(items[1]);
   expect(disabled).not.toHaveBeenCalled();
+});
+
+it('行尾动作不会误触父行，禁用动作仍隔离点击，父行键盘激活保持一次', async () => {
+  const open = vi.fn(),
+    remove = vi.fn();
+  const render = (disabled = false) => (
+    <MenuSurface>
+      <MenuItem as="div" onClick={open}>
+        Project
+        <MenuActionButton label="Remove Project" danger disabled={disabled} onClick={remove}>
+          Remove
+        </MenuActionButton>
+      </MenuItem>
+    </MenuSurface>
+  );
+  await act(() => root.render(render()));
+  const row = host.querySelector<HTMLElement>('[role="menuitem"]')!;
+  const button = host.querySelector('button')!;
+  expect(button.getAttribute('aria-label')).toBe('Remove Project');
+  await click(button);
+  expect(remove).toHaveBeenCalledTimes(1);
+  expect(open).not.toHaveBeenCalled();
+  await key(button, 'Enter');
+  expect(open).not.toHaveBeenCalled();
+  await key(row, 'Enter');
+  expect(open).toHaveBeenCalledTimes(1);
+  await act(() => root.render(render(true)));
+  await click(host.querySelector('button')!);
+  expect(remove).toHaveBeenCalledTimes(1);
+  expect(open).toHaveBeenCalledTimes(1);
 });
 
 it('子菜单点击保持菜单；StrictMode 外部关闭只执行一次并隔离画布事件', async () => {

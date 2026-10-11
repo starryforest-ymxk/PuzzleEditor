@@ -93,6 +93,9 @@ textarea.dialog-input.ui-control {
   z-index: var(--layer-menu);
 }
 .ui-menu-item {
+  /* button 与包含辅助按钮的 div 使用相同宽度，内边距不能扩大父菜单。 */
+  box-sizing: border-box;
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -130,6 +133,62 @@ textarea.dialog-input.ui-control {
   height: 1px;
   background: var(--resource-menu-border);
   margin: 4px 0;
+}
+.ui-menu-scroll-area {
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+.ui-menu-item-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+.ui-menu-item-text__label,
+.ui-menu-item-text__description {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.ui-menu-item-text__label {
+  font-size: 13px;
+}
+.ui-menu-item-text__description {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+.ui-menu-action {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  padding: 4px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-secondary);
+  font: inherit;
+  cursor: pointer;
+}
+.ui-menu-action:hover:not(:disabled),
+.ui-menu-action:focus-visible {
+  background: var(--resource-menu-hover);
+  color: var(--text-primary);
+}
+.ui-menu-action--danger:hover:not(:disabled),
+.ui-menu-action--danger:focus-visible {
+  color: var(--accent-error);
+}
+.ui-menu-action:focus-visible {
+  outline: 1px solid var(--accent-color);
+  outline-offset: 1px;
+}
+.ui-menu-action:disabled {
+  opacity: 0.5;
+  cursor: default;
 }
 .ui-popover {
   background: var(--resource-menu-bg);

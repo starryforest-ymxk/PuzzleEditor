@@ -87,7 +87,10 @@ export const MenuItem: React.FC<MenuItemProps> = ({
       tabIndex={disabled ? -1 : 0}
       className={`ui-menu-item ${danger ? 'ui-menu-item--danger' : ''} ${className}`}
       onClick={(event) => {
-        if (!disabled) onClick?.(event);
+        // 禁用原生按钮不执行自己的监听器，父行也必须拒绝其内部图标的冒泡。
+        const action =
+          event.target instanceof globalThis.Element && event.target.closest('.ui-menu-action');
+        if (!disabled && !action) onClick?.(event);
       }}
       onKeyDown={(event) => {
         onKeyDown?.(event);
@@ -107,3 +110,47 @@ export const MenuItem: React.FC<MenuItemProps> = ({
 };
 
 export const MenuSeparator: React.FC = () => <div className="ui-menu-separator" role="separator" />;
+
+// 将滚动限制在菜单列表内，外部定位桥接和底部动作不参与滚动。
+export const MenuScrollArea: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({
+  className = '',
+  ...props
+}) => <div {...props} className={`ui-menu-scroll-area ${className}`} />;
+
+interface MenuItemTextProps {
+  children: React.ReactNode;
+  description?: React.ReactNode;
+}
+
+export const MenuItemText: React.FC<MenuItemTextProps> = ({ children, description }) => (
+  <div className="ui-menu-item-text">
+    <div className="ui-menu-item-text__label">{children}</div>
+    {description != null && <div className="ui-menu-item-text__description">{description}</div>}
+  </div>
+);
+
+interface MenuActionButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  label: string;
+  danger?: boolean;
+}
+
+// 行尾动作独立于父行：删除/清理只触发自己的回调，不误打开对应项目。
+export const MenuActionButton: React.FC<MenuActionButtonProps> = ({
+  label,
+  danger = false,
+  className = '',
+  onClick,
+  ...props
+}) => (
+  <button
+    {...props}
+    type="button"
+    aria-label={label}
+    title={props.title ?? label}
+    className={`ui-menu-action ${danger ? 'ui-menu-action--danger' : ''} ${className}`}
+    onClick={(event) => {
+      event.stopPropagation();
+      if (!props.disabled) onClick?.(event);
+    }}
+  />
+);

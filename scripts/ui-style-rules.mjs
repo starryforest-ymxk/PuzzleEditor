@@ -33,6 +33,8 @@ const decorative = new Set([
 const sharedWidgets = new Set([
   'MenuSurface',
   'MenuItem',
+  'MenuActionButton',
+  'MenuScrollArea',
   'ResourcePreview',
   'ResourceDetailsCard',
   'InspectorInfo',

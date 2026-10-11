@@ -152,6 +152,8 @@ const uiProbes = [
   ],
   ['components/Probe.tsx', '<div className="ctx-item">Delete</div>'],
   ['components/Probe.tsx', '<div role="dialog">Form</div>'],
+  ['components/Probe.tsx', '<MenuActionButton label="Remove" style={{color:"red"}} />'],
+  ['components/Probe.tsx', '<MenuScrollArea style={{padding:8}} />'],
   [
     'components/Probe.tsx',
     'const getTypeColor=(t:string)=>{switch(t){case "boolean":return "#abc";case "integer":return "#def";case "float":return "#aaa";}}',

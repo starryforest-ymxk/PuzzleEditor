@@ -1,0 +1,95 @@
+[
+  {
+    "scenario": "two-projects",
+    "data": {
+      "actionColor": "rgb(161, 161, 170)",
+      "boxSizing": "border-box",
+      "listHeight": 96,
+      "listWidth": 286,
+      "rightInset": 12,
+      "rowWidth": 286.3999938964844,
+      "scrollHeight": 96,
+      "scrollWidth": 286,
+      "titleTruncated": true
+    }
+  },
+  {
+    "scenario": "remove",
+    "events": "[\"remove:D:/MenuTest/project-1.puzzle.json\"]",
+    "remaining": 1
+  },
+  {
+    "scenario": "ten-projects",
+    "data": {
+      "footerOutsideScroll": true,
+      "footerTop": 421,
+      "listBottom": 412,
+      "listHeight": 240,
+      "listWidth": 274,
+      "scrollHeight": 480,
+      "scrollWidth": 274
+    }
+  },
+  {
+    "scenario": "keyboard-scroll",
+    "data": {
+      "focused": "Example Project 102026/10/2",
+      "footerTop": 421,
+      "scrollTop": 240
+    }
+  },
+  {
+    "scenario": "keyboard-open",
+    "events": "[\"open:D:/MenuTest/project-9.puzzle.json\"]",
+    "menuClosed": true
+  },
+  {
+    "scenario": "bridge-click",
+    "menus": 2
+  },
+  {
+    "scenario": "keyboard-remove",
+    "events": "[\"remove:D:/MenuTest/project-0.puzzle.json\"]",
+    "menus": 2
+  },
+  {
+    "scenario": "clear-and-empty",
+    "events": "[\"remove:D:/MenuTest/project-0.puzzle.json\",\"clear\"]",
+    "emptyVisible": true
+  },
+  {
+    "scenario": "action-focus",
+    "data": {
+      "color": "rgb(239, 68, 68)",
+      "focusVisible": true,
+      "label": "Remove Example Project 2 from recent projects",
+      "outline": "solid"
+    }
+  },
+  {
+    "scenario": "script-submenu",
+    "events": "[\"script:Lifecycle:Stage\"]",
+    "menuClosed": true
+  },
+  {
+    "scenario": "editor-node-submenu",
+    "data": {
+      "boxSizing": "border-box",
+      "menuWidth": 161.60000610351562,
+      "rightInset": 0.8000030517578125,
+      "rowWidth": 160
+    }
+  },
+  {
+    "scenario": "editor-node-create",
+    "nodeName": "New Empty Node",
+    "data": {
+      "menuClosed": true,
+      "nodeCreated": true
+    }
+  },
+  {
+    "scenario": "editor-console",
+    "logs": []
+  }
+]
