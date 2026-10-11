@@ -1,0 +1,42 @@
+{
+  "ok": true,
+  "work": "D:\\Temp\\puzzle-installed-parameters 中文 tptabH",
+  "installedRuntime": "D:\\Tools\\PuzzleEditorCLI\\versions\\C16-15d2d62f5dc3e659\\runtime\\node.exe",
+  "installedCli": "D:\\Tools\\PuzzleEditorCLI\\versions\\C16-15d2d62f5dc3e659\\app\\cli.js",
+  "calls": [
+    {
+      "command": "create",
+      "ok": true
+    },
+    {
+      "command": "inspect",
+      "ok": true
+    },
+    {
+      "command": "preview",
+      "ok": true
+    },
+    {
+      "command": "apply",
+      "ok": true
+    },
+    {
+      "command": "validate",
+      "ok": true
+    },
+    {
+      "command": "export",
+      "ok": true
+    }
+  ],
+  "bindings": 4,
+  "parameters": 20,
+  "editedSourceKey": "washer",
+  "valid": true,
+  "errors": 0,
+  "warnings": 0,
+  "importNotices": [],
+  "receiptMatchesDisk": true,
+  "sourceUnchanged": true,
+  "exportValuesPreserved": true
+}
