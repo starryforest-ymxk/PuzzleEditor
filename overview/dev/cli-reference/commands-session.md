@@ -11,6 +11,7 @@
 - [session status](#session-status)
 - [session inspect](#session-inspect)
 - [session validate](#session-validate)
+- [session messages](#session-messages)
 - [session preview](#session-preview)
 - [session apply](#session-apply)
 - [session save](#session-save)
@@ -284,6 +285,47 @@ puzzle session validate --instance $instance --session $session --json
 常见失败与处理：
 
 - INVALID_ARGUMENT / DUPLICATE_ARGUMENT：按语法、参数组合和类型修正；不要重复传同一选项。
+- 会话不可用、版本冲突、pending/busy：重新读取状态或处理桌面交互；未知写入结果遵守同 requestId 重试规则。
+
+<a id="session-messages"></a>
+## session messages
+
+只读查询真实桌面消息栈，支持等级过滤和稳定快照分页；不提交草稿或修改消息。
+
+```text
+puzzle session messages [--level <level>] [--limit <limit>] [--cursor <cursor>] --instance <instance> --session <session> [--json] [--help]
+```
+
+| 参数 | 类型 / 枚举 | 必填 / 默认 | 含义与限制 |
+|---|---|---|---|
+| `--level` | "all" \| "info" \| "warning" \| "error" | 可选；默认 `"all"` | 消息等级；all 返回所有等级，不受 GUI 筛选按钮影响。  |
+| `--limit` | integer | 可选；默认 `50` | 每页条目上限；精确实体查询不能分页。 minimum=1; maximum=200 |
+| `--cursor` | string | 可选 | 同一快照返回的 nextCursor；翻页必须保持相同 level，失效后省略它重新查询。 minLength=1; maxLength=100 |
+| `--instance` | string | 必填 | session list 中用户明确选择的 instanceId，不能猜第一个窗口。 pattern="^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}\|00000000-0000-0000-0000-000000000000\|ffffffff-ffff-ffff-ffff-ffffffffffff)$"; format="uuid" |
+| `--session` | integer | 必填 | 对应实例中的 sessionId；必须与 instance 配对。 minimum=0; maximum=9007199254740991 |
+| `--json` | boolean | 可选 | 明确请求默认的 JSON 结果信封；与 raw 互斥。 |
+| `--help`, `-h` | boolean | 可选 | 显示本命令帮助，不执行命令。 |
+
+前置条件与组合规则：
+
+- 桌面必须声明 message-stack-read-v1；未打开工程也可读。只读返回窗口历史，不能将旧消息归属于当前工程或代替 session validate。
+- 按时间倒序，同时间保持原顺序。快照有效 2 分钟，每窗口最多 8 个；新增消息不进入旧页，翻页保持相同 level。清空、切换、重启或过期后省略 cursor 重新读取。
+- 每页最多 200 条和 1 MiB 消息内容，字节限制可能提前分页；单条超限报错且不截断。无清空、watch、console 或 Electron 日志能力。
+- 桌面必须运行且协议兼容，使用明确实例/会话；连接失败不能回退磁盘写入。
+
+权限与副作用：`read`。只读 Store 消息；不 flush 草稿、不清空消息、不改变工程、历史、dirty、GUI 筛选或文件。
+
+```powershell
+puzzle session messages --instance $instance --session $session --limit 50 --json
+```
+
+结果检查：data.result 的 messages、counts、total/totalMatches、snapshotId/capturedAt/expiresAt、hasMore/nextCursor。scope=editor-instance，projectAssociation=not-recorded；历史 error 不让读取失败。
+
+常见失败与处理：
+
+- INVALID_ARGUMENT / DUPLICATE_ARGUMENT：按语法、参数组合和类型修正；不要重复传同一选项。
+- UNSUPPORTED_SESSION_CAPABILITY：升级配套桌面；不回退磁盘、不报告假空列表。
+- MESSAGE_CURSOR_EXPIRED / MESSAGE_QUERY_CHANGED：重新读取无 cursor 的快照，刷新消息基线。INVALID_MESSAGE_CURSOR 表示游标被改动；MESSAGE_TOO_LARGE 表示单条超限，未截断内容。
 - 会话不可用、版本冲突、pending/busy：重新读取状态或处理桌面交互；未知写入结果遵守同 requestId 重试规则。
 
 <a id="session-preview"></a>

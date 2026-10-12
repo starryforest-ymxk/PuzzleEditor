@@ -189,6 +189,8 @@ C10 的 `store/documentHistory.ts` 是记录/恢复规则的唯一维护入口�
 
 `platform/node/sessionSecurity.ts` 设置并读回 Windows 当前 SID 的发现目录和管道 ACL，额外用第二个连接只读核验后续管道实例，并拒绝 Network SID。`sessionTransport.ts` 仅负责带 HMAC 的有界本地传输；`electron/sessionBridge.ts` 限制登记窗口/主框架/来源/代际，preload 只提供受限订阅和响应。32 MiB 消息、30 秒连接、10 分钟/256 条应用幂等结果，窗口重载失效，不开放任意 Action 或文件写入。访问核验失败关闭桥；不放宽 ACL 或回退 TCP。
 
+消息栈只读能力由 status/discover 的 `supportedFeatures` 声明 `message-stack-read-v1`，CLI 先探测再发送 messages 请求；旧协议 2 桌面未声明时明确拒绝。`services/onlineMessages.ts` 只在 OnlineSession 只读分支维护有界分页快照，不进入 editable/flush/enter 路径。GUI 与查询复用 `types/messages.ts` / `utils/messageStack.ts`；Store 的 `ui.messageGeneration` 只随清空推进，不进入内容版本或 JSON。窗口历史的单条工程归属未记录；不能从英文原文解析诊断或把当前工程名赋给历史消息。实际验收见 [消息栈实施报告](./CLI_Message_Stack_Implementation_2026-10-12.md)。
+
 在线专项运行 `npm run test:electron:online`，使用两个完整生产页面、真实字段和 GUI Undo/CLI Redo、独立 CLI 子进程、断线重试及真实一分钟自动保存定时器。C10 为 45 项检查；实际发行配对由 `run-packaged-smoke.mjs --cli-zip` 检查 ASAR/EXE 与独立 ZIP。协议 2 拒绝旧 C9 协议 1，登记目录/管道的 v1 端点命名保持以便发现并报告不兼容。当前结果见 C10 报告，下文 C8 发行检查仅为历史基线。
 
 C1 已交付 `describe/inspect/validate/json read`，C2 已交付 `create/preview/apply/export`，C3 补齐完整 FSM，C4 补齐演出图与跨资源影响，累计 42 种领域操作；C5 交付 `json preview/apply` 和独立 Windows CLI 包，离线首版完成；C6 增加 Stage/Puzzle 删除和三类资源 purge，累计 47 种领域操作；C7 增加 import preview/apply，累计 12 个命令入口。离线 CLI 读取磁盘快照，候选命令只操作隔离状态，不持有或修改 GUI Store、历史、dirty、最近项目和偏好；C9 session 命令按上文显式处理内存会话。完整原文读取绕开迁移，结构化视图复用 `utils/projectImport` 与 `utils/validation`。实体由类型、ID、所属上下文定位；跨页一致性使用源字节 SHA-256，领域诊断路径明确标注规范化基准。

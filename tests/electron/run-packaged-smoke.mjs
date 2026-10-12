@@ -316,6 +316,30 @@ async function verifyOnline(desktop) {
     '--session',
     String(session.token.sessionId),
   ];
+  if (capability.capabilities.some((entry) => entry.operation === 'session messages')) {
+    const before = (await cli(['session', 'status', ...target])).data;
+    const messageResult = await cli(['session', 'messages', ...target]);
+    assert(
+      messageResult.ok && messageResult.data.result.scope === 'editor-instance',
+      'Packaged CLI reads the real ASAR Message Stack while the panel is closed',
+    );
+    await desktop.evaluate(`document.querySelector('[data-messages-button]').click()`);
+    const visible = await desktop.evaluate(
+      `Array.from(document.querySelectorAll('.message-item')).map(e=>({id:e.dataset.messageId,level:e.querySelector('.message-level').textContent,text:e.querySelector('.message-text').textContent,timestamp:e.dataset.messageTimestamp}))`,
+    );
+    assert(
+      JSON.stringify(visible) === JSON.stringify(messageResult.data.result.messages),
+      'Packaged message IDs, levels, text and timestamps match the actual GUI',
+    );
+    await desktop.evaluate(`document.querySelector('[data-messages-button]').click()`);
+    const after = (await cli(['session', 'status', ...target])).data;
+    assert(
+      JSON.stringify(after.token) === JSON.stringify(before.token) &&
+        after.dirty === before.dirty &&
+        JSON.stringify(after.history) === JSON.stringify(before.history),
+      'Packaged message reads preserve content token, dirty and history',
+    );
+  }
   const tokenPath = join(directory, 'online-token.json'),
     planPath = join(directory, 'online-plan.json'),
     receiptPath = join(directory, 'online-receipt.json');

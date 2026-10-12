@@ -1,3 +1,4 @@
+import { capabilities } from '../../contracts/automation/capabilities';
 /** C7 真实子进程转换验收；仅使用隔离虚构工程，源/目标/回执逐字节核验。 */
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { mkdtemp, readFile, writeFile, readdir, rm, link, stat } from 'node:fs/promises';
@@ -50,7 +51,7 @@ describe('C7 支持格式、命名与往返', () => {
       importConverterVersion: 'C7.1',
       policyVersion: 'C10',
     });
-    expect(result.data.capabilities).toHaveLength(36);
+    expect(result.data.capabilities).toHaveLength(capabilities.length);
     expect(result.data.importNamesSchema.additionalProperties).toBe(false);
     expect(result.data.importReceiptSchema.properties.kind.const).toBe('import-preview');
     for (const flag of [

@@ -1,0 +1,182 @@
+{
+  "ok": true,
+  "verifiedAt": "2026-10-12T10:37:42.631Z",
+  "output": "E:\\Projects\\Web Projects\\puzzle-editor\\release\\desktop\\message-stack-2026-10-12",
+  "checks": {
+    "allCurrentBuildFilesMatch": true,
+    "menuItemBorderBox": true,
+    "verticalOnlyScroll": true,
+    "sharedActionStyles": true,
+    "sharedMenuComponents": true,
+    "disposableHarnessExcluded": true
+  },
+  "artifacts": [
+    {
+      "path": "Puzzle Editor Setup 1.0.0-beta.exe",
+      "size": 86914388,
+      "sha256": "ca2d2e4144468c94d09d48c94fb654dafc61b950a5dc040aee7c6163cf2d9f13"
+    },
+    {
+      "path": "Puzzle Editor Setup 1.0.0-beta.exe.blockmap",
+      "size": 92139,
+      "sha256": "912ee5288e40d3f307ab606ddb7ed7fa21cdc446a1f1192004bed308e7b928f7"
+    },
+    {
+      "path": "win-unpacked/Puzzle Editor.exe",
+      "size": 190701056,
+      "sha256": "550f2bde10b760ce2f7ee2bc35e4d5ab3be8431e03152b9ca1e350a21743a91c"
+    },
+    {
+      "path": "win-unpacked/resources/app.asar",
+      "size": 44594206,
+      "sha256": "ffb71be99e3f75ebf726719a23fe815fd6ccc3de5da6a2961f5a79bd465b390c"
+    }
+  ],
+  "sourceFiles": [
+    {
+      "path": "components/shared/Menu.tsx",
+      "sha256": "b986c79b70c96158566220f19271cc27fe4e72793c4ca42e2e4a9e8b70c67b84"
+    },
+    {
+      "path": "components/shared/ui.css",
+      "sha256": "ce86af6c435e09b889914b97c8f94395c6973059e119b3d4d893f35e5621c15e"
+    },
+    {
+      "path": "components/Layout/ProjectMenu.tsx",
+      "sha256": "217ed3bf5f4452b38e001f3a63a022466f219ba577d7addfb624761bcf6e32e2"
+    },
+    {
+      "path": "public/icon.ico",
+      "sha256": "966ab98b5f83ee143e8fe98f367b2e7233c41e36c5ad23da5ff409c9a23527c5"
+    },
+    {
+      "path": "public/icon.png",
+      "sha256": "1f77855ad37e2ce4b1359ffc4ede4b18c399a299e0aed89eb2a4d2a747126a62"
+    }
+  ],
+  "files": [
+    {
+      "path": "dist/assets/index-D8o7P6B9.css",
+      "sha256": "f426c16c9083de47a68305521668924829f3dd6526863f08b3c2e275b2e56f53",
+      "size": 42446
+    },
+    {
+      "path": "dist/assets/index-DjJCUi0g.js",
+      "sha256": "218933345288b437575ab7312a49d346e01cf397a438556786ebabd8120059d7",
+      "size": 773698
+    },
+    {
+      "path": "dist/assets/index-DjJCUi0g.js.map",
+      "sha256": "7a3347d33ab4123dcb69dc73851386a367a11ab2772c55811efe43829caa3f39",
+      "size": 3373262
+    },
+    {
+      "path": "dist/icon.ico",
+      "sha256": "966ab98b5f83ee143e8fe98f367b2e7233c41e36c5ad23da5ff409c9a23527c5",
+      "size": 180595
+    },
+    {
+      "path": "dist/icon.png",
+      "sha256": "1f77855ad37e2ce4b1359ffc4ede4b18c399a299e0aed89eb2a4d2a747126a62",
+      "size": 196204
+    },
+    {
+      "path": "dist/index.html",
+      "sha256": "87a5b58ae358b62bcb704c3a4e61eb6bf6816e04f95fcd5a53f7291f8d1f4fff",
+      "size": 1265
+    },
+    {
+      "path": "dist-electron/ipc/fileService.js",
+      "sha256": "fa32de6a2073143665b75fe735c3dfd24a3a521bb83eb20a68bbba52221bfa06",
+      "size": 4295
+    },
+    {
+      "path": "dist-electron/ipc/handlers.js",
+      "sha256": "52ba550c519270c098eaa5e31093555128f73b88a7cdb8ae51d4efa822a06395",
+      "size": 12037
+    },
+    {
+      "path": "dist-electron/ipc/preferencesService.js",
+      "sha256": "68136abe3fc1e06611d93dd6a84fc2af836f4b6b70f37815f086fec4830146a4",
+      "size": 7104
+    },
+    {
+      "path": "dist-electron/ipc/projectOwnershipService.js",
+      "sha256": "cea227ed2d5e42a6eedeb463af975d56af819dbd7a34888c253761c44530745d",
+      "size": 6422
+    },
+    {
+      "path": "dist-electron/ipc/watcherService.js",
+      "sha256": "3cc4c23292fa3fc2a516277f08cde4f4a1885776feec4987a6f73883258d0561",
+      "size": 4151
+    },
+    {
+      "path": "dist-electron/main.js",
+      "sha256": "c8d2596e65ffab88fce9105cb6c5862619b9658a85f664f35945da2b77c39d14",
+      "size": 4473
+    },
+    {
+      "path": "dist-electron/preload.js",
+      "sha256": "22ca8e1d3148eb2b45edf9237539f6ec76e610d223df1642aa77e7d4d5665a68",
+      "size": 4953
+    },
+    {
+      "path": "dist-electron/preload.mjs",
+      "sha256": "d5e79a363c13791ed860f54817fd6492ddeae8d2b2f4ec741f0e6dd0bf5239a4",
+      "size": 6514
+    },
+    {
+      "path": "dist-electron/sessionBridge.js",
+      "sha256": "af5b814605b95beabf672ce469c414dbb59598febfe4b6c7b9135c35cde71537",
+      "size": 4767
+    },
+    {
+      "path": "dist-electron/types.js",
+      "sha256": "e7aff4d893772bc31662d57ad44ddf98ca3c0ef2e36a2676e40e075ecf15cc1a",
+      "size": 1612
+    },
+    {
+      "path": "dist-electron/windowCloseGuard.js",
+      "sha256": "7beaf5371bddfb1e6d41e055b22c694b4fb6b3b3cfe5ae9ab37ba9d716559702",
+      "size": 3796
+    },
+    {
+      "path": "dist-node/cliEnvironment.js",
+      "sha256": "e0eeb0a74dea55655895a18da22ca2a39900ce4c6dc93082be0476a2e97a11e6",
+      "size": 6421
+    },
+    {
+      "path": "dist-node/files.js",
+      "sha256": "dc07f41882605e82562fdab4c2ddfff490bfd197604e16329b9a84534ad9455f",
+      "size": 3386
+    },
+    {
+      "path": "dist-node/projectOverwrite.js",
+      "sha256": "cd1f3cc9dfba592978c56718874832186eee0c3078216f77d652580ef94a0bbb",
+      "size": 9282
+    },
+    {
+      "path": "dist-node/projectOwnership.js",
+      "sha256": "2fa61c26048557a3ae68b08ee006bb0c717d32a21a02421e722ebfae0db3866d",
+      "size": 7938
+    },
+    {
+      "path": "dist-node/sessionSecurity.js",
+      "sha256": "d2e881c4c5d1740552a1db3a3d63cae2cddc7c31ec7514d6c654cb673c11f424",
+      "size": 6138
+    },
+    {
+      "path": "dist-node/sessionTransport.js",
+      "sha256": "03fb688c4e8cf0afe9b3b19ace519abccfb7dd1026284ac0fc46880f2ae420d7",
+      "size": 10866
+    }
+  ],
+  "excludedTypeDeclarations": [
+    "dist-node/cliEnvironment.d.ts",
+    "dist-node/files.d.ts",
+    "dist-node/projectOverwrite.d.ts",
+    "dist-node/projectOwnership.d.ts",
+    "dist-node/sessionSecurity.d.ts",
+    "dist-node/sessionTransport.d.ts"
+  ]
+}

@@ -102,7 +102,7 @@ export const uiReducer = (state: EditorState, action: UiAction): EditorState => 
         case 'CLEAR_MESSAGES': {
             return {
                 ...state,
-                ui: { ...state.ui, messages: [] }
+                ui: { ...state.ui, messages: [], messageGeneration: state.ui.messageGeneration + 1 }
             };
         }
 

@@ -103,6 +103,7 @@ async function main() {
       case 'session status':
       case 'session inspect':
       case 'session validate':
+      case 'session messages':
       case 'session preview':
       case 'session apply':
       case 'session save':

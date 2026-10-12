@@ -15,6 +15,7 @@ export const SESSION_OPERATIONS = [
   'status',
   'inspect',
   'validate',
+  'messages',
   'preview',
   'apply',
   'save',

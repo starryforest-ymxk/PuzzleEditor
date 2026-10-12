@@ -9,7 +9,7 @@
 | 首次使用、完整文件编辑示例 | [快速入门](cli-reference/quick-start.md) |
 | 安装、升级、配置、Skill、诊断 | [14 条环境与工具命令](cli-reference/commands-tooling.md) |
 | 读取、创建、编辑、导入、导出、JSON 备用操作 | [12 条文件命令](cli-reference/commands-files.md) |
-| 连接桌面、在线保存、撤销重做 | [10 条会话与历史命令](cli-reference/commands-session.md) |
+| 连接桌面、真实消息栈、在线保存、撤销重做 | [11 条会话与历史命令](cli-reference/commands-session.md) |
 | 工程、Stage、Puzzle | [11 种层级操作](cli-reference/operations-hierarchy.md) |
 | 变量、事件、脚本 | [16 种资源操作](cli-reference/operations-resources.md) |
 | 状态、迁移、初始状态 | [9 种 FSM 操作](cli-reference/operations-fsm.md) |

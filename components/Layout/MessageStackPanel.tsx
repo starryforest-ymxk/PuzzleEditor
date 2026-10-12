@@ -13,6 +13,7 @@ import React, { useEffect, useRef } from 'react';
 import { useEditorState, useEditorDispatch } from '../../store/context';
 import { MessageLevel } from '../../store/types';
 import { Info, AlertTriangle, XCircle } from 'lucide-react';
+import { sortMessages, messageCounts } from '../../utils/messageStack';
 
 export interface LevelFilters {
   info: boolean;
@@ -64,9 +65,7 @@ export const MessageStackPanel: React.FC<MessageStackPanelProps> = ({
   if (!isOpen) return null;
 
   // 按时间倒序排列消息，并根据筛选条件过滤
-  const sortedMessages = [...ui.messages]
-    .filter((msg) => levelFilters[msg.level])
-    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+  const sortedMessages = sortMessages(ui.messages.filter((msg) => levelFilters[msg.level]));
 
   // 清空并关闭
   const handleClearAll = () => {
@@ -75,11 +74,7 @@ export const MessageStackPanel: React.FC<MessageStackPanelProps> = ({
   };
 
   // 计算各等级消息数量
-  const counts = {
-    info: ui.messages.filter((m) => m.level === 'info').length,
-    warning: ui.messages.filter((m) => m.level === 'warning').length,
-    error: ui.messages.filter((m) => m.level === 'error').length,
-  };
+  const counts = messageCounts(ui.messages);
 
   return (
     <div ref={panelRef} className="message-stack-dropdown">
@@ -176,7 +171,12 @@ export const MessageStackPanel: React.FC<MessageStackPanelProps> = ({
         </div>
       ) : (
         sortedMessages.map((msg) => (
-          <div key={msg.id} className={`message-item ${msg.level}`}>
+          <div
+            key={msg.id}
+            className={`message-item ${msg.level}`}
+            data-message-id={msg.id}
+            data-message-timestamp={msg.timestamp}
+          >
             <div className="message-meta">
               <span className={`message-level ${msg.level}`}>{msg.level}</span>
               <span>{new Date(msg.timestamp).toLocaleTimeString()}</span>

@@ -20,6 +20,7 @@
     "examples/quick-start.ps1",
     "examples/domain-operation.ps1",
     "examples/online.ps1",
+    "examples/messages.ps1",
     "examples/advanced.ps1",
     "examples/authorized.ps1"
   ]

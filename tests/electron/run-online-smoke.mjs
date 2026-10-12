@@ -196,6 +196,43 @@ async function until(check, label) {
     await delay(70);
   }
 }
+// 实际执行受管资料的只读 PowerShell 示例，使用同一隔离发现目录和编译 CLI。
+async function powershell(args) {
+  const child = spawn('powershell.exe', args, {
+    cwd: directory,
+    windowsHide: true,
+    stdio: ['ignore', 'pipe', 'pipe'],
+    env: {
+      ...process.env,
+      PUZZLE_EDITOR_SESSION_DIR: discovery,
+      PUZZLE_DOC_NODE: process.execPath,
+      PUZZLE_DOC_ENTRY: resolve('dist-cli/cli.js'),
+    },
+  });
+  children.push(child);
+  let stdout = '',
+    stderr = '';
+  child.stdout.on('data', (bytes) => {
+    stdout += bytes;
+  });
+  child.stderr.on('data', (bytes) => {
+    stderr += bytes;
+  });
+  return new Promise((ok, bad) => {
+    const timer = setTimeout(() => {
+      child.kill();
+      bad(new Error('Message tutorial timeout'));
+    }, 35000);
+    child.once('error', (error) => {
+      clearTimeout(timer);
+      bad(error);
+    });
+    child.once('close', (code) => {
+      clearTimeout(timer);
+      ok({ code, stdout, stderr });
+    });
+  });
+}
 const target = (s) => ['--instance', s.token.instanceId, '--session', String(s.token.sessionId)];
 const status = async (s) => {
   const r = await cli(['session', 'status', ...target(s)]);
@@ -379,8 +416,8 @@ try {
     if (!ready) console.log('DISCOVERY ' + JSON.stringify(r));
     return ready;
   }, 'Two desktop sessions unavailable');
-  const s = sessions.find((s) => s.path === a),
-    other = sessions.find((s) => s.path === b);
+  let s = sessions.find((s) => s.path === a);
+  const other = sessions.find((s) => s.path === b);
   assert(Boolean(s && other), 'Two production desktop sessions discovered without guessing');
   const parameterValidation = await cli(['validate', a, '--warnings-as-errors']);
   assert(
@@ -403,7 +440,138 @@ try {
   );
   await delay(150);
   await first.request('screenshot', join(directory, '00-parameter-messages.png'));
+  const initialMessageResponse = await cli(['session', 'messages', ...target(s)]);
+  const visibleMessages = await first.request(
+    'evaluate',
+    `Array.from(document.querySelectorAll('.message-item')).map(e => ({id:e.dataset.messageId,level:e.querySelector('.message-level').textContent,text:e.querySelector('.message-text').textContent,timestamp:e.dataset.messageTimestamp}))`,
+  );
+  assert(
+    JSON.stringify(initialMessageResponse.data.result.messages) === JSON.stringify(visibleMessages),
+    'Message CLI returns the exact real GUI IDs, levels, text and timestamps',
+  );
+  await first.request('evaluate', `document.querySelector('[title="Hide info messages"]').click()`);
+  assert(
+    (await cli(['session', 'messages', ...target(s)])).data.result.total === visibleMessages.length,
+    'Hiding info in the GUI does not hide CLI messages',
+  );
+  await first.request('evaluate', `document.querySelector('[title="Show info messages"]').click()`);
   await first.request('evaluate', `document.querySelector('[data-messages-button]').click()`);
+  const beforeMessageRead = await status(s);
+  const closedPanelRead = await cli(['session', 'messages', ...target(s)]);
+  assert(
+    closedPanelRead.ok &&
+      closedPanelRead.data.result.total === visibleMessages.length &&
+      JSON.stringify((await status(s)).token) === JSON.stringify(beforeMessageRead.token),
+    'Closed-panel messages read leaves content token, dirty and history unchanged',
+  );
+
+  // 实际打开失败及版本提示由生产 ProjectSession 产生，不注入另一份消息列表。
+  async function openThroughMenu(path) {
+    await first.request('chooseOpen', path);
+    await first.request(
+      'evaluate',
+      `Array.from(document.querySelectorAll('button')).find(e=>e.textContent.trim()==='Project').click()`,
+    );
+    await until(
+      async () =>
+        first.request(
+          'evaluate',
+          `Array.from(document.querySelectorAll('.ui-menu-item')).some(e=>e.textContent.trim()==='Open Project...')`,
+        ),
+      'Open menu did not appear',
+    );
+    await first.request(
+      'evaluate',
+      `Array.from(document.querySelectorAll('.ui-menu-item')).find(e=>e.textContent.trim()==='Open Project...').click()`,
+    );
+  }
+  const invalidPath = join(directory, 'invalid.puzzle.json');
+  await writeFile(invalidPath, '{invalid');
+  await openThroughMenu(invalidPath);
+  await until(
+    async () => (await cli(['session', 'messages', ...target(s)])).data?.result?.counts.error > 0,
+    'Real opening failure did not enter messages',
+  );
+  assert(true, 'Real GUI import failure is readable as error through CLI');
+  const compatiblePath = join(directory, 'compatible.puzzle.json');
+  const compatible = JSON.parse(await readFile(a, 'utf8'));
+  compatible.editorVersion = 'future';
+  await writeFile(compatiblePath, JSON.stringify(compatible));
+  await openThroughMenu(compatiblePath);
+  await until(
+    async () =>
+      (await cli(['session', 'list'])).data.sessions.some(
+        (row) => row.status === 'available' && row.data.path === compatiblePath,
+      ),
+    'Compatible copy did not open',
+  );
+  s = (await cli(['session', 'list'])).data.sessions.find(
+    (row) => row.status === 'available' && row.data.path === compatiblePath,
+  ).data;
+  const warningMessages = await cli(['session', 'messages', ...target(s), '--level', 'warning']);
+  assert(
+    warningMessages.data.result.messages.some(
+      (m) => m.level === 'warning' && m.text.includes('future'),
+    ),
+    'Real compatibility warning is readable with its original level',
+  );
+  assert(
+    (await cli(['session', 'messages', ...target(other)])).data.result.counts.error === 0,
+    'Message queries are isolated between real windows',
+  );
+  const paged = await cli(['session', 'messages', ...target(s), '--limit', '1']);
+  const messageLauncher = join(directory, 'message-puzzle.cmd');
+  await writeFile(
+    messageLauncher,
+    '@echo off\r\n"%PUZZLE_DOC_NODE%" "%PUZZLE_DOC_ENTRY%" %*\r\nexit /b %errorlevel%\r\n',
+  );
+  const docMessages = await powershell([
+    '-NoProfile',
+    '-ExecutionPolicy',
+    'Bypass',
+    '-File',
+    resolve('overview/dev/cli-reference/examples/messages.ps1'),
+    '-Puzzle',
+    messageLauncher,
+    '-Instance',
+    s.token.instanceId,
+    '-Session',
+    String(s.token.sessionId),
+    '-PageSize',
+    '1',
+  ]);
+  assert(
+    docMessages.code === 0 &&
+      JSON.parse(docMessages.stdout).messages.length === paged.data.result.total,
+    'Published read-only message tutorial collects all stable pages',
+  );
+  await first.request('evaluate', `document.querySelector('[data-messages-button]').click()`);
+  await first.request(
+    'evaluate',
+    `Array.from(document.querySelectorAll('.message-stack-dropdown button')).find(e=>e.textContent==='Clear All').click()`,
+  );
+  const clearedCursor = await cli([
+    'session',
+    'messages',
+    ...target(s),
+    '--cursor',
+    paged.data.result.nextCursor,
+  ]);
+  assert(
+    !clearedCursor.ok && clearedCursor.error.code === 'MESSAGE_CURSOR_EXPIRED',
+    'Real GUI Clear All explicitly invalidates message cursors',
+  );
+  await openThroughMenu(a);
+  await until(
+    async () =>
+      (await cli(['session', 'list'])).data.sessions.some(
+        (row) => row.status === 'available' && row.data.path === a,
+      ),
+    'Original isolated project did not reopen',
+  );
+  s = (await cli(['session', 'list'])).data.sessions.find(
+    (row) => row.status === 'available' && row.data.path === a,
+  ).data;
   const initialHash = await hash(a);
   const p = await preview(s, 'Agent root');
   assert(p.result.ok, 'Preview against live token');

@@ -75,13 +75,8 @@ export interface ProjectOperation {
 }
 
 // ========== UI 消息类型 ==========
-export type MessageLevel = 'info' | 'warning' | 'error';
-export interface UiMessage {
-  id: string;
-  level: MessageLevel;
-  text: string;
-  timestamp: string;
-}
+export type { MessageLevel, UiMessage } from '../types/messages';
+import type { UiMessage } from '../types/messages';
 
 // ========== UI 状态类型 ==========
 export interface BlackboardViewState {
@@ -145,6 +140,8 @@ export interface EditorState {
     stageExpanded: Record<string, boolean>;
     // 全局消息堆栈
     messages: UiMessage[];
+    // 清空消息使分页游标失效，不属于工程内容版本或撤销历史。
+    messageGeneration: number;
     // 黑板视图 UI 状态（用于跨视图记忆）
     blackboardView: BlackboardViewState;
     selection: Selection;
@@ -212,6 +209,7 @@ export const INITIAL_STATE: EditorState = {
     navStack: [],
     stageExpanded: {},
     messages: [],
+    messageGeneration: 0,
     blackboardView: {
       activeTab: 'Variables',
       filter: '',

@@ -108,6 +108,14 @@ export const argumentDescriptions: Record<string, [string, string]> = {
     '对应实例中的 sessionId；必须与 instance 配对。',
     'Session ID belonging to the selected instance.',
   ],
+  level: [
+    '消息等级；all 返回所有等级，不受 GUI 筛选按钮影响。',
+    'Message level; all ignores GUI display filters.',
+  ],
+  cursor: [
+    '同一快照返回的 nextCursor；翻页必须保持相同 level，失效后省略它重新查询。',
+    'Opaque nextCursor from the same snapshot; reuse level and restart without cursor after expiry.',
+  ],
   token: [
     '保存最新 data.token 对象的 UTF-8 JSON 文件，不是完整命令结果。',
     'UTF-8 file containing the latest data.token object.',
@@ -233,6 +241,10 @@ export const commandReference = {
     '校验所选桌面会话的当前内存工程。',
     '诊断和错误/警告计数；不代表已保存到磁盘。',
   ],
+  'session messages': [
+    '只读查询真实桌面消息栈，支持等级过滤和稳定快照分页；不提交草稿或修改消息。',
+    'data.result 的 messages、counts、total/totalMatches、snapshotId/capturedAt/expiresAt、hasMore/nextCursor。scope=editor-instance，projectAssociation=not-recorded；历史 error 不让读取失败。',
+  ],
   'session preview': [
     '处理可提交草稿并预览指定内存 token 上的计划。',
     '候选变化、能力要求及 session receipt；草稿改变 token 时返回冲突。',
@@ -313,6 +325,22 @@ export const commandReference = {
 
 export function commandRules(name: CommandName): [string, string][] {
   const rules: [string, string][] = [];
+  if (name === 'session messages') {
+    rules.push(
+      [
+        '桌面必须声明 message-stack-read-v1；未打开工程也可读。只读返回窗口历史，不能将旧消息归属于当前工程或代替 session validate。',
+        'Requires advertised message-stack-read-v1; reads window history even without a loaded project. Historical messages do not replace session validate.',
+      ],
+      [
+        '按时间倒序，同时间保持原顺序。快照有效 2 分钟，每窗口最多 8 个；新增消息不进入旧页，翻页保持相同 level。清空、切换、重启或过期后省略 cursor 重新读取。',
+        'Stable timestamp-desc pages live for 2 minutes, up to 8 snapshots per window. Reuse level; restart without cursor after clear/switch/restart/expiry. New messages require a fresh query.',
+      ],
+      [
+        '每页最多 200 条和 1 MiB 消息内容，字节限制可能提前分页；单条超限报错且不截断。无清空、watch、console 或 Electron 日志能力。',
+        'Pages are bounded by 200 entries and 1 MiB of message content; one oversized entry fails without truncation. No clear/watch/console/log access.',
+      ],
+    );
+  }
   if (['inspect', 'session inspect'].includes(name))
     rules.push([
       '视图限制在下表列出；owner-type/owner-id 必须成对；id/search 互斥；精确实体不能分页。',
@@ -374,6 +402,11 @@ export function commandErrors(name: CommandName) {
   const errors = [
     'INVALID_ARGUMENT / DUPLICATE_ARGUMENT：按语法、参数组合和类型修正；不要重复传同一选项。',
   ];
+  if (name === 'session messages')
+    errors.push(
+      'UNSUPPORTED_SESSION_CAPABILITY：升级配套桌面；不回退磁盘、不报告假空列表。',
+      'MESSAGE_CURSOR_EXPIRED / MESSAGE_QUERY_CHANGED：重新读取无 cursor 的快照，刷新消息基线。INVALID_MESSAGE_CURSOR 表示游标被改动；MESSAGE_TOO_LARGE 表示单条超限，未截断内容。',
+    );
   if (name.startsWith('setup ') || name.startsWith('skills '))
     errors.push(
       '安装冲突或恢复要求：核对返回路径和受管记录，使用同目标 recover；不强制覆盖未知文件。',

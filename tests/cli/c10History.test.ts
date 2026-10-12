@@ -1,3 +1,4 @@
+import { capabilities } from '../../contracts/automation/capabilities';
 /** 独立 CLI 进程经过真实认证管道操作共同 Store；文件 IO 另由桌面包验收。 */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mkdtemp, readFile, writeFile } from 'node:fs/promises';
@@ -48,10 +49,10 @@ async function mutation(direction = 'undo') {
 }
 
 describe.skipIf(process.platform !== 'win32')('C10 真实 CLI 历史契约', () => {
-  it('describe 暴露 36 个入口和严格历史字段、聊天声明及协议', async () => {
+  it('describe 暴露当前注册入口和严格历史字段、聊天声明及协议', async () => {
     const { result } = await run(['describe']);
     expect(result.data.phase).toBe(CLI_PHASE);
-    expect(result.data.capabilities).toHaveLength(36);
+    expect(result.data.capabilities).toHaveLength(capabilities.length);
     expect(result.data.sessionRules[0]).toContain('protocol 2');
     const undo = result.data.capabilities.find(
       (x: { operation: string }) => x.operation === 'history undo',

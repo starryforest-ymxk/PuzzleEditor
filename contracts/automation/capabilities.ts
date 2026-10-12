@@ -67,6 +67,13 @@ const registeredCapabilities = [
     summary: 'Validate the current unsaved desktop snapshot.',
   },
   {
+    operation: 'session messages',
+    implemented: true,
+    permission: 'read',
+    summary:
+      'Read the real desktop Message Stack with level filtering and stable bounded snapshot pages; never flush drafts or clear messages.',
+  },
+  {
     operation: 'session preview',
     implemented: true,
     permission: 'read',
@@ -221,6 +228,7 @@ export function describeCapabilities(operation?: string) {
     sessionReceiptSchema: jsonSchema(sessionReceiptSchema),
     sessionRules: [
       'Windows only; desktop and CLI must support protocol 2. Explicit --instance and --session are mandatory outside session list. No offline fallback or recent-window guessing.',
+      'session messages requires advertised message-stack-read-v1 support. It reads window history independently of UI filters, including before a project is loaded. Historical errors do not fail the read or replace session validate. Pages expire after 2 minutes and are invalidated by clear/session/window changes; reuse --level and restart without --cursor after expiry. No watch or console/log access.',
       'Use session inspect --view project for the full unsaved snapshot. Read-only operations show committed content and pendingEdits, not unfinished field drafts.',
       'Token and receipt arguments are JSON files. Plans bind sourceHash to token.contentHash. Preview and apply flush valid drafts first, then reject stale tokens, invalid fields and active gestures.',
       'Apply is one atomic content/history commit. Protected permanent deletion creates the existing history barrier and needs --allow-permanent-delete independently.',

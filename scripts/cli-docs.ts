@@ -208,9 +208,11 @@ export function generatedReferenceFiles() {
         '`。' +
         (entry.permission === 'environment_write'
           ? '明确修改工具安装、Skill 或用户 PATH；dry-run 不写入。'
-          : entry.permission === 'read'
-            ? '不提交工程写入；preview 可另写回执，在线预览可提交有效字段草稿。'
-            : '操作效果见本条用途；提交必须检查实际 requiredCapabilities，普通编辑许可不包含三项最高权限。') +
+          : name === 'session messages'
+            ? '只读 Store 消息；不 flush 草稿、不清空消息、不改变工程、历史、dirty、GUI 筛选或文件。'
+            : entry.permission === 'read'
+              ? '不提交工程写入；preview 可另写回执，在线预览可提交有效字段草稿。'
+              : '操作效果见本条用途；提交必须检查实际 requiredCapabilities，普通编辑许可不包含三项最高权限。') +
         '\n';
       doc += fence('powershell', commandExamples[name]);
       doc +=

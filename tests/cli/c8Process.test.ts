@@ -1,3 +1,4 @@
+import { capabilities } from '../../contracts/automation/capabilities';
 /** C8 真实 CLI 覆盖验收：所有最高权限操作只作用于隔离虚构项目。 */
 import { beforeEach, afterEach, describe, it, expect } from 'vitest';
 import * as fs from 'node:fs/promises';
@@ -86,7 +87,7 @@ describe.skipIf(process.platform !== 'win32')('C8 覆盖的权限、原文与可
     const d = (await run(['describe'])).result.data;
     expect(d.phase).toBe(CLI_PHASE);
     expect(d.policyVersion).toBe('C10');
-    expect(d.capabilities).toHaveLength(36);
+    expect(d.capabilities).toHaveLength(capabilities.length);
     expect(d.planSchema.properties.commands.items.oneOf).toHaveLength(47);
     expect(d.authorizationCapabilities.overwrite_project.implemented).toBe(true);
   });

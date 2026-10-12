@@ -8,6 +8,7 @@ import {
   sessionRequestSchema,
   type SessionRequest,
   type SessionToken,
+  MESSAGE_STACK_FEATURE,
 } from '../contracts/automation/sessionSchemas';
 import { POLICY_VERSION } from '../contracts/automation/permissions';
 import type { SessionResponse } from '../dist-node/sessionTransport.js';
@@ -21,12 +22,14 @@ import { validateProject } from '../utils/validation/validator';
 import { assertCapabilities } from './automation/permissions';
 import { AutomationFailure } from './automation/errors';
 import { projectUI, serializeProject } from './projectFiles';
+import { MessageStackReader } from './onlineMessages';
 
 const RETENTION_MS = 10 * 60 * 1000;
 const fail = (code: string, message: string, exitCode = 4): never => {
   throw new AutomationFailure(code, message, exitCode, [], null, exitCode === 4);
 };
 export class OnlineSession {
+  private messages = new MessageStackReader(() => this.now());
   private requests = new Map<
     string,
     { hash: string; expires: number; result: Promise<SessionResponse> }
@@ -97,6 +100,7 @@ export class OnlineSession {
         future: snapshot.state.history.future.length,
       },
       resultRetentionMs: RETENTION_MS,
+      supportedFeatures: [MESSAGE_STACK_FEATURE],
     };
   }
   async handle(input: unknown): Promise<SessionResponse> {
@@ -159,6 +163,30 @@ export class OnlineSession {
     };
   }
   private async execute(request: SessionRequest): Promise<SessionResponse> {
+    if (request.operation === 'messages') {
+      const snapshot = await this.snapshot();
+      // 不走 enter/flush；异步 hash 期间切换或清空，不能返回错代际消息。
+      if (snapshot.token.sessionId !== this.store.getState().document.sessionId)
+        fail('SESSION_EXPIRED', 'The editor switched projects. Query the new session explicitly.');
+      if (snapshot.state.ui.messageGeneration !== this.store.getState().ui.messageGeneration)
+        fail(
+          'MESSAGE_CURSOR_EXPIRED',
+          'Messages were cleared during this read. Query again without --cursor.',
+        );
+      return {
+        ok: true,
+        data: {
+          ...this.metadata(snapshot),
+          result: this.messages.read(
+            snapshot.state.ui.messages,
+            snapshot.state.ui.messageGeneration,
+            snapshot.token.sessionId,
+            request.query,
+          ),
+        },
+        diagnostics: [],
+      };
+    }
     if (request.operation === 'history.list') {
       const snapshot = await this.snapshot();
       return {

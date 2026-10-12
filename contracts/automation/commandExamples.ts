@@ -24,6 +24,8 @@ export const commandExamples = {
   'session inspect':
     'puzzle session inspect --instance $instance --session $session --view project --json',
   'session validate': 'puzzle session validate --instance $instance --session $session --json',
+  'session messages':
+    'puzzle session messages --instance $instance --session $session --limit 50 --json',
   'session preview':
     'puzzle session preview --instance $instance --session $session --token "token.json" --plan "edit-plan.json" --receipt-out "preview.json" --json',
   'session apply':

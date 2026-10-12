@@ -1,0 +1,118 @@
+{
+  "ok": true,
+  "method": "Production MainLayout and OnlineSession share the same Store in an isolated browser fixture; authenticated CLI transport verified separately by real Electron tests.",
+  "guiEqualsRead": true,
+  "pages": [
+    {
+      "scope": "editor-instance",
+      "projectAssociation": "not-recorded",
+      "order": "timestamp-desc",
+      "snapshotId": "c0fb53af-a699-48c2-acd2-cef55b23c8d2",
+      "capturedAt": "2026-10-12T10:22:06.714Z",
+      "expiresAt": "2026-10-12T10:24:06.714Z",
+      "counts": {
+        "info": 1,
+        "warning": 1,
+        "error": 1
+      },
+      "total": 3,
+      "totalMatches": 3,
+      "level": "all",
+      "messages": [
+        {
+          "id": "6fd3da9d-44ce-44df-a202-cc67d0562fd1",
+          "level": "info",
+          "text": "Project \"Message Stack Browser\" loaded.",
+          "timestamp": "2026-10-12T10:21:54.235Z"
+        }
+      ],
+      "hasMore": true,
+      "nextCursor": "msg:c0fb53af-a699-48c2-acd2-cef55b23c8d2:1"
+    },
+    {
+      "scope": "editor-instance",
+      "projectAssociation": "not-recorded",
+      "order": "timestamp-desc",
+      "snapshotId": "c0fb53af-a699-48c2-acd2-cef55b23c8d2",
+      "capturedAt": "2026-10-12T10:22:06.714Z",
+      "expiresAt": "2026-10-12T10:24:06.714Z",
+      "counts": {
+        "info": 1,
+        "warning": 1,
+        "error": 1
+      },
+      "total": 3,
+      "totalMatches": 3,
+      "level": "all",
+      "messages": [
+        {
+          "id": "2e732658-e7d9-4ec6-8292-6648904126d3",
+          "level": "warning",
+          "text": "Browser warning: compatibility notice",
+          "timestamp": "2026-10-12T10:21:54.235Z"
+        }
+      ],
+      "hasMore": true,
+      "nextCursor": "msg:c0fb53af-a699-48c2-acd2-cef55b23c8d2:2"
+    },
+    {
+      "scope": "editor-instance",
+      "projectAssociation": "not-recorded",
+      "order": "timestamp-desc",
+      "snapshotId": "c0fb53af-a699-48c2-acd2-cef55b23c8d2",
+      "capturedAt": "2026-10-12T10:22:06.714Z",
+      "expiresAt": "2026-10-12T10:24:06.714Z",
+      "counts": {
+        "info": 1,
+        "warning": 1,
+        "error": 1
+      },
+      "total": 3,
+      "totalMatches": 3,
+      "level": "all",
+      "messages": [
+        {
+          "id": "81bff44f-7dc5-44a7-ba50-44e74088d1a5",
+          "level": "error",
+          "text": "Browser error: failed save example",
+          "timestamp": "2026-10-12T10:21:54.235Z"
+        }
+      ],
+      "hasMore": false,
+      "nextCursor": null
+    }
+  ],
+  "readOnly": true,
+  "hiddenInfoCounts": {
+    "info": 1,
+    "warning": 1,
+    "error": 1
+  },
+  "clearRejected": {
+    "code": "MESSAGE_CURSOR_EXPIRED",
+    "message": "Message cursor is invalid, expired or belongs to another window/session. Query again without --cursor.",
+    "retryable": false,
+    "exitCode": 4
+  },
+  "empty": {
+    "scope": "editor-instance",
+    "projectAssociation": "not-recorded",
+    "order": "timestamp-desc",
+    "snapshotId": "2ee2165d-8698-4f48-b48e-fddea74f4f4b",
+    "capturedAt": "2026-10-12T10:23:25.903Z",
+    "expiresAt": "2026-10-12T10:25:25.903Z",
+    "counts": {
+      "info": 0,
+      "warning": 0,
+      "error": 0
+    },
+    "total": 0,
+    "totalMatches": 0,
+    "level": "all",
+    "messages": [],
+    "hasMore": false,
+    "nextCursor": null
+  },
+  "contentTokenUnchanged": true,
+  "consoleIssues": []
+}

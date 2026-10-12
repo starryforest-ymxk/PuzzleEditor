@@ -25,6 +25,14 @@ export const onlineQuerySchema = inspectRequestSchema
     view: z.union([inspectRequestSchema.shape.view, z.literal('project')]).default('summary'),
   });
 const target = { instance: z.uuid(), session: z.number().int().nonnegative() };
+/** 能力由桌面显式声明；追加只读命令不改变工程和传输协议版本。 */
+export const MESSAGE_STACK_FEATURE = 'message-stack-read-v1';
+export const messageQuerySchema = z.strictObject({
+  level: z.enum(['all', 'info', 'warning', 'error']).default('all'),
+  limit: z.number().int().min(1).max(200).default(50),
+  cursor: z.string().min(1).max(100).optional(),
+});
+export type MessageQuery = z.infer<typeof messageQuerySchema>;
 const declarations = {
   allowOverwrite: z.boolean().optional(),
   allowPermanentDelete: z.boolean().optional(),
@@ -48,6 +56,7 @@ export const sessionInputSchemas = {
   'session status': z.strictObject(target),
   'session inspect': onlineQuerySchema.extend(target),
   'session validate': z.strictObject(target),
+  'session messages': messageQuerySchema.extend(target),
   'session preview': z.strictObject({
     ...target,
     token: nonEmpty,
@@ -93,6 +102,7 @@ export const sessionRequestSchema = z.discriminatedUnion('operation', [
   z.strictObject({ operation: z.literal('status'), ...bridgeTarget }),
   z.strictObject({ operation: z.literal('inspect'), ...bridgeTarget, query: onlineQuerySchema }),
   z.strictObject({ operation: z.literal('validate'), ...bridgeTarget }),
+  z.strictObject({ operation: z.literal('messages'), ...bridgeTarget, query: messageQuerySchema }),
   z.strictObject({
     operation: z.literal('preview'),
     ...bridgeTarget,

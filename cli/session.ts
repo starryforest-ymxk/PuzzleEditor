@@ -7,6 +7,7 @@ import {
   sessionReceiptSchema,
   onlineQuerySchema,
   type SessionRequest,
+  MESSAGE_STACK_FEATURE,
 } from '../contracts/automation/sessionSchemas';
 import { planSchema } from '../contracts/automation/planSchemas';
 import { parseContract } from '../services/automation/transactionData';
@@ -54,6 +55,27 @@ export async function runSessionCommand(
     case 'session validate':
       request = { operation: 'validate', sessionId };
       break;
+    case 'session messages': {
+      const status = await requestSession(common.instance, { operation: 'status', sessionId });
+      assertSessionResult(status);
+      const features =
+        status.data && typeof status.data === 'object' && 'supportedFeatures' in status.data
+          ? status.data.supportedFeatures
+          : undefined;
+      if (!Array.isArray(features) || !features.includes(MESSAGE_STACK_FEATURE))
+        throw new AutomationFailure(
+          'UNSUPPORTED_SESSION_CAPABILITY',
+          'This desktop does not advertise message-stack-read-v1. Upgrade the desktop; no offline fallback is available.',
+          4,
+        );
+      const {
+        instance: _instance,
+        session: _session,
+        ...query
+      } = sessionInputSchemas[operation].parse(input);
+      request = { operation: 'messages', sessionId, query };
+      break;
+    }
     case 'session inspect': {
       const {
         instance: _instance,
@@ -105,6 +127,16 @@ export async function runSessionCommand(
     }
   }
   const result = await requestSession(common.instance, request);
+  assertSessionResult(result);
+  if (receiptOut) {
+    const receipt = sessionReceiptSchema.parse((result.data as { receipt: unknown }).receipt);
+    await publishNew(await targetPath(receiptOut, []), JSON.stringify(receipt, null, 2) + '\n');
+  }
+  return { data: result.data, diagnostics: result.diagnostics as Diagnostic[] };
+}
+
+/** 能力探测与实际请求使用同一错误映射，旧桌面拒绝不能伪装空列表。 */
+function assertSessionResult(result: Awaited<ReturnType<typeof requestSession>>) {
   if (!result.ok)
     throw new AutomationFailure(
       result.error?.code ?? 'SESSION_FAILED',
@@ -114,9 +146,4 @@ export async function runSessionCommand(
       result.data,
       result.error?.retryable,
     );
-  if (receiptOut) {
-    const receipt = sessionReceiptSchema.parse((result.data as { receipt: unknown }).receipt);
-    await publishNew(await targetPath(receiptOut, []), JSON.stringify(receipt, null, 2) + '\n');
-  }
-  return { data: result.data, diagnostics: result.diagnostics as Diagnostic[] };
 }
