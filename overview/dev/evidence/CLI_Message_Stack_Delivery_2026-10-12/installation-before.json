@@ -1,0 +1,21 @@
+{
+  "capturedAt": "2026-10-12T11:09:31.6144553Z",
+  "editorProcesses": [],
+  "files": [
+    {
+      "path": "D:\\UnityProjects\\Projects\\BubbleHorror\\Assets\\Data\\PuzzleProjectData\\BubbleHorror.puzzle.json",
+      "sha256": "02AFDA5BACFE65933C2DB14E4EFA348BF81BC0D323F25B8D6B1BD52F14A2074F",
+      "bytes": 211225
+    },
+    {
+      "path": "C:\\Users\\吴迪\\AppData\\Roaming\\StarryTree\\PuzzleEditor\\preferences.json",
+      "sha256": "369FD24D91B1E22A48803902044433ED7751AD50FB755D81471615FE08050ECC",
+      "bytes": 931
+    },
+    {
+      "path": "E:\\Projects\\Web Projects\\puzzle-editor\\overview\\dev\\verification\\batch6-browser-saved.puzzle.json",
+      "sha256": "DD162353C02EC8404E660E4A364208B857608280525387B2B5A7762A359724DF",
+      "bytes": 6476
+    }
+  ]
+}

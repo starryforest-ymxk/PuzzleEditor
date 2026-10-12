@@ -1,0 +1,160 @@
+{
+  "ok": true,
+  "activeVersion": "C16-388e14c8265c8626",
+  "matchedFiles": 38,
+  "manifestSha256": "388E14C8265C862636C2197C4D0778C326A05B20C4493E6A17951229ABF2FBD6",
+  "files": [
+    {
+      "path": "AGENTS.md",
+      "sha256": "3d908151becdcf194c3934333948dfbaa8d819d2c70ea6cb47c3b0e9196bc400"
+    },
+    {
+      "path": "README.md",
+      "sha256": "a84ae6eafdf56432cffe0e8f4f5f0d53f2c8d647f23c7df2d2bdab096b8d689b"
+    },
+    {
+      "path": "agent-skills/puzzle-editor/SKILL.md",
+      "sha256": "b8a20abf8fe9157bf378b12dc84114c68386b2b06661d05b61232ca5141c3f32"
+    },
+    {
+      "path": "agent-skills/puzzle-editor/agents/openai.yaml",
+      "sha256": "bafe7597682b030283668730907983d22fb4d1e4f6a88d3305ec9b385db3e832"
+    },
+    {
+      "path": "agent-skills/puzzle-editor/compatibility.json",
+      "sha256": "15e2df953c24a64b4689bdc64cb5ae910ec4a2bd584c3f4a6d0d90c275d89832"
+    },
+    {
+      "path": "agent-skills/puzzle-editor/reference-files.json",
+      "sha256": "aaf0b3872c1ca9cb44da1590fc6874fe4f9dfb2a1f1a13cbf50c49d46aa13f26"
+    },
+    {
+      "path": "agent-skills/puzzle-editor/references/cli-guide.md",
+      "sha256": "9f6832c6e2cc7c00be9a8f0467246bdbc66f3bf45fb139db78c8ba8931337353"
+    },
+    {
+      "path": "agent-skills/puzzle-editor/references/commands-files.md",
+      "sha256": "feb587d1a0bcb1e7ba10a6202708dca0fd15e18c4edd64fea231e5cc04687f3a"
+    },
+    {
+      "path": "agent-skills/puzzle-editor/references/commands-session.md",
+      "sha256": "b9633636ee5f19f87eb4fcad15835e4f626d4eac017730ae94480105c68d4c16"
+    },
+    {
+      "path": "agent-skills/puzzle-editor/references/commands-tooling.md",
+      "sha256": "0c04c82014e6bf4b822fa0b76e0b3c4ca51cc9b3905b9c1ea5e0e13bdffc5331"
+    },
+    {
+      "path": "agent-skills/puzzle-editor/references/data-structures.md",
+      "sha256": "30f2a558ac772e3efd61d895dc46da586bcde04ef9a40d13675a5c26e4efc261"
+    },
+    {
+      "path": "agent-skills/puzzle-editor/references/examples/advanced.ps1",
+      "sha256": "fc46480816686efc0d9c28a239068532b0ca43287f29ec7c6006f408980ecaba"
+    },
+    {
+      "path": "agent-skills/puzzle-editor/references/examples/authorized.ps1",
+      "sha256": "1e224fdbbd9a23ff435117435d5a0f753b39982c1355797a1b077e670e67379f"
+    },
+    {
+      "path": "agent-skills/puzzle-editor/references/examples/common.ps1",
+      "sha256": "672dbb1d2da28539f7c07045ec71c04672d3cd98c693e97915ae9ec6ff399f3a"
+    },
+    {
+      "path": "agent-skills/puzzle-editor/references/examples/domain-operation.ps1",
+      "sha256": "1dee8f078ef749c3e610465f5e7804271cce1f6827cf5f0284283b3d122e1924"
+    },
+    {
+      "path": "agent-skills/puzzle-editor/references/examples/messages.ps1",
+      "sha256": "4fe0191b26e16eb29ca81946dd8cbccfb918dbe6b6d5b7acfe8c495768b9c297"
+    },
+    {
+      "path": "agent-skills/puzzle-editor/references/examples/online.ps1",
+      "sha256": "d158496db164fb2a881af3d624b3cfbcc9d182bee357ede4677a7f77b4d9ec40"
+    },
+    {
+      "path": "agent-skills/puzzle-editor/references/examples/operation-schema.json",
+      "sha256": "8c76216da23ce1a27d9606c738abc2fc8f3834b02858739b3af8d41555a57eda"
+    },
+    {
+      "path": "agent-skills/puzzle-editor/references/examples/operations.json",
+      "sha256": "71b9fac0edf3741b746a7170a1930730801453da74cb681ce6231ef5c9f99a4c"
+    },
+    {
+      "path": "agent-skills/puzzle-editor/references/examples/quick-start.ps1",
+      "sha256": "8f6d33b54ad2d3cfb574b6c2e2f2fa3c69c6654ca4eb147a00139cdaeed167fc"
+    },
+    {
+      "path": "agent-skills/puzzle-editor/references/examples/sample.puzzle.json",
+      "sha256": "9ea51e2d010a1452fecae22e92ca9803c8c249725f6ace8e1b330a5fe71529b2"
+    },
+    {
+      "path": "agent-skills/puzzle-editor/references/operations-fsm.md",
+      "sha256": "53f6cda6a6bba5a5754aa8f491b51082a23dc277c27a7fd509ef487a307b4d11"
+    },
+    {
+      "path": "agent-skills/puzzle-editor/references/operations-hierarchy.md",
+      "sha256": "83ba1b2d404af6bf917ba2e4e4ff6d791b4a71c5912adde8a7720db9e64a65ec"
+    },
+    {
+      "path": "agent-skills/puzzle-editor/references/operations-presentation.md",
+      "sha256": "a2238cdc1a45a2cd9c49179a7d7f89dedb6a97a5e0c53af702b46856440f71ea"
+    },
+    {
+      "path": "agent-skills/puzzle-editor/references/operations-resources.md",
+      "sha256": "7827b4af4e1c4a73be7342ec0f427dc19a1004375af69a99dac5be158994511e"
+    },
+    {
+      "path": "agent-skills/puzzle-editor/references/permissions-errors.md",
+      "sha256": "3d04e6fc1afbcaac49ff2a4aa3ca4e6abd4792a4dfde3c52c368d64cf3c68e6f"
+    },
+    {
+      "path": "agent-skills/puzzle-editor/references/quick-start.md",
+      "sha256": "38f9e92ab04eba7011a5b88e5d57445d4b993b48ceb5bc090470387d0a0404bc"
+    },
+    {
+      "path": "agent-skills/puzzle-editor/references/workflows.md",
+      "sha256": "3b16ceeec23291fc5a07e5f9dca020b2549c8d12f8570ceb305f85d669730e68"
+    },
+    {
+      "path": "app/cli.js",
+      "sha256": "434ec13e135fbbb4b602d27c0cad54e707b6c3f2c290791129224f8c5ed057f0"
+    },
+    {
+      "path": "app/package.json",
+      "sha256": "dfdee9b016f8b1cead7df5c672b3fd59b9a317b561806b0e8b698523a27e1de2"
+    },
+    {
+      "path": "capabilities.json",
+      "sha256": "26674696bba7e23a4153fdbd2953b3403b71cf97d321082d4163ae8eabd6c976"
+    },
+    {
+      "path": "install-cli.ps1",
+      "sha256": "53cca29dd98fe36f436f959026322291ed7950c1bac06110c5d428244714d500"
+    },
+    {
+      "path": "licenses/Node-LICENSE.txt",
+      "sha256": "8efdacdc1cfa3460aeb7fe98e3c54337b971d5da70e6eee292b73b981acb220c"
+    },
+    {
+      "path": "licenses/Zod-LICENSE.txt",
+      "sha256": "3f1189b28e3866e0d979968d466b78f813f76827cfdca1fbb124cc0a5c8841f8"
+    },
+    {
+      "path": "puzzle.cmd",
+      "sha256": "4e13e1106e23ad4a32633e3d6d1a3b6ee763c485ae712e4ce59bdc7274c2f4a3"
+    },
+    {
+      "path": "runtime-lock.json",
+      "sha256": "c412ba2122de519a85401c3f262c7e485ced2020d15d83462bfeae26664fdbc3"
+    },
+    {
+      "path": "runtime/node.exe",
+      "sha256": "3331e1ffe19874215472217c5e94f5a0c6d8e18c4ac7111d3937aa0ad5e9b4a5"
+    },
+    {
+      "path": "uninstall-cli.ps1",
+      "sha256": "08b302a0114ca8767b590f3026a557eba60ff270c1e37014b2ca0a703ae1ce18"
+    }
+  ]
+}

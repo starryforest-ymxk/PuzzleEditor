@@ -1,0 +1,16 @@
+{
+  "apiVersion": "1.0.0",
+  "ok": true,
+  "command": "setup install",
+  "data": {
+    "root": "D:\\Tools\\PuzzleEditorCLI",
+    "dryRun": false,
+    "activeVersion": "C16-388e14c8265c8626",
+    "previousVersion": "C16-15d2d62f5dc3e659",
+    "pathChange": false,
+    "registry": "user",
+    "retainedVersions": 5,
+    "changed": true
+  },
+  "diagnostics": []
+}

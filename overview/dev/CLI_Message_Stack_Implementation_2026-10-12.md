@@ -50,7 +50,7 @@ CLI 先检查桌面 status 的 supportedFeatures 包含 message-stack-read-v1；
 
 - CLI ZIP：`release/cli/message-stack-final-2026-10-12/PuzzleEditor-CLI-1.0.0-beta-win-x64.zip`；SHA-256 `a9b6ac27ee69b86125bbc8e0b78c9d3e7aaea4ec292481413cbb5708e11af915`。
 - 桌面安装器：`release/desktop/message-stack-2026-10-12/Puzzle Editor Setup 1.0.0-beta.exe`；86,914,388 字节；SHA-256 `ca2d2e4144468c94d09d48c94fb654dafc61b950a5dc040aee7c6163cf2d9f13`。
-- 当前实现和成品已完成。正在等待用户确认是否同步升级本机现有 CLI/Skill/桌面；安装结果另补，不将临时成品当作用户已安装版本。未提交推送或发布。
+- 实现提交 `a7c5437` 已推送 `origin/main`。按用户后续要求，已原位升级本机 CLI、用户级 Skill 和桌面版；实际安装 39 项回归、全部文件/快捷方式核验、Codex 发现与真实窗口消息读取通过。完整安装证据及保护边界见 [交付报告](./CLI_Message_Stack_Delivery_2026-10-12.md)。没有创建 Release、标签或 npm 发布。
 
 ## 保留边界
 

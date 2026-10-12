@@ -1,0 +1,106 @@
+{
+  "ok": true,
+  "verifiedAt": "2026-10-12T11:14:55.9898072Z",
+  "cli": "D:\\Tools\\PuzzleEditorCLI\\bin\\puzzle.cmd",
+  "example": "C:\\Users\\吴迪\\.agents\\skills\\puzzle-editor\\references\\examples\\messages.ps1",
+  "selectedInstalledApp": true,
+  "instanceId": "842ed308-c611-4ecd-9364-b39d04bf48a7",
+  "sessionId": 1,
+  "projectName": "BubbleHorror",
+  "projectPath": "D:\\UnityProjects\\Projects\\BubbleHorror\\Assets\\Data\\PuzzleProjectData\\BubbleHorror.puzzle.json",
+  "scope": "editor-instance",
+  "projectAssociation": "not-recorded",
+  "total": 1,
+  "counts": {
+    "info": 1,
+    "warning": 0,
+    "error": 0
+  },
+  "snapshotId": "94a37a42-5c99-4fac-b4dc-9e1772fc5993",
+  "pageSize": 1,
+  "completeSnapshot": true,
+  "beforeStatus": {
+    "token": {
+      "instanceId": "842ed308-c611-4ecd-9364-b39d04bf48a7",
+      "sessionId": 1,
+      "contentEpoch": 1,
+      "contentHash": "288d71258f984a20bf27748cfce7bf80a74767d5fc864fb3075e92f307c37ffb"
+    },
+    "projectId": "PROJECT_1",
+    "name": "BubbleHorror",
+    "path": "D:\\UnityProjects\\Projects\\BubbleHorror\\Assets\\Data\\PuzzleProjectData\\BubbleHorror.puzzle.json",
+    "loaded": true,
+    "dirty": false,
+    "readOnly": false,
+    "pendingEdits": false,
+    "invalid": false,
+    "busy": false,
+    "savePolicy": {
+      "autoSaveBlocked": false,
+      "reason": null
+    },
+    "history": {
+      "past": 0,
+      "future": 0
+    },
+    "resultRetentionMs": 600000,
+    "supportedFeatures": [
+      "message-stack-read-v1"
+    ]
+  },
+  "afterStatus": {
+    "token": {
+      "instanceId": "842ed308-c611-4ecd-9364-b39d04bf48a7",
+      "sessionId": 1,
+      "contentEpoch": 1,
+      "contentHash": "288d71258f984a20bf27748cfce7bf80a74767d5fc864fb3075e92f307c37ffb"
+    },
+    "projectId": "PROJECT_1",
+    "name": "BubbleHorror",
+    "path": "D:\\UnityProjects\\Projects\\BubbleHorror\\Assets\\Data\\PuzzleProjectData\\BubbleHorror.puzzle.json",
+    "loaded": true,
+    "dirty": false,
+    "readOnly": false,
+    "pendingEdits": false,
+    "invalid": false,
+    "busy": false,
+    "savePolicy": {
+      "autoSaveBlocked": false,
+      "reason": null
+    },
+    "history": {
+      "past": 0,
+      "future": 0
+    },
+    "resultRetentionMs": 600000,
+    "supportedFeatures": [
+      "message-stack-read-v1"
+    ]
+  },
+  "stateUnchanged": true,
+  "infoHiddenInGui": true,
+  "preferencesUnchangedDuringRead": true,
+  "preferencesChangedAfterNormalStartup": true,
+  "restoredProjectLastOpened": "2026-10-12T11:12:24.591Z",
+  "files": [
+    {
+      "path": "D:\\UnityProjects\\Projects\\BubbleHorror\\Assets\\Data\\PuzzleProjectData\\BubbleHorror.puzzle.json",
+      "beforeSha256": "02AFDA5BACFE65933C2DB14E4EFA348BF81BC0D323F25B8D6B1BD52F14A2074F",
+      "afterSha256": "02AFDA5BACFE65933C2DB14E4EFA348BF81BC0D323F25B8D6B1BD52F14A2074F",
+      "unchanged": true
+    },
+    {
+      "path": "C:\\Users\\吴迪\\AppData\\Roaming\\StarryTree\\PuzzleEditor\\preferences.json",
+      "beforeSha256": "369FD24D91B1E22A48803902044433ED7751AD50FB755D81471615FE08050ECC",
+      "afterSha256": "B741549F79471D9E2540C396E149E1B0FB7750E671136FA21471026A7F407B08",
+      "unchanged": false
+    },
+    {
+      "path": "E:\\Projects\\Web Projects\\puzzle-editor\\overview\\dev\\verification\\batch6-browser-saved.puzzle.json",
+      "beforeSha256": "DD162353C02EC8404E660E4A364208B857608280525387B2B5A7762A359724DF",
+      "afterSha256": "DD162353C02EC8404E660E4A364208B857608280525387B2B5A7762A359724DF",
+      "unchanged": true
+    }
+  ],
+  "editorLeftOpenForUser": true
+}

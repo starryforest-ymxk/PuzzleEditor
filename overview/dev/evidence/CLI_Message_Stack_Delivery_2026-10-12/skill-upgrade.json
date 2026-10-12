@@ -1,0 +1,12 @@
+{
+  "apiVersion": "1.0.0",
+  "ok": true,
+  "command": "skills install",
+  "data": {
+    "target": "C:\\Users\\吴迪\\.agents\\skills\\puzzle-editor",
+    "changed": true,
+    "installed": true,
+    "reloadHint": "Refresh/restart Codex if the Skill is not listed; filesystem installation does not prove host discovery."
+  },
+  "diagnostics": []
+}
